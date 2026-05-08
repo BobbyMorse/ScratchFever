@@ -25,6 +25,7 @@ class VirginiaScraper(PlaywrightScraper):
     base_url = BASE_URL
 
     def scrape(self) -> list[dict]:
+        self._ensure_browser()
         page = self._browser.new_context(
             user_agent=(
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -50,13 +51,18 @@ class VirginiaScraper(PlaywrightScraper):
 
         try:
             page.goto(LIST_URL, wait_until="load", timeout=45_000)
-            page.wait_for_timeout(3_000)
+            # Wait for Angular to render game tiles and pager
+            try:
+                page.wait_for_selector(".scratcher-tile", timeout=15_000)
+            except Exception:
+                page.wait_for_timeout(5_000)
             for _ in range(10):
                 try:
                     btn = page.locator("#pager-next")
-                    if btn.is_visible() and not btn.is_disabled():
+                    page.wait_for_timeout(500)
+                    if btn.count() > 0 and not btn.is_disabled():
                         btn.click()
-                        page.wait_for_timeout(1_500)
+                        page.wait_for_timeout(2_000)
                     else:
                         break
                 except Exception:
