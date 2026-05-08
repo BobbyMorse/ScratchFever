@@ -1508,7 +1508,6 @@ function updateDetailMapAllRetailers(retailers) {
     }).addTo(_detailMap);
     const canMark = !["hit", "no_stock"].includes(cs);
     marker.bindPopup(`<strong>${escHtml(r.name)}</strong><br>${escHtml(r.city || "")}
-      <br><small>Score ${r.score}</small>
       ${canMark ? `<br><br>
         <button onclick="manualCheckRetailer('${r.id}',${_currentCampaignId},'${escHtml(r.name)}','${escHtml(r.address||"")}','${escHtml(r.city||"")}','${escHtml(r.phone||"")}',${r.lat||"null"},${r.lng||"null"},0)" style="font-size:.8rem;cursor:pointer;margin-right:.3rem">❌ No Stock</button>
         <button onclick="manualCheckRetailer('${r.id}',${_currentCampaignId},'${escHtml(r.name)}','${escHtml(r.address||"")}','${escHtml(r.city||"")}','${escHtml(r.phone||"")}',${r.lat||"null"},${r.lng||"null"},1)" style="font-size:.8rem;cursor:pointer">✅ Has It</button>
