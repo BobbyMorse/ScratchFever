@@ -1087,23 +1087,6 @@ footer {
 .detail-stat-card.detail-stat-green .detail-stat-val { color: var(--green); }
 .detail-stat-lbl { font-size: .72rem; color: var(--text-muted); margin-top: .2rem; }
 
-/* Tier badges */
-.tier-badge {
-  display: inline-block;
-  font-size: .7rem;
-  font-weight: 700;
-  padding: .1rem .45rem;
-  border-radius: 6px;
-  text-transform: uppercase;
-  letter-spacing: .03em;
-  background: var(--bg3);
-  color: var(--text-muted);
-}
-.tier-elite   { background: #e6fff0; color: #00b96e; border: 1px solid #00b96e; }
-.tier-good    { background: #f0fff0; color: #5aac44; border: 1px solid #5aac44; }
-.tier-caution { background: var(--yellow-dim); color: var(--yellow); border: 1px solid var(--yellow); }
-.tier-avoid   { background: var(--red-dim); color: var(--red); border: 1px solid var(--red); }
-
 /* Queue status badges */
 .q-status { font-size: .75rem; padding: .15rem .5rem; border-radius: 8px; font-weight: 600; white-space: nowrap; }
 .q-pending  { background: var(--bg3); color: var(--text-muted); }
