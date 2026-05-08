@@ -1,16 +1,7 @@
-from __future__ import annotations
-import sys
-import os
+from fastapi import FastAPI
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+app = FastAPI()
 
-from fastapi import FastAPI  # noqa: F401 - required for Vercel detection
-
-try:
-    from backend.main import app
-except Exception as e:
-    app = FastAPI(title="ScratchFever")
-
-    @app.get("/")
-    def _import_error():
-        return {"error": str(e)}
+@app.get("/")
+def root():
+    return {"status": "ok", "app": "ScratchFever"}
