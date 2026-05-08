@@ -638,45 +638,6 @@ footer {
 .link-dir  { background: #e6f4ea; color: #188038; border-color: #a8d5b0; }
 .link-srch { background: #fce8e6; color: #d93025; border-color: #f5b7b1; }
 
-/* ── Scoring help tooltip ─────────────────────────── */
-.help-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px; height: 16px;
-  border-radius: 50%;
-  background: var(--grape);
-  color: #fff;
-  font-size: .65rem;
-  font-weight: 800;
-  cursor: pointer;
-  vertical-align: middle;
-  margin-left: .3rem;
-  user-select: none;
-  position: relative;
-}
-.help-icon:hover { background: var(--pink); }
-
-.scoring-tooltip {
-  display: none;
-  position: absolute;
-  top: 2rem;
-  left: 0;
-  z-index: 500;
-  background: var(--bg2);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-card);
-  padding: .9rem 1.1rem;
-  font-size: .8rem;
-  line-height: 1.7;
-  min-width: 310px;
-  color: var(--text);
-  font-weight: 400;
-  white-space: nowrap;
-  pointer-events: none;
-}
-.scoring-tooltip.visible { display: block; }
 .scoring-tooltip hr { border: none; border-top: 1px solid var(--border); margin: .4rem 0; }
 
 /* ── MA / AZ inline map ───────────────────────────── */
