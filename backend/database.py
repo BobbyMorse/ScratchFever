@@ -194,7 +194,7 @@ async def get_game_detail(db, game_db_id: int):
         SELECT g.id, g.state_code, g.state_name, g.game_id, g.name, g.price,
                g.ev, g.return_pct, g.overall_odds_one_in,
                g.top_prize, g.top_prize_remaining, g.total_tickets, g.tickets_remaining,
-               g.is_active, g.detail_url, g.image_url, g.scraped_at,
+               g.prize_pool_left, g.is_active, g.detail_url, g.image_url, g.scraped_at,
                pt.prize_amount, pt.odds_one_in, pt.prizes_total, pt.prizes_remaining
         FROM games g
         LEFT JOIN prize_tiers pt ON pt.game_db_id = g.id
