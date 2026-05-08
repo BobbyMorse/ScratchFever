@@ -177,8 +177,8 @@ async def get_all_games(db, state: str = None, min_price: float = None,
                g.top_prize, g.top_prize_remaining,
                g.total_tickets, g.tickets_remaining,
                g.detail_url, g.image_url, g.scraped_at,
-               (SELECT SUM(pt.prize_amount * pt.prizes_remaining)
-                FROM prize_tiers pt WHERE pt.game_db_id = g.id) AS prize_pool_remaining
+               COALESCE(g.prize_pool_left, (SELECT SUM(pt.prize_amount * pt.prizes_remaining)
+                FROM prize_tiers pt WHERE pt.game_db_id = g.id)) AS prize_pool_remaining
         FROM games g
         WHERE {where}
         ORDER BY g.{sort_by} {direction}
