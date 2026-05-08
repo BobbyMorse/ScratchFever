@@ -2370,7 +2370,7 @@ function azRow(r, rank) {
 
 function downloadAzCsv() {
   const rows = getAzFilteredRows();
-  const cols = ["score","name","address","city","zipCode","phone","latitude","longitude"];
+  const cols = ["name","address","city","zipCode","phone","latitude","longitude"];
   const header = cols.join(",");
   const csvRows = rows.map(r =>
     cols.map(c => {
