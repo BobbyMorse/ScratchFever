@@ -252,6 +252,7 @@ async def api_az_retailers(
     search: Optional[str] = Query(None, description="Name / city search"),
     limit:  int           = Query(500, le=7000),
 ):
+    from backend.az_scorer import load_and_score as az_load_and_score
     retailers = az_load_and_score()
     if search:
         q = search.lower()
