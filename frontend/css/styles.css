@@ -736,7 +736,7 @@ footer {
   padding: .45rem .95rem;
   border: 1.5px solid var(--border);
   border-radius: 20px;
-  background: var(--surface);
+  background: var(--bg);
   cursor: pointer;
   font-size: .82rem;
   color: var(--text-muted);
