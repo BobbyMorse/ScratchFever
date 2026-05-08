@@ -81,6 +81,7 @@ async def init_db():
         # Migrations: add columns that may not exist in older DBs
         for migration in [
             "ALTER TABLE games ADD COLUMN image_url TEXT",
+            "ALTER TABLE games ADD COLUMN prize_pool_left REAL",
             "ALTER TABLE inventory_reports ADD COLUMN reporter_username TEXT",
         ]:
             try:
