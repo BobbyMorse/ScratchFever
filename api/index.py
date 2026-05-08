@@ -1,7 +1,1 @@
-from fastapi import FastAPI
-
-app = FastAPI()
-
-@app.get("/")
-def root():
-    return {"status": "ok", "app": "ScratchFever"}
+from backend.main import app  # noqa: F401
