@@ -97,10 +97,10 @@ async def upsert_game(db, state_code: str, state_name: str, game_id: str, game_d
     await db.execute("""
         INSERT INTO games (state_code, state_name, game_id, name, price, ev, return_pct,
             overall_odds_one_in, top_prize, top_prize_remaining,
-            total_tickets, tickets_remaining, detail_url, image_url, scraped_at, is_active)
+            total_tickets, tickets_remaining, prize_pool_left, detail_url, image_url, scraped_at, is_active)
         VALUES (:state_code, :state_name, :game_id, :name, :price, :ev, :return_pct,
             :overall_odds_one_in, :top_prize, :top_prize_remaining,
-            :total_tickets, :tickets_remaining, :detail_url, :image_url, datetime('now'), 1)
+            :total_tickets, :tickets_remaining, :prize_pool_left, :detail_url, :image_url, datetime('now'), 1)
         ON CONFLICT(state_code, game_id) DO UPDATE SET
             name=excluded.name,
             price=excluded.price,
@@ -111,6 +111,7 @@ async def upsert_game(db, state_code: str, state_name: str, game_id: str, game_d
             top_prize_remaining=excluded.top_prize_remaining,
             total_tickets=excluded.total_tickets,
             tickets_remaining=excluded.tickets_remaining,
+            prize_pool_left=excluded.prize_pool_left,
             detail_url=excluded.detail_url,
             image_url=excluded.image_url,
             scraped_at=datetime('now'),
