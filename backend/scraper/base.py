@@ -90,14 +90,15 @@ class BaseScraper(ABC):
             for i, cell in enumerate(cells):
                 text = cell.get_text(strip=True).lower()
                 # Check remaining/total/odds BEFORE prize so "Prizes Remaining"
-                # doesn't get mapped to the prize column.
-                if "remaining" in text or "left" in text or "unclaimed" in text:
+                # doesn't get mapped to the prize column. Use is-None guards so the
+                # first matching column wins (e.g. "Prizes Paid" can't overwrite "Prize Amount").
+                if col_map.get("remaining") is None and ("remaining" in text or "left" in text or "unclaimed" in text):
                     col_map["remaining"] = i
-                elif "total" in text or "print" in text:
+                elif col_map.get("total") is None and ("total" in text or "print" in text):
                     col_map["total"] = i
-                elif any(k in text for k in ("odd", "chance", "1 in", "probability")):
+                elif col_map.get("odds") is None and any(k in text for k in ("odd", "chance", "1 in", "probability")):
                     col_map["odds"] = i
-                elif any(k in text for k in ("prize", "amount", "award", "win")):
+                elif col_map.get("prize") is None and any(k in text for k in ("prize", "amount", "award", "win")):
                     col_map["prize"] = i
 
         for row in rows[1:]:
