@@ -152,14 +152,8 @@ async def get_all_games(db, state: str = None, min_price: float = None,
     if sort_by not in allowed_sorts:
         sort_by = "return_pct"
 
-    # VT's "% sold" data is stale — EV numbers are not trustworthy
-    EXCLUDED_STATES = {"VT"}
-
     conditions = ["g.is_active = 1", "g.ev IS NOT NULL"]
-    if EXCLUDED_STATES and not state:
-        placeholders = ",".join("?" * len(EXCLUDED_STATES))
-        conditions.append(f"g.state_code NOT IN ({placeholders})")
-    params = list(EXCLUDED_STATES) if EXCLUDED_STATES and not state else []
+    params = []
 
     if state:
         conditions.append("g.state_code = ?")
