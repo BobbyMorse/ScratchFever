@@ -217,7 +217,7 @@ async def get_states_summary(db):
                AVG(return_pct) as avg_return,
                MAX(return_pct) as best_return
         FROM games
-        WHERE is_active=1
+        WHERE is_active=1 AND state_code NOT IN ('VT')
         GROUP BY state_code, state_name
         ORDER BY state_name
     """)
