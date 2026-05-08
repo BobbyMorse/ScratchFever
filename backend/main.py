@@ -99,7 +99,8 @@ app.include_router(caller_webhook_router)
 app.include_router(caller_api_router)
 
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
-app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+if os.path.isdir(FRONTEND_DIR):
+    app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
 
 @app.get("/", include_in_schema=False)
