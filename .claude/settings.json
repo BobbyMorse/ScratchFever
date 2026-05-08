@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /c/Users/rober/Desktop/ScratchFever && git add -A && git diff --cached --quiet || git commit -m \"auto: $(date '+%Y-%m-%d %H:%M:%S')\"",
+            "statusMessage": "Auto-committing...",
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
+}
