@@ -620,32 +620,6 @@ footer {
 .badge-ss-yes    { background: var(--bg3); color: var(--text-muted); border: 1.5px solid var(--border); font-size:.72rem; }
 .badge-ss-no     { background: var(--bg3); color: var(--text-muted); border: 1.5px solid var(--border); font-size:.72rem; }
 
-/* ── Score bar ────────────────────────────────────── */
-.score-bar-wrap {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  font-weight: 700;
-  font-size: .88rem;
-}
-.score-bar {
-  height: 7px;
-  border-radius: 4px;
-  background: var(--border);
-  width: 56px;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-.score-bar-fill {
-  height: 100%;
-  border-radius: 4px;
-  transition: width .3s;
-}
-.score-bar-fill.elite   { background: linear-gradient(90deg, #06d6a0, #00cc44); }
-.score-bar-fill.good    { background: linear-gradient(90deg, #fbbf24, #88cc00); }
-.score-bar-fill.caution { background: linear-gradient(90deg, #ff8c42, #ffaa00); }
-.score-bar-fill.avoid   { background: var(--red); }
-
 /* ── Link buttons ─────────────────────────────────── */
 .links-cell { white-space: nowrap; }
 .link-btn {
