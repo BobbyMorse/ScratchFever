@@ -503,7 +503,7 @@ function gameRow(g, rank) {
     <td style="color:var(--text-muted);font-size:.8rem;font-weight:700">${rank}</td>
     <td><span class="state-pill state-${g.state_code}">${g.state_code}</span></td>
     <td><strong>${escHtml(g.name)}</strong>${reportBadge}</td>
-    <td style="color:var(--text-muted);font-size:.8rem">${escHtml(g.game_id)}</td>
+    <td style="color:var(--text-muted);font-size:.8rem;width:60px;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(g.game_id)}</td>
     <td><span class="price-pill">$${g.price}</span></td>
     <td>${retCell}</td>
     <td class="${g.ev >= 0 ? "ev-positive" : ""}">${ev}</td>
