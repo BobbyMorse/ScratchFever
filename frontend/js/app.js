@@ -2438,7 +2438,7 @@ function updateAzInventoryMapLayer(visibleRetailers) {
         ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock")
         : "Not yet checked";
       return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon })
-        .bindPopup(`<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>Score: ${r.score}<br>${statusTxt}`);
+        .bindPopup(`<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}`);
     });
 
   // Community report dots filtered to AZ retailers
