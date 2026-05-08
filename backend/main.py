@@ -265,6 +265,7 @@ async def api_ma_retailers(
     search: Optional[str] = Query(None, description="Name / city search"),
     limit:  int           = Query(500, le=7000),
 ):
+    from backend.ma_scorer import load_and_score
     retailers = load_and_score()
     if search:
         q = search.lower()
