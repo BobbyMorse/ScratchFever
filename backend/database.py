@@ -1,7 +1,11 @@
 import aiosqlite
 import os
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "..", "scratch_fever.db")
+DB_PATH = (
+    "/tmp/scratch_fever.db"
+    if os.environ.get("VERCEL")
+    else os.path.join(os.path.dirname(__file__), "..", "scratch_fever.db")
+)
 
 
 async def get_db():
