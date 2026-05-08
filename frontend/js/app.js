@@ -600,10 +600,15 @@ function renderModal(g) {
     </tr>`;
   }).join("");
 
+  const noSalesData = g.tickets_remaining == null && g.total_tickets == null;
+
   document.getElementById("modalContent").innerHTML = `
     ${g.image_url ? `<img src="${escHtml(g.image_url)}" alt="${escHtml(g.name)}" class="modal-ticket-img" onerror="this.style.display='none'">` : ""}
     <div class="modal-title">${escHtml(g.name)}</div>
     <div class="modal-state">${g.state_name} • $${g.price} ticket</div>
+    ${noSalesData ? `<div style="background:rgba(255,200,0,.12);border:1px solid rgba(255,200,0,.3);border-radius:8px;padding:.6rem .85rem;margin:.75rem 0;font-size:.82rem;color:#c8a800">
+      <strong>Limited data</strong> — ${g.state_name} does not publish ticket sales figures, so Est. Tickets Left, Tickets Sold, and EV calculations are based on prize table odds only.
+    </div>` : ""}
 
     <div class="modal-stats">
       <div class="modal-stat">
