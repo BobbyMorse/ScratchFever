@@ -24,9 +24,6 @@ from backend.database import (
     init_db, get_db, get_all_games, get_game_detail, get_states_summary, DB_PATH,
     add_inventory_report, get_recent_inventory_reports,
 )
-from backend.scraper.runner import run_all
-from backend.ma_scorer import load_and_score
-from backend.az_scorer import load_and_score as az_load_and_score
 from backend.caller.db import init_caller_db
 from backend.caller.webhook import router as caller_webhook_router
 from backend.caller.api import router as caller_api_router, set_runner
