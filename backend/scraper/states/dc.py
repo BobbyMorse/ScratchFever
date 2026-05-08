@@ -4,6 +4,7 @@ Listing: https://dclottery.com/games/scratchers
 DC publishes odds and prize data on individual game pages.
 """
 import re
+import json
 import logging
 from backend.scraper.base import BaseScraper
 from backend.ev_calculator import parse_prize_amount, parse_odds
