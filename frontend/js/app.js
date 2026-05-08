@@ -1965,7 +1965,7 @@ function toggleStoreProfile(tr) {
   tr.classList.add("store-profile-open");
   const profileTr = document.createElement("tr");
   profileTr.className = "store-profile-tr";
-  profileTr.innerHTML = `<td colspan="7">${storeProfileHtml(rid)}</td>`;
+  profileTr.innerHTML = `<td colspan="6">${storeProfileHtml(rid)}</td>`;
   tr.insertAdjacentElement("afterend", profileTr);
 }
 
