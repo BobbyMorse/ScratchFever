@@ -52,20 +52,25 @@ class VirginiaScraper(PlaywrightScraper):
 
         try:
             page.goto(LIST_URL, wait_until="load", timeout=45_000)
-            # Wait for Angular to render game tiles and pager
+            # Wait for Angular to render game tiles and show pager
             try:
-                page.wait_for_selector(".scratcher-tile", timeout=15_000)
+                page.wait_for_selector(".scratcher-tile", timeout=20_000)
             except Exception:
-                page.wait_for_timeout(5_000)
+                pass
+            page.wait_for_timeout(3_000)
             for _ in range(10):
                 try:
                     btn = page.locator("#pager-next")
-                    page.wait_for_timeout(500)
-                    if btn.count() > 0 and not btn.is_disabled():
-                        btn.click()
-                        page.wait_for_timeout(2_000)
-                    else:
+                    # Wait up to 3s for button to appear
+                    try:
+                        btn.wait_for(state="visible", timeout=3_000)
+                    except Exception:
                         break
+                    if btn.is_disabled():
+                        break
+                    btn.click()
+                    # Wait for new API call to complete
+                    page.wait_for_timeout(2_500)
                 except Exception:
                     break
         except Exception as e:
