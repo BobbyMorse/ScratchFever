@@ -123,7 +123,7 @@ async def persist_games(db: aiosqlite.Connection, state_code: str, state_name: s
 async def run_scraper(scraper_cls, db: aiosqlite.Connection):
     scraper = scraper_cls()
     logger.info("Starting scraper: %s (%s)", scraper.state_name, scraper.state_code)
-    games, error = scraper.safe_scrape()
+    games, error = await asyncio.to_thread(scraper.safe_scrape)
     count = 0
     if games:
         # Only deactivate existing games for this state when we have fresh data to replace them.
