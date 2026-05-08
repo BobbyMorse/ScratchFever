@@ -143,7 +143,7 @@ class VermontScraper(BaseScraper):
                 if prize > 0 and overall_odds:
                     tiers.append({
                         "prize_amount":     prize,
-                        "odds_one_in":      round(total_tickets / max(remaining, 1), 2) if total_tickets and remaining else overall_odds * 50,
+                        "odds_one_in":      round(total_tickets / remaining, 2) if total_tickets and remaining else None,
                         "prizes_total":     None,
                         "prizes_remaining": remaining,
                     })
