@@ -59,11 +59,15 @@ class DCScraper(BaseScraper):
                 game_id = m_id.group(1) if m_id else re.sub(r"[^a-z0-9]", "", name.lower())[:20]
 
                 tiers = []
+                node_id = None
                 if detail_url:
                     try:
-                        tiers = self._scrape_detail(detail_url)
+                        tiers, node_id = self._scrape_detail(detail_url)
                     except Exception as e:
                         logger.debug("DC detail failed for %s: %s", name, e)
+
+                if node_id:
+                    game_id = node_id
 
                 games.append(self.build_game(
                     game_id=str(game_id),
