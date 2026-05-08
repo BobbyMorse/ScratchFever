@@ -95,12 +95,12 @@ class IdahoScraper(BaseScraper):
                 hdrs = [c.get_text(strip=True).lower() for c in rows[0].find_all(["th", "td"])]
                 prize_col = odds_col = rem_col = None
                 for i, h in enumerate(hdrs):
-                    if "prize" in h or "amount" in h:
+                    if "remaining" in h:
+                        rem_col = i
+                    elif "prize" in h or "amount" in h:
                         prize_col = i
                     elif "odd" in h:
                         odds_col = i
-                    elif "remaining" in h:
-                        rem_col = i
                 if prize_col is None:
                     prize_col = 0
                 if odds_col is None:
