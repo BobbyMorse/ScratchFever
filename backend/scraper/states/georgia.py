@@ -63,7 +63,7 @@ class GeorgiaScraper(BaseScraper):
 
         for t in tiers_raw:
             prize_cents = t.get("prizeAmount") or 0
-            prize = prize_cents / 100.0
+            prize = prize_cents / 10000.0
             total = int(t.get("winningTickets") or 0)
             paid = int(t.get("paidTickets") or 0)
             remaining = max(total - paid, 0)
