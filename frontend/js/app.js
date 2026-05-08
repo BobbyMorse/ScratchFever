@@ -1449,7 +1449,6 @@ function initDetailMap(queue) {
       radius: 7, color, fillColor: color, fillOpacity: 0.85, weight: 1.5,
     }).addTo(_detailMap);
     marker.bindPopup(`<strong>${escHtml(q.name)}</strong><br>${escHtml(q.city || "")}
-      <br><small>Score ${q.score}</small>
       ${q.status === "pending" ? `<br><br><button onclick="markQueueNoInventory(${q.id})" style="font-size:.8rem;cursor:pointer">❌ Mark No Stock</button>` : ""}`
     );
   });
