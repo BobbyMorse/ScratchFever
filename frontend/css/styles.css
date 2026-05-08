@@ -266,6 +266,20 @@ body {
   border-color: var(--pink);
   box-shadow: 0 0 0 3px rgba(255, 107, 172, 0.15);
 }
+.filter-group select:focus-visible,
+.filter-group input:focus-visible {
+  border-color: var(--grape);
+  box-shadow: 0 0 0 3px rgba(159, 83, 240, 0.2);
+  outline: none;
+}
+.btn:focus-visible {
+  outline: 2px solid var(--grape);
+  outline-offset: 2px;
+}
+.link-btn:focus-visible {
+  outline: 2px solid var(--grape);
+  outline-offset: 2px;
+}
 
 /* ── Table section ────────────────────────────────── */
 .table-section {
