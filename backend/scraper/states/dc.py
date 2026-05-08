@@ -60,20 +60,38 @@ class DCScraper(BaseScraper):
 
                 tiers = []
                 node_id = None
+                overall_odds = None
                 if detail_url:
                     try:
-                        tiers, node_id = self._scrape_detail(detail_url)
+                        tiers, node_id, overall_odds = self._scrape_detail(detail_url)
                     except Exception as e:
                         logger.debug("DC detail failed for %s: %s", name, e)
 
                 if node_id:
                     game_id = node_id
 
+                # Derive ticket counts from overall odds + prize totals
+                tickets_remaining = None
+                total_tickets = None
+                if overall_odds and tiers:
+                    total_prizes = sum(t.get("prizes_total") or 0 for t in tiers)
+                    remaining_prizes = sum(t.get("prizes_remaining") or 0 for t in tiers)
+                    if total_prizes > 0:
+                        total_tickets = round(overall_odds * total_prizes)
+                        for t in tiers:
+                            if t.get("prizes_total"):
+                                t["odds_one_in"] = round(total_tickets / t["prizes_total"], 2)
+                    if remaining_prizes > 0:
+                        tickets_remaining = round(overall_odds * remaining_prizes)
+
                 games.append(self.build_game(
                     game_id=str(game_id),
                     name=name,
                     price=price,
                     tiers=tiers,
+                    tickets_remaining=tickets_remaining,
+                    total_tickets=total_tickets,
+                    overall_odds=overall_odds,
                     detail_url=detail_url,
                 ))
             except Exception as e:
