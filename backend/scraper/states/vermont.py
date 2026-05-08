@@ -37,6 +37,9 @@ class VermontScraper(BaseScraper):
     base_url = BASE_URL
 
     def scrape(self) -> list[dict]:
+        # Disabled: VT's "% of Tickets Sold" field is stale; EV values are unreliable
+        return []
+
         games = []
         seen = set()
 
