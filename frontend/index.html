@@ -354,26 +354,26 @@
       </section>
 
       <!-- AZ Filters -->
-      <section class="filters-bar">
+      <section class="filters-bar" role="search" aria-label="Filter Arizona retailers">
         <div class="filter-group" style="min-width:220px;position:relative">
-          <label>Hunting For</label>
+          <label for="azGameFilterInput">Hunting For</label>
           <div class="game-filter-combo">
-            <input type="text" id="azGameFilterInput" placeholder="Any game…" oninput="searchAzGameFilter()" onfocus="searchAzGameFilter()" autocomplete="off" />
-            <button class="game-filter-clear" id="azGameFilterClear" onclick="clearAzGameFilter()" style="display:none">✕</button>
+            <input type="text" id="azGameFilterInput" placeholder="Any game…" aria-label="Filter by game name" oninput="searchAzGameFilter()" onfocus="searchAzGameFilter()" autocomplete="off" />
+            <button class="game-filter-clear" id="azGameFilterClear" onclick="clearAzGameFilter()" style="display:none" aria-label="Clear game filter">✕</button>
           </div>
           <div id="azGameFilterDropdown" class="store-dropdown" style="display:none"></div>
         </div>
         <div class="filter-group">
-          <label>Name Search</label>
-          <input type="text" id="azSearchInput" placeholder="Store name…" oninput="renderAzTable()" />
+          <label for="azSearchInput">Name Search</label>
+          <input type="text" id="azSearchInput" placeholder="Store name…" aria-label="Filter by store name" oninput="renderAzTable()" />
         </div>
         <div class="filter-group">
-          <label>City</label>
-          <input type="text" id="azCityInput" placeholder="e.g. Flagstaff…" oninput="renderAzTable()" />
+          <label for="azCityInput">City</label>
+          <input type="text" id="azCityInput" placeholder="e.g. Flagstaff…" aria-label="Filter by city" oninput="renderAzTable()" />
         </div>
         <div class="filter-group">
-          <label>Inventory</label>
-          <select id="azInvFilter" onchange="renderAzTable()">
+          <label for="azInvFilter">Inventory</label>
+          <select id="azInvFilter" aria-label="Filter by inventory status" onchange="renderAzTable()">
             <option value="">Any</option>
             <option value="in">✅ In Stock</option>
             <option value="out">❌ Out of Stock</option>
@@ -381,8 +381,8 @@
           </select>
         </div>
         <div class="filter-group">
-          <label>Last Checked</label>
-          <select id="azDateFilter" onchange="renderAzTable()">
+          <label for="azDateFilter">Last Checked</label>
+          <select id="azDateFilter" aria-label="Filter by last checked date" onchange="renderAzTable()">
             <option value="">Any</option>
             <option value="today">Today</option>
             <option value="7d">Last 7 Days</option>
@@ -392,11 +392,11 @@
         <div class="filter-group" style="justify-content:center;">
           <label>&nbsp;</label>
           <label class="toggle-pill">
-            <input type="checkbox" id="azShowUnchecked" checked onchange="renderAzTable()" />
+            <input type="checkbox" id="azShowUnchecked" checked onchange="renderAzTable()" aria-label="Show unchecked retailers" />
             <span>Show Unchecked</span>
           </label>
         </div>
-        <div class="filter-group" style="justify-content:flex-end;margin-left:auto;flex-direction:row;align-items:flex-end;gap:.5rem;">
+        <div class="filter-actions">
           <button class="btn btn-report" id="azReportInvBtn" onclick="openReportModal()" style="display:none">📍 Report Inventory</button>
           <button class="btn btn-csv" onclick="downloadAzCsv()">⬇ Download CSV</button>
           <button class="btn btn-heatmap" onclick="toggleAzMap()">🗺 Toggle Map</button>
