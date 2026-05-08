@@ -2272,7 +2272,7 @@ async function loadAzRetailers() {
   } catch (e) {
     const tbody = document.getElementById("azTableBody");
     if (tbody) tbody.innerHTML =
-      `<tr><td colspan="7" class="loading-cell">No AZ retailer data yet. Run fetch_az_retailers.py to populate.</td></tr>`;
+      `<tr><td colspan="6" class="loading-cell">No AZ retailer data yet. Run fetch_az_retailers.py to populate.</td></tr>`;
   }
 }
 
