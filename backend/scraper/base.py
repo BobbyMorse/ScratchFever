@@ -107,9 +107,13 @@ class BaseScraper(ABC):
                 continue
             try:
                 prize_idx = col_map.get("prize", 0)
-                odds_idx = col_map.get("odds", 1)
+                odds_idx = col_map.get("odds")
                 prize = parse_prize_amount(cells[prize_idx].get_text(strip=True))
-                odds = parse_odds(cells[odds_idx].get_text(strip=True))
+                odds = (
+                    parse_odds(cells[odds_idx].get_text(strip=True))
+                    if odds_idx is not None and len(cells) > odds_idx
+                    else None
+                )
 
                 remaining = None
                 total_from_rem = None
