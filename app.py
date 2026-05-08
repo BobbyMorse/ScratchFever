@@ -1,16 +1,12 @@
-from __future__ import annotations
-import sys
-import os
+from fastapi import FastAPI
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+app = FastAPI(title="ScratchFever")
 
-from fastapi import FastAPI  # noqa: F401 - required for Vercel detection
-
+# Routes are mounted at startup via backend.main — this file is the Vercel entrypoint only.
+# Import the full app lazily so Vercel can detect the entrypoint without running the backend.
 try:
-    from backend.main import app
-except Exception as e:
-    app = FastAPI(title="ScratchFever")
-
-    @app.get("/")
-    def _boot_error():
-        return {"error": str(e)}
+    import sys, os
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from backend.main import app  # noqa: F811
+except Exception:
+    pass
