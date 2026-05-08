@@ -52,27 +52,25 @@ class VirginiaScraper(PlaywrightScraper):
 
         try:
             page.goto(LIST_URL, wait_until="load", timeout=45_000)
-            # Wait for Angular to render game tiles and show pager
+            # Wait for Angular to render first page of games
             try:
                 page.wait_for_selector(".scratcher-tile", timeout=20_000)
             except Exception:
                 pass
-            page.wait_for_timeout(3_000)
+            page.wait_for_timeout(2_000)
+            # Paginate by triggering #pager-next click via JS (avoids visibility issues)
             for _ in range(10):
-                try:
-                    btn = page.locator("#pager-next")
-                    # Wait up to 3s for button to appear
-                    try:
-                        btn.wait_for(state="visible", timeout=3_000)
-                    except Exception:
-                        break
-                    if btn.is_disabled():
-                        break
-                    btn.click()
-                    # Wait for new API call to complete
-                    page.wait_for_timeout(2_500)
-                except Exception:
+                disabled = page.evaluate(
+                    "() => { "
+                    "  const b = document.getElementById('pager-next'); "
+                    "  if (!b) return 'missing'; "
+                    "  if (b.disabled) return 'disabled'; "
+                    "  b.click(); return 'clicked'; "
+                    "}"
+                )
+                if disabled in ("missing", "disabled"):
                     break
+                page.wait_for_timeout(2_500)
         except Exception as e:
             logger.warning("VA listing page error: %s", e)
         finally:
