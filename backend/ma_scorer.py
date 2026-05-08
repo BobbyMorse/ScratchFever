@@ -1,6 +1,7 @@
 """
 MA retailer scoring logic — shared by the API and heatmap_generator.
 """
+from __future__ import annotations
 
 import csv
 import os

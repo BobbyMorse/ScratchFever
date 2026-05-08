@@ -12,6 +12,7 @@ Detail page data (embedded in text, not a table):
 EV method: EV = Total Unclaimed / tickets_remaining - price
   tickets_remaining = total_tickets * (1 - pct_sold / 100)
 """
+from __future__ import annotations
 import re
 import logging
 from backend.scraper.base import BaseScraper

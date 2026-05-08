@@ -13,6 +13,7 @@ Return % = (EV + price) / price * 100
   >100% → positive expected value (rare, happens when prizes cluster toward end of run)
   ~60-70% → typical scratch ticket
 """
+from __future__ import annotations
 
 
 def calculate_ev(price: float, tiers: list[dict], tickets_remaining: int = None) -> dict:

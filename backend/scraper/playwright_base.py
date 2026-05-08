@@ -6,6 +6,7 @@ Call self.pw_soup(url) to get a BeautifulSoup from a JS-rendered page.
 The browser is shared across all pw_soup calls within one scrape() invocation
 and is automatically torn down when safe_scrape() exits.
 """
+from __future__ import annotations
 import logging
 from bs4 import BeautifulSoup
 from backend.scraper.base import BaseScraper, HEADERS

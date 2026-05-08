@@ -6,6 +6,7 @@ Page has <h3>$X Scratch Games</h3> headers followed by
 Detail page: 4-col table (Odds | Prize | Odds | Winners) with decimal odds,
 and "Overall odds 1 in X.XX" in page text.
 """
+from __future__ import annotations
 import re
 import logging
 from backend.scraper.base import BaseScraper

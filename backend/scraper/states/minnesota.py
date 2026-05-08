@@ -5,6 +5,7 @@ Cards use: h2.card--lottery-headline (name), h3.lottery-details (price), [data-g
 Detail pages have a bulletin-matrix-table with "To Win / Odds* / Number of Prizes**" columns.
 The table cells include accessibility spans that repeat the column header — strip those first.
 """
+from __future__ import annotations
 import re
 import logging
 from backend.scraper.base import BaseScraper

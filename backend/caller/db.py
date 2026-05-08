@@ -1,3 +1,4 @@
+from __future__ import annotations
 import re
 import aiosqlite
 from backend.database import DB_PATH

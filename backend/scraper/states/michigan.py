@@ -7,6 +7,7 @@ Detail:  https://www.michiganlottery.com/games/{id}-instore-instant-{slug}
   Table columns: PRIZE | REMAINING | START (remaining/total counts, no per-tier odds)
   EV computed from overall odds: total_tickets = total_prizes_printed * overall_odds
 """
+from __future__ import annotations
 import re
 import logging
 from backend.scraper.playwright_base import PlaywrightScraper

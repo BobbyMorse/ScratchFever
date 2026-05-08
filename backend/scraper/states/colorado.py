@@ -6,6 +6,7 @@ Game page: https://www.coloradolottery.com/en/games/scratch/game/{slug}/
   - Price in .price element
   - Prize table with columns: Prize Amount | Winning Tickets | Probability
 """
+from __future__ import annotations
 import re
 import logging
 from backend.scraper.base import BaseScraper

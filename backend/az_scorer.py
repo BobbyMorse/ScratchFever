@@ -1,6 +1,7 @@
 """
 AZ retailer scoring logic — shared by the API.
 """
+from __future__ import annotations
 
 import csv
 import os

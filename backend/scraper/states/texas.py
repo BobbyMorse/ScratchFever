@@ -6,6 +6,7 @@ CSV: https://www.texaslottery.com/export/sites/lottery/Games/Scratch_Offs/scratc
   One row per prize tier per game; "TOTAL" row skipped.
   EV: estimated from prize pool assuming ~65% return rate (TX: ~67% mandated return).
 """
+from __future__ import annotations
 import csv
 import io
 import logging

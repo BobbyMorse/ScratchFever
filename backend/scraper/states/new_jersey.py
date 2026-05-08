@@ -6,6 +6,7 @@ API: https://www.njlottery.com/api/v1/instant-games/games?size=500
   prizeTiers[]: prizeAmount, winningTickets (total), paidTickets (claimed)
   totalTicketsPrinted: total tickets for the game
 """
+from __future__ import annotations
 import logging
 from backend.scraper.base import BaseScraper
 

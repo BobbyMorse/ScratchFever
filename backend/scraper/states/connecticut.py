@@ -6,6 +6,7 @@ Detail:  https://www.ctlottery.org/ScratchGames/{NUMBER}/
   Info table (key-value): Ticket Price, Overall Odds
   Prize table: Prize Amount | Total Prizes | Unclaimed Prizes
 """
+from __future__ import annotations
 import re
 import logging
 from backend.scraper.base import BaseScraper

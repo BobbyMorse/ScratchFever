@@ -5,6 +5,7 @@ Listing: https://www.wilottery.com/games/instant-games/scratch-games
   data-price, data-startd, div.card[title] are all in the listing HTML.
   Detail pages have Overall Odds but no per-tier prize table → no EV.
 """
+from __future__ import annotations
 import re
 import logging
 from backend.scraper.base import BaseScraper

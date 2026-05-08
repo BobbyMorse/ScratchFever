@@ -12,6 +12,7 @@ Response fields (amounts in CENTS):
 
 remaining = winningTickets - paidTickets for each tier.
 """
+from __future__ import annotations
 import re
 import logging
 import threading

@@ -2,6 +2,7 @@
 User auth — password hashing (PBKDF2) and HMAC-signed tokens.
 No external JWT dependencies; stdlib only.
 """
+from __future__ import annotations
 import base64
 import hashlib
 import hmac

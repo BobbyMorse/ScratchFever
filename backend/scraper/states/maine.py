@@ -7,6 +7,7 @@ Listing pages: https://www.mainelottery.com/instant/scratch{N}dollar.html
 Maine.gov game pages show: overall odds, total tickets printed.
 No per-tier prize table is available, so EV is computed from overall odds only.
 """
+from __future__ import annotations
 import re
 import logging
 from backend.scraper.base import BaseScraper

@@ -4,6 +4,7 @@ Listing: https://nclottery.com/scratch-off  (83 games with price in link text)
 Detail:  https://nclottery.com/scratch-off/{id}/{slug}
 Table columns: Value | Odds 1 in | Total | Remaining
 """
+from __future__ import annotations
 import re
 import logging
 from backend.scraper.base import BaseScraper

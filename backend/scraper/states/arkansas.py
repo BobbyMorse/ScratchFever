@@ -6,6 +6,7 @@ Detail page has: "Ticket price: $X", "Overall odds of winning: 1 in X.XX",
 table with Tier Prize Description | Total Prizes | Estimated Prizes Remaining.
 EV computed by deriving per-tier odds from overall_odds * total_prizes / tier_total.
 """
+from __future__ import annotations
 import re
 import logging
 from backend.scraper.base import BaseScraper

@@ -9,6 +9,7 @@ TwiML flow:
   3. Twilio calls POST /caller/status/{queue_id} on call completion
      → We finalize the result in the DB
 """
+from __future__ import annotations
 import logging
 import os
 

@@ -7,6 +7,7 @@ API: https://nylottery.ny.gov/drupal-api/api/scratch_off_games?_format=json&page
                  prizes_paid_out ("0")
   prizes_total = prizes_remaining + prizes_paid_out (computed)
 """
+from __future__ import annotations
 import logging
 from backend.scraper.base import BaseScraper
 from backend.ev_calculator import parse_prize_amount, parse_odds

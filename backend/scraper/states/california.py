@@ -5,6 +5,7 @@ API: https://www.calottery.com/api/games/scratchers
           prizeTiers[]: value (dollars), odds (denominator), totalNumberOfPrizes,
                         numberOfPrizesCashed, number (prizes remaining in unscratched tickets)
 """
+from __future__ import annotations
 import logging
 from backend.scraper.base import BaseScraper
 from backend.ev_calculator import parse_prize_amount

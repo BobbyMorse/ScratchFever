@@ -5,6 +5,7 @@ Each game entry has game title and "/games/scratch/slug" link.
 Detail page: "Overall Odds: 1:X.XX", table with Prize Amount | Remaining Prizes | Odds.
 Odds format "1:X" in detail table.
 """
+from __future__ import annotations
 import re
 import logging
 from backend.scraper.base import BaseScraper

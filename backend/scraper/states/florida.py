@@ -6,6 +6,7 @@ API: https://apim-website-prod-eastus.azure-api.net/scratchgamesapp/getscratchin
              TotalPrizes, PrizesRemaining, PrizesPaid
   total_tickets = sum(TotalPrizes) * OverallOdds
 """
+from __future__ import annotations
 import logging
 from backend.scraper.base import BaseScraper
 from backend.ev_calculator import parse_prize_amount, parse_odds

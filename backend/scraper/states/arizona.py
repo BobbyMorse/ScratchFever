@@ -8,6 +8,7 @@ we parse them from page.inner_text() where each row looks like:
   $5 Million   1,329,106   3 of 4
   (prize)      (odds 1-in)  (remaining of total)
 """
+from __future__ import annotations
 import re
 import logging
 from backend.scraper.base import BaseScraper

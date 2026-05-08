@@ -6,6 +6,7 @@ Detail: https://hoosierlottery.com/games/scratch-off/[slug]
   table.prize-table: Prize Amount | Unclaimed | Total Winning Tickets
   [class*=odds]: "Overall Odds: 1 in X.XX"
 """
+from __future__ import annotations
 import re
 import logging
 from backend.scraper.base import BaseScraper

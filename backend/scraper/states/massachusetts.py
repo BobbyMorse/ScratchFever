@@ -11,6 +11,7 @@ Formula
   tickets_remaining = official_odds × total_prizes_remaining
   EV                = Σ(prize_i × prizes_remaining_i) / tickets_remaining − price
 """
+from __future__ import annotations
 import logging
 from backend.scraper.base import BaseScraper
 from backend.ev_calculator import parse_odds

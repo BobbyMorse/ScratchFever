@@ -7,6 +7,7 @@ Detail:  https://www.valottery.com/scratchers/{GameID} (server-rendered)
   Table: Prize Amount | Winning Tickets At Start | Winning Tickets Unclaimed
   EV: overall_odds * sum(unclaimed) = tickets_remaining, then remaining-based EV.
 """
+from __future__ import annotations
 import re
 import logging
 from bs4 import BeautifulSoup

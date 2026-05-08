@@ -7,6 +7,7 @@ API: https://www.galottery.com/api/v1/instant-games/games?size=1000
 Total tickets not provided by API; estimated from prize pool assuming ~65% return rate.
 EV: remaining_prize_pool / tickets_remaining - ticket_price
 """
+from __future__ import annotations
 import logging
 from backend.scraper.base import BaseScraper
 

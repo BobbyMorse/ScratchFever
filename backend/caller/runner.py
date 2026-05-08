@@ -6,6 +6,7 @@ Usage (in main.py lifespan):
     runner = CallRunner()
     runner.attach_scheduler(scheduler)
 """
+from __future__ import annotations
 import asyncio
 import logging
 import os
