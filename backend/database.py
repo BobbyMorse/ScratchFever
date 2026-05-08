@@ -121,6 +121,7 @@ async def upsert_game(db, state_code: str, state_name: str, game_id: str, game_d
         "state_name": state_name,
         "game_id": game_id,
         "image_url": None,
+        "prize_pool_left": None,
         **game_data,
     })
     cursor = await db.execute(
