@@ -632,7 +632,7 @@ footer {
   height: 7px;
   border-radius: 4px;
   background: var(--border);
-  width: 42px;
+  width: 56px;
   overflow: hidden;
   flex-shrink: 0;
 }
