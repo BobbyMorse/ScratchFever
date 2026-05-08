@@ -890,7 +890,7 @@ function renderMaTable() {
   document.getElementById("maResultCount").innerHTML = `${rows.length.toLocaleString()} retailers${countSuffix}`;
   const tbody = document.getElementById("maTableBody");
   if (!rows.length) {
-    tbody.innerHTML = `<tr><td colspan="7" class="loading-cell">No retailers match.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="loading-cell">No retailers match.</td></tr>`;
   } else {
     tbody.innerHTML = rows.map((r, i) => maRow(r, i + 1)).join("");
     updateReportBadges();
