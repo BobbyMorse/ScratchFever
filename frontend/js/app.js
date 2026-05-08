@@ -874,7 +874,7 @@ async function loadMaRetailers() {
     renderMaTable();
   } catch (e) {
     document.getElementById("maTableBody").innerHTML =
-      `<tr><td colspan="7" class="loading-cell">Failed to load MA retailers.</td></tr>`;
+      `<tr><td colspan="6" class="loading-cell">Failed to load MA retailers.</td></tr>`;
   }
 }
 
