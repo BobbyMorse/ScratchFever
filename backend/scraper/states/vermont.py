@@ -182,6 +182,7 @@ class VermontScraper(BaseScraper):
             "top_prize_remaining":  top_prize_remaining,
             "total_tickets":        total_tickets,
             "tickets_remaining":    tickets_remaining,
+            "prize_pool_left":      total_unclaimed,
             "detail_url":           url,
             "image_url":            image_url,
             "tiers":                tiers,
