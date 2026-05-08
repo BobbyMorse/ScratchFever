@@ -432,10 +432,10 @@ async function applyFilters() {
 
 function renderTable() {
   const search = document.getElementById("searchInput").value.toLowerCase().trim();
-  const hideSuspicious = document.getElementById("hideSuspicious")?.checked;
+  const showNearSoldOut = document.getElementById("hideSuspicious")?.checked;
   let games = allGames;
 
-  if (hideSuspicious) {
+  if (!showNearSoldOut) {
     games = games.filter(g => {
       if (!g.total_tickets || !g.tickets_remaining) return true;
       const pctLeft = g.tickets_remaining / g.total_tickets;
