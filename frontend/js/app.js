@@ -931,17 +931,10 @@ function maRow(r, rank) {
     <a class="link-btn link-dir"  href="${directionsUrl}" target="_blank" rel="noopener" title="Get Directions">Dir</a>
     <a class="link-btn link-srch" href="${searchUrl}" target="_blank" rel="noopener" title="Google Search">Search</a>`;
 
-  const scoreTier = r.score >= 60 ? 'elite' : r.score >= 40 ? 'good' : r.score >= 20 ? 'caution' : 'avoid';
-  const scoreBar = `<div class="score-bar-wrap">
-    <div class="score-bar"><div class="score-bar-fill ${scoreTier}" style="width:${Math.min(100,(r.score/75)*100).toFixed(0)}%"></div></div>
-    ${r.score}
-  </div>`;
-
   const rid = escHtml(r.id || "");
 
   return `<tr class="ma-store-row" data-retailer-id="${rid}" onclick="toggleStoreProfile(this)">
     <td style="color:var(--text-muted);font-size:.8rem;font-weight:700">${rank}</td>
-    <td>${scoreBar}</td>
     <td><strong>${escHtml(r.name)}</strong><span class="report-count-badge" id="rbadge-${rid}" style="display:none"></span><br><span style="font-size:.78rem;color:var(--text-muted)">${escHtml(r.address)}</span></td>
     <td>${escHtml(r.city)}</td>
     <td>${escHtml(r.zipCode)}</td>
@@ -2363,17 +2356,10 @@ function azRow(r, rank) {
     <a class="link-btn link-dir"  href="${directionsUrl}" target="_blank" rel="noopener" title="Get Directions">Dir</a>
     <a class="link-btn link-srch" href="${searchUrl}" target="_blank" rel="noopener" title="Google Search">Search</a>`;
 
-  const scoreTier = r.score >= 60 ? 'elite' : r.score >= 40 ? 'good' : r.score >= 20 ? 'caution' : 'avoid';
-  const scoreBar = `<div class="score-bar-wrap">
-    <div class="score-bar"><div class="score-bar-fill ${scoreTier}" style="width:${Math.min(100,(r.score/75)*100).toFixed(0)}%"></div></div>
-    ${r.score}
-  </div>`;
-
   const rid = escHtml(r.id || "");
 
   return `<tr class="ma-store-row" data-retailer-id="${rid}" onclick="toggleStoreProfile(this)">
     <td style="color:var(--text-muted);font-size:.8rem;font-weight:700">${rank}</td>
-    <td>${scoreBar}</td>
     <td><strong>${escHtml(r.name)}</strong><span class="report-count-badge" id="rbadge-${rid}" style="display:none"></span><br><span style="font-size:.78rem;color:var(--text-muted)">${escHtml(r.address)}</span></td>
     <td>${escHtml(r.city)}</td>
     <td>${escHtml(r.zipCode)}</td>
