@@ -45,8 +45,6 @@ async def init_db():
                 prizes_remaining INTEGER
             );
 
-            ALTER TABLE games ADD COLUMN IF NOT EXISTS prize_pool_left REAL;
-
             CREATE TABLE IF NOT EXISTS scrape_log (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 state_code TEXT NOT NULL,
