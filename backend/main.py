@@ -227,6 +227,7 @@ async def api_trigger_scrape(
     async def _run():
         scrape_status["running"] = True
         try:
+            from backend.scraper.runner import run_all
             results = await run_all(state_filter=state)
             scrape_status["last_results"] = results
             import datetime
