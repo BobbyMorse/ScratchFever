@@ -45,6 +45,7 @@ async def scheduled_scrape():
     scrape_status["running"] = True
     try:
         logger.info("Starting scheduled scrape of all states")
+        from backend.scraper.runner import run_all
         results = await run_all()
         scrape_status["last_results"] = results
         import datetime
