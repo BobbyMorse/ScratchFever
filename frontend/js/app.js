@@ -433,7 +433,12 @@ async function applyFilters() {
 function renderTable() {
   const search = document.getElementById("searchInput").value.toLowerCase().trim();
   const showNearSoldOut = document.getElementById("hideSuspicious")?.checked;
+  const hideNoData = document.getElementById("hideNoData")?.checked ?? true;
   let games = allGames;
+
+  if (hideNoData) {
+    games = games.filter(g => g.tickets_remaining != null);
+  }
 
   if (!showNearSoldOut) {
     games = games.filter(g => {
