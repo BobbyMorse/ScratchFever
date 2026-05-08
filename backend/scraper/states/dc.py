@@ -81,12 +81,26 @@ class DCScraper(BaseScraper):
 
         return games
 
-    def _scrape_detail(self, url: str) -> list[dict]:
+    def _scrape_detail(self, url: str) -> tuple[list[dict], str | None]:
         soup = self.soup(url)
+
+        node_id = None
+        for script in soup.find_all("script", type="application/json"):
+            try:
+                data = json.loads(script.string or "")
+                path = data.get("path", {}).get("currentPath", "")
+                m = re.match(r"^node/(\d+)$", path)
+                if m:
+                    node_id = m.group(1)
+                    break
+            except Exception:
+                pass
+
+        tiers = []
         for table in soup.find_all("table"):
             text = table.get_text().lower()
             if any(k in text for k in ("prize", "odds", "1 in")):
                 tiers = self.parse_table_tiers(table)
                 if tiers:
-                    return tiers
-        return []
+                    break
+        return tiers, node_id
