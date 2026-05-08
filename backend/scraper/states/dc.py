@@ -115,16 +115,18 @@ class DCScraper(BaseScraper):
             except Exception:
                 pass
 
-        # Extract overall odds from page text, e.g. "Overall Odds 1 in 2.99"
+        # Extract overall odds — DC shows "Odds 1:3.99"; take the smallest value found
+        # (overall odds are small; top prize odds like "Top Prize Odds 1:61,200" are large)
         overall_odds = None
-        om = re.search(r"overall\s+odds[^0-9]*1\s+in\s+([\d,.]+)", page_text, re.I)
-        if not om:
-            om = re.search(r"\boverall\b[^0-9]*1\s*:\s*([\d,.]+)", page_text, re.I)
-        if om:
-            try:
-                overall_odds = float(om.group(1).replace(",", ""))
-            except ValueError:
-                pass
+        odds_vals = [
+            float(v.replace(",", ""))
+            for v in re.findall(r"\bodds\b[^0-9]*1\s*[:\s]+([\d,]+\.?\d*)", page_text, re.I)
+            if v.replace(",", "").replace(".", "").isdigit() or "." in v
+        ]
+        if odds_vals:
+            candidate = min(odds_vals)
+            if candidate < 100:  # overall odds should be small (1 in 3-10 range)
+                overall_odds = candidate
 
         tiers = []
         for table in soup.find_all("table"):
