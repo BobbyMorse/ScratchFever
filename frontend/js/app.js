@@ -902,7 +902,7 @@ function renderMaTable() {
 function downloadMaCsv() {
   let rows = getFilteredRows();
 
-  const cols = ["score","name","address","city","zipCode","phone","latitude","longitude","games"];
+  const cols = ["name","address","city","zipCode","phone","latitude","longitude","games"];
   const header = cols.join(",");
   const csvRows = rows.map(r =>
     cols.map(c => {
