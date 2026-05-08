@@ -98,12 +98,19 @@ class VirginiaScraper(PlaywrightScraper):
                 if total_rem > 0:
                     tickets_remaining = round(overall_odds * total_rem)
 
+            total_tickets = None
+            if overall_odds and tiers and all(t.get("prizes_total") is not None for t in tiers):
+                total_all = sum(t["prizes_total"] or 0 for t in tiers)
+                if total_all > 0:
+                    total_tickets = round(overall_odds * total_all)
+
             games.append(self.build_game(
                 game_id=str(game_id),
                 name=title,
                 price=price,
                 tiers=tiers,
                 tickets_remaining=tickets_remaining,
+                total_tickets=total_tickets,
                 overall_odds=overall_odds,
                 detail_url=detail_url,
             ))
