@@ -293,10 +293,10 @@ body {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: .5rem;
-  margin-bottom: .75rem;
-  font-size: .85rem;
-  color: var(--text-muted);
-  font-weight: 600;
+  margin-bottom: .6rem;
+  font-size: .9rem;
+  color: var(--text);
+  font-weight: 700;
 }
 .table-legend { display: flex; gap: .6rem; }
 .badge {
