@@ -561,9 +561,11 @@ function renderModal(g) {
   const cls = ret >= 100 ? "ev-positive" : ret >= 90 ? "ev-near" : ret >= 70 ? "ev-mid" : "ev-low";
   const ev = g.ev != null ? `${g.ev >= 0 ? "+" : ""}$${g.ev.toFixed(4)}` : "N/A";
 
-  const prizePoolRemaining = (g.prize_tiers || []).reduce(
-    (sum, t) => sum + (t.prize_amount || 0) * (t.prizes_remaining || 0), 0
-  );
+  const prizePoolRemaining = g.prize_pool_left != null
+    ? g.prize_pool_left
+    : (g.prize_tiers || []).reduce(
+        (sum, t) => sum + (t.prize_amount || 0) * (t.prizes_remaining || 0), 0
+      );
   const faceValueOutstanding = g.tickets_remaining != null ? g.tickets_remaining * g.price : null;
   const ticketsSold = g.total_tickets != null && g.tickets_remaining != null
     ? g.total_tickets - g.tickets_remaining : null;
