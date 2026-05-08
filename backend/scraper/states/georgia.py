@@ -2,7 +2,7 @@
 Georgia Lottery scratch-off scraper.
 API: https://www.galottery.com/api/v1/instant-games/games?size=1000
   Fields: gameId, gameName, validationStatus, ticketPrice (cents),
-          prizeTiers[]: prizeAmount (cents), winningTickets (total), paidTickets (claimed)
+          prizeTiers[]: prizeAmount (1/100 cent = divide by 10000 for dollars), winningTickets (total), paidTickets (claimed)
 
 Total tickets not provided by API; estimated from prize pool assuming ~65% return rate.
 EV: remaining_prize_pool / tickets_remaining - ticket_price
