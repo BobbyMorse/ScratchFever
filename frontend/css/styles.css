@@ -1559,13 +1559,14 @@ footer {
 }
 
 .hunt-sidebar-hdr {
-  padding: .7rem 1rem;
+  padding: .7rem 1rem .7rem calc(1rem - 3px);
   font-size: .68rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .1em;
-  color: var(--text-muted);
+  color: var(--grape);
   border-bottom: 1px solid var(--border);
+  border-left: 3px solid var(--pink);
 }
 
 .state-list {
