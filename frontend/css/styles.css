@@ -185,9 +185,13 @@ body {
   flex-wrap: wrap;
   gap: .75rem;
   align-items: flex-end;
+  background: var(--bg2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
   max-width: 1400px;
   margin: 1rem auto;
-  padding: 0 1.5rem;
+  padding: 1.1rem 1.5rem;
 }
 .filter-group {
   display: flex;
@@ -196,11 +200,22 @@ body {
   min-width: 120px;
 }
 .filter-group label {
-  font-size: .72rem;
+  font-size: .71rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: .08em;
-  color: var(--text-muted);
+  letter-spacing: .09em;
+  color: var(--grape);
+}
+/* ── Filter action buttons ─────────────────────────── */
+.filter-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: .5rem;
+  margin-left: auto;
+  padding-left: .85rem;
+  border-left: 1.5px solid var(--border);
+  flex-shrink: 0;
 }
 .filter-group select,
 .filter-group input {
