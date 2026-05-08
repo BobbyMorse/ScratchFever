@@ -99,8 +99,9 @@ class DCScraper(BaseScraper):
 
         return games
 
-    def _scrape_detail(self, url: str) -> tuple[list[dict], str | None]:
+    def _scrape_detail(self, url: str) -> tuple[list[dict], str | None, float | None]:
         soup = self.soup(url)
+        page_text = soup.get_text(" ", strip=True)
 
         node_id = None
         for script in soup.find_all("script", type="application/json"):
@@ -114,6 +115,17 @@ class DCScraper(BaseScraper):
             except Exception:
                 pass
 
+        # Extract overall odds from page text, e.g. "Overall Odds 1 in 2.99"
+        overall_odds = None
+        om = re.search(r"overall\s+odds[^0-9]*1\s+in\s+([\d,.]+)", page_text, re.I)
+        if not om:
+            om = re.search(r"\boverall\b[^0-9]*1\s*:\s*([\d,.]+)", page_text, re.I)
+        if om:
+            try:
+                overall_odds = float(om.group(1).replace(",", ""))
+            except ValueError:
+                pass
+
         tiers = []
         for table in soup.find_all("table"):
             text = table.get_text().lower()
@@ -121,4 +133,4 @@ class DCScraper(BaseScraper):
                 tiers = self.parse_table_tiers(table)
                 if tiers:
                     break
-        return tiers, node_id
+        return tiers, node_id, overall_odds
