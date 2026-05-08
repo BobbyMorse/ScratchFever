@@ -1,0 +1,96 @@
+"""
+Expected Value calculator for scratch-off lottery tickets.
+
+EV = sum(prize_i * prob_i) - ticket_price
+
+When remaining prize data is available:
+  prob_i = prizes_remaining_i / total_tickets_remaining
+
+When only initial odds are available:
+  prob_i = 1 / odds_one_in_i
+
+Return % = (EV + price) / price * 100
+  >100% → positive expected value (rare, happens when prizes cluster toward end of run)
+  ~60-70% → typical scratch ticket
+"""
+
+
+def calculate_ev(price: float, tiers: list[dict], tickets_remaining: int = None) -> dict:
+    """
+    tiers: list of {prize_amount, odds_one_in, prizes_remaining, prizes_total}
+    Returns {ev, return_pct}
+    """
+    if not tiers or price <= 0:
+        return {"ev": None, "return_pct": None}
+
+    use_remaining = (
+        tickets_remaining is not None
+        and tickets_remaining > 0
+        and all(t.get("prizes_remaining") is not None for t in tiers)
+    )
+
+    total_ev = 0.0
+    for tier in tiers:
+        prize = tier.get("prize_amount", 0)
+        if not prize or prize <= 0:
+            continue
+
+        if use_remaining:
+            remaining = tier.get("prizes_remaining", 0) or 0
+            if remaining > 0:
+                prob = remaining / tickets_remaining
+                total_ev += prize * prob
+        else:
+            odds = tier.get("odds_one_in")
+            if odds and odds > 0:
+                total_ev += prize / odds
+
+    if total_ev <= 0:
+        return {"ev": None, "return_pct": None}
+
+    ev = round(total_ev - price, 4)
+    return_pct = round((total_ev / price) * 100, 2)
+    return {"ev": ev, "return_pct": return_pct}
+
+
+def find_top_prize(tiers: list[dict]) -> tuple[float, int]:
+    if not tiers:
+        return 0, None
+    top = max(tiers, key=lambda t: t.get("prize_amount", 0))
+    return top.get("prize_amount", 0), top.get("prizes_remaining")
+
+
+def parse_prize_amount(value: str) -> float | None:
+    """Parse '$1,000,000' or '1000000' or '$1M' → float"""
+    if value is None:
+        return None
+    value = str(value).strip().replace(",", "").replace("$", "").replace(" ", "")
+    multipliers = {"K": 1_000, "M": 1_000_000, "B": 1_000_000_000}
+    for suffix, mult in multipliers.items():
+        if value.upper().endswith(suffix):
+            try:
+                return float(value[:-1]) * mult
+            except ValueError:
+                return None
+    try:
+        return float(value)
+    except ValueError:
+        return None
+
+
+def parse_odds(value: str) -> float | None:
+    """Parse '1 in 3.50', '1:3.50', '1-in-3.50', or plain '3.50' → 3.50"""
+    if value is None:
+        return None
+    value = str(value).strip().replace(",", "")
+    for sep in (" in ", "in ", "-in-", ":"):
+        if sep in value.lower():
+            parts = value.lower().split(sep)
+            try:
+                return float(parts[-1].strip())
+            except ValueError:
+                return None
+    try:
+        return float(value)
+    except ValueError:
+        return None

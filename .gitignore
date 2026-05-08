@@ -1,0 +1,31 @@
+# Environment & secrets
+.env
+.env.local
+.env.production
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Data files
+*.csv
+*.log
+
+# Generated HTML output
+ma_heatmap.html
+test_map.html
+
+# OS
+.DS_Store
+Thumbs.db

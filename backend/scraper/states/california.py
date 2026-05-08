@@ -1,0 +1,104 @@
+"""
+California Lottery scratch-off scraper.
+API: https://www.calottery.com/api/games/scratchers
+  Fields: gameNumber, name, price (string "$X"), cashOdds (overall odds denominator),
+          prizeTiers[]: value (dollars), odds (denominator), totalNumberOfPrizes,
+                        numberOfPrizesCashed, number (prizes remaining in unscratched tickets)
+"""
+import logging
+from backend.scraper.base import BaseScraper
+from backend.ev_calculator import parse_prize_amount
+
+logger = logging.getLogger(__name__)
+
+API_URL = "https://www.calottery.com/api/games/scratchers"
+BASE_URL = "https://www.calottery.com"
+
+
+class CaliforniaScraper(BaseScraper):
+    state_code = "CA"
+    state_name = "California"
+    base_url = BASE_URL
+
+    def scrape(self) -> list[dict]:
+        resp = self.get(API_URL)
+        data = resp.json()
+        raw_games = data.get("games", []) if isinstance(data, dict) else data
+        logger.info("CA: %d games from API", len(raw_games))
+
+        games = []
+        for g in raw_games:
+            game = self._parse_game(g)
+            if game:
+                games.append(game)
+
+        logger.info("CA: %d games parsed", len(games))
+        return games
+
+    def _parse_game(self, g: dict) -> dict | None:
+        name = (g.get("name") or g.get("marketingTitle") or "").strip()
+        if not name:
+            return None
+
+        game_id = str(g.get("gameNumber") or "")
+        price_raw = g.get("price") or ""
+        price = parse_prize_amount(str(price_raw))
+        if not price:
+            return None
+
+        overall_odds = None
+        try:
+            overall_odds = float(g.get("cashOdds") or 0) or None
+        except (ValueError, TypeError):
+            pass
+
+        product_page = g.get("productPage") or ""
+        detail_url = (BASE_URL + product_page) if product_page.startswith("/") else (product_page or BASE_URL)
+
+        tiers_raw = g.get("prizeTiers") or []
+        tiers = []
+        total_prizes_printed = 0
+        total_prizes_remaining = 0
+
+        for t in tiers_raw:
+            prize = float(t.get("value") or 0)
+            if prize <= 0:
+                continue
+            odds = float(t.get("odds") or 0) or None
+            total = int(t.get("totalNumberOfPrizes") or 0)
+            cashed = int(t.get("numberOfPrizesCashed") or 0)
+            pending = int(t.get("numberOfPrizesPending") or 0)
+            remaining = max(total - cashed - pending, 0)
+
+            if total <= 0:
+                continue
+
+            total_prizes_printed += total
+            total_prizes_remaining += remaining
+
+            tiers.append({
+                "prize_amount":     prize,
+                "odds_one_in":      odds,
+                "prizes_total":     total,
+                "prizes_remaining": remaining,
+            })
+
+        if not tiers:
+            return None
+
+        total_tickets = None
+        tickets_remaining = None
+        if overall_odds and overall_odds > 0 and total_prizes_printed > 0:
+            total_tickets = round(overall_odds * total_prizes_printed)
+            tickets_remaining = round(overall_odds * total_prizes_remaining)
+
+        return self.build_game(
+            game_id=game_id or name,
+            name=name,
+            price=price,
+            tiers=tiers,
+            overall_odds=overall_odds,
+            total_tickets=total_tickets,
+            tickets_remaining=tickets_remaining,
+            detail_url=detail_url,
+        )

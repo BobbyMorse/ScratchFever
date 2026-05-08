@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ScratchFever — Lottery EV Tracker</title>
+  <link rel="stylesheet" href="/static/css/styles.css?v=2" />
+  <link rel="stylesheet" href="/static/css/leaflet.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">🎰</span>
+        <span class="logo-text">Scratch<span class="accent">Fever</span></span>
+        <span class="logo-sub">Expected Value Tracker</span>
+      </div>
+      <div class="header-actions">
+        <div class="status-bar" id="statusBar" style="display:none">
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText">Loading…</span>
+        </div>
+        <button class="btn btn-scrape" id="scrapeBtn" onclick="triggerScrape()" style="display:none">
+          ↻ Refresh Data
+        </button>
+        <!-- Auth controls -->
+        <div id="authControls">
+          <button class="btn btn-login" id="loginBtn" onclick="openAuthModal('login')">Log In</button>
+          <div class="user-chip" id="userChip" style="display:none">
+            <span class="user-chip-email" id="userEmail"></span>
+            <span class="user-chip-role" id="userRole"></span>
+            <button class="btn btn-logout" onclick="logout()">Log out</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="ev" onclick="switchTab('ev')">EV Games</button>
+      <button class="tab-btn" data-tab="ma" onclick="switchTab('ma')">🎯 Hunt</button>
+      <button class="tab-btn" id="callerTabBtn" data-tab="caller" onclick="switchTab('caller')" style="display:none">📞 Call Agent</button>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- ══════════════ EV GAMES TAB ══════════════ -->
+    <div id="tab-ev" class="tab-content">
+
+      <!-- Hero stats -->
+      <section class="stats-row" id="statsRow">
+        <div class="stat-card">
+          <div class="stat-value" id="statGames">—</div>
+          <div class="stat-label">Active Games</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="statStates">—</div>
+          <div class="stat-label">States Tracked</div>
+        </div>
+        <div class="stat-card highlight-green">
+          <div class="stat-value" id="statPositive">—</div>
+          <div class="stat-label">Positive EV Tickets</div>
+        </div>
+        <div class="stat-card highlight-yellow">
+          <div class="stat-value" id="statBest">—</div>
+          <div class="stat-label">Best Return %</div>
+        </div>
+      </section>
+
+      <!-- Filters -->
+      <section class="filters-bar">
+        <div class="filter-group">
+          <label>State</label>
+          <select id="filterState" onchange="applyFilters()">
+            <option value="">All States</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Price</label>
+          <select id="filterPrice" onchange="applyFilters()">
+            <option value="">Any Price</option>
+            <option value="1">$1</option>
+            <option value="2">$2</option>
+            <option value="5">$5</option>
+            <option value="10">$10</option>
+            <option value="20">$20</option>
+            <option value="30">$30</option>
+            <option value="50">$50</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Min Return %</label>
+          <select id="filterMinReturn" onchange="applyFilters()">
+            <option value="">Any</option>
+            <option value="100">Positive EV (≥100%)</option>
+            <option value="90">≥ 90%</option>
+            <option value="80">≥ 80%</option>
+            <option value="70">≥ 70%</option>
+            <option value="60">≥ 60%</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Sort By</label>
+          <select id="sortBy" onchange="applyFilters()">
+            <option value="return_pct">Return %</option>
+            <option value="ev">Expected Value</option>
+            <option value="top_prize">Top Prize</option>
+            <option value="price">Price</option>
+            <option value="name">Name</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Search</label>
+          <input type="text" id="searchInput" placeholder="Game name…" oninput="renderTable()" />
+        </div>
+      </section>
+
+      <!-- Results table -->
+      <section class="table-section">
+        <div class="table-meta">
+          <span id="resultCount">Loading…</span>
+          <span class="table-legend">
+            <span class="badge badge-green">Positive EV</span>
+            <span class="badge badge-yellow">Near EV</span>
+            <span class="badge badge-red">Below avg</span>
+          </span>
+        </div>
+        <div class="table-scroll">
+          <table id="gamesTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>State</th>
+                <th>Game</th>
+                <th>Game #</th>
+                <th>Price</th>
+                <th class="col-sort active" data-col="return_pct">Return % ▼</th>
+                <th data-col="ev">Net EV</th>
+                <th data-col="top_prize">Top Prize</th>
+                <th>Top Remaining</th>
+                <th>Overall Odds</th>
+                <th>Est Tickets Left</th>
+                <th>Prize Pool Left</th>
+                <th>Updated</th>
+                <th title="Create calling campaign">Campaign</th>
+              </tr>
+            </thead>
+            <tbody id="gamesBody">
+              <tr><td colspan="12" class="loading-cell">Loading games…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div><!-- /tab-ev -->
+
+
+    <!-- ══════════════ HUNT TAB ══════════════ -->
+    <div id="tab-ma" class="tab-content" style="display:none">
+    <div class="hunt-layout">
+
+      <!-- State sidebar -->
+      <aside class="hunt-sidebar">
+        <div class="hunt-sidebar-hdr">State Hunt</div>
+        <ul class="state-list" id="stateList">
+          <li class="state-item state-live active" data-state="MA" onclick="selectHuntState('MA')">
+            <span class="state-abbr">MA</span><span class="state-name">Massachusetts</span><span class="state-live-dot"></span>
+          </li>
+          <li class="state-item state-live" data-state="AZ" onclick="selectHuntState('AZ')">
+            <span class="state-abbr">AZ</span><span class="state-name">Arizona</span><span class="state-live-dot"></span>
+          </li>
+          <li class="state-item state-soon" data-state="AR" onclick="selectHuntState('AR')"><span class="state-abbr">AR</span><span class="state-name">Arkansas</span></li>
+          <li class="state-item state-soon" data-state="CA" onclick="selectHuntState('CA')"><span class="state-abbr">CA</span><span class="state-name">California</span></li>
+          <li class="state-item state-soon" data-state="CO" onclick="selectHuntState('CO')"><span class="state-abbr">CO</span><span class="state-name">Colorado</span></li>
+          <li class="state-item state-soon" data-state="CT" onclick="selectHuntState('CT')"><span class="state-abbr">CT</span><span class="state-name">Connecticut</span></li>
+          <li class="state-item state-soon" data-state="DC" onclick="selectHuntState('DC')"><span class="state-abbr">DC</span><span class="state-name">Washington DC</span></li>
+          <li class="state-item state-soon" data-state="DE" onclick="selectHuntState('DE')"><span class="state-abbr">DE</span><span class="state-name">Delaware</span></li>
+          <li class="state-item state-soon" data-state="FL" onclick="selectHuntState('FL')"><span class="state-abbr">FL</span><span class="state-name">Florida</span></li>
+          <li class="state-item state-soon" data-state="GA" onclick="selectHuntState('GA')"><span class="state-abbr">GA</span><span class="state-name">Georgia</span></li>
+          <li class="state-item state-soon" data-state="ID" onclick="selectHuntState('ID')"><span class="state-abbr">ID</span><span class="state-name">Idaho</span></li>
+          <li class="state-item state-soon" data-state="IL" onclick="selectHuntState('IL')"><span class="state-abbr">IL</span><span class="state-name">Illinois</span></li>
+          <li class="state-item state-soon" data-state="IN" onclick="selectHuntState('IN')"><span class="state-abbr">IN</span><span class="state-name">Indiana</span></li>
+          <li class="state-item state-soon" data-state="IA" onclick="selectHuntState('IA')"><span class="state-abbr">IA</span><span class="state-name">Iowa</span></li>
+          <li class="state-item state-soon" data-state="KS" onclick="selectHuntState('KS')"><span class="state-abbr">KS</span><span class="state-name">Kansas</span></li>
+          <li class="state-item state-soon" data-state="KY" onclick="selectHuntState('KY')"><span class="state-abbr">KY</span><span class="state-name">Kentucky</span></li>
+          <li class="state-item state-soon" data-state="LA" onclick="selectHuntState('LA')"><span class="state-abbr">LA</span><span class="state-name">Louisiana</span></li>
+          <li class="state-item state-soon" data-state="ME" onclick="selectHuntState('ME')"><span class="state-abbr">ME</span><span class="state-name">Maine</span></li>
+          <li class="state-item state-soon" data-state="MD" onclick="selectHuntState('MD')"><span class="state-abbr">MD</span><span class="state-name">Maryland</span></li>
+          <li class="state-item state-soon" data-state="MI" onclick="selectHuntState('MI')"><span class="state-abbr">MI</span><span class="state-name">Michigan</span></li>
+          <li class="state-item state-soon" data-state="MN" onclick="selectHuntState('MN')"><span class="state-abbr">MN</span><span class="state-name">Minnesota</span></li>
+          <li class="state-item state-soon" data-state="MS" onclick="selectHuntState('MS')"><span class="state-abbr">MS</span><span class="state-name">Mississippi</span></li>
+          <li class="state-item state-soon" data-state="MO" onclick="selectHuntState('MO')"><span class="state-abbr">MO</span><span class="state-name">Missouri</span></li>
+          <li class="state-item state-soon" data-state="MT" onclick="selectHuntState('MT')"><span class="state-abbr">MT</span><span class="state-name">Montana</span></li>
+          <li class="state-item state-soon" data-state="NE" onclick="selectHuntState('NE')"><span class="state-abbr">NE</span><span class="state-name">Nebraska</span></li>
+          <li class="state-item state-soon" data-state="NH" onclick="selectHuntState('NH')"><span class="state-abbr">NH</span><span class="state-name">New Hampshire</span></li>
+          <li class="state-item state-soon" data-state="NJ" onclick="selectHuntState('NJ')"><span class="state-abbr">NJ</span><span class="state-name">New Jersey</span></li>
+          <li class="state-item state-soon" data-state="NM" onclick="selectHuntState('NM')"><span class="state-abbr">NM</span><span class="state-name">New Mexico</span></li>
+          <li class="state-item state-soon" data-state="NY" onclick="selectHuntState('NY')"><span class="state-abbr">NY</span><span class="state-name">New York</span></li>
+          <li class="state-item state-soon" data-state="NC" onclick="selectHuntState('NC')"><span class="state-abbr">NC</span><span class="state-name">North Carolina</span></li>
+          <li class="state-item state-soon" data-state="ND" onclick="selectHuntState('ND')"><span class="state-abbr">ND</span><span class="state-name">North Dakota</span></li>
+          <li class="state-item state-soon" data-state="OH" onclick="selectHuntState('OH')"><span class="state-abbr">OH</span><span class="state-name">Ohio</span></li>
+          <li class="state-item state-soon" data-state="OK" onclick="selectHuntState('OK')"><span class="state-abbr">OK</span><span class="state-name">Oklahoma</span></li>
+          <li class="state-item state-soon" data-state="OR" onclick="selectHuntState('OR')"><span class="state-abbr">OR</span><span class="state-name">Oregon</span></li>
+          <li class="state-item state-soon" data-state="PA" onclick="selectHuntState('PA')"><span class="state-abbr">PA</span><span class="state-name">Pennsylvania</span></li>
+          <li class="state-item state-soon" data-state="RI" onclick="selectHuntState('RI')"><span class="state-abbr">RI</span><span class="state-name">Rhode Island</span></li>
+          <li class="state-item state-soon" data-state="SC" onclick="selectHuntState('SC')"><span class="state-abbr">SC</span><span class="state-name">South Carolina</span></li>
+          <li class="state-item state-soon" data-state="SD" onclick="selectHuntState('SD')"><span class="state-abbr">SD</span><span class="state-name">South Dakota</span></li>
+          <li class="state-item state-soon" data-state="TN" onclick="selectHuntState('TN')"><span class="state-abbr">TN</span><span class="state-name">Tennessee</span></li>
+          <li class="state-item state-soon" data-state="TX" onclick="selectHuntState('TX')"><span class="state-abbr">TX</span><span class="state-name">Texas</span></li>
+          <li class="state-item state-soon" data-state="VT" onclick="selectHuntState('VT')"><span class="state-abbr">VT</span><span class="state-name">Vermont</span></li>
+          <li class="state-item state-soon" data-state="VA" onclick="selectHuntState('VA')"><span class="state-abbr">VA</span><span class="state-name">Virginia</span></li>
+          <li class="state-item state-soon" data-state="WA" onclick="selectHuntState('WA')"><span class="state-abbr">WA</span><span class="state-name">Washington</span></li>
+          <li class="state-item state-soon" data-state="WV" onclick="selectHuntState('WV')"><span class="state-abbr">WV</span><span class="state-name">West Virginia</span></li>
+          <li class="state-item state-soon" data-state="WI" onclick="selectHuntState('WI')"><span class="state-abbr">WI</span><span class="state-name">Wisconsin</span></li>
+          <li class="state-item state-soon" data-state="WY" onclick="selectHuntState('WY')"><span class="state-abbr">WY</span><span class="state-name">Wyoming</span></li>
+        </ul>
+      </aside>
+
+      <!-- Hunt console -->
+      <div class="hunt-main">
+
+      <!-- Generic state console (non-MA states) -->
+      <div id="huntConsoleSoon" style="display:none">
+        <div class="soon-state-header">
+          <div>
+            <h2 id="huntSoonTitle" style="margin:0 0 .25rem">State Hunt</h2>
+            <p id="huntSoonSubtitle" style="margin:0;color:var(--text-muted);font-size:.9rem">Top games by expected value. Full retailer hunt coming soon.</p>
+          </div>
+          <button class="btn btn-report" id="huntSoonReportBtn" onclick="openReportModal()" style="display:none">+ Report a Store</button>
+        </div>
+        <div id="huntSoonGames" class="hunt-soon-games">
+          <div class="loading-cell" style="padding:2rem;text-align:center">Loading games…</div>
+        </div>
+      </div>
+
+      <!-- MA console -->
+      <div id="huntConsoleMA">
+
+      <!-- MA Stats -->
+      <section class="stats-row" id="maStatsRow">
+        <div class="stat-card">
+          <div class="stat-value" id="maStatTotal">—</div>
+          <div class="stat-label">Total Retailers</div>
+        </div>
+        <div class="stat-card highlight-green" id="maStatInStockCard" style="display:none">
+          <div class="stat-value" id="maStatInStock">—</div>
+          <div class="stat-label">In Stock</div>
+        </div>
+        <div class="stat-card highlight-red" id="maStatOutCard" style="display:none">
+          <div class="stat-value" id="maStatOut">—</div>
+          <div class="stat-label">Out of Stock</div>
+        </div>
+      </section>
+
+      <!-- MA Filters -->
+      <section class="filters-bar">
+        <div class="filter-group" style="min-width:220px;position:relative">
+          <label>Hunting For</label>
+          <div class="game-filter-combo">
+            <input type="text" id="gameFilterInput" placeholder="Any game…" oninput="searchGameFilter()" onfocus="searchGameFilter()" autocomplete="off" />
+            <button class="game-filter-clear" id="gameFilterClear" onclick="clearGameFilter()" style="display:none">✕</button>
+          </div>
+          <div id="gameFilterDropdown" class="store-dropdown" style="display:none"></div>
+        </div>
+        <div class="filter-group">
+          <label>Name Search</label>
+          <input type="text" id="maSearchInput" placeholder="Store name…" oninput="renderMaTable()" />
+        </div>
+        <div class="filter-group">
+          <label>City</label>
+          <input type="text" id="maCityInput" placeholder="e.g. Gardner…" oninput="renderMaTable()" />
+        </div>
+        <div class="filter-group">
+          <label>Inventory</label>
+          <select id="maInvFilter" onchange="renderMaTable()">
+            <option value="">Any</option>
+            <option value="in">✅ In Stock</option>
+            <option value="out">❌ Out of Stock</option>
+            <option value="checked">Checked</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Last Checked</label>
+          <select id="maDateFilter" onchange="renderMaTable()">
+            <option value="">Any</option>
+            <option value="today">Today</option>
+            <option value="7d">Last 7 Days</option>
+            <option value="30d">Last 30 Days</option>
+          </select>
+        </div>
+        <div class="filter-group" style="justify-content:center;">
+          <label>&nbsp;</label>
+          <label class="toggle-pill">
+            <input type="checkbox" id="maShowUnchecked" checked onchange="renderMaTable()" />
+            <span>Show Unchecked</span>
+          </label>
+        </div>
+        <div class="filter-group" style="justify-content:flex-end;margin-left:auto;flex-direction:row;align-items:flex-end;gap:.5rem;">
+          <button class="btn btn-report" id="reportInvBtn" onclick="openReportModal()" style="display:none">📍 Report Inventory</button>
+          <button class="btn btn-csv" onclick="downloadMaCsv()">⬇ Download CSV</button>
+          <button class="btn btn-heatmap" onclick="toggleMaMap()">🗺 Toggle Map</button>
+        </div>
+      </section>
+
+      <!-- MA Map -->
+      <section class="ma-map-section" id="maMapSection" style="display:none">
+        <div id="maMap"></div>
+      </section>
+
+      <!-- MA Table -->
+      <section class="table-section">
+        <div class="table-meta">
+          <span id="maResultCount">Loading…</span>
+        </div>
+        <div class="table-scroll">
+          <table id="maTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Score</th>
+                <th>Store Name</th>
+                <th>City</th>
+                <th>ZIP</th>
+                <th id="maLastReportTh">Last Report</th>
+                <th>Links</th>
+              </tr>
+            </thead>
+            <tbody id="maTableBody">
+              <tr><td colspan="7" class="loading-cell">Loading retailers…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      </div><!-- /huntConsoleMA -->
+
+      <!-- AZ console -->
+      <div id="huntConsoleAZ" style="display:none">
+
+      <!-- AZ Stats -->
+      <section class="stats-row" id="azStatsRow">
+        <div class="stat-card">
+          <div class="stat-value" id="azStatTotal">—</div>
+          <div class="stat-label">Total Retailers</div>
+        </div>
+        <div class="stat-card highlight-green" id="azStatInStockCard" style="display:none">
+          <div class="stat-value" id="azStatInStock">—</div>
+          <div class="stat-label">In Stock</div>
+        </div>
+        <div class="stat-card highlight-red" id="azStatOutCard" style="display:none">
+          <div class="stat-value" id="azStatOut">—</div>
+          <div class="stat-label">Out of Stock</div>
+        </div>
+      </section>
+
+      <!-- AZ Filters -->
+      <section class="filters-bar">
+        <div class="filter-group" style="min-width:220px;position:relative">
+          <label>Hunting For</label>
+          <div class="game-filter-combo">
+            <input type="text" id="azGameFilterInput" placeholder="Any game…" oninput="searchAzGameFilter()" onfocus="searchAzGameFilter()" autocomplete="off" />
+            <button class="game-filter-clear" id="azGameFilterClear" onclick="clearAzGameFilter()" style="display:none">✕</button>
+          </div>
+          <div id="azGameFilterDropdown" class="store-dropdown" style="display:none"></div>
+        </div>
+        <div class="filter-group">
+          <label>Name Search</label>
+          <input type="text" id="azSearchInput" placeholder="Store name…" oninput="renderAzTable()" />
+        </div>
+        <div class="filter-group">
+          <label>City</label>
+          <input type="text" id="azCityInput" placeholder="e.g. Flagstaff…" oninput="renderAzTable()" />
+        </div>
+        <div class="filter-group">
+          <label>Inventory</label>
+          <select id="azInvFilter" onchange="renderAzTable()">
+            <option value="">Any</option>
+            <option value="in">✅ In Stock</option>
+            <option value="out">❌ Out of Stock</option>
+            <option value="checked">Checked</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Last Checked</label>
+          <select id="azDateFilter" onchange="renderAzTable()">
+            <option value="">Any</option>
+            <option value="today">Today</option>
+            <option value="7d">Last 7 Days</option>
+            <option value="30d">Last 30 Days</option>
+          </select>
+        </div>
+        <div class="filter-group" style="justify-content:center;">
+          <label>&nbsp;</label>
+          <label class="toggle-pill">
+            <input type="checkbox" id="azShowUnchecked" checked onchange="renderAzTable()" />
+            <span>Show Unchecked</span>
+          </label>
+        </div>
+        <div class="filter-group" style="justify-content:flex-end;margin-left:auto;flex-direction:row;align-items:flex-end;gap:.5rem;">
+          <button class="btn btn-report" id="azReportInvBtn" onclick="openReportModal()" style="display:none">📍 Report Inventory</button>
+          <button class="btn btn-csv" onclick="downloadAzCsv()">⬇ Download CSV</button>
+          <button class="btn btn-heatmap" onclick="toggleAzMap()">🗺 Toggle Map</button>
+        </div>
+      </section>
+
+      <!-- AZ Map -->
+      <section class="ma-map-section" id="azMapSection" style="display:none">
+        <div id="azMap"></div>
+      </section>
+
+      <!-- AZ Table -->
+      <section class="table-section">
+        <div class="table-meta">
+          <span id="azResultCount">Loading…</span>
+        </div>
+        <div class="table-scroll">
+          <table id="azTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Score</th>
+                <th>Store Name</th>
+                <th>City</th>
+                <th>ZIP</th>
+                <th id="azLastReportTh">Last Report</th>
+                <th>Links</th>
+              </tr>
+            </thead>
+            <tbody id="azTableBody">
+              <tr><td colspan="7" class="loading-cell">Loading retailers…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      </div><!-- /huntConsoleAZ -->
+
+      </div><!-- /hunt-main -->
+    </div><!-- /hunt-layout -->
+    </div><!-- /tab-ma -->
+
+
+    <!-- ══════════════ CALL AGENT TAB ══════════════ -->
+    <div id="tab-caller" class="tab-content" style="display:none">
+
+      <!-- Stats -->
+      <section class="stats-row">
+        <div class="stat-card highlight-green">
+          <div class="stat-value" id="callerStatHits">—</div>
+          <div class="stat-label">Inventory Hits</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="callerStatCalls">—</div>
+          <div class="stat-label">Total Calls Made</div>
+        </div>
+        <div class="stat-card highlight-yellow">
+          <div class="stat-value" id="callerStatFlight">—</div>
+          <div class="stat-label">Calls In Flight</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="callerStatCampaigns">—</div>
+          <div class="stat-label">Campaigns</div>
+          <div style="margin-top:.4rem">
+            <span id="callerBackendBadge" class="badge badge-status-idle">—</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Create campaign -->
+      <section class="caller-form-section" id="callerFormSection">
+        <div class="caller-form-card">
+          <h2 class="caller-form-title">New Calling Campaign</h2>
+          <p class="caller-form-subtitle">Loads every scored MA retailer into a queue and calls them top-down (highest score first) during business hours (9 AM–8 PM ET, Mon–Sat) via Bland AI.</p>
+          <div class="caller-form-row">
+            <div class="filter-group">
+              <label>Game Name *</label>
+              <input type="text" id="cfGameName" placeholder="e.g. 300X" />
+            </div>
+            <div class="filter-group">
+              <label>Game Number</label>
+              <input type="text" id="cfGameNumber" placeholder="e.g. 1234" />
+            </div>
+            <div class="filter-group">
+              <label>Ticket Price ($)</label>
+              <input type="number" id="cfGamePrice" placeholder="30" min="1" max="100" />
+            </div>
+            <div class="filter-group">
+              <label>Max Stores (0 = all)</label>
+              <input type="number" id="cfMaxStores" value="0" min="0" max="9999" placeholder="0 = all" />
+            </div>
+            <div class="filter-group" style="justify-content:flex-end;align-items:flex-end">
+              <button class="btn btn-call-create" id="cfCreateBtn" onclick="createCallerCampaign()">+ Create Campaign</button>
+            </div>
+          </div>
+          <div id="cfMessage" class="caller-msg" style="display:none"></div>
+        </div>
+      </section>
+
+      <!-- Campaigns list -->
+      <section class="table-section" id="callerCampaignsSection">
+        <div class="table-meta">
+          <span>Campaigns</span>
+          <button class="btn" onclick="loadCallerData()" style="font-size:.78rem;padding:.3rem .8rem">↻ Refresh</button>
+        </div>
+        <div id="callerCampaignsList" class="caller-campaigns-list">
+          <div class="loading-cell">No campaigns yet — create one above.</div>
+        </div>
+      </section>
+
+      <!-- Hits table -->
+      <section class="table-section" id="callerHitsSection" style="display:none">
+        <div class="table-meta">
+          <span id="callerHitsCount">Hits</span>
+          <span class="table-legend">
+            <span class="badge" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green)">Has Ticket</span>
+          </span>
+        </div>
+        <div class="table-scroll">
+          <table id="callerHitsTable">
+            <thead>
+              <tr>
+                <th>Store</th>
+                <th>City</th>
+                <th>Phone</th>
+                <th>Game</th>
+                <th>Confidence</th>
+                <th>Can Order</th>
+                <th>Notes</th>
+                <th>Called</th>
+                <th>Transcript</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="callerHitsBody">
+              <tr><td colspan="10" class="loading-cell">No hits yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Campaign detail view (shown in place of list + hits) -->
+      <div id="callerDetailView" style="display:none"></div>
+
+    </div><!-- /tab-caller -->
+
+  </main>
+
+  <!-- Auth modal (login / register) -->
+  <div class="modal-overlay" id="authModalOverlay" onclick="closeAuthModal()">
+    <div class="modal auth-modal" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeAuthModal()">✕</button>
+
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="authTabLogin" onclick="switchAuthTab('login')">Log In</button>
+        <button class="auth-tab" id="authTabRegister" onclick="switchAuthTab('register')">Create Account</button>
+      </div>
+
+      <!-- Login form -->
+      <div id="authFormLogin">
+        <p class="auth-subtitle">Access community inventory reports and contribute sightings.</p>
+        <div class="filter-group" style="margin-bottom:.75rem">
+          <label>Email</label>
+          <input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="filter-group" style="margin-bottom:1rem">
+          <label>Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="loginPassword" placeholder="Your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitLogin()">
+            <button type="button" class="pw-toggle" onclick="togglePw('loginPassword',this)" aria-label="Show password">
+              <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="eye-off-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
+        </div>
+        <button class="btn btn-login auth-submit" onclick="submitLogin()">Log In</button>
+        <div id="loginMsg" class="caller-msg" style="display:none;margin-top:.65rem"></div>
+      </div>
+
+      <!-- Register form -->
+      <div id="authFormRegister" style="display:none">
+        <p class="auth-subtitle">Free account. See where members are finding high-EV tickets.</p>
+        <div class="filter-group" style="margin-bottom:.75rem">
+          <label>Username</label>
+          <input type="text" id="registerUsername" placeholder="e.g. scratcher42" autocomplete="username" maxlength="20">
+          <div style="font-size:.75rem;color:var(--text-muted);margin-top:.2rem">3–20 chars, letters/numbers/underscores</div>
+        </div>
+        <div class="filter-group" style="margin-bottom:.75rem">
+          <label>Email</label>
+          <input type="email" id="registerEmail" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="filter-group" style="margin-bottom:.75rem">
+          <label>Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="registerPassword" placeholder="At least 8 characters" autocomplete="new-password">
+            <button type="button" class="pw-toggle" onclick="togglePw('registerPassword',this)" aria-label="Show password">
+              <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="eye-off-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="filter-group" style="margin-bottom:1rem">
+          <label>Confirm Password</label>
+          <div class="pw-wrap">
+            <input type="password" id="registerConfirm" placeholder="Repeat password" autocomplete="new-password" onkeydown="if(event.key==='Enter')submitRegister()">
+            <button type="button" class="pw-toggle" onclick="togglePw('registerConfirm',this)" aria-label="Show password">
+              <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              <svg class="eye-off-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+            </button>
+          </div>
+        </div>
+        <button class="btn btn-register auth-submit" onclick="submitRegister()">Create Account</button>
+        <div id="registerMsg" class="caller-msg" style="display:none;margin-top:.65rem"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game detail modal -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <footer>
+    <p class="footer-legal">© 2026 EVQ AGENTIC LLC. All rights reserved.</p>
+    <p class="footer-legal">EVQBET.com is operated by EVQ AGENTIC LLC. ScratchFever scrapes publicly available lottery odds data. EV calculations assume stated prize probabilities. Past probability does not predict future results. Play responsibly.</p>
+    <nav class="footer-links">
+      <a href="/about">About</a>
+      <a href="/privacy">Privacy Policy</a>
+      <a href="/terms">Terms of Service</a>
+      <a href="/contact">Contact</a>
+    </nav>
+  </footer>
+
+  <!-- Inventory report modal -->
+  <div class="modal-overlay" id="reportModalOverlay" onclick="closeReportModal()">
+    <div class="modal" onclick="event.stopPropagation()" style="max-width:480px">
+      <button class="modal-close" onclick="closeReportModal()">✕</button>
+      <h2 style="margin-bottom:.4rem">📍 Report Inventory</h2>
+      <p style="color:var(--text-muted);font-size:.85rem;margin-bottom:1.2rem">Saw a scratch ticket at a store? Help the community!</p>
+
+      <div class="filter-group" style="margin-bottom:.85rem;position:relative">
+        <label>Search Store *</label>
+        <input type="text" id="reportStoreSearch" placeholder="Type store name or city…" oninput="searchReportStores()" autocomplete="off">
+        <div id="reportStoreDropdown" class="store-dropdown" style="display:none"></div>
+        <div id="reportSelectedStore" class="selected-tag" style="display:none"></div>
+        <input type="hidden" id="reportRetailerId">
+        <input type="hidden" id="reportRetailerName">
+        <input type="hidden" id="reportRetailerCity">
+        <input type="hidden" id="reportRetailerLat">
+        <input type="hidden" id="reportRetailerLng">
+      </div>
+
+      <div class="filter-group" style="margin-bottom:.85rem;position:relative">
+        <label>Game Name *</label>
+        <input type="text" id="reportGameName" placeholder="e.g. 300X, Wild Cash…" oninput="searchReportGames()" autocomplete="off">
+        <div id="reportGameDropdown" class="store-dropdown" style="display:none"></div>
+        <input type="hidden" id="reportLinkedGameId">
+      </div>
+
+      <div class="filter-group" style="margin-bottom:.85rem">
+        <label>Ticket Price ($) <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
+        <input type="number" id="reportGamePrice" placeholder="e.g. 30" min="1" max="100" step="1">
+      </div>
+
+      <div class="filter-group" style="margin-bottom:.85rem">
+        <label>Availability *</label>
+        <div style="display:flex;gap:.5rem;margin-top:.35rem">
+          <button id="reportBtnIn" class="btn stock-btn stock-btn-active" onclick="setReportStock(true)">✅ In Stock</button>
+          <button id="reportBtnOut" class="btn stock-btn" onclick="setReportStock(false)">❌ Out of Stock</button>
+        </div>
+      </div>
+
+      <div class="filter-group" style="margin-bottom:.85rem">
+        <label>Notes <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
+        <input type="text" id="reportNotes" placeholder="e.g. 3 left, just restocked…">
+      </div>
+
+      <div class="filter-group" style="margin-bottom:1.1rem">
+        <label>Date Seen <span style="color:var(--text-muted);font-weight:400">(defaults to today)</span></label>
+        <input type="date" id="reportDate">
+      </div>
+
+      <button class="btn btn-call-create" id="reportSubmitBtn" onclick="submitInventoryReport()" style="width:100%;justify-content:center">Submit Report</button>
+      <div id="reportMsg" class="caller-msg" style="display:none;margin-top:.75rem"></div>
+    </div>
+  </div>
+
+  <script src="/static/js/leaflet.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
