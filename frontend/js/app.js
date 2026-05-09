@@ -1279,7 +1279,7 @@ async function createCallerCampaign() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ game_name: name, game_number: number, game_price: price,
-                             max_stores: max }),
+                             max_stores: max, call_backend: document.getElementById("cfBackend").value }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || "Failed");
