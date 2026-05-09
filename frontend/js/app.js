@@ -1299,6 +1299,36 @@ async function createCallerCampaign() {
   }
 }
 
+async function sendTestCall() {
+  const phone  = document.getElementById("cfTestPhone").value.trim();
+  const name   = document.getElementById("cfGameName").value.trim() || "Test Game";
+  const number = document.getElementById("cfGameNumber").value.trim();
+  const price  = parseFloat(document.getElementById("cfGamePrice").value) || 0;
+  const btn    = document.getElementById("cfTestBtn");
+
+  if (!phone) { showCallerMsg("Enter a phone number for the test call.", "err"); return; }
+
+  btn.disabled = true;
+  btn.textContent = "Calling…";
+  showCallerMsg("", "");
+
+  try {
+    const res  = await callerFetch("/api/caller/test-call", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone, game_name: name, game_number: number, game_price: price }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Failed");
+    showCallerMsg(`Test call placed — you should receive a call shortly! SID: ${data.call_sid}`, "ok");
+  } catch (e) {
+    showCallerMsg(`Test call failed: ${e.message}`, "err");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "📞 Send Test Call";
+  }
+}
+
 function showCallerMsg(text, type) {
   const el = document.getElementById("cfMessage");
   el.style.display = text ? "" : "none";
