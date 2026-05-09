@@ -221,7 +221,7 @@ async def get_campaign_all_retailers(campaign_id: int):
     for r in retailers:
         rid = r["id"]
         if rid in result_map:
-            cstatus = "hit" if result_map[rid]["has_game"] == 1 else "no_stock"
+            cstatus = "hit" if result_map[rid]["has_game"] else "no_stock"
             has_inv = result_map[rid]["has_game"]
             checked_at = result_map[rid]["called_at"]
             queue_id = queue_map.get(rid, {}).get("id")
