@@ -245,6 +245,16 @@ async def ma_heatmap():
     return FileResponse(path, media_type="text/html")
 
 
+@app.get("/api/prize-claims")
+async def api_prize_claims(days: int = Query(7, le=30)):
+    async with get_pool().acquire() as conn:
+        claims = await get_recent_prize_claims(conn, days=days)
+    for c in claims:
+        if c.get("detected_at"):
+            c["detected_at"] = c["detected_at"].isoformat()
+    return {"claims": claims, "count": len(claims)}
+
+
 @app.get("/api/az/retailers")
 async def api_az_retailers(
     search: Optional[str] = Query(None, description="Name / city search"),
