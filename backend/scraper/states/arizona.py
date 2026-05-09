@@ -56,8 +56,7 @@ class ArizonaScraper(BaseScraper):
             )
             page = ctx.new_page()
 
-            # Use top-prizes page for slug discovery (more reliable than listing page)
-            slugs = self._get_slugs_from_top_prizes(page)
+            slugs = self._get_slugs(page)
             logger.info("AZ: %d game slugs found", len(slugs))
 
             for slug in slugs:
