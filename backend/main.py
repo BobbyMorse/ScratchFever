@@ -363,22 +363,16 @@ async def get_inventory_retailer_counts(user: dict = Depends(require_member)):
 @app.get("/api/inventory/retailer-latest")
 async def get_retailer_latest_status(user: dict = Depends(require_member)):
     """Members-only: latest inventory status (has_stock + reported_at) per retailer."""
-    async with aiosqlite.connect(DB_PATH) as db:
-        cursor = await db.execute("""
-            SELECT i.retailer_id, i.has_stock, i.reported_at
-            FROM inventory_reports i
-            INNER JOIN (
-                SELECT retailer_id, MAX(reported_at) AS max_at
-                FROM inventory_reports
-                WHERE retailer_id IS NOT NULL
-                GROUP BY retailer_id
-            ) latest ON i.retailer_id = latest.retailer_id
-                     AND i.reported_at = latest.max_at
+    async with get_pool().acquire() as conn:
+        rows = await conn.fetch("""
+            SELECT DISTINCT ON (retailer_id) retailer_id, has_stock, reported_at
+            FROM inventory_reports
+            WHERE retailer_id IS NOT NULL
+            ORDER BY retailer_id, reported_at DESC
         """)
-        rows = await cursor.fetchall()
     return {
         "statuses": {
-            row[0]: {"has_stock": bool(row[1]), "reported_at": row[2]}
-            for row in rows
+            r["retailer_id"]: {"has_stock": r["has_stock"], "reported_at": r["reported_at"]}
+            for r in rows
         }
     }
