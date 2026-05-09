@@ -187,8 +187,8 @@ async def api_game_detail(game_id: int):
 
 @app.get("/api/states")
 async def api_states():
-    async with aiosqlite.connect(DB_PATH) as db:
-        rows = await get_states_summary(db)
+    async with get_pool().acquire() as conn:
+        rows = await get_states_summary(conn)
     cols = ["state_code", "state_name", "game_count", "last_scraped", "avg_return", "best_return"]
     return {"states": [dict(zip(cols, r)) for r in rows]}
 
