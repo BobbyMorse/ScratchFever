@@ -24,6 +24,7 @@ class VirginiaScraper(PlaywrightScraper):
     state_code = "VA"
     state_name = "Virginia"
     base_url = BASE_URL
+    scraper_timeout = 600
 
     def scrape(self) -> list[dict]:
         self._ensure_browser()
