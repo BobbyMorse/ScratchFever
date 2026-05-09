@@ -223,7 +223,8 @@ function syncHeaderHeight() {
   await Promise.all([loadStates(), loadGames(), loadMaGames(), loadAzGames(), restoreSession()]);
   await Promise.all([loadCommunityReports(), loadGameCounts(), loadRetailerCounts(), loadRetailerLatest()]);
   loadStatus();
-  setInterval(loadStatus, 30_000);
+  loadPrizeClaims();
+  setInterval(() => { loadStatus(); loadPrizeClaims(); }, 30_000);
 })();
 
 async function loadGameCounts() {
