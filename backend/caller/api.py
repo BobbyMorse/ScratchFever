@@ -111,13 +111,11 @@ async def delete_campaign(campaign_id: int):
         raise HTTPException(status_code=404, detail="Campaign not found")
     if _runner is not None:
         _runner.stop_campaign(campaign_id)
-    from backend.caller.db import DB_PATH
-    import aiosqlite
-    async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("DELETE FROM call_results WHERE campaign_id=?", (campaign_id,))
-        await db.execute("DELETE FROM call_queue WHERE campaign_id=?", (campaign_id,))
-        await db.execute("DELETE FROM call_campaigns WHERE id=?", (campaign_id,))
-        await db.commit()
+    from backend.database import get_pool
+    async with get_pool().acquire() as conn:
+        await conn.execute("DELETE FROM call_results WHERE campaign_id=$1", campaign_id)
+        await conn.execute("DELETE FROM call_queue WHERE campaign_id=$1", campaign_id)
+        await conn.execute("DELETE FROM call_campaigns WHERE id=$1", campaign_id)
     return {"message": f"Campaign #{campaign_id} deleted"}
 
 
