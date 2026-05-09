@@ -826,6 +826,10 @@ function switchTab(name) {
     loadCallerData();
     setInterval(() => { if (currentTab === "caller") loadCallerData(); }, 15_000);
   }
+  if (name === "bigwins" && !bigwinsLoaded) {
+    bigwinsLoaded = true;
+    loadBigWins();
+  }
 }
 
 function selectHuntState(code) {
