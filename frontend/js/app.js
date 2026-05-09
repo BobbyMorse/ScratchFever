@@ -699,20 +699,30 @@ document.addEventListener("keydown", e => {
 
 // ── Scrape trigger ────────────────────────────────────────────────────────────
 async function triggerScrape() {
+  const state = document.getElementById("filterState").value || null;
+  if (!state) {
+    alert("Select a state first — running all states at once takes 1+ hours.");
+    return;
+  }
   const btn = document.getElementById("scrapeBtn");
   btn.classList.add("busy");
   btn.textContent = "Scraping…";
   btn.disabled = true;
+  document.getElementById("cancelScrapeBtn").style.display = "";
   try {
-    const state = document.getElementById("filterState").value || null;
-    const url = state ? `/api/scrape?state=${state}` : "/api/scrape";
-    await fetch(url, { method: "POST" });
+    await fetch(`/api/scrape?state=${state}`, { method: "POST" });
     pollScrapeStatus();
   } catch (e) {
     btn.classList.remove("busy");
     btn.textContent = "↻ Refresh Data";
     btn.disabled = false;
+    document.getElementById("cancelScrapeBtn").style.display = "none";
   }
+}
+
+async function cancelScrape() {
+  await fetch("/api/scrape/cancel", { method: "POST" });
+  document.getElementById("cancelScrapeBtn").style.display = "none";
 }
 
 async function pollScrapeStatus() {
@@ -725,6 +735,7 @@ async function pollScrapeStatus() {
     btn.classList.remove("busy");
     btn.textContent = "↻ Refresh Data";
     btn.disabled = false;
+    document.getElementById("cancelScrapeBtn").style.display = "none";
     await loadGames();
     await loadStatus();
     await loadStates();
