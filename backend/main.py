@@ -149,7 +149,7 @@ async def api_games(
         "top_prize", "top_prize_remaining",
         "total_tickets", "tickets_remaining",
         "detail_url", "image_url", "scraped_at",
-        "prize_pool_remaining",
+        "prize_pool_remaining", "jackpot_odds_one_in",
     ]
     games = [dict(zip(cols, row)) for row in rows]
     return {"games": games, "count": len(games)}
