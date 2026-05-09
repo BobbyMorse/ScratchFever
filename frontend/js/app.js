@@ -2625,11 +2625,13 @@ function updateAzInventoryMapLayer(visibleRetailers) {
     const time = r.reported_at
       ? timeAgo(new Date(r.reported_at + (r.reported_at.endsWith("Z") ? "" : "Z")))
       : "";
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}`;
     return L.marker([r.lat, r.lng], { icon }).bindPopup(
       `<b>${escHtml(r.retailer_name || "")}</b><br>` +
       `${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>` +
       `${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br>` +
-      `<span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span>`
+      `<span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br>` +
+      `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
     );
   });
 
