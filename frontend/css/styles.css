@@ -1653,3 +1653,68 @@ footer {
   font-size: .88rem;
   max-width: 340px;
 }
+
+/* ── Prize claims feed ───────────────────────────────────────────────────────── */
+.claims-feed {
+  margin: 0 1.5rem .75rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.claims-feed-header {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .55rem 1rem;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+}
+.claims-feed-title {
+  font-size: .8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--text-muted);
+}
+.claims-feed-count {
+  font-size: .75rem;
+  color: var(--text-muted);
+  margin-left: auto;
+}
+.claims-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem;
+  padding: .6rem 1rem;
+}
+.claim-item {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .8rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: .3rem .55rem;
+  white-space: nowrap;
+}
+.badge-state {
+  background: var(--bg3);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: .7rem;
+  font-weight: 700;
+  padding: .1rem .3rem;
+}
+.claim-game { font-weight: 600; color: var(--text); }
+.claim-prize { color: var(--yellow); font-weight: 600; }
+.claim-remaining { color: var(--text-muted); }
+.claim-when { color: var(--text-muted); font-size: .72rem; }
+
+@media (max-width: 600px) {
+  .claims-feed { margin: 0 .5rem .75rem; }
+  .claims-list { flex-direction: column; }
+  .claim-item { white-space: normal; flex-wrap: wrap; }
+}
