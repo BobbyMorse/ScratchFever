@@ -333,9 +333,9 @@ async def get_inventory_reports(
     game_name: Optional[str] = Query(None),
     user: dict = Depends(require_member),
 ):
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with get_pool().acquire() as conn:
         reports = await get_recent_inventory_reports(
-            db, limit=limit, retailer_id=retailer_id, game_name=game_name
+            conn, limit=limit, retailer_id=retailer_id, game_name=game_name
         )
     return {"reports": reports, "count": len(reports)}
 
