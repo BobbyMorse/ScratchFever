@@ -299,17 +299,16 @@ async def submit_inventory_report(
     user: dict = Depends(require_member),
 ):
     reporter_ip = request.client.host if request.client else None
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with get_pool().acquire() as conn:
         if reporter_ip:
-            cursor = await db.execute(
-                "SELECT COUNT(*) FROM inventory_reports WHERE reporter_ip=? AND reported_at > datetime('now', '-1 hour')",
-                (reporter_ip,),
+            count = await conn.fetchval(
+                "SELECT COUNT(*) FROM inventory_reports WHERE reporter_ip=$1 AND reported_at > NOW() - INTERVAL '1 hour'",
+                reporter_ip,
             )
-            count = (await cursor.fetchone())[0]
             if count >= 10:
                 raise HTTPException(status_code=429, detail="Too many reports. Try again in an hour.")
         await add_inventory_report(
-            db,
+            conn,
             retailer_id=body.retailer_id,
             retailer_name=body.retailer_name or None,
             retailer_city=body.retailer_city or None,
