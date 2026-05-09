@@ -276,3 +276,108 @@ async def bland_webhook(request: Request):
     logger.info("Bland result saved: queue=%d has_game=%s confidence=%.2f",
                 queue_id, result.get("has_game"), result.get("confidence", 0))
     return Response(content="ok")
+
+
+# ── Twilio IVR (press 1 = has it, press 2 = doesn't) ─────────────────────────
+
+@router.post("/caller/ivr/twiml/{queue_id}", include_in_schema=False)
+async def ivr_twiml(queue_id: int):
+    ctx = _pending_calls.get(queue_id)
+    if not ctx and queue_id != 0:
+        return Response(content="<Response><Hangup/></Response>", media_type="application/xml")
+
+    campaign    = ctx["campaign"] if ctx else {}
+    game_name   = campaign.get("game_name", "a scratch ticket")
+    game_number = campaign.get("game_number", "")
+    game_price  = float(campaign.get("game_price", 0))
+
+    price_str = f"${game_price:.0f} " if game_price else ""
+    num_str   = f" It's game number {game_number}." if game_number else ""
+
+    message = (
+        f"Hi, this is an automated lottery inventory check. "
+        f"Do you currently have the {game_name} Massachusetts scratch ticket in stock? "
+        f"It's the {price_str}ticket.{num_str} "
+        f"Press 1 if you have it, or press 2 if you don't."
+    )
+
+    gather_url = f"{_base_url()}/caller/ivr/gather/{queue_id}"
+
+    twiml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Gather numDigits="1" action="{gather_url}" method="POST" timeout="10">
+    <Say voice="Polly.Joanna">{message}</Say>
+  </Gather>
+  <Say voice="Polly.Joanna">We didn't receive a response. Thank you, goodbye!</Say>
+</Response>"""
+    return Response(content=twiml, media_type="application/xml")
+
+
+@router.post("/caller/ivr/gather/{queue_id}", include_in_schema=False)
+async def ivr_gather(queue_id: int, request: Request):
+    form     = await request.form()
+    digit    = form.get("Digits", "")
+    call_sid = form.get("CallSid", "")
+
+    has_game = True if digit == "1" else (False if digit == "2" else None)
+
+    if queue_id != 0:
+        ctx      = _pending_calls.pop(queue_id, {})
+        q        = ctx.get("queue_item", {})
+        campaign = ctx.get("campaign", {})
+        if q.get("id") and campaign.get("id"):
+            await save_result(
+                queue_id=q["id"],
+                campaign_id=campaign["id"],
+                call_sid=call_sid or f"ivr_{queue_id}",
+                outcome="completed",
+                has_game=has_game,
+                confidence=1.0 if digit in ("1", "2") else 0.0,
+                can_order=None,
+                notes=f"IVR keypress: {digit!r}",
+                transcript=f"IVR: pressed {digit!r}",
+            )
+            await update_queue_status(q["id"], "done")
+            logger.info("IVR result saved: queue=%d digit=%s has_game=%s", queue_id, digit, has_game)
+
+    if has_game is True:
+        reply = "Great, thank you so much! Have a great day!"
+    elif has_game is False:
+        reply = "No problem, thanks for letting us know! Have a great day!"
+    else:
+        reply = "Sorry, we didn't catch that. Thanks anyway, goodbye!"
+
+    twiml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Say voice="Polly.Joanna">{reply}</Say>
+</Response>"""
+    return Response(content=twiml, media_type="application/xml")
+
+
+@router.post("/caller/ivr/status/{queue_id}", include_in_schema=False)
+async def ivr_status(queue_id: int, request: Request):
+    form        = await request.form()
+    call_status = form.get("CallStatus", "")
+    call_sid    = form.get("CallSid", "")
+    answered_by = form.get("AnsweredBy", "")
+    logger.info("IVR status callback queue=%d sid=%s status=%s answered_by=%s",
+                queue_id, call_sid, call_status, answered_by)
+
+    if queue_id == 0:
+        return Response(content="", status_code=204)
+
+    ctx = _pending_calls.get(queue_id)
+    q   = ctx.get("queue_item", {}) if ctx else {}
+
+    if answered_by in ("machine_start", "machine_end_beep", "machine_end_silence"):
+        _pending_calls.pop(queue_id, None)
+        if q.get("id"):
+            new_status = "pending" if (q.get("attempts", 0) or 0) < 3 else "voicemail"
+            await update_queue_status(q["id"], new_status)
+    elif call_status in ("no-answer", "busy", "failed"):
+        _pending_calls.pop(queue_id, None)
+        if q.get("id"):
+            new_status = "pending" if (q.get("attempts", 0) or 0) < 3 else "no_answer"
+            await update_queue_status(q["id"], new_status)
+
+    return Response(content="", status_code=204)
