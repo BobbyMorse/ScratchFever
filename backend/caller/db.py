@@ -100,12 +100,14 @@ def normalize_phone(phone: str) -> str | None:
 
 
 async def create_campaign(game_name: str, game_number: str, game_price: float,
-                          target_tiers: str = "ELITE,GOOD", max_stores: int = 200) -> int:
+                          target_tiers: str = "ELITE,GOOD", max_stores: int = 200,
+                          call_backend: str = "bland") -> int:
     async with get_pool().acquire() as conn:
         row = await conn.fetchrow(
-            """INSERT INTO call_campaigns (game_name, game_number, game_price, target_tiers, max_stores, status)
-               VALUES ($1, $2, $3, $4, $5, 'paused') RETURNING id""",
-            game_name, game_number or "", game_price or 0.0, target_tiers, max_stores,
+            """INSERT INTO call_campaigns
+               (game_name, game_number, game_price, target_tiers, max_stores, status, call_backend)
+               VALUES ($1, $2, $3, $4, $5, 'paused', $6) RETURNING id""",
+            game_name, game_number or "", game_price or 0.0, target_tiers, max_stores, call_backend,
         )
         return row["id"]
 
