@@ -450,7 +450,8 @@ async function loadPrizeClaims() {
     items.innerHTML = data.claims.map(c => {
       const prize = fmtClaimPrize(c.prize_amount);
       const count = c.claimed_count > 1 ? ` ×${c.claimed_count}` : "";
-      return `<span class="bigwins-banner-chip">
+      const clickable = c.game_db_id != null;
+      return `<span class="bigwins-banner-chip${clickable ? ' bigwins-banner-chip-link' : ''}"${clickable ? ` onclick="openGame(${c.game_db_id})"` : ''}>
         <span class="badge badge-state">${escHtml(c.state_code)}</span>
         <span class="bigwins-chip-game">${escHtml(c.game_name)}</span>
         <span class="bigwins-chip-prize">${prize}${count}</span>
