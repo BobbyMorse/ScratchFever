@@ -56,6 +56,7 @@ async def create_campaign_endpoint(body: CampaignCreate):
         game_price=body.game_price,
         target_tiers=",".join(tiers),
         max_stores=max_stores,
+        call_backend=body.call_backend,
     )
     inserted = await populate_queue(campaign_id, tiers, max_stores)
     campaign = await get_campaign(campaign_id)
