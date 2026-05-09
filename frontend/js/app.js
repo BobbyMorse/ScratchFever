@@ -2308,7 +2308,7 @@ function updateInventoryMapLayer(visibleRetailers) {
   if (window._inventoryLayer) { maMap.removeLayer(window._inventoryLayer); window._inventoryLayer = null; }
 
   // Retailer location markers (all visible retailers with coordinates)
-  const retailerMarkers = (visibleRetailers || [])
+  const retailerMarkers = (visibleRetailers || getFilteredRows())
     .filter(r => r.latitude && r.longitude)
     .map(r => {
       const status = retailerLatestStatus[r.id];
