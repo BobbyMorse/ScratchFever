@@ -411,6 +411,40 @@ async function loadStatus() {
   } catch (_) {}
 }
 
+async function loadPrizeClaims() {
+  try {
+    const res = await fetch("/api/prize-claims");
+    if (!res.ok) return;
+    const data = await res.json();
+    const feed = document.getElementById("claimsFeed");
+    const list = document.getElementById("claimsList");
+    const countEl = document.getElementById("claimsCount");
+    if (!data.claims || data.claims.length === 0) {
+      feed.style.display = "none";
+      return;
+    }
+    feed.style.display = "";
+    countEl.textContent = `${data.claims.length} claim${data.claims.length !== 1 ? "s" : ""}`;
+    list.innerHTML = data.claims.map(c => {
+      const prize = c.prize_amount >= 1000
+        ? "$" + (c.prize_amount / 1000).toFixed(0) + "K"
+        : "$" + c.prize_amount.toLocaleString();
+      const when = timeAgo(new Date(c.detected_at));
+      const left = c.new_remaining === 0
+        ? '<span style="color:var(--red);font-weight:700">GONE</span>'
+        : `${c.new_remaining.toLocaleString()} left`;
+      const count = c.claimed_count > 1 ? ` ×${c.claimed_count}` : "";
+      return `<div class="claim-item">
+        <span class="badge badge-state">${escHtml(c.state_code)}</span>
+        <span class="claim-game">${escHtml(c.game_name)}</span>
+        <span class="claim-prize">${prize} prize claimed${count}</span>
+        <span class="claim-remaining">${left}</span>
+        <span class="claim-when">${when}</span>
+      </div>`;
+    }).join("");
+  } catch (_) {}
+}
+
 // ── Filters & sorting ─────────────────────────────────────────────────────────
 function buildParams() {
   const state    = document.getElementById("filterState")?.value || "";
