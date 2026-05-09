@@ -26,6 +26,7 @@ class ArizonaScraper(BaseScraper):
     state_code = "AZ"
     state_name = "Arizona"
     base_url = BASE_URL
+    scraper_timeout = 600
 
     def scrape(self) -> list[dict]:
         try:
