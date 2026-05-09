@@ -15,8 +15,11 @@ from backend.scraper.base import BaseScraper
 
 logger = logging.getLogger(__name__)
 
-TOP_PRIZES_URL = "https://www.arizonalottery.com/scratchers/top-prizes-remaining/"
-BASE_URL       = "https://www.arizonalottery.com"
+LISTING_URLS = [
+    "https://www.arizonalottery.com/scratchers/",
+    "https://www.arizonalottery.com/scratchers/top-prizes-remaining/",
+]
+BASE_URL = "https://www.arizonalottery.com"
 
 
 class ArizonaScraper(BaseScraper):
