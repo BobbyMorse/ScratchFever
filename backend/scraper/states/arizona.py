@@ -73,34 +73,33 @@ class ArizonaScraper(BaseScraper):
         logger.info("AZ: %d games scraped", len(games))
         return games
 
-    def _get_slugs_from_top_prizes(self, page) -> list[str]:
-        """
-        Get game slugs from the top-prizes-remaining page.
-        The sidebar nav lists ALL active games; the table only lists jackpot-level prizes.
-        We collect from all /scratchers/{slug}/ links on the page.
-        """
-        try:
-            page.goto(TOP_PRIZES_URL, wait_until="networkidle", timeout=30_000)
-        except Exception as e:
-            logger.warning("AZ: top-prizes page failed: %s", e)
-            return []
-
+    def _get_slugs(self, page) -> list[str]:
+        """Collect game slugs from all listing pages, deduped."""
         from bs4 import BeautifulSoup
-        soup = BeautifulSoup(page.content(), "lxml")
-        slugs, seen = [], set()
 
         _SKIP = {"top-prizes-remaining", "how-to-play", "winners",
                  "scratchers", "faq", "instant-tabs", "remaining-prizes"}
 
-        for a in soup.find_all("a", href=True):
-            m = re.search(r"/scratchers/([a-z0-9-]+)/?$", a["href"])
-            if not m:
+        seen: set[str] = set()
+        slugs: list[str] = []
+
+        for url in LISTING_URLS:
+            try:
+                page.goto(url, wait_until="networkidle", timeout=30_000)
+            except Exception as e:
+                logger.warning("AZ: listing page failed %s: %s", url, e)
                 continue
-            slug = m.group(1)
-            if slug in _SKIP or slug in seen:
-                continue
-            seen.add(slug)
-            slugs.append(slug)
+            soup = BeautifulSoup(page.content(), "lxml")
+            for a in soup.find_all("a", href=True):
+                m = re.search(r"/scratchers/([a-z0-9-]+)/?$", a["href"])
+                if not m:
+                    continue
+                slug = m.group(1)
+                if slug in _SKIP or slug in seen:
+                    continue
+                seen.add(slug)
+                slugs.append(slug)
+
         return slugs
 
     def _scrape_detail(self, page, slug: str, url: str) -> dict | None:
