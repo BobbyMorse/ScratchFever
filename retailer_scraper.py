@@ -229,6 +229,96 @@ def diff_retailers(
     print(f"\nChangelog updated -> {changelog_path}  ({len(entries)} new entries)")
 
 
+async def upsert_to_db(conn, retailers: list[dict]) -> tuple[int, int]:
+    """Upsert lottery-provided fields only; never clobbers enrichment columns."""
+    inserted = updated = 0
+    for r in retailers:
+        rid = r.get("id")
+        if not rid:
+            continue
+
+        def _b(v) -> bool:
+            return str(v).lower() in ("true", "1", "yes") if v else False
+
+        result = await conn.execute("""
+            INSERT INTO ma_retailers (
+                id, retailer_id, name, address, address2, city, zip_code, phone,
+                latitude, longitude, games,
+                self_service, sells_draw_game,
+                keno_sold, keno_monitor, keno_type,
+                wol_sold, wol_monitor, wol_type, ada_compliant,
+                is_active, last_seen_at
+            ) VALUES (
+                $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,
+                $12,$13,$14,$15,$16,$17,$18,$19,$20,
+                TRUE, NOW()
+            )
+            ON CONFLICT (id) DO UPDATE SET
+                name            = EXCLUDED.name,
+                address         = EXCLUDED.address,
+                address2        = EXCLUDED.address2,
+                city            = EXCLUDED.city,
+                zip_code        = EXCLUDED.zip_code,
+                phone           = EXCLUDED.phone,
+                latitude        = EXCLUDED.latitude,
+                longitude       = EXCLUDED.longitude,
+                games           = EXCLUDED.games,
+                self_service    = EXCLUDED.self_service,
+                sells_draw_game = EXCLUDED.sells_draw_game,
+                keno_sold       = EXCLUDED.keno_sold,
+                keno_monitor    = EXCLUDED.keno_monitor,
+                keno_type       = EXCLUDED.keno_type,
+                wol_sold        = EXCLUDED.wol_sold,
+                wol_monitor     = EXCLUDED.wol_monitor,
+                wol_type        = EXCLUDED.wol_type,
+                ada_compliant   = EXCLUDED.ada_compliant,
+                is_active       = TRUE,
+                last_seen_at    = NOW()
+        """,
+            int(rid),
+            int(r["retailerId"]) if r.get("retailerId") else None,
+            str(r.get("name", "")).strip(),
+            str(r.get("address", "")).strip(),
+            str(r.get("address2", "")).strip(),
+            str(r.get("city", "")).strip(),
+            str(r.get("zipCode", "")).strip(),
+            str(r.get("phone", "")).strip(),
+            float(r["latitude"]) if r.get("latitude") is not None else None,
+            float(r["longitude"]) if r.get("longitude") is not None else None,
+            str(r.get("games", "")),
+            _b(r.get("selfService")),
+            _b(r.get("sellsDrawGame")),
+            _b(r.get("kenoSoldAtLocation")),
+            _b(r.get("kenoMonitor")),
+            str(r.get("kenoType", "")),
+            _b(r.get("wolSoldAtLocation")),
+            _b(r.get("wolMonitor")),
+            str(r.get("wolType", "")),
+            str(r.get("adaCompliant", "")),
+        )
+        if result == "INSERT 0 1":
+            inserted += 1
+        else:
+            updated += 1
+
+    # Mark retailers not seen this run as inactive
+    seen_ids = [int(r["id"]) for r in retailers if r.get("id")]
+    if seen_ids:
+        await conn.execute(
+            "UPDATE ma_retailers SET is_active = FALSE WHERE id != ALL($1::int[])",
+            seen_ids,
+        )
+
+    return inserted, updated
+
+
+async def scrape_and_save_db(conn, spacing_miles: float = 1.0, workers: int = 20) -> dict:
+    """Scrape MA lottery API and upsert results into the database. Returns summary."""
+    retailers = await scrape(spacing_miles=spacing_miles, workers=workers)
+    inserted, updated = await upsert_to_db(conn, retailers)
+    return {"total": len(retailers), "inserted": inserted, "updated": updated}
+
+
 async def main():
     parser = argparse.ArgumentParser(description="Scrape MA Lottery retailers to CSV")
     parser.add_argument("--spacing", type=float, default=1.0, help="Grid spacing in miles (default 1.0)")
@@ -252,7 +342,7 @@ async def main():
     print(f"Done in {elapsed:.0f}s — {len(retailers)} unique MA retailers")
 
     if previous:
-        diff_retailers(previous, retailers, changelog_path)
+        diff_retailers(retailers, changelog_path)
 
     write_csv(retailers, out_path)
 
