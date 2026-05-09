@@ -102,9 +102,57 @@ class CallRunner:
             logger.warning("Queue item %d has no E.164 phone", queue_item["id"])
             return None
 
+        backend = campaign.get("call_backend", "bland")
+        if backend == "twilio_ivr":
+            return await self._initiate_ivr_call(queue_item, campaign, to_number)
         if self._use_bland():
             return await self._initiate_bland_call(queue_item, campaign, to_number)
         return await self._initiate_twilio_call(queue_item, campaign, to_number)
+
+    async def _initiate_ivr_call(self, queue_item: dict, campaign: dict,
+                                  to_number: str) -> str | None:
+        account_sid = os.getenv("TWILIO_ACCOUNT_SID")
+        auth_token  = os.getenv("TWILIO_AUTH_TOKEN")
+        from_number = os.getenv("TWILIO_PHONE_NUMBER")
+        base_url    = os.getenv("CALLER_BASE_URL", "").rstrip("/")
+
+        if not all([account_sid, auth_token, from_number]):
+            logger.error("Twilio IVR: missing credentials (TWILIO_ACCOUNT_SID/AUTH_TOKEN/PHONE_NUMBER)")
+            return None
+        if not base_url:
+            logger.error("Twilio IVR: CALLER_BASE_URL not set")
+            return None
+
+        queue_id   = queue_item["id"]
+        twiml_url  = f"{base_url}/caller/ivr/twiml/{queue_id}"
+        status_url = f"{base_url}/caller/ivr/status/{queue_id}"
+
+        try:
+            from twilio.rest import Client as TwilioClient
+            from backend.caller.webhook import register_call
+            register_call(queue_id, campaign, queue_item)
+
+            client = TwilioClient(account_sid, auth_token)
+            call = client.calls.create(
+                to=to_number,
+                from_=from_number,
+                url=twiml_url,
+                status_callback=status_url,
+                status_callback_method="POST",
+                status_callback_event=["completed", "no-answer", "busy", "failed"],
+                machine_detection="Enable",
+                machine_detection_timeout=4,
+                timeout=25,
+            )
+            await mark_calling(queue_id, call.sid)
+            logger.info("Twilio IVR call to %s (%s) SID=%s",
+                        queue_item["name"], to_number, call.sid)
+            return call.sid
+        except Exception as exc:
+            logger.error("Twilio IVR call failed for %s: %s", queue_item["name"], exc)
+            from backend.caller.db import update_queue_status
+            await update_queue_status(queue_id, "failed")
+            return None
 
     async def _initiate_bland_call(self, queue_item: dict, campaign: dict,
                                     to_number: str) -> str | None:
