@@ -54,6 +54,34 @@ def calculate_ev(price: float, tiers: list[dict], tickets_remaining: int = None)
     return {"ev": ev, "return_pct": return_pct}
 
 
+def calculate_jackpot_odds(tiers: list[dict], tickets_remaining: int = None) -> float | None:
+    """1-in-X odds of winning $1M or more per ticket."""
+    big_tiers = [t for t in tiers if (t.get("prize_amount") or 0) >= 1_000_000]
+    if not big_tiers:
+        return None
+
+    use_remaining = (
+        tickets_remaining is not None
+        and tickets_remaining > 0
+        and all(t.get("prizes_remaining") is not None for t in big_tiers)
+    )
+
+    if use_remaining:
+        total = sum(t.get("prizes_remaining", 0) or 0 for t in big_tiers)
+        if total <= 0:
+            return None
+        return round(tickets_remaining / total, 1)
+    else:
+        total_prob = sum(
+            1 / t["odds_one_in"]
+            for t in big_tiers
+            if t.get("odds_one_in") and t["odds_one_in"] > 0
+        )
+        if total_prob <= 0:
+            return None
+        return round(1 / total_prob, 1)
+
+
 def find_top_prize(tiers: list[dict]) -> tuple[float, int]:
     if not tiers:
         return 0, None
