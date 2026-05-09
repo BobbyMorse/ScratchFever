@@ -132,9 +132,9 @@ async def api_games(
     sort_by: str = Query("return_pct", description="Sort field"),
     limit: int = Query(500, le=1000),
 ):
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with get_pool().acquire() as conn:
         rows = await get_all_games(
-            db,
+            conn,
             state=state,
             min_price=min_price,
             max_price=max_price,
