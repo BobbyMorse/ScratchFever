@@ -61,6 +61,9 @@ async def lifespan(app: FastAPI):
     await init_users_db()
     await seed_admin()
 
+    # Schedule scrape every 6 hours (no startup trigger)
+    scheduler.add_job(scheduled_scrape, "interval", hours=6, id="scrape_all")
+
     # Attach call runner to scheduler
     runner = CallRunner()
     runner.attach_scheduler(scheduler)
