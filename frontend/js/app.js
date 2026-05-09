@@ -2295,33 +2295,56 @@ function updateInventoryMapLayer(visibleRetailers) {
 
   if (window._inventoryLayer) { maMap.removeLayer(window._inventoryLayer); window._inventoryLayer = null; }
 
+  // Retailer location markers (all visible retailers with coordinates)
+  const retailerMarkers = (visibleRetailers || [])
+    .filter(r => r.latitude && r.longitude)
+    .map(r => {
+      const status = retailerLatestStatus[r.id];
+      const color = status ? (status.has_stock ? "#00cc44" : "#cc2200") : "#4a9eff";
+      const icon = L.divIcon({
+        className: "",
+        html: `<div style="width:8px;height:8px;border-radius:50%;background:${color};border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>`,
+        iconSize: [8, 8], iconAnchor: [4, 4],
+      });
+      const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
+      const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
+      return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon })
+        .bindPopup(
+          `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br>` +
+          `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+        );
+    });
+
   // Report dots — filtered by game and stock status
   let reports = communityReports.filter(r => r.lat && r.lng);
   if (selectedGame) reports = reports.filter(r => r.game_name?.toLowerCase() === selectedGame.name.toLowerCase());
   if (mapReportFilter === "in")  reports = reports.filter(r =>  r.has_stock);
   if (mapReportFilter === "out") reports = reports.filter(r => !r.has_stock);
 
-  if (reports.length) {
-    const markers = reports.map(r => {
-      const color = r.has_stock ? "#00cc44" : "#cc2200";
-      const icon  = L.divIcon({
-        className: "",
-        html: `<div style="width:10px;height:10px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>`,
-        iconSize: [10, 10], iconAnchor: [5, 5],
-      });
-      const time = r.reported_at
-        ? timeAgo(new Date(r.reported_at + (r.reported_at.endsWith("Z") ? "" : "Z")))
-        : "";
-      return L.marker([r.lat, r.lng], { icon }).bindPopup(
-        `<b>${escHtml(r.retailer_name || "")}</b><br>` +
-        `${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>` +
-        `${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br>` +
-        `<span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call verification" : "👤 Community report")} · ${time}</span>`
-      );
+  const reportMarkers = reports.map(r => {
+    const color = r.has_stock ? "#00cc44" : "#cc2200";
+    const icon  = L.divIcon({
+      className: "",
+      html: `<div style="width:10px;height:10px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>`,
+      iconSize: [10, 10], iconAnchor: [5, 5],
     });
-    window._inventoryLayer = L.layerGroup(markers).addTo(maMap);
-  }
+    const time = r.reported_at
+      ? timeAgo(new Date(r.reported_at + (r.reported_at.endsWith("Z") ? "" : "Z")))
+      : "";
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}`;
+    return L.marker([r.lat, r.lng], { icon }).bindPopup(
+      `<b>${escHtml(r.retailer_name || "")}</b><br>` +
+      `${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>` +
+      `${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br>` +
+      `<span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call verification" : "👤 Community report")} · ${time}</span><br>` +
+      `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+    );
+  });
 
+  const allMarkers = [...retailerMarkers, ...reportMarkers];
+  if (allMarkers.length) {
+    window._inventoryLayer = L.layerGroup(allMarkers).addTo(maMap);
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
