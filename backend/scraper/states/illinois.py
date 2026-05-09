@@ -21,6 +21,7 @@ class IllinoisScraper(PlaywrightScraper):
     state_code = "IL"
     state_name = "Illinois"
     base_url = BASE_URL
+    scraper_timeout = 600
 
     def scrape(self) -> list[dict]:
         soup = self.pw_soup(GAMES_URL, wait_for="load", timeout=45_000)
