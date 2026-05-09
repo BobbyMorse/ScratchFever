@@ -1708,6 +1708,8 @@ footer {
   font-weight: 700;
   padding: .1rem .3rem;
 }
+.claim-item-link { cursor: pointer; }
+.claim-item-link:hover { border-color: var(--yellow); background: var(--bg2); }
 .claim-game { font-weight: 600; color: var(--text); }
 .claim-prize { color: var(--yellow); font-weight: 600; }
 .claim-remaining { color: var(--text-muted); }
