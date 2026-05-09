@@ -226,7 +226,7 @@ async def get_campaign_all_retailers(campaign_id: int):
             checked_at = result_map[rid]["called_at"]
             queue_id = queue_map.get(rid, {}).get("id")
         elif rid in manual_map:
-            cstatus = "hit" if manual_map[rid]["has_inventory"] == 1 else "no_stock"
+            cstatus = "hit" if manual_map[rid]["has_inventory"] else "no_stock"
             has_inv = manual_map[rid]["has_inventory"]
             checked_at = manual_map[rid].get("checked_at")
             queue_id = queue_map.get(rid, {}).get("id")
