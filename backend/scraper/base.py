@@ -46,6 +46,7 @@ class BaseScraper(ABC):
                    image_url: str = None) -> dict:
         ev_data = calculate_ev(price, tiers, tickets_remaining)
         top_prize, top_prize_remaining = find_top_prize(tiers)
+        jackpot_odds = calculate_jackpot_odds(tiers, tickets_remaining)
         return {
             "game_id": str(game_id),
             "name": name,
@@ -55,6 +56,7 @@ class BaseScraper(ABC):
             "overall_odds_one_in": overall_odds,
             "top_prize": top_prize,
             "top_prize_remaining": top_prize_remaining,
+            "jackpot_odds_one_in": jackpot_odds,
             "total_tickets": total_tickets,
             "tickets_remaining": tickets_remaining,
             "detail_url": detail_url,
