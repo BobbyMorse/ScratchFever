@@ -513,6 +513,7 @@ function gameRow(g, rank) {
     <td><span class="price-pill">$${g.price}</span></td>
     <td>${retCell}</td>
     <td class="${g.ev >= 0 ? "ev-positive" : ""}">${ev}</td>
+    <td style="color:var(--text-muted);font-size:.85rem">${jackpotOdds}</td>
     <td>${g.top_prize != null ? "<strong>$" + fmtMoney(g.top_prize) + "</strong>" : "—"}</td>
     <td>${topRem}</td>
     <td>${odds}</td>
