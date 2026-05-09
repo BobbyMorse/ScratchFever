@@ -54,6 +54,19 @@ async def scheduled_scrape():
         scrape_status["running"] = False
 
 
+async def scheduled_ma_retailer_scrape():
+    logger.info("Starting weekly MA retailer scrape")
+    try:
+        from retailer_scraper import scrape_and_save_db
+        from backend.ma_scorer import clear_cache
+        async with get_pool().acquire() as conn:
+            result = await scrape_and_save_db(conn)
+        clear_cache()
+        logger.info("MA retailer scrape complete: %s", result)
+    except Exception as e:
+        logger.error("MA retailer scrape failed: %s", e)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
