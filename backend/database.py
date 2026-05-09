@@ -131,12 +131,43 @@ async def upsert_game(conn: asyncpg.Connection, state_code: str, state_name: str
 
 
 async def upsert_prize_tiers(conn: asyncpg.Connection, game_db_id: int, tiers: list[dict]):
+    # Snapshot top-3 tiers before wipe so we can detect claims
+    old_rows = await conn.fetch(
+        "SELECT prize_amount, prizes_remaining FROM prize_tiers WHERE game_db_id=$1 ORDER BY prize_amount DESC LIMIT 3",
+        game_db_id,
+    )
+    old_top3 = {r["prize_amount"]: r["prizes_remaining"] for r in old_rows if r["prizes_remaining"] is not None}
+
     await conn.execute("DELETE FROM prize_tiers WHERE game_db_id=$1", game_db_id)
     if tiers:
         await conn.executemany(
             "INSERT INTO prize_tiers (game_db_id, prize_amount, odds_one_in, prizes_total, prizes_remaining) VALUES ($1, $2, $3, $4, $5)",
             [(game_db_id, t.get("prize_amount"), t.get("odds_one_in"), t.get("prizes_total"), t.get("prizes_remaining")) for t in tiers],
         )
+
+    if not old_top3 or not tiers:
+        return
+    new_top3 = sorted(
+        [t for t in tiers if t.get("prize_amount") is not None and t.get("prizes_remaining") is not None],
+        key=lambda t: t["prize_amount"],
+        reverse=True,
+    )[:3]
+    game_row = await conn.fetchrow("SELECT name, state_code FROM games WHERE id=$1", game_db_id)
+    if not game_row:
+        return
+    for rank, tier in enumerate(new_top3, start=1):
+        amt = tier["prize_amount"]
+        new_rem = tier["prizes_remaining"]
+        prev_rem = old_top3.get(amt)
+        if prev_rem is not None and new_rem < prev_rem:
+            await conn.execute(
+                """INSERT INTO prize_claims
+                   (game_db_id, game_name, state_code, prize_amount, tier_rank,
+                    prev_remaining, new_remaining, claimed_count)
+                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8)""",
+                game_db_id, game_row["name"], game_row["state_code"],
+                amt, rank, prev_rem, new_rem, prev_rem - new_rem,
+            )
 
 
 async def get_all_games(conn, state=None, min_price=None, max_price=None,
