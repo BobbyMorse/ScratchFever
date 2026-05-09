@@ -77,6 +77,9 @@ async def init_caller_db():
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_cq_pending ON call_queue(campaign_id, status)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_cr_hits ON call_results(campaign_id, has_game)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_mc_campaign ON manual_checks(campaign_id)")
+        await conn.execute(
+            "ALTER TABLE call_campaigns ADD COLUMN IF NOT EXISTS call_backend TEXT DEFAULT 'bland'"
+        )
 
 
 def _safe_float(v) -> float | None:
