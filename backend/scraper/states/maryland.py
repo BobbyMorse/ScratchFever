@@ -20,6 +20,7 @@ class MarylandScraper(PlaywrightScraper):
     state_code = "MD"
     state_name = "Maryland"
     base_url = BASE_URL
+    scraper_timeout = 600
 
     def scrape(self) -> list[dict]:
         soup = self.pw_soup(
