@@ -157,8 +157,8 @@ async def api_games(
 
 @app.get("/api/games/{game_id}")
 async def api_game_detail(game_id: int):
-    async with aiosqlite.connect(DB_PATH) as db:
-        rows = await get_game_detail(db, game_id)
+    async with get_pool().acquire() as conn:
+        rows = await get_game_detail(conn, game_id)
 
     if not rows:
         raise HTTPException(status_code=404, detail="Game not found")
