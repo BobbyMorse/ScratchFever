@@ -12,7 +12,6 @@ load_dotenv()
 from contextlib import asynccontextmanager
 from typing import Optional
 
-import aiosqlite
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fastapi import Depends, FastAPI, HTTPException, Query, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,7 +20,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from backend.database import (
-    init_db, get_db, get_all_games, get_game_detail, get_states_summary, DB_PATH,
+    init_db, get_pool, get_all_games, get_game_detail, get_states_summary,
     add_inventory_report, get_recent_inventory_reports,
 )
 from backend.caller.db import init_caller_db
