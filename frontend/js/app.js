@@ -401,7 +401,7 @@ async function loadStatus() {
       txt.textContent = "Scraping…";
     } else if (data.last_run) {
       dot.className = "status-dot ok";
-      const d = new Date(data.last_run + "Z");
+      const d = new Date(/Z$|[+-]\d{2}:\d{2}$/.test(data.last_run) ? data.last_run : data.last_run + 'Z');
       txt.textContent = `Updated ${timeAgo(d)}`;
     } else {
       dot.className = "status-dot";
