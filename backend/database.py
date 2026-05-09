@@ -2,6 +2,7 @@ import asyncpg
 import datetime as dt
 import os
 from typing import Optional
+from urllib.parse import urlparse, unquote
 
 _pool: asyncpg.Pool | None = None
 
@@ -9,19 +10,22 @@ _pool: asyncpg.Pool | None = None
 async def init_db():
     global _pool
     if os.environ.get("DB_HOST"):
-        _pool = await asyncpg.create_pool(
-            host=os.environ["DB_HOST"],
-            port=int(os.environ.get("DB_PORT", "5432")),
-            user=os.environ.get("DB_USER", "postgres"),
-            password=os.environ["DB_PASSWORD"],
-            database=os.environ.get("DB_NAME", "postgres"),
-            ssl="require",
-            min_size=2, max_size=10,
-        )
+        host = os.environ["DB_HOST"]
+        user = os.environ.get("DB_USER", "postgres")
+        password = os.environ["DB_PASSWORD"]
+        database = os.environ.get("DB_NAME", "postgres")
+        port = int(os.environ.get("DB_PORT", "5432"))
     else:
-        database_url = os.environ["DATABASE_URL"]
-        ssl = "require" if "supabase" in database_url else None
-        _pool = await asyncpg.create_pool(database_url, ssl=ssl, min_size=2, max_size=10)
+        p = urlparse(os.environ["DATABASE_URL"])
+        host = p.hostname
+        port = p.port or 5432
+        user = unquote(p.username or "postgres")
+        password = unquote(p.password or "")
+        database = p.path.lstrip("/")
+    _pool = await asyncpg.create_pool(
+        host=host, port=port, user=user, password=password, database=database,
+        ssl="require", min_size=2, max_size=10,
+    )
     async with _pool.acquire() as conn:
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS games (
