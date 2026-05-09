@@ -263,9 +263,9 @@ async def ma_heatmap():
 
 
 @app.get("/api/prize-claims")
-async def api_prize_claims(days: int = Query(7, le=30)):
+async def api_prize_claims(days: int = Query(7, le=30), min_prize: float = Query(0, ge=0)):
     async with get_pool().acquire() as conn:
-        claims = await get_recent_prize_claims(conn, days=days)
+        claims = await get_recent_prize_claims(conn, days=days, min_prize=min_prize)
     for c in claims:
         if c.get("detected_at"):
             c["detected_at"] = c["detected_at"].isoformat()
