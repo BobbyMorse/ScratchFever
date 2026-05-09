@@ -34,6 +34,14 @@ class CampaignCreate(BaseModel):
     game_price: float = 0.0
     target_tiers: str = "ELITE,GOOD"
     max_stores: int = 0   # 0 = no limit (call all matching stores)
+    call_backend: str = "bland"  # "bland" or "twilio_ivr"
+
+
+class TestCallBody(BaseModel):
+    phone: str
+    game_name: str = "Test Game"
+    game_number: str = ""
+    game_price: float = 10.0
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
