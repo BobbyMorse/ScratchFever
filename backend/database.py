@@ -268,6 +268,20 @@ async def add_inventory_report(conn, retailer_id: str, retailer_name: str = None
          game_name, game_price, has_stock, source, reporter_ip, reporter_username, notes, reported_at)
 
 
+async def get_recent_prize_claims(conn, days: int = 7, limit: int = 200):
+    rows = await conn.fetch("""
+        SELECT id, game_db_id, game_name, state_code, prize_amount, tier_rank,
+               prev_remaining, new_remaining, claimed_count, detected_at
+        FROM prize_claims
+        WHERE detected_at >= NOW() - make_interval(days => $1)
+        ORDER BY detected_at DESC
+        LIMIT $2
+    """, days, limit)
+    cols = ["id", "game_db_id", "game_name", "state_code", "prize_amount", "tier_rank",
+            "prev_remaining", "new_remaining", "claimed_count", "detected_at"]
+    return [dict(zip(cols, r)) for r in rows]
+
+
 async def get_recent_inventory_reports(conn, limit: int = 200,
                                         retailer_id: str = None, game_name: str = None):
     conditions = []
