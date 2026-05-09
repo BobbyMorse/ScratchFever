@@ -145,7 +145,7 @@ async def get_all_games(conn, state=None, min_price=None, max_price=None,
         conditions.append(f"g.return_pct >= ${len(params)}")
 
     params.append(limit)
-    direction = "ASC" if sort_by in ("price", "name") else "DESC"
+    direction = "ASC" if sort_by in ("price", "name", "jackpot_odds_one_in") else "DESC"
     query = f"""
         SELECT g.id, g.state_code, g.state_name, g.game_id, g.name, g.price,
                g.ev, g.return_pct, g.overall_odds_one_in,
@@ -153,7 +153,8 @@ async def get_all_games(conn, state=None, min_price=None, max_price=None,
                g.total_tickets, g.tickets_remaining,
                g.detail_url, g.image_url, g.scraped_at,
                COALESCE(g.prize_pool_left, (SELECT SUM(pt.prize_amount * pt.prizes_remaining)
-                FROM prize_tiers pt WHERE pt.game_db_id = g.id)) AS prize_pool_remaining
+                FROM prize_tiers pt WHERE pt.game_db_id = g.id)) AS prize_pool_remaining,
+               g.jackpot_odds_one_in
         FROM games g
         WHERE {" AND ".join(conditions)}
         ORDER BY g.{sort_by} {direction}
