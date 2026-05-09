@@ -80,6 +80,7 @@ async def init_db():
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_tiers_game ON prize_tiers(game_db_id)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_ir_retailer ON inventory_reports(retailer_id)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_ir_reported ON inventory_reports(reported_at DESC)")
+        await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS jackpot_odds_one_in REAL")
 
 
 def get_pool() -> asyncpg.Pool:
