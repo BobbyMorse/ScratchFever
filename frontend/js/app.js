@@ -492,6 +492,7 @@ function gameRow(g, rank) {
     : "—";
 
   const ev     = g.ev != null ? `${g.ev >= 0 ? "+" : ""}$${g.ev.toFixed(2)}` : "—";
+  const jackpotOdds = g.jackpot_odds_one_in != null ? `1 in ${fmtNum(Math.round(g.jackpot_odds_one_in))}` : "—";
   const odds   = g.overall_odds_one_in ? `1 in ${fmtNum(g.overall_odds_one_in)}` : "—";
   const left   = g.tickets_remaining != null ? fmtNum(g.tickets_remaining) : "—";
   const topRem = g.top_prize_remaining != null ? fmtNum(g.top_prize_remaining) : "—";
