@@ -2600,8 +2600,12 @@ function updateAzInventoryMapLayer(visibleRetailers) {
       const statusTxt = status
         ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock")
         : "Not yet checked";
+      const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
       return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon })
-        .bindPopup(`<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}`);
+        .bindPopup(
+          `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br>` +
+          `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+        );
     });
 
   // Community report dots filtered to AZ retailers
