@@ -96,7 +96,8 @@ async def persist_games(conn, state_code: str, state_name: str, games: list[dict
     return count
 
 
-SCRAPER_TIMEOUT = 120  # seconds per state
+DEFAULT_TIMEOUT = 120   # seconds for HTTP-based scrapers
+PLAYWRIGHT_TIMEOUT = 600  # seconds for Playwright scrapers (up to 74 pages)
 
 
 async def run_scraper(scraper_cls, sem: asyncio.Semaphore) -> tuple[str, int, str | None]:
@@ -105,14 +106,15 @@ async def run_scraper(scraper_cls, sem: asyncio.Semaphore) -> tuple[str, int, st
             scraper = scraper_cls()
             return scraper.state_code, 0, "cancelled"
         scraper = scraper_cls()
+        timeout = getattr(scraper, "scraper_timeout", DEFAULT_TIMEOUT)
         logger.info("Starting scraper: %s (%s)", scraper.state_name, scraper.state_code)
         try:
             games, error = await asyncio.wait_for(
                 asyncio.to_thread(scraper.safe_scrape),
-                timeout=SCRAPER_TIMEOUT,
+                timeout=timeout,
             )
         except asyncio.TimeoutError:
-            error = f"timed out after {SCRAPER_TIMEOUT}s"
+            error = f"timed out after {timeout}s"
             games = None
         count = 0
         if games and not _cancel_requested:
