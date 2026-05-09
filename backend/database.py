@@ -91,22 +91,24 @@ async def upsert_game(conn: asyncpg.Connection, state_code: str, state_name: str
     row = await conn.fetchrow("""
         INSERT INTO games (state_code, state_name, game_id, name, price, ev, return_pct,
             overall_odds_one_in, top_prize, top_prize_remaining,
-            total_tickets, tickets_remaining, prize_pool_left, detail_url, image_url, scraped_at, is_active)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW(), TRUE)
+            total_tickets, tickets_remaining, prize_pool_left, jackpot_odds_one_in,
+            detail_url, image_url, scraped_at, is_active)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), TRUE)
         ON CONFLICT(state_code, game_id) DO UPDATE SET
             name=EXCLUDED.name, price=EXCLUDED.price, ev=EXCLUDED.ev,
             return_pct=EXCLUDED.return_pct, overall_odds_one_in=EXCLUDED.overall_odds_one_in,
             top_prize=EXCLUDED.top_prize, top_prize_remaining=EXCLUDED.top_prize_remaining,
             total_tickets=EXCLUDED.total_tickets, tickets_remaining=EXCLUDED.tickets_remaining,
-            prize_pool_left=EXCLUDED.prize_pool_left, detail_url=EXCLUDED.detail_url,
-            image_url=EXCLUDED.image_url, scraped_at=NOW(), is_active=TRUE
+            prize_pool_left=EXCLUDED.prize_pool_left, jackpot_odds_one_in=EXCLUDED.jackpot_odds_one_in,
+            detail_url=EXCLUDED.detail_url, image_url=EXCLUDED.image_url, scraped_at=NOW(), is_active=TRUE
         RETURNING id
     """,
         state_code, state_name, game_id,
         game_data.get("name"), game_data.get("price"), game_data.get("ev"), game_data.get("return_pct"),
         game_data.get("overall_odds_one_in"), game_data.get("top_prize"), game_data.get("top_prize_remaining"),
         game_data.get("total_tickets"), game_data.get("tickets_remaining"),
-        game_data.get("prize_pool_left"), game_data.get("detail_url"), game_data.get("image_url"),
+        game_data.get("prize_pool_left"), game_data.get("jackpot_odds_one_in"),
+        game_data.get("detail_url"), game_data.get("image_url"),
     )
     return row["id"]
 
