@@ -80,8 +80,23 @@ async def init_db():
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_games_return ON games(return_pct DESC)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_games_price ON games(price)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_tiers_game ON prize_tiers(game_db_id)")
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS prize_claims (
+                id SERIAL PRIMARY KEY,
+                game_db_id INTEGER NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+                game_name TEXT NOT NULL,
+                state_code TEXT NOT NULL,
+                prize_amount REAL NOT NULL,
+                tier_rank INTEGER NOT NULL,
+                prev_remaining INTEGER NOT NULL,
+                new_remaining INTEGER NOT NULL,
+                claimed_count INTEGER NOT NULL,
+                detected_at TIMESTAMPTZ DEFAULT NOW()
+            )
+        """)
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_ir_retailer ON inventory_reports(retailer_id)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_ir_reported ON inventory_reports(reported_at DESC)")
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_claims_detected ON prize_claims(detected_at DESC)")
         await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS jackpot_odds_one_in REAL")
 
 
