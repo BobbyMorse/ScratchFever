@@ -189,35 +189,33 @@ async def get_campaign_all_retailers(campaign_id: int):
     """All MA retailers with their status for this campaign (for map + full list)."""
     import asyncio
     from backend.ma_scorer import load_and_score
-    import aiosqlite
-    from backend.caller.db import DB_PATH as _DB
+    from backend.database import get_pool
 
     retailers = await asyncio.to_thread(load_and_score)
 
-    async with aiosqlite.connect(_DB) as db:
-        db.row_factory = aiosqlite.Row
-        cursor = await db.execute(
-            "SELECT retailer_id, id, status, attempts FROM call_queue WHERE campaign_id=?",
-            (campaign_id,),
+    async with get_pool().acquire() as conn:
+        queue_rows = await conn.fetch(
+            "SELECT retailer_id, id, status, attempts FROM call_queue WHERE campaign_id=$1",
+            campaign_id,
         )
-        queue_map = {r["retailer_id"]: dict(r) for r in await cursor.fetchall()}
+        queue_map = {r["retailer_id"]: dict(r) for r in queue_rows}
 
-        cursor = await db.execute(
+        result_rows = await conn.fetch(
             """SELECT cq.retailer_id, cr.has_game, cr.called_at
                FROM call_results cr JOIN call_queue cq ON cq.id = cr.queue_id
-               WHERE cr.campaign_id=? ORDER BY cr.called_at DESC""",
-            (campaign_id,),
+               WHERE cr.campaign_id=$1 ORDER BY cr.called_at DESC""",
+            campaign_id,
         )
         result_map = {}
-        for r in await cursor.fetchall():
+        for r in result_rows:
             if r["retailer_id"] not in result_map:
                 result_map[r["retailer_id"]] = {"has_game": r["has_game"], "called_at": r["called_at"]}
 
-        cursor = await db.execute(
-            "SELECT retailer_id, has_inventory, notes, checked_at FROM manual_checks WHERE campaign_id=?",
-            (campaign_id,),
+        manual_rows = await conn.fetch(
+            "SELECT retailer_id, has_inventory, notes, checked_at FROM manual_checks WHERE campaign_id=$1",
+            campaign_id,
         )
-        manual_map = {r["retailer_id"]: dict(r) for r in await cursor.fetchall()}
+        manual_map = {r["retailer_id"]: dict(r) for r in manual_rows}
 
     merged = []
     for r in retailers:
