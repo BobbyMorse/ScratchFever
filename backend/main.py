@@ -353,12 +353,11 @@ async def get_inventory_game_counts(user: dict = Depends(require_member)):
 @app.get("/api/inventory/retailer-counts")
 async def get_inventory_retailer_counts(user: dict = Depends(require_member)):
     """Members-only: returns report counts per retailer ID."""
-    async with aiosqlite.connect(DB_PATH) as db:
-        cursor = await db.execute(
+    async with get_pool().acquire() as conn:
+        rows = await conn.fetch(
             "SELECT retailer_id, COUNT(*) FROM inventory_reports WHERE retailer_id IS NOT NULL GROUP BY retailer_id"
         )
-        rows = await cursor.fetchall()
-    return {"counts": {row[0]: row[1] for row in rows}}
+    return {"counts": {r[0]: r[1] for r in rows}}
 
 
 @app.get("/api/inventory/retailer-latest")
