@@ -21,7 +21,7 @@ from pydantic import BaseModel
 
 from backend.database import (
     init_db, get_pool, get_all_games, get_game_detail, get_states_summary,
-    add_inventory_report, get_recent_inventory_reports,
+    add_inventory_report, get_recent_inventory_reports, get_recent_prize_claims,
 )
 from backend.caller.db import init_caller_db
 from backend.caller.webhook import router as caller_webhook_router
