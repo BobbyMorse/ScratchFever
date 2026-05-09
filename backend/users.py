@@ -13,22 +13,22 @@ import secrets
 import time
 from typing import Optional
 
-import aiosqlite
 from fastapi import Header, HTTPException
 
-from backend.database import DB_PATH
+from backend.database import get_pool
 
 logger = logging.getLogger(__name__)
 
 USERS_SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id SERIAL PRIMARY KEY,
     email TEXT NOT NULL UNIQUE,
     username TEXT UNIQUE,
     password_hash TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'member',
-    created_at TEXT DEFAULT (datetime('now'))
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users(username) WHERE username IS NOT NULL;
 """
 
 TOKEN_TTL_DAYS = 30
@@ -45,58 +45,51 @@ def _get_secret() -> str:
     return _secret
 
 
-# ── Users DB ──────────────────────────────────────────────────────────────────
-
 async def init_users_db():
-    async with aiosqlite.connect(DB_PATH) as db:
-        await db.executescript(USERS_SCHEMA)
-        for col in ["username"]:
-            try:
-                await db.execute(f"ALTER TABLE users ADD COLUMN {col} TEXT")
-                await db.commit()
-            except Exception:
-                pass
-        try:
-            await db.execute(
-                "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users(username) WHERE username IS NOT NULL"
+    async with get_pool().acquire() as conn:
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                email TEXT NOT NULL UNIQUE,
+                username TEXT UNIQUE,
+                password_hash TEXT NOT NULL,
+                role TEXT NOT NULL DEFAULT 'member',
+                created_at TIMESTAMPTZ DEFAULT NOW()
             )
-            await db.commit()
-        except Exception:
-            pass
-        await db.commit()
+        """)
+        await conn.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users(username) WHERE username IS NOT NULL"
+        )
 
 
 async def create_user(email: str, password: str, role: str = "member", username: str = None) -> dict:
     pw_hash = _hash_password(password)
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with get_pool().acquire() as conn:
         try:
-            cursor = await db.execute(
-                "INSERT INTO users (email, username, password_hash, role) VALUES (?, ?, ?, ?)",
-                (email.lower().strip(), username, pw_hash, role),
+            row = await conn.fetchrow(
+                "INSERT INTO users (email, username, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id",
+                email.lower().strip(), username, pw_hash, role,
             )
-            await db.commit()
-            return {"id": cursor.lastrowid, "email": email.lower().strip(), "username": username, "role": role}
+            return {"id": row["id"], "email": email.lower().strip(), "username": username, "role": role}
         except Exception as exc:
-            if "UNIQUE" in str(exc):
-                if "username" in str(exc).lower():
+            msg = str(exc)
+            if "unique" in msg.lower() or "duplicate" in msg.lower():
+                if "username" in msg.lower():
                     raise ValueError("Username already taken")
                 raise ValueError("Email already registered")
             raise
 
 
 async def get_user_by_email(email: str) -> Optional[dict]:
-    async with aiosqlite.connect(DB_PATH) as db:
-        db.row_factory = aiosqlite.Row
-        cursor = await db.execute(
-            "SELECT id, email, username, password_hash, role FROM users WHERE email=?",
-            (email.lower().strip(),),
+    async with get_pool().acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT id, email, username, password_hash, role FROM users WHERE email=$1",
+            email.lower().strip(),
         )
-        row = await cursor.fetchone()
         return dict(row) if row else None
 
 
 async def seed_admin():
-    """Create admin from env vars if not already present."""
     email    = os.getenv("ADMIN_EMAIL", "").strip()
     password = os.getenv("ADMIN_PASSWORD", "").strip()
     if not email or not password:
@@ -105,16 +98,13 @@ async def seed_admin():
     existing = await get_user_by_email(email)
     if existing:
         if existing["role"] != "admin":
-            async with aiosqlite.connect(DB_PATH) as db:
-                await db.execute("UPDATE users SET role='admin' WHERE email=?", (email,))
-                await db.commit()
+            async with get_pool().acquire() as conn:
+                await conn.execute("UPDATE users SET role='admin' WHERE email=$1", email)
             logger.info("Promoted %s to admin", email)
         return
     await create_user(email, password, role="admin")
     logger.info("Admin account created: %s", email)
 
-
-# ── Password hashing (PBKDF2-SHA256) ─────────────────────────────────────────
 
 def _hash_password(password: str) -> str:
     salt = secrets.token_hex(16)
@@ -130,8 +120,6 @@ def verify_password(password: str, password_hash: str) -> bool:
     except Exception:
         return False
 
-
-# ── Token creation / verification ────────────────────────────────────────────
 
 def create_token(user_id: int, email: str, role: str, username: str = None) -> str:
     payload = json.dumps(
@@ -157,14 +145,6 @@ def decode_token(token: str) -> Optional[dict]:
         return payload
     except Exception:
         return None
-
-
-# ── FastAPI dependencies ──────────────────────────────────────────────────────
-
-def _token_from_header(authorization: str = Header(None)) -> Optional[str]:
-    if authorization and authorization.startswith("Bearer "):
-        return authorization[7:]
-    return None
 
 
 def require_member(authorization: str = Header(None)) -> dict:
