@@ -28,6 +28,7 @@ async def init_db():
     _pool = await asyncpg.create_pool(
         host=host, port=port, user=user, password=password, database=database,
         ssl="require", min_size=2, max_size=10,
+        statement_cache_size=0,
     )
     async with _pool.acquire() as conn:
         await conn.execute("""
