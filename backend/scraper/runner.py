@@ -3,9 +3,8 @@ Runs all state scrapers and persists results to the database.
 """
 import asyncio
 import logging
-import aiosqlite
 
-from backend.database import DB_PATH, upsert_game, upsert_prize_tiers, log_scrape
+from backend.database import get_pool, upsert_game, upsert_prize_tiers, log_scrape
 from backend.scraper.states.texas import TexasScraper
 from backend.scraper.states.florida import FloridaScraper
 from backend.scraper.states.california import CaliforniaScraper
@@ -56,83 +55,42 @@ from backend.scraper.states.mississippi import MississippiScraper
 logger = logging.getLogger(__name__)
 
 ALL_SCRAPERS = [
-    TexasScraper,
-    FloridaScraper,
-    CaliforniaScraper,
-    NewYorkScraper,
-    PennsylvaniaScraper,
-    OhioScraper,
-    MichiganScraper,
-    IllinoisScraper,
-    GeorgiaScraper,
-    NorthCarolinaScraper,
-    NewJerseyScraper,
-    VirginiaScraper,
-    MassachusettsScraper,
-    MarylandScraper,
-    ColoradoScraper,
-    ConnecticutScraper,
-    VermontScraper,
-    RhodeIslandScraper,
-    MaineScraper,
-    NewHampshireScraper,
-    ArizonaScraper,
-    WashingtonScraper,
-    OregonScraper,
-    IdahoScraper,
-    MontanaScraper,
-    WyomingScraper,
-    NorthDakotaScraper,
-    SouthDakotaScraper,
-    NebraskaScraper,
-    KansasScraper,
-    MinnesotaScraper,
-    IowaScraper,
-    WisconsinScraper,
-    IndianaScraper,
-    MissouriScraper,
-    KentuckyScraper,
-    TennesseeScraper,
-    WestVirginiaScraper,
-    SouthCarolinaScraper,
-    ArkansasScraper,
-    LouisianaScraper,
-    OklahomaScraper,
-    NewMexicoScraper,
-    DelawareScraper,
-    DCScraper,
-    MississippiScraper,
+    TexasScraper, FloridaScraper, CaliforniaScraper, NewYorkScraper, PennsylvaniaScraper,
+    OhioScraper, MichiganScraper, IllinoisScraper, GeorgiaScraper, NorthCarolinaScraper,
+    NewJerseyScraper, VirginiaScraper, MassachusettsScraper, MarylandScraper, ColoradoScraper,
+    ConnecticutScraper, VermontScraper, RhodeIslandScraper, MaineScraper, NewHampshireScraper,
+    ArizonaScraper, WashingtonScraper, OregonScraper, IdahoScraper, MontanaScraper,
+    WyomingScraper, NorthDakotaScraper, SouthDakotaScraper, NebraskaScraper, KansasScraper,
+    MinnesotaScraper, IowaScraper, WisconsinScraper, IndianaScraper, MissouriScraper,
+    KentuckyScraper, TennesseeScraper, WestVirginiaScraper, SouthCarolinaScraper,
+    ArkansasScraper, LouisianaScraper, OklahomaScraper, NewMexicoScraper,
+    DelawareScraper, DCScraper, MississippiScraper,
 ]
 
 
-async def persist_games(db: aiosqlite.Connection, state_code: str, state_name: str, games: list[dict]):
+async def persist_games(conn, state_code: str, state_name: str, games: list[dict]):
     count = 0
     for game in games:
         try:
             tiers = game.pop("tiers", [])
-            game_db_id = await upsert_game(db, state_code, state_name, game["game_id"], game)
+            game_db_id = await upsert_game(conn, state_code, state_name, game["game_id"], game)
             if tiers:
-                await upsert_prize_tiers(db, game_db_id, tiers)
+                await upsert_prize_tiers(conn, game_db_id, tiers)
             count += 1
         except Exception as e:
             logger.error("DB persist error for %s/%s: %s", state_code, game.get("name"), e)
-    await db.commit()
     return count
 
 
-async def run_scraper(scraper_cls, db: aiosqlite.Connection):
+async def run_scraper(scraper_cls, conn):
     scraper = scraper_cls()
     logger.info("Starting scraper: %s (%s)", scraper.state_name, scraper.state_code)
     games, error = await asyncio.to_thread(scraper.safe_scrape)
     count = 0
     if games:
-        # Only deactivate existing games for this state when we have fresh data to replace them.
-        # If the scrape fails, leave existing data active so states don't vanish.
-        await db.execute("UPDATE games SET is_active=0 WHERE state_code=?", (scraper.state_code,))
-        await db.commit()
-        count = await persist_games(db, scraper.state_code, scraper.state_name, games)
-    await log_scrape(db, scraper.state_code, error is None, count, error)
-    await db.commit()
+        await conn.execute("UPDATE games SET is_active=FALSE WHERE state_code=$1", scraper.state_code)
+        count = await persist_games(conn, scraper.state_code, scraper.state_name, games)
+    await log_scrape(conn, scraper.state_code, error is None, count, error)
     return scraper.state_code, count, error
 
 
@@ -142,9 +100,9 @@ async def run_all(state_filter: str = None) -> list[dict]:
     if state_filter:
         scrapers = [s for s in ALL_SCRAPERS if s.state_code.upper() == state_filter.upper()]
 
-    async with aiosqlite.connect(DB_PATH) as db:
+    async with get_pool().acquire() as conn:
         for scraper_cls in scrapers:
-            code, count, error = await run_scraper(scraper_cls, db)
+            code, count, error = await run_scraper(scraper_cls, conn)
             results.append({"state": code, "games": count, "error": error})
             logger.info("  %s: %d games%s", code, count, f" [ERROR: {error}]" if error else "")
 
