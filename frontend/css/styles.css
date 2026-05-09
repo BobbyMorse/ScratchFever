@@ -1762,6 +1762,8 @@ footer {
   white-space: nowrap;
   flex-shrink: 0;
 }
+.bigwins-banner-chip-link { cursor: pointer; }
+.bigwins-banner-chip-link:hover { border-color: var(--yellow); background: var(--bg3); }
 .bigwins-chip-game { color: var(--text); font-weight: 600; }
 .bigwins-chip-prize { color: var(--yellow); font-weight: 700; }
 .bigwins-banner-link {
