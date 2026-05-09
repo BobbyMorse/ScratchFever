@@ -61,15 +61,6 @@ async def lifespan(app: FastAPI):
     await init_users_db()
     await seed_admin()
 
-    # Run initial scrape in background if DB is empty
-    count = await get_pool().fetchval("SELECT COUNT(*) FROM games")
-    if count == 0:
-        logger.info("Empty database — triggering initial scrape")
-        asyncio.create_task(scheduled_scrape())
-
-    # Schedule refresh every 6 hours
-    scheduler.add_job(scheduled_scrape, "interval", hours=6, id="scrape_all")
-
     # Attach call runner to scheduler
     runner = CallRunner()
     runner.attach_scheduler(scheduler)
