@@ -425,7 +425,8 @@ function buildClaimItem(c) {
     ? '<span style="color:var(--red);font-weight:700">GONE</span>'
     : `${c.new_remaining.toLocaleString()} left`;
   const count = c.claimed_count > 1 ? ` ×${c.claimed_count}` : "";
-  return `<div class="claim-item">
+  const clickable = c.game_db_id != null;
+  return `<div class="claim-item${clickable ? ' claim-item-link' : ''}"${clickable ? ` onclick="openGame(${c.game_db_id})"` : ''}>
     <span class="badge badge-state">${escHtml(c.state_code)}</span>
     <span class="claim-game">${escHtml(c.game_name)}</span>
     <span class="claim-prize">${prize} prize claimed${count}</span>
