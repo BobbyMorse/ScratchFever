@@ -234,6 +234,15 @@ async def api_trigger_scrape(
     return {"message": f"Scrape started for {'all states' if not state else state}", "running": True}
 
 
+@app.post("/api/scrape/cancel")
+async def api_cancel_scrape():
+    if not scrape_status["running"]:
+        return {"message": "No scrape running"}
+    from backend.scraper.runner import request_cancel
+    request_cancel()
+    return {"message": "Cancel requested — active scrapers will finish, queued ones will be skipped"}
+
+
 @app.get("/ma-heatmap", include_in_schema=False)
 async def ma_heatmap():
     path = os.path.join(os.path.dirname(__file__), "..", "ma_heatmap.html")
