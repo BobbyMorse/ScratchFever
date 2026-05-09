@@ -211,11 +211,13 @@ async def api_status():
             "SELECT ran_at, state_code, success, games_scraped FROM scrape_log ORDER BY ran_at DESC LIMIT 20"
         )
         log = [dict(zip(["ran_at", "state_code", "success", "games_scraped"], r)) for r in rows]
+        db_last_run = await conn.fetchval("SELECT MAX(ran_at) FROM scrape_log")
+    last_run = scrape_status["last_run"] or (db_last_run.isoformat() if db_last_run else None)
     return {
         "total_games": total,
         "states_covered": states,
         "scraper_running": scrape_status["running"],
-        "last_run": scrape_status["last_run"],
+        "last_run": last_run,
         "recent_log": log,
     }
 
