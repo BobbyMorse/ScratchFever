@@ -494,7 +494,7 @@
       <section class="caller-form-section" id="callerFormSection">
         <div class="caller-form-card">
           <h2 class="caller-form-title">New Calling Campaign</h2>
-          <p class="caller-form-subtitle">Loads every scored MA retailer into a queue and calls them top-down (highest score first) during business hours (9 AM–8 PM ET, Mon–Sat) via Bland AI.</p>
+          <p class="caller-form-subtitle">Loads every scored MA retailer into a queue and calls them top-down (highest score first) during business hours (9 AM–8 PM ET, Mon–Sat).</p>
           <div class="caller-form-row">
             <div class="filter-group">
               <label>Game Name *</label>
@@ -512,9 +512,23 @@
               <label>Max Stores (0 = all)</label>
               <input type="number" id="cfMaxStores" value="0" min="0" max="9999" placeholder="0 = all" />
             </div>
+            <div class="filter-group">
+              <label>Call Backend</label>
+              <select id="cfBackend">
+                <option value="twilio_ivr">Twilio IVR (press 1 or 2)</option>
+                <option value="bland">Bland AI (voice conversation)</option>
+              </select>
+            </div>
             <div class="filter-group" style="justify-content:flex-end;align-items:flex-end">
               <button class="btn btn-call-create" id="cfCreateBtn" onclick="createCallerCampaign()">+ Create Campaign</button>
             </div>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:.75rem;margin-top:.6rem">
+            <div class="filter-group" style="flex:1;max-width:260px;margin:0">
+              <label>Test Call Phone #</label>
+              <input type="tel" id="cfTestPhone" placeholder="e.g. 401-555-1234" />
+            </div>
+            <button class="btn" id="cfTestBtn" onclick="sendTestCall()" style="white-space:nowrap">📞 Send Test Call</button>
           </div>
           <div id="cfMessage" class="caller-msg" style="display:none"></div>
         </div>
