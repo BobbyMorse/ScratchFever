@@ -1,14 +1,9 @@
 """
-AZ retailer loader.
+AZ retailer loader — reads from Supabase az_retailers table.
 """
 from __future__ import annotations
 
-import csv
-import os
-
-_DIR = os.path.dirname(__file__)
-AZ_CSV_ENRICHED = os.path.join(_DIR, "..", "az_retailers_enriched.csv")
-AZ_CSV_BASE     = os.path.join(_DIR, "..", "az_retailers.csv")
+_cache: list[dict] | None = None
 
 CHAIN_KEYWORDS = [
     "7-ELEVEN", "7 ELEVEN", "CIRCLE K", "QUIKTRIP", "QT ",
@@ -18,31 +13,10 @@ CHAIN_KEYWORDS = [
     "RITE AID", "SHELL ", "BP ", "CHEVRON", "MOBIL", "EXXON", "SUNOCO",
     "TOTAL WINE", "BEVMO", "ALBERTSONS", "SPROUTS", "WHOLE FOODS",
     "TRADER JOE", "FOOD CITY", "WINCO", "SMITH'S FOOD", "SMITHS FOOD",
-    "ARCO ", "CIRCLE K", "QUICKTRIP", "PILOT ", "FLYING J",
+    "ARCO ", "QUICKTRIP", "PILOT ", "FLYING J",
     "LOVES ", "LOVE'S ", "CASEY'S", "SPEEDWAY", "MARATHON",
-    "SEARS", "KMART", "MEIJER", "PUBLIX", "KROGER",
-    "CIRCLE K", "WINN DIXIE",
+    "SEARS", "KMART", "MEIJER", "PUBLIX", "KROGER", "WINN DIXIE",
 ]
-
-
-def _flag(row: dict, key: str) -> bool:
-    return str(row.get(key, "")).lower() in ("true", "1", "yes")
-
-
-def _float(row: dict, key: str) -> float | None:
-    try:
-        v = row.get(key, "")
-        return float(v) if v != "" else None
-    except (ValueError, TypeError):
-        return None
-
-
-def _int(row: dict, key: str) -> int | None:
-    try:
-        v = row.get(key, "")
-        return int(v) if v != "" else None
-    except (ValueError, TypeError):
-        return None
 
 
 def is_chain(name: str) -> bool:
@@ -50,37 +24,40 @@ def is_chain(name: str) -> bool:
     return any(kw in n for kw in CHAIN_KEYWORDS)
 
 
-_cache: list[dict] | None = None
+def _row_to_retailer(row: dict) -> dict:
+    name = row.get("name", "")
+    return {
+        "id":            row.get("id"),
+        "name":          name,
+        "address":       row.get("address", ""),
+        "city":          row.get("city", ""),
+        "zipCode":       row.get("zip_code", ""),
+        "phone":         row.get("phone", ""),
+        "latitude":      row.get("latitude"),
+        "longitude":     row.get("longitude"),
+        "isChain":       is_chain(name),
+        "isGas":         False,
+        "indieStrength": 0,
+        "popDensity":    None,
+        "interstateDist": None,
+        "reviewCount":   None,
+        "is24h":         False,
+        "closesEarly":   False,
+    }
 
 
-def load_and_score() -> list[dict]:
+async def load_and_score_async(conn) -> list[dict]:
     global _cache
     if _cache is not None:
         return _cache
-    path = AZ_CSV_ENRICHED if os.path.exists(AZ_CSV_ENRICHED) else AZ_CSV_BASE
-    if not os.path.exists(path):
-        return []
-    retailers = []
-    with open(path, newline="", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            retailers.append({
-                "id":            row.get("id"),
-                "name":          row.get("name", ""),
-                "address":       row.get("address", ""),
-                "city":          row.get("city", ""),
-                "zipCode":       row.get("zipCode", ""),
-                "phone":         row.get("phone", ""),
-                "latitude":      row.get("latitude"),
-                "longitude":     row.get("longitude"),
-                "isChain":       _flag(row, "is_chain") if "is_chain" in row else is_chain(row.get("name", "")),
-                "isGas":         _flag(row, "is_gas"),
-                "indieStrength": _int(row, "indie_strength") or 0,
-                "popDensity":    _float(row, "pop_density"),
-                "interstateDist": _float(row, "interstate_dist_mi"),
-                "reviewCount":   _int(row, "review_count"),
-                "is24h":         _flag(row, "is_24h"),
-                "closesEarly":   _flag(row, "closes_early"),
-            })
-    retailers.sort(key=lambda r: r.get("name", ""))
+    rows = await conn.fetch(
+        "SELECT id, name, address, city, zip_code, phone, latitude, longitude FROM az_retailers ORDER BY name"
+    )
+    retailers = [_row_to_retailer(dict(r)) for r in rows]
     _cache = retailers
     return retailers
+
+
+def clear_cache():
+    global _cache
+    _cache = None
