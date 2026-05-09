@@ -67,6 +67,10 @@ ALL_SCRAPERS = [
     DelawareScraper, DCScraper, MississippiScraper,
 ]
 
+# Max scrapers running simultaneously. Each scraper makes HTTP requests to an
+# external site; too many in parallel risks getting IP-blocked.
+CONCURRENCY = 10
+
 
 async def persist_games(conn, state_code: str, state_name: str, games: list[dict]):
     count = 0
@@ -82,30 +86,39 @@ async def persist_games(conn, state_code: str, state_name: str, games: list[dict
     return count
 
 
-async def run_scraper(scraper_cls, conn):
-    scraper = scraper_cls()
-    logger.info("Starting scraper: %s (%s)", scraper.state_name, scraper.state_code)
-    games, error = await asyncio.to_thread(scraper.safe_scrape)
-    count = 0
-    if games:
-        await conn.execute("UPDATE games SET is_active=FALSE WHERE state_code=$1", scraper.state_code)
-        count = await persist_games(conn, scraper.state_code, scraper.state_name, games)
-    await log_scrape(conn, scraper.state_code, error is None, count, error)
-    return scraper.state_code, count, error
+async def run_scraper(scraper_cls, sem: asyncio.Semaphore) -> tuple[str, int, str | None]:
+    async with sem:
+        scraper = scraper_cls()
+        logger.info("Starting scraper: %s (%s)", scraper.state_name, scraper.state_code)
+        games, error = await asyncio.to_thread(scraper.safe_scrape)
+        count = 0
+        if games:
+            async with get_pool().acquire() as conn:
+                await conn.execute("UPDATE games SET is_active=FALSE WHERE state_code=$1", scraper.state_code)
+                count = await persist_games(conn, scraper.state_code, scraper.state_name, games)
+        async with get_pool().acquire() as conn:
+            await log_scrape(conn, scraper.state_code, error is None, count, error)
+        logger.info("  %s: %d games%s", scraper.state_code, count, f" [ERROR: {error}]" if error else "")
+        return scraper.state_code, count, error
 
 
 async def run_all(state_filter: str = None) -> list[dict]:
-    results = []
     scrapers = ALL_SCRAPERS
     if state_filter:
         scrapers = [s for s in ALL_SCRAPERS if s.state_code.upper() == state_filter.upper()]
 
-    async with get_pool().acquire() as conn:
-        for scraper_cls in scrapers:
-            code, count, error = await run_scraper(scraper_cls, conn)
-            results.append({"state": code, "games": count, "error": error})
-            logger.info("  %s: %d games%s", code, count, f" [ERROR: {error}]" if error else "")
+    sem = asyncio.Semaphore(CONCURRENCY)
+    tasks = [run_scraper(cls, sem) for cls in scrapers]
+    results_raw = await asyncio.gather(*tasks, return_exceptions=True)
 
+    results = []
+    for item in results_raw:
+        if isinstance(item, Exception):
+            logger.error("Unhandled scraper exception: %s", item)
+            results.append({"state": "?", "games": 0, "error": str(item)})
+        else:
+            code, count, error = item
+            results.append({"state": code, "games": count, "error": error})
     return results
 
 
