@@ -1718,3 +1718,109 @@ footer {
   .claims-list { flex-direction: column; }
   .claim-item { white-space: normal; flex-wrap: wrap; }
 }
+
+/* ── Big wins banner (EV tab) ────────────────────────────────────────────────── */
+.bigwins-banner {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin: 0 1.5rem .75rem;
+  padding: .45rem .85rem;
+  background: linear-gradient(90deg, rgba(255,200,0,.08), transparent);
+  border: 1px solid rgba(255,200,0,.25);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.bigwins-banner-label {
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--yellow);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.bigwins-banner-items {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: .5rem;
+  overflow: hidden;
+  flex: 1;
+  min-width: 0;
+}
+.bigwins-banner-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  font-size: .78rem;
+  background: var(--bg2);
+  border: 1px solid rgba(255,200,0,.2);
+  border-radius: 6px;
+  padding: .2rem .5rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.bigwins-chip-game { color: var(--text); font-weight: 600; }
+.bigwins-chip-prize { color: var(--yellow); font-weight: 700; }
+.bigwins-banner-link {
+  font-size: .75rem;
+  font-weight: 700;
+  color: var(--yellow);
+  background: none;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.bigwins-banner-link:hover { opacity: .75; }
+
+/* ── Big wins full page ──────────────────────────────────────────────────────── */
+.bigwins-page {
+  max-width: 1100px;
+  margin: 1.5rem auto;
+  padding: 0 1.5rem;
+}
+.bigwins-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+.bigwins-page-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 .2rem;
+}
+.bigwins-page-sub {
+  font-size: .82rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+.bigwins-page-count {
+  font-size: .8rem;
+  color: var(--text-muted);
+  margin-top: .25rem;
+}
+.bigwins-loading {
+  color: var(--text-muted);
+  font-size: .9rem;
+  padding: 1rem 0;
+}
+.bigwins-list {
+  flex-direction: column;
+  gap: .4rem;
+}
+.bigwins-list .claim-item {
+  white-space: nowrap;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 600px) {
+  .bigwins-banner { margin: 0 .5rem .75rem; flex-wrap: wrap; }
+  .bigwins-banner-items { flex-wrap: wrap; }
+  .bigwins-page { padding: 0 .75rem; }
+}
