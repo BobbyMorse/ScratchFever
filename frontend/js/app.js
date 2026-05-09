@@ -499,6 +499,15 @@ async function applyFilters() {
   const sortBy = document.getElementById("sortBy")?.value || "return_pct";
   currentSort.col = sortBy;
   currentSort.asc = sortBy === "name";
+  document.querySelectorAll("thead th[data-col]").forEach(h => {
+    h.textContent = h.textContent.replace(/[▲▼]/, "").trim();
+    h.classList.remove("active");
+  });
+  const matchingTh = document.querySelector(`thead th[data-col="${sortBy}"]`);
+  if (matchingTh) {
+    matchingTh.classList.add("active");
+    matchingTh.textContent = matchingTh.textContent + (currentSort.asc ? " ▲" : " ▼");
+  }
   document.getElementById("gamesBody").innerHTML =
     `<tr><td colspan="14" class="loading-cell">Loading…</td></tr>`;
   await loadGames();
