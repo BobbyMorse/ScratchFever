@@ -62,9 +62,7 @@ async def lifespan(app: FastAPI):
     await seed_admin()
 
     # Run initial scrape in background if DB is empty
-    async with aiosqlite.connect(DB_PATH) as db:
-        cursor = await db.execute("SELECT COUNT(*) FROM games")
-        count = (await cursor.fetchone())[0]
+    count = await get_pool().fetchval("SELECT COUNT(*) FROM games")
     if count == 0:
         logger.info("Empty database — triggering initial scrape")
         asyncio.create_task(scheduled_scrape())
