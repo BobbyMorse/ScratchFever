@@ -1,10 +1,12 @@
 import asyncpg
 import datetime as dt
+import logging
 import os
 from typing import Optional
 from urllib.parse import urlparse, unquote
 
 _pool: asyncpg.Pool | None = None
+logger = logging.getLogger(__name__)
 
 
 async def init_db():
@@ -16,12 +18,13 @@ async def init_db():
         database = os.environ.get("DB_NAME", "postgres")
         port = int(os.environ.get("DB_PORT", "5432"))
     else:
-        p = urlparse(os.environ["DATABASE_URL"])
+        p = urlparse(os.environ["DATABASE_URL"].strip())
         host = p.hostname
         port = p.port or 5432
         user = unquote(p.username or "postgres")
         password = unquote(p.password or "")
         database = p.path.lstrip("/")
+    logger.info("DB connect: host=%s port=%s user=%s db=%s", host, port, user, database)
     _pool = await asyncpg.create_pool(
         host=host, port=port, user=user, password=password, database=database,
         ssl="require", min_size=2, max_size=10,
