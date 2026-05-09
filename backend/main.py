@@ -74,8 +74,8 @@ async def lifespan(app: FastAPI):
     await init_users_db()
     await seed_admin()
 
-    # Schedule scrape every 6 hours (no startup trigger)
-    scheduler.add_job(scheduled_scrape, "interval", hours=6, id="scrape_all")
+    # Schedule scrape every 3 hours (no startup trigger)
+    scheduler.add_job(scheduled_scrape, "interval", hours=3, id="scrape_all")
     # MA retailer list changes slowly — re-scrape weekly
     scheduler.add_job(scheduled_ma_retailer_scrape, "interval", weeks=1, id="scrape_ma_retailers")
 
