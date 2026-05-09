@@ -54,6 +54,16 @@ from backend.scraper.states.mississippi import MississippiScraper
 
 logger = logging.getLogger(__name__)
 
+_cancel_requested = False
+
+def request_cancel():
+    global _cancel_requested
+    _cancel_requested = True
+
+def reset_cancel():
+    global _cancel_requested
+    _cancel_requested = False
+
 ALL_SCRAPERS = [
     TexasScraper, FloridaScraper, CaliforniaScraper, NewYorkScraper, PennsylvaniaScraper,
     OhioScraper, MichiganScraper, IllinoisScraper, GeorgiaScraper, NorthCarolinaScraper,
