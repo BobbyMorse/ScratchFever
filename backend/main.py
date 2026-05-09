@@ -195,15 +195,13 @@ async def api_states():
 
 @app.get("/api/status")
 async def api_status():
-    async with aiosqlite.connect(DB_PATH) as db:
-        cursor = await db.execute("SELECT COUNT(*) FROM games WHERE is_active=1")
-        total = (await cursor.fetchone())[0]
-        cursor = await db.execute("SELECT COUNT(DISTINCT state_code) FROM games WHERE is_active=1")
-        states = (await cursor.fetchone())[0]
-        cursor = await db.execute(
+    async with get_pool().acquire() as conn:
+        total = await conn.fetchval("SELECT COUNT(*) FROM games WHERE is_active=TRUE")
+        states = await conn.fetchval("SELECT COUNT(DISTINCT state_code) FROM games WHERE is_active=TRUE")
+        rows = await conn.fetch(
             "SELECT ran_at, state_code, success, games_scraped FROM scrape_log ORDER BY ran_at DESC LIMIT 20"
         )
-        log = [dict(zip(["ran_at", "state_code", "success", "games_scraped"], r)) for r in await cursor.fetchall()]
+        log = [dict(zip(["ran_at", "state_code", "success", "games_scraped"], r)) for r in rows]
     return {
         "total_games": total,
         "states_covered": states,
