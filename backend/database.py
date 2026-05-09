@@ -8,9 +8,20 @@ _pool: asyncpg.Pool | None = None
 
 async def init_db():
     global _pool
-    database_url = os.environ["DATABASE_URL"]
-    ssl = "require" if "supabase" in database_url else None
-    _pool = await asyncpg.create_pool(database_url, ssl=ssl, min_size=2, max_size=10)
+    if os.environ.get("DB_HOST"):
+        _pool = await asyncpg.create_pool(
+            host=os.environ["DB_HOST"],
+            port=int(os.environ.get("DB_PORT", "5432")),
+            user=os.environ.get("DB_USER", "postgres"),
+            password=os.environ["DB_PASSWORD"],
+            database=os.environ.get("DB_NAME", "postgres"),
+            ssl="require",
+            min_size=2, max_size=10,
+        )
+    else:
+        database_url = os.environ["DATABASE_URL"]
+        ssl = "require" if "supabase" in database_url else None
+        _pool = await asyncpg.create_pool(database_url, ssl=ssl, min_size=2, max_size=10)
     async with _pool.acquire() as conn:
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS games (
