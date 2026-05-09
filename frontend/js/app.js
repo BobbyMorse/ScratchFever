@@ -412,37 +412,71 @@ async function loadStatus() {
   } catch (_) {}
 }
 
+function fmtClaimPrize(amount) {
+  if (amount >= 1_000_000) return "$" + (amount / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
+  if (amount >= 1000) return "$" + (amount / 1000).toFixed(0) + "K";
+  return "$" + amount.toLocaleString();
+}
+
+function buildClaimItem(c) {
+  const prize = fmtClaimPrize(c.prize_amount);
+  const when = timeAgo(new Date(c.detected_at));
+  const left = c.new_remaining === 0
+    ? '<span style="color:var(--red);font-weight:700">GONE</span>'
+    : `${c.new_remaining.toLocaleString()} left`;
+  const count = c.claimed_count > 1 ? ` ×${c.claimed_count}` : "";
+  return `<div class="claim-item">
+    <span class="badge badge-state">${escHtml(c.state_code)}</span>
+    <span class="claim-game">${escHtml(c.game_name)}</span>
+    <span class="claim-prize">${prize} prize claimed${count}</span>
+    <span class="claim-remaining">${left}</span>
+    <span class="claim-when">${when}</span>
+  </div>`;
+}
+
 async function loadPrizeClaims() {
   try {
-    const res = await fetch("/api/prize-claims");
+    const res = await fetch("/api/prize-claims?min_prize=9000&limit=6");
     if (!res.ok) return;
     const data = await res.json();
-    const feed = document.getElementById("claimsFeed");
-    const list = document.getElementById("claimsList");
-    const countEl = document.getElementById("claimsCount");
+    const banner = document.getElementById("bigwinsBanner");
+    const items = document.getElementById("bigwinsBannerItems");
     if (!data.claims || data.claims.length === 0) {
-      feed.style.display = "none";
+      banner.style.display = "none";
       return;
     }
-    feed.style.display = "";
-    countEl.textContent = `${data.claims.length} claim${data.claims.length !== 1 ? "s" : ""}`;
-    list.innerHTML = data.claims.map(c => {
-      const prize = c.prize_amount >= 1000
-        ? "$" + (c.prize_amount / 1000).toFixed(0) + "K"
-        : "$" + c.prize_amount.toLocaleString();
-      const when = timeAgo(new Date(c.detected_at));
-      const left = c.new_remaining === 0
-        ? '<span style="color:var(--red);font-weight:700">GONE</span>'
-        : `${c.new_remaining.toLocaleString()} left`;
+    banner.style.display = "";
+    items.innerHTML = data.claims.map(c => {
+      const prize = fmtClaimPrize(c.prize_amount);
       const count = c.claimed_count > 1 ? ` ×${c.claimed_count}` : "";
-      return `<div class="claim-item">
+      return `<span class="bigwins-banner-chip">
         <span class="badge badge-state">${escHtml(c.state_code)}</span>
-        <span class="claim-game">${escHtml(c.game_name)}</span>
-        <span class="claim-prize">${prize} prize claimed${count}</span>
-        <span class="claim-remaining">${left}</span>
-        <span class="claim-when">${when}</span>
-      </div>`;
+        <span class="bigwins-chip-game">${escHtml(c.game_name)}</span>
+        <span class="bigwins-chip-prize">${prize}${count}</span>
+      </span>`;
     }).join("");
+  } catch (_) {}
+}
+
+let bigwinsLoaded = false;
+
+async function loadBigWins() {
+  try {
+    const loadingEl = document.getElementById("bigwinsLoading");
+    const list = document.getElementById("bigwinsList");
+    const countEl = document.getElementById("bigwinsCount");
+    if (loadingEl) loadingEl.style.display = "";
+    const res = await fetch("/api/prize-claims?min_prize=9000&days=7&limit=500");
+    if (!res.ok) return;
+    const data = await res.json();
+    if (loadingEl) loadingEl.style.display = "none";
+    if (!data.claims || data.claims.length === 0) {
+      list.innerHTML = '<div style="color:var(--text-muted);padding:2rem 1rem">No big wins in the last 7 days.</div>';
+      countEl.textContent = "";
+      return;
+    }
+    countEl.textContent = `${data.claims.length} claim${data.claims.length !== 1 ? "s" : ""}`;
+    list.innerHTML = data.claims.map(buildClaimItem).join("");
   } catch (_) {}
 }
 
