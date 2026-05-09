@@ -282,6 +282,57 @@ async def get_all_hits(campaign_id: Optional[int] = Query(None)):
     return {"hits": hits, "count": len(hits)}
 
 
+@router.post("/api/caller/test-call")
+async def test_call_endpoint(body: TestCallBody):
+    import os
+    from backend.caller.db import normalize_phone
+    from backend.caller.webhook import register_call
+
+    e164 = normalize_phone(body.phone)
+    if not e164:
+        raise HTTPException(status_code=400, detail=f"Invalid phone number: {body.phone}")
+
+    account_sid = os.getenv("TWILIO_ACCOUNT_SID")
+    auth_token  = os.getenv("TWILIO_AUTH_TOKEN")
+    from_number = os.getenv("TWILIO_PHONE_NUMBER")
+    base_url    = os.getenv("CALLER_BASE_URL", "").rstrip("/")
+
+    if not all([account_sid, auth_token, from_number]):
+        raise HTTPException(
+            status_code=503,
+            detail="Twilio credentials not configured (TWILIO_ACCOUNT_SID / TWILIO_AUTH_TOKEN / TWILIO_PHONE_NUMBER)",
+        )
+    if not base_url:
+        raise HTTPException(status_code=503, detail="CALLER_BASE_URL not set")
+
+    # queue_id=0 is the sentinel for test calls — IVR endpoints skip DB writes for it
+    register_call(0, {
+        "id": 0,
+        "game_name":   body.game_name,
+        "game_number": body.game_number,
+        "game_price":  body.game_price,
+    }, {})
+
+    twiml_url  = f"{base_url}/caller/ivr/twiml/0"
+    status_url = f"{base_url}/caller/ivr/status/0"
+
+    try:
+        from twilio.rest import Client as TwilioClient
+        client = TwilioClient(account_sid, auth_token)
+        call = client.calls.create(
+            to=e164,
+            from_=from_number,
+            url=twiml_url,
+            status_callback=status_url,
+            status_callback_method="POST",
+            timeout=30,
+        )
+        logger.info("Test IVR call placed to %s SID=%s", e164, call.sid)
+        return {"call_sid": call.sid, "to": e164, "status": call.status}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
 @router.get("/api/caller/status")
 async def caller_status():
     import os
