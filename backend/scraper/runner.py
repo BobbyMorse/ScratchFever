@@ -96,13 +96,26 @@ async def persist_games(conn, state_code: str, state_name: str, games: list[dict
     return count
 
 
+SCRAPER_TIMEOUT = 120  # seconds per state
+
+
 async def run_scraper(scraper_cls, sem: asyncio.Semaphore) -> tuple[str, int, str | None]:
     async with sem:
+        if _cancel_requested:
+            scraper = scraper_cls()
+            return scraper.state_code, 0, "cancelled"
         scraper = scraper_cls()
         logger.info("Starting scraper: %s (%s)", scraper.state_name, scraper.state_code)
-        games, error = await asyncio.to_thread(scraper.safe_scrape)
+        try:
+            games, error = await asyncio.wait_for(
+                asyncio.to_thread(scraper.safe_scrape),
+                timeout=SCRAPER_TIMEOUT,
+            )
+        except asyncio.TimeoutError:
+            error = f"timed out after {SCRAPER_TIMEOUT}s"
+            games = None
         count = 0
-        if games:
+        if games and not _cancel_requested:
             async with get_pool().acquire() as conn:
                 await conn.execute("UPDATE games SET is_active=FALSE WHERE state_code=$1", scraper.state_code)
                 count = await persist_games(conn, scraper.state_code, scraper.state_name, games)
@@ -113,6 +126,7 @@ async def run_scraper(scraper_cls, sem: asyncio.Semaphore) -> tuple[str, int, st
 
 
 async def run_all(state_filter: str = None) -> list[dict]:
+    reset_cancel()
     scrapers = ALL_SCRAPERS
     if state_filter:
         scrapers = [s for s in ALL_SCRAPERS if s.state_code.upper() == state_filter.upper()]
