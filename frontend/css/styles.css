@@ -68,7 +68,7 @@ body {
   background:
     repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(255,255,255,0.009) 8px, rgba(255,255,255,0.009) 16px),
     radial-gradient(ellipse 45% 160% at 4% 50%, rgba(249,115,22,0.1) 0%, transparent 100%),
-    var(--chrome3);
+    var(--chrome);
   height: var(--header-h);
   display: flex;
   align-items: center;
