@@ -420,7 +420,7 @@ function fmtClaimPrize(amount) {
 
 function buildClaimItem(c) {
   const prize = fmtClaimPrize(c.prize_amount);
-  const when = timeAgo(new Date(c.detected_at));
+  const when = timeAgo(parseReportedAt(c.detected_at));
   const left = c.new_remaining === 0
     ? '<span style="color:var(--red);font-weight:700">GONE</span>'
     : `${c.new_remaining.toLocaleString()} left`;
