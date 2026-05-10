@@ -589,7 +589,12 @@
             <h2 class="bigwins-page-title">💰 Big Wins — Last 7 Days</h2>
             <p class="bigwins-page-sub">Top prizes over $9,000 claimed nationwide</p>
           </div>
-          <span class="bigwins-page-count" id="bigwinsCount"></span>
+          <div class="bigwins-header-right">
+            <select id="bigwinsStateFilter" class="bigwins-state-filter" onchange="filterBigWins()">
+              <option value="">All States</option>
+            </select>
+            <span class="bigwins-page-count" id="bigwinsCount"></span>
+          </div>
         </div>
         <div class="bigwins-loading" id="bigwinsLoading">Loading…</div>
         <div class="claims-list bigwins-list" id="bigwinsList"></div>
