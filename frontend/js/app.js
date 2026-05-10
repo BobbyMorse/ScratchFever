@@ -249,6 +249,7 @@ function syncHeaderHeight() {
   loadStatus();
   loadPrizeClaims();
   setInterval(() => { loadStatus(); loadPrizeClaims(); }, 30_000);
+  setInterval(() => { if (_currentUser && currentTab === "ma") loadCommunityReports(); }, 60_000);
 })();
 
 async function loadGameCounts() {
