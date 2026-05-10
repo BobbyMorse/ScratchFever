@@ -552,9 +552,7 @@ async function applyFilters() {
     matchingTh.classList.add("active");
     matchingTh.textContent = matchingTh.textContent + (currentSort.asc ? " ▲" : " ▼");
   }
-  document.getElementById("gamesBody").innerHTML =
-    `<tr><td colspan="15" class="loading-cell">Loading…</td></tr>`;
-  await loadGames();
+  loadGames();
 }
 
 function renderTable() {
