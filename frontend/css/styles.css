@@ -609,7 +609,9 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
 }
 .return-bar-fill {
   height: 100%; border-radius: 4px;
-  background: linear-gradient(90deg, #fb923c, var(--orange));
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0) 55%, rgba(0,0,0,0.07) 100%),
+    linear-gradient(90deg, #fb923c, var(--orange));
   transition: width .3s;
 }
 /* Override EV-based colors — all orange */
