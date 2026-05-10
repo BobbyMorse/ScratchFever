@@ -1174,7 +1174,7 @@ function maRow(r, rank) {
 
   return `<tr class="ma-store-row" data-retailer-id="${rid}" onclick="toggleStoreProfile(this)">
     <td style="color:var(--text-muted);font-size:.8rem;font-weight:700">${rank}</td>
-    <td><strong>${escHtml(r.name)}</strong><span class="report-count-badge" id="rbadge-${rid}" style="display:none"></span><br><span style="font-size:.78rem;color:var(--text-muted)">${escHtml(r.address)}</span></td>
+    <td><strong>${escHtml(r.name)}</strong><br><span style="font-size:.78rem;color:var(--text-muted)">${escHtml(r.address)}</span><span class="report-count-badge" id="rbadge-${rid}" style="display:none"></span></td>
     <td>${escHtml(r.city)}</td>
     <td>${escHtml(r.zipCode)}</td>
     <td class="last-report-cell" data-rid="${rid}">${lastReportCellHtml(rid)}</td>
@@ -2658,7 +2658,7 @@ function azRow(r, rank) {
 
   return `<tr class="ma-store-row" data-retailer-id="${rid}" onclick="toggleStoreProfile(this)">
     <td style="color:var(--text-muted);font-size:.8rem;font-weight:700">${rank}</td>
-    <td><strong>${escHtml(r.name)}</strong><span class="report-count-badge" id="rbadge-${rid}" style="display:none"></span><br><span style="font-size:.78rem;color:var(--text-muted)">${escHtml(r.address)}</span></td>
+    <td><strong>${escHtml(r.name)}</strong><br><span style="font-size:.78rem;color:var(--text-muted)">${escHtml(r.address)}</span><span class="report-count-badge" id="rbadge-${rid}" style="display:none"></span></td>
     <td>${escHtml(r.city)}</td>
     <td>${escHtml(r.zipCode)}</td>
     <td class="last-report-cell" data-rid="${rid}">${lastReportCellHtml(rid)}</td>
