@@ -221,7 +221,7 @@ function syncHeaderHeight() {
 (async function init() {
   syncHeaderHeight();
   window.addEventListener("resize", syncHeaderHeight);
-  await Promise.all([loadStates(), loadGames(), loadAllGamesUnfiltered(), loadMaGames(), loadAzGames(), restoreSession()]);
+  await Promise.all([loadStates(), loadAllGamesUnfiltered(), restoreSession()]);
   await Promise.all([loadCommunityReports(), loadGameCounts(), loadRetailerCounts(), loadRetailerLatest()]);
   loadStatus();
   loadPrizeClaims();
