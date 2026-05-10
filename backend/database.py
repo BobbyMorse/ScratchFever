@@ -4,6 +4,12 @@ import os
 from typing import Optional
 
 _pool: asyncpg.Pool | None = None
+_games_cache: dict = {}
+
+
+def clear_games_cache():
+    global _games_cache
+    _games_cache.clear()
 
 
 async def init_db():
