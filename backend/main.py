@@ -20,7 +20,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from backend.database import (
-    init_db, get_pool, get_all_games, get_game_detail, get_states_summary,
+    init_db, init_retailer_db, get_pool, get_all_games, get_game_detail, get_states_summary,
     add_inventory_report, get_recent_inventory_reports, get_recent_prize_claims,
     clear_games_cache,
 )
@@ -28,8 +28,9 @@ from backend.caller.db import init_caller_db
 from backend.caller.webhook import router as caller_webhook_router
 from backend.caller.api import router as caller_api_router, set_runner
 from backend.caller.runner import CallRunner
-from backend.users import init_users_db, seed_admin, require_member
+from backend.users import init_users_db, seed_admin, require_member, require_admin
 from backend.auth_api import router as auth_router
+from backend.retailer_api import router as retailer_router, public_router as retailer_public_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
