@@ -138,6 +138,63 @@ async def contact():
     return FileResponse(os.path.join(FRONTEND_DIR, "contact.html"))
 
 
+@app.get("/retailer", include_in_schema=False)
+async def retailer_dashboard():
+    return FileResponse(os.path.join(FRONTEND_DIR, "retailer.html"))
+
+
+# ── Admin: create retailer account ────────────────────────────────────────────
+
+class CreateRetailerBody(BaseModel):
+    email: str
+    password: str
+    retailer_id: str
+    state_code: str = "MA"
+    store_name: str
+    city: Optional[str] = None
+    zip_code: Optional[str] = None
+    phone: Optional[str] = None
+
+
+@app.post("/api/admin/retailers")
+async def admin_create_retailer(body: CreateRetailerBody, user: dict = Depends(require_admin)):
+    from backend.users import create_user
+    try:
+        new_user = await create_user(body.email.strip(), body.password, role="retailer")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    async with get_pool().acquire() as conn:
+        await conn.execute(
+            """INSERT INTO retailer_profiles
+               (user_id, retailer_id, state_code, store_name, city, zip, phone, verified)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,TRUE)""",
+            new_user["id"], body.retailer_id.strip(), body.state_code.upper().strip(),
+            body.store_name.strip(), body.city, body.zip_code, body.phone,
+        )
+    return {"message": "Retailer account created", "user_id": new_user["id"], "email": body.email}
+
+
+@app.get("/api/admin/retailers")
+async def admin_list_retailers(user: dict = Depends(require_admin)):
+    async with get_pool().acquire() as conn:
+        rows = await conn.fetch(
+            """SELECT rp.id, rp.retailer_id, rp.state_code, rp.store_name, rp.city,
+                      rp.verified, rp.created_at, u.email
+               FROM retailer_profiles rp JOIN users u ON u.id=rp.user_id
+               ORDER BY rp.created_at DESC"""
+        )
+    return {
+        "retailers": [
+            {
+                "id": r["id"], "retailer_id": r["retailer_id"], "state_code": r["state_code"],
+                "store_name": r["store_name"], "city": r["city"], "verified": r["verified"],
+                "created_at": r["created_at"].isoformat(), "email": r["email"],
+            }
+            for r in rows
+        ]
+    }
+
+
 @app.get("/api/games")
 async def api_games(
     state: Optional[str] = Query(None, description="Filter by state code (e.g. TX)"),
