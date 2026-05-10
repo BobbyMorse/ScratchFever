@@ -415,7 +415,6 @@ async function loadAllGamesUnfiltered() {
     azGames = raw.filter(g => g.state_code === "AZ");
     allGames = applyClientFilters(raw);
     renderTable();
-    updateStats();
     populateGameFilterSelect();
   } catch (_) {}
 }
