@@ -373,8 +373,18 @@ body {
   white-space: nowrap;
 }
 .bigwins-banner-items {
-  display: flex; gap: .6rem;
   overflow: hidden; flex: 1;
+  mask-image: linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%);
+}
+.bigwins-ticker-track {
+  display: inline-flex; gap: .6rem; white-space: nowrap;
+  animation: bigwins-ticker 35s linear infinite;
+}
+.bigwins-ticker-track:hover { animation-play-state: paused; }
+@keyframes bigwins-ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 .bigwins-banner-item,
 .bigwins-banner-chip {
