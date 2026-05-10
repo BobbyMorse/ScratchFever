@@ -2266,7 +2266,7 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
 
   return `<div class="modal-community-section">
     <div class="modal-community-title" style="display:flex;align-items:center;justify-content:space-between">
-      <span>📍 Community Reports <span style="color:var(--text-muted);font-weight:400;font-size:.82rem">(MA)</span></span>${addBtn}
+      <span>📍 Community Reports <span style="color:var(--text-muted);font-weight:400;font-size:.82rem">(${stateCode || ""})</span></span>${addBtn}
     </div>
     <div class="profile-reports-list">${items}</div>
   </div>`;
