@@ -1145,7 +1145,7 @@ function escHtml(s) {
 
 function fmtDate(dt) {
   if (!dt) return "";
-  const d = new Date(dt.replace(" ", "T") + "Z");
+  const d = parseReportedAt(dt);
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "America/New_York" });
 }
 
