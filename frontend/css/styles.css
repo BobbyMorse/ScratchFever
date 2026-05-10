@@ -80,25 +80,12 @@ body {
 .logo-block {
   display: flex;
   align-items: center;
-  gap: .85rem;
   flex-shrink: 0;
 }
-.logo-stacked {
-  display: flex;
-  flex-direction: column;
-  line-height: 1;
-}
-.logo-scratch {
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: #ffffff;
-  letter-spacing: .02em;
-}
-.logo-fever {
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: var(--orange);
-  letter-spacing: .02em;
+.logo-img {
+  height: 38px;
+  width: auto;
+  display: block;
 }
 .logo-tagline {
   font-size: .62rem;
