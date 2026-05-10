@@ -404,12 +404,12 @@ body {
   flex-wrap: wrap;
   gap: .55rem;
   align-items: center;
-  background: var(--card);
+  background: linear-gradient(135deg, #ffffff 0%, #f6f9ff 100%);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   margin: 0 1.5rem .85rem;
   padding: .75rem 1rem;
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.9);
 }
 .filter-group {
   display: flex;
