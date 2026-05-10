@@ -354,11 +354,15 @@ body {
   display: flex;
   align-items: center;
   gap: .85rem;
-  background: var(--chrome);
+  background:
+    repeating-linear-gradient(-45deg, transparent, transparent 6px, rgba(255,255,255,0.008) 6px, rgba(255,255,255,0.008) 12px),
+    linear-gradient(90deg, rgba(249,115,22,0.12) 0%, var(--chrome) 28%);
   border-radius: var(--radius);
+  border-left: 3px solid var(--orange);
   padding: .65rem 1.1rem;
   margin: 0 1.5rem .9rem;
   overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
 }
 .bigwins-banner-label {
   font-size: .72rem;
