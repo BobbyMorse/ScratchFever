@@ -364,7 +364,8 @@ body {
   display: flex; gap: .6rem;
   overflow: hidden; flex: 1;
 }
-.bigwins-banner-item {
+.bigwins-banner-item,
+.bigwins-banner-chip {
   display: inline-flex; align-items: center; gap: .35rem;
   white-space: nowrap;
   font-size: .78rem;
@@ -372,6 +373,10 @@ body {
   flex-shrink: 0;
 }
 .bigwins-banner-item .bw-amount { color: var(--orange); font-weight: 700; }
+.bigwins-chip-game { color: #e2e8f0; }
+.bigwins-chip-prize { color: var(--orange); font-weight: 700; }
+.bigwins-banner-chip-link { cursor: pointer; }
+.bigwins-banner-chip-link:hover .bigwins-chip-game { color: #fff; }
 .bigwins-banner-link {
   background: none; border: none;
   color: var(--orange);
