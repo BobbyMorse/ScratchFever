@@ -28,6 +28,11 @@ let azMap = null;
 let azMapVisible = false;
 let azMapReportFilter = "all";
 
+// ── Render generation counters (cancel in-flight RAF renders on new render) ───
+let maRenderGen = 0;
+let azRenderGen = 0;
+let communityReportsLastFetch = 0;
+
 // ── Community inventory ───────────────────────────────────────────────────────
 let communityReports = [];
 let gameCounts = {};               // {game_name_lower: count} — members only
