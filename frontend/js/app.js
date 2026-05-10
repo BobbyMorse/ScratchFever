@@ -603,7 +603,7 @@ function gameRow(g, rank) {
   const left   = g.tickets_remaining != null ? fmtNum(g.tickets_remaining) : "—";
   const topRem = g.top_prize_remaining != null ? fmtNum(g.top_prize_remaining) : "—";
   const pool   = g.prize_pool_remaining != null ? "$" + fmtMoney(g.prize_pool_remaining) : "—";
-  const updated = g.scraped_at ? timeAgo(new Date(g.scraped_at.replace(" ", "T") + (g.scraped_at.endsWith("Z") ? "" : "Z"))) : "—";
+  const updated = g.scraped_at ? timeAgo(parseReportedAt(g.scraped_at)) : "—";
 
   const reportCount = gameCounts[g.name.toLowerCase()] || 0;
   const reportBadge = reportCount > 0
