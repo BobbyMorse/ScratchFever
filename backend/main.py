@@ -112,6 +112,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="ScratchFever", description="Scratch-off lottery EV tracker", lifespan=lifespan)
 
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
