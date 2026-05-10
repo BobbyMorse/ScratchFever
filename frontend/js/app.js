@@ -1130,11 +1130,25 @@ function renderMaTable() {
   const tbody = document.getElementById("maTableBody");
   if (!rows.length) {
     tbody.innerHTML = `<tr><td colspan="6" class="loading-cell">No retailers match.</td></tr>`;
-  } else {
-    tbody.innerHTML = rows.map((r, i) => maRow(r, i + 1)).join("");
-    updateReportBadges();
+    return;
   }
+  const CHUNK = 100;
+  tbody.innerHTML = rows.slice(0, CHUNK).map((r, i) => maRow(r, i + 1)).join("");
+  updateReportBadges();
   if (maMapVisible) renderMapLayers(rows);
+  if (rows.length > CHUNK) {
+    let offset = CHUNK;
+    const appendNext = () => {
+      if (offset >= rows.length) return;
+      const end = Math.min(offset + CHUNK, rows.length);
+      const tmp = document.createElement("tbody");
+      tmp.innerHTML = rows.slice(offset, end).map((r, i) => maRow(r, offset + i + 1)).join("");
+      while (tmp.firstChild) tbody.appendChild(tmp.firstChild);
+      offset = end;
+      requestAnimationFrame(appendNext);
+    };
+    requestAnimationFrame(appendNext);
+  }
 }
 
 
