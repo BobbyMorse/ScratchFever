@@ -105,6 +105,8 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(caller_webhook_router)
 app.include_router(caller_api_router)
+app.include_router(retailer_router)
+app.include_router(retailer_public_router)
 
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
 if os.path.isdir(FRONTEND_DIR):
