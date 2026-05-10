@@ -468,8 +468,6 @@ async function loadStatus() {
       dot.className = "status-dot";
       txt.textContent = "No data yet";
     }
-    document.getElementById("statGames").textContent = data.total_games.toLocaleString();
-    document.getElementById("statStates").textContent = data.states_covered;
   } catch (_) {}
 }
 
