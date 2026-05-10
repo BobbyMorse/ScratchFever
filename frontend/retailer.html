@@ -606,7 +606,7 @@
   async function loadInventory() {
     try {
       const [gamesRes, statusRes] = await Promise.all([
-        authFetch("/api/retailer/games"),
+        fetch(`/api/games?state=${encodeURIComponent(_profile.state_code)}&limit=500`),
         authFetch("/api/retailer/inventory/latest"),
       ]);
       if (gamesRes.ok) {
