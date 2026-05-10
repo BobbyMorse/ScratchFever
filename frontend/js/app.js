@@ -1269,7 +1269,7 @@ function renderCallerHits() {
                    : h.can_order === 0 ? `<span style="color:var(--red)">No</span>` : "—";
 
     const called = h.called_at
-      ? timeAgo(new Date(h.called_at + (h.called_at.endsWith("Z") ? "" : "Z")))
+      ? timeAgo(parseReportedAt(h.called_at))
       : "—";
 
     const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
