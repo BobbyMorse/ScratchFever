@@ -2256,7 +2256,7 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
       : "—";
     const mapsUrl = r.lat && r.lng
       ? `https://www.google.com/maps/search/?api=1&query=${r.lat},${r.lng}`
-      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((r.retailer_name || "") + ", " + (r.retailer_city || "") + ", MA")}`;
+      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((r.retailer_name || "") + ", " + (r.retailer_city || "") + ", " + (stateCode || ""))}`;
     return `<div class="profile-report-item">
       <span class="profile-report-game"><a href="${mapsUrl}" target="_blank" rel="noopener" class="report-location-link">${escHtml(r.retailer_name || "")}</a> <span style="color:var(--text-muted);font-weight:400;font-size:.77rem">${escHtml(r.retailer_city || "")}</span></span>
       <span>${stock}</span>
