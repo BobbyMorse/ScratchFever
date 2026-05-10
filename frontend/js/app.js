@@ -370,7 +370,7 @@ async function loadGames() {
     updateStats();
   } catch (e) {
     document.getElementById("gamesBody").innerHTML =
-      `<tr><td colspan="14" class="loading-cell">Failed to load data. Is the server running?</td></tr>`;
+      `<tr><td colspan="15" class="loading-cell">Failed to load data. Is the server running?</td></tr>`;
   }
 }
 
@@ -533,7 +533,7 @@ async function applyFilters() {
     matchingTh.textContent = matchingTh.textContent + (currentSort.asc ? " ▲" : " ▼");
   }
   document.getElementById("gamesBody").innerHTML =
-    `<tr><td colspan="14" class="loading-cell">Loading…</td></tr>`;
+    `<tr><td colspan="15" class="loading-cell">Loading…</td></tr>`;
   await loadGames();
 }
 
@@ -576,7 +576,7 @@ function renderTable() {
 
   const tbody = document.getElementById("gamesBody");
   if (!games.length) {
-    tbody.innerHTML = `<tr><td colspan="14" class="loading-cell">No games match your filters.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="15" class="loading-cell">No games match your filters.</td></tr>`;
     return;
   }
 
