@@ -719,7 +719,7 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
   position: fixed; inset: 0;
   background: rgba(0,0,0,0.55);
   backdrop-filter: blur(4px);
-  z-index: 200;
+  z-index: 2000;
   align-items: flex-start; justify-content: center;
   padding: 2rem 1rem; overflow-y: auto;
 }
