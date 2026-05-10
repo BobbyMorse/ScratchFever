@@ -207,11 +207,18 @@ async def upsert_prize_tiers(conn: asyncpg.Connection, game_db_id: int, tiers: l
     game_row = await conn.fetchrow("SELECT name, state_code FROM games WHERE id=$1", game_db_id)
     if not game_row:
         return
+    recent_claims = await conn.fetch(
+        """SELECT prize_amount FROM prize_claims
+           WHERE game_db_id=$1 AND detected_at >= NOW() - INTERVAL '24 hours'""",
+        game_db_id,
+    )
+    recently_logged = {r["prize_amount"] for r in recent_claims}
+
     for rank, tier in enumerate(new_big, start=1):
         amt = tier["prize_amount"]
         new_rem = tier["prizes_remaining"]
         prev_rem = old_big.get(amt)
-        if prev_rem is not None and new_rem < prev_rem:
+        if prev_rem is not None and new_rem < prev_rem and amt not in recently_logged:
             await conn.execute(
                 """INSERT INTO prize_claims
                    (game_db_id, game_name, state_code, prize_amount, tier_rank,
