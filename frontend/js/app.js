@@ -2517,9 +2517,11 @@ function applyAzGameFilter() {
     document.getElementById("azStatOutCard").style.display = "";
     document.getElementById("azStatInStock").textContent = inCount.toLocaleString();
     document.getElementById("azStatOut").textContent = outCount.toLocaleString();
+    loadRetailerLatest(selectedAzGame.name);
   } else {
     document.getElementById("azStatInStockCard").style.display = "none";
     document.getElementById("azStatOutCard").style.display = "none";
+    loadRetailerLatest();
   }
 
   renderAzTable();
