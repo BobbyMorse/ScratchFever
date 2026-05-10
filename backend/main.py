@@ -75,6 +75,7 @@ async def lifespan(app: FastAPI):
     await init_db()
     await init_caller_db()
     await init_users_db()
+    await init_retailer_db()
     await seed_admin()
 
     # Schedule scrape every 3 hours (no startup trigger)
