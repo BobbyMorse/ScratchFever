@@ -784,7 +784,7 @@ function renderModal(g) {
       View on ${g.state_name} Lottery website ↗
     </a>` : ""}
 
-    <div id="modalCommunityWrapper">${modalCommunitySection(g.name, g.price)}</div>
+    <div id="modalCommunityWrapper">${modalCommunitySection(g.name, g.price, g.state_code, g.state_name)}</div>
   `;
 }
 
