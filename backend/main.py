@@ -90,6 +90,22 @@ async def lifespan(app: FastAPI):
     set_runner(runner)
 
     scheduler.start()
+
+    # Warm retailer caches in background so first user request is instant
+    async def _warm_retailer_caches():
+        try:
+            from backend.ma_scorer import load_and_score_async as warm_ma
+            from backend.az_scorer import load_and_score_async as warm_az
+            pool = get_pool()
+            async with pool.acquire() as conn:
+                await warm_ma(conn)
+            async with pool.acquire() as conn:
+                await warm_az(conn)
+            logger.info("Retailer caches warmed")
+        except Exception as e:
+            logger.warning("Cache warm failed: %s", e)
+    asyncio.create_task(_warm_retailer_caches())
+
     yield
     scheduler.shutdown()
 
