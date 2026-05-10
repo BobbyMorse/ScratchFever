@@ -117,6 +117,7 @@ async def init_db():
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_ir_retailer ON inventory_reports(retailer_id)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_ir_reported ON inventory_reports(reported_at DESC)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_claims_detected ON prize_claims(detected_at DESC)")
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_claims_prize_detected ON prize_claims(prize_amount, detected_at DESC)")
         await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS jackpot_odds_one_in REAL")
 
 
