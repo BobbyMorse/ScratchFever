@@ -232,6 +232,7 @@ class ArizonaScraper(BaseScraper):
             total_tickets=total_tickets,
             tickets_remaining=tickets_remaining,
             detail_url=url,
+            image_url=image_url,
         )
 
     @staticmethod
