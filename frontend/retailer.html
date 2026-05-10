@@ -639,10 +639,8 @@
   function filterInvList() { renderInvList(); }
 
   function gameCurrentStatus(game) {
-    const key = game.name.toLowerCase();
-    if (_changes[game.name] !== undefined) return _changes[game.name].has_stock ? "in" : "out";
-    const s = _invStatus[key];
-    if (!s) return "unknown";
+    const s = _invStatus[game.name.toLowerCase()];
+    if (!s || s.has_stock === undefined || s.has_stock === null) return "unknown";
     return s.has_stock ? "in" : "out";
   }
 
