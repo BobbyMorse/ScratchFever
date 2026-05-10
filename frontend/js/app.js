@@ -1127,6 +1127,7 @@ function updateMaStats() {
 }
 
 function renderMaTable() {
+  const myGen = ++maRenderGen;
   _openProfileId = null;
   const rows = getFilteredRows();
   const checkedCount = selectedGame ? Object.keys(retailerLatestStatus).length : null;
@@ -1144,6 +1145,7 @@ function renderMaTable() {
   if (rows.length > CHUNK) {
     let offset = CHUNK;
     const appendNext = () => {
+      if (myGen !== maRenderGen) return;
       if (offset >= rows.length) return;
       const end = Math.min(offset + CHUNK, rows.length);
       const tmp = document.createElement("tbody");
