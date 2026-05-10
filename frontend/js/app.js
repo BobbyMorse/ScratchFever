@@ -101,6 +101,8 @@ function _setUser(user) {
     chip.style.display  = "none";
     btn.style.display   = "";
     caller.style.display = "none";
+    const msl = document.getElementById("myStoreLink");
+    if (msl) msl.style.display = "none";
     document.getElementById("scrapeBtn").style.display = "none";
     document.getElementById("statusBar").style.display = "none";
     const repBtn = document.getElementById("reportInvBtn");
