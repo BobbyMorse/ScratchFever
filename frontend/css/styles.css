@@ -775,26 +775,24 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
 
 /* ── Hunt layout ──────────────────────────────────── */
 .hunt-layout { display: flex; min-height: calc(100vh - var(--header-h)); }
-.hunt-sidebar {
-  width: 195px; flex-shrink: 0;
-  background: var(--card);
-  border-right: 1.5px solid var(--border);
-  display: flex; flex-direction: column;
-}
-.hunt-sidebar-hdr { padding: .9rem 1rem .55rem; font-size: .65rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: var(--text-muted); border-bottom: 1.5px solid var(--border); }
-.state-list { list-style: none; padding: .35rem 0; overflow-y: auto; flex: 1; }
-.state-item { display: flex; align-items: center; gap: .45rem; padding: .48rem .8rem; cursor: pointer; font-size: .81rem; color: var(--text-muted); transition: background .1s, color .1s; position: relative; }
-.state-item:hover { background: var(--bg); color: var(--text); }
-.state-item.active { background: var(--orange-dim); color: var(--orange); font-weight: 600; }
-.state-item.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--orange); }
-.state-abbr { width: 28px; height: 20px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 4px; font-size: .62rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--text-muted); }
-.state-item.active .state-abbr { background: var(--orange); border-color: var(--orange); color: #fff; }
-.state-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.state-live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 4px var(--green); flex-shrink: 0; }
-.state-section-divider { font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--text-muted); padding: .55rem .8rem .28rem; opacity: .55; }
-.state-item.state-soon { opacity: .45; }
-
 .hunt-main { flex: 1; overflow: auto; padding: 1.25rem 1.5rem; }
+
+/* State picker dropdown */
+.state-dd-wrap { position: relative; display: inline-block; margin-bottom: 1.1rem; }
+.state-dd-trigger { display: flex; align-items: center; gap: .5rem; background: var(--card); border: 1.5px solid var(--border); border-radius: 8px; padding: .42rem .75rem .42rem .5rem; cursor: pointer; color: var(--text); transition: border-color .15s; }
+.state-dd-trigger:hover { border-color: var(--orange); }
+.state-abbr-pill { background: var(--orange); color: #fff; font-size: .65rem; font-weight: 800; border-radius: 5px; padding: 2px 6px; letter-spacing: .04em; }
+.state-dd-trigger-name { font-size: .88rem; font-weight: 600; }
+.state-dd-chevron { color: var(--text-muted); font-size: .72rem; margin-left: .15rem; }
+.state-dd-panel { position: absolute; top: calc(100% + 6px); left: 0; min-width: 220px; max-height: 370px; overflow-y: auto; background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; box-shadow: 0 8px 32px rgba(0,0,0,.35); z-index: 200; padding: .35rem 0; }
+.state-dd-group-lbl { font-size: .6rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: var(--text-muted); padding: .5rem .85rem .25rem; opacity: .6; }
+.state-dd-item { display: flex; align-items: center; gap: .5rem; width: 100%; background: none; border: none; padding: .45rem .85rem; cursor: pointer; font-size: .82rem; color: var(--text-muted); transition: background .1s, color .1s; text-align: left; }
+.state-dd-item:hover { background: var(--bg); color: var(--text); }
+.state-dd-item.active { background: var(--orange-dim); color: var(--orange); font-weight: 600; }
+.state-abbr { width: 28px; height: 20px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 4px; font-size: .62rem; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--text-muted); }
+.state-dd-item.active .state-abbr { background: var(--orange); border-color: var(--orange); color: #fff; }
+.state-live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 4px var(--green); flex-shrink: 0; }
+.state-dd-soon { opacity: .45; }
 
 .soon-state-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.2rem; }
 .hunt-soon-games { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px,1fr)); gap: .65rem; }
