@@ -982,11 +982,11 @@ function selectHuntState(code) {
   if (code === "MA") {
     document.getElementById("huntConsoleMA").style.display = "";
     if (!maLoaded) loadMaRetailers();
-    if (_currentUser) loadCommunityReports();
+    if (_currentUser && Date.now() - communityReportsLastFetch > 30_000) loadCommunityReports();
   } else if (code === "AZ") {
     document.getElementById("huntConsoleAZ").style.display = "";
     if (!azLoaded) loadAzRetailers();
-    if (_currentUser) loadCommunityReports();
+    if (_currentUser && Date.now() - communityReportsLastFetch > 30_000) loadCommunityReports();
   } else {
     document.getElementById("huntConsoleSoon").style.display = "";
     const soonNameEl = document.querySelector(`.state-dd-item[data-state="${code}"] .state-dd-item-name`);
