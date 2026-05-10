@@ -363,10 +363,17 @@ function updateLastReportCells() {
 // ── Data loading ──────────────────────────────────────────────────────────────
 async function loadAllGamesUnfiltered() {
   try {
-    const res = await fetch("/api/games?sort_by=name&limit=1000");
+    const res = await fetch("/api/games?sort_by=return_pct&limit=1000");
     if (!res.ok) return;
     const data = await res.json();
-    allGamesUnfiltered = data.games || [];
+    const raw = data.games || [];
+    allGamesUnfiltered = raw;
+    maGames = raw.filter(g => g.state_code === "MA");
+    azGames = raw.filter(g => g.state_code === "AZ");
+    allGames = applyClientFilters(raw);
+    renderTable();
+    updateStats();
+    populateGameFilterSelect();
   } catch (_) {}
 }
 
