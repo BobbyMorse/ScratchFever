@@ -617,7 +617,11 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
 /* Override EV-based colors — all orange */
 .ev-positive .return-bar-fill,
 .ev-near     .return-bar-fill,
-.ev-mid      .return-bar-fill { background: linear-gradient(90deg, #fb923c, var(--orange)); }
+.ev-mid      .return-bar-fill {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0) 55%, rgba(0,0,0,0.07) 100%),
+    linear-gradient(90deg, #fb923c, var(--orange));
+}
 
 /* State circle badges */
 .state-pill {
