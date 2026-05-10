@@ -700,6 +700,9 @@ function updateStats(games) {
   const gs = games || allGames;
   const positive = gs.filter(g => g.return_pct >= 100).length;
   const best = gs.reduce((max, g) => Math.max(max, g.return_pct || 0), 0);
+  const statesCount = new Set(gs.map(g => g.state_code)).size;
+  document.getElementById("statGames").textContent = gs.length.toLocaleString();
+  document.getElementById("statStates").textContent = statesCount;
   document.getElementById("statPositive").textContent = positive.toLocaleString();
   document.getElementById("statBest").textContent = best > 0 ? best.toFixed(1) + "%" : "—";
 }
