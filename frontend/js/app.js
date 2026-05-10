@@ -457,7 +457,7 @@ function buildClaimItem(c) {
 
 async function loadPrizeClaims() {
   try {
-    const res = await fetch("/api/prize-claims?min_prize=9000&limit=6");
+    const res = await fetch("/api/prize-claims?min_prize=9000&limit=30");
     if (!res.ok) return;
     const data = await res.json();
     const banner = document.getElementById("bigwinsBanner");
@@ -467,7 +467,9 @@ async function loadPrizeClaims() {
       return;
     }
     banner.style.display = "";
-    const chips = data.claims.map(c => {
+    // Shuffle so states are interleaved rather than grouped
+    const claims = [...data.claims].sort(() => Math.random() - 0.5);
+    const chips = claims.map(c => {
       const prize = fmtClaimPrize(c.prize_amount);
       const count = c.claimed_count > 1 ? ` ×${c.claimed_count}` : "";
       const clickable = c.game_db_id != null;
