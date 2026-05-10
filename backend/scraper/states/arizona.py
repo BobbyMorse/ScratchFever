@@ -120,7 +120,7 @@ class ArizonaScraper(BaseScraper):
 
         return slugs
 
-    def _scrape_detail(self, page, slug: str, url: str) -> dict | None:
+    def _scrape_detail(self, page, slug: str, url: str, image_url: str | None = None) -> dict | None:
         page.goto(url, wait_until="networkidle", timeout=20_000)
 
         # inner_text gives the JS-rendered text including dynamic prize table
