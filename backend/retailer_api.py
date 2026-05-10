@@ -244,7 +244,7 @@ async def get_retailer_stats(user: dict = Depends(require_retailer)):
             rid,
         )
     return {
-        "community_reports_total": community_total if (community_total := comm_total) else 0,
+        "community_reports_total": comm_total or 0,
         "community_reports_7d": comm_7d or 0,
         "own_updates_total": own_total or 0,
         "post_count": post_count or 0,
