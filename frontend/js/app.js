@@ -323,7 +323,28 @@ async function loadRetailerLatest(gameName) {
     const data = await res.json();
     retailerLatestStatus = data.statuses || {};
     updateLastReportCells();
+    _refreshStatCounts();
   } catch (_) {}
+}
+
+function _refreshStatCounts() {
+  if (currentHuntState === "MA" && selectedGame) {
+    let inCount = 0, outCount = 0;
+    for (const s of Object.values(retailerLatestStatus)) {
+      s.has_stock ? inCount++ : outCount++;
+    }
+    document.getElementById("maStatInStock").textContent = inCount.toLocaleString();
+    document.getElementById("maStatOut").textContent = outCount.toLocaleString();
+    if (maMapVisible) renderMapLayers(getFilteredRows());
+  } else if (currentHuntState === "AZ" && selectedAzGame) {
+    let inCount = 0, outCount = 0;
+    for (const s of Object.values(retailerLatestStatus)) {
+      s.has_stock ? inCount++ : outCount++;
+    }
+    document.getElementById("azStatInStock").textContent = inCount.toLocaleString();
+    document.getElementById("azStatOut").textContent = outCount.toLocaleString();
+    if (azMapVisible) renderAzMapLayers(getAzFilteredRows());
+  }
 }
 
 function buildLatestStatusFromReports() {
