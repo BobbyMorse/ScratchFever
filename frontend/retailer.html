@@ -603,17 +603,26 @@
 
   /* ── INVENTORY ─────────────────────────────────────── */
   async function loadInventory() {
-    const [gamesRes, statusRes] = await Promise.all([
-      fetch(API + `/api/games?state=${_profile.state_code}&limit=500`),
-      authFetch("/api/retailer/inventory/latest"),
-    ]);
-    if (gamesRes.ok) {
-      const g = await gamesRes.json();
-      _games = (g.games || []).sort((a, b) => b.return_pct - a.return_pct);
-    }
-    if (statusRes.ok) {
-      const s = await statusRes.json();
-      _invStatus = s.status || {};
+    try {
+      const [gamesRes, statusRes] = await Promise.all([
+        authFetch("/api/retailer/games"),
+        authFetch("/api/retailer/inventory/latest"),
+      ]);
+      if (gamesRes.ok) {
+        const g = await gamesRes.json();
+        _games = (g.games || []).sort((a, b) => (b.return_pct ?? -1) - (a.return_pct ?? -1));
+      } else {
+        console.error("Games API error:", gamesRes.status);
+      }
+      if (statusRes.ok) {
+        const s = await statusRes.json();
+        _invStatus = s.status || {};
+      }
+    } catch (err) {
+      console.error("loadInventory failed:", err);
+      document.getElementById("invListWrap").innerHTML =
+        `<div class="empty-state" style="color:var(--red)">Failed to load games. Please refresh the page.</div>`;
+      return;
     }
     renderInvList();
   }
