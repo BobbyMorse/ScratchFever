@@ -534,10 +534,13 @@ async function loadBigWins() {
     const loadingEl = document.getElementById("bigwinsLoading");
     const list = document.getElementById("bigwinsList");
     if (loadingEl) loadingEl.style.display = "";
-    const res = await fetch("/api/prize-claims?min_prize=9000&days=7&limit=500");
-    if (!res.ok) return;
-    const data = await res.json();
+    const res = await fetch("/api/prize-claims?min_prize=10000&days=7&limit=500");
     if (loadingEl) loadingEl.style.display = "none";
+    if (!res.ok) {
+      if (list) list.innerHTML = '<div style="color:var(--text-muted);padding:2rem 1rem">Failed to load wins. Try refreshing.</div>';
+      return;
+    }
+    const data = await res.json();
     if (!data.claims || data.claims.length === 0) {
       list.innerHTML = '<div style="color:var(--text-muted);padding:2rem 1rem">No big wins in the last 7 days.</div>';
       document.getElementById("bigwinsCount").textContent = "";
