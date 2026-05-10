@@ -396,15 +396,27 @@ async def get_inventory_retailer_counts(user: dict = Depends(require_member)):
 
 
 @app.get("/api/inventory/retailer-latest")
-async def get_retailer_latest_status(user: dict = Depends(require_member)):
-    """Members-only: latest inventory status (has_stock + reported_at) per retailer."""
+async def get_retailer_latest_status(
+    game_name: Optional[str] = Query(None),
+    user: dict = Depends(require_member),
+):
+    """Members-only: latest inventory status (has_stock + reported_at) per retailer.
+    Pass game_name to filter to a specific game."""
     async with get_pool().acquire() as conn:
-        rows = await conn.fetch("""
-            SELECT DISTINCT ON (retailer_id) retailer_id, has_stock, reported_at
-            FROM inventory_reports
-            WHERE retailer_id IS NOT NULL
-            ORDER BY retailer_id, reported_at DESC
-        """)
+        if game_name:
+            rows = await conn.fetch("""
+                SELECT DISTINCT ON (retailer_id) retailer_id, has_stock, reported_at
+                FROM inventory_reports
+                WHERE retailer_id IS NOT NULL AND LOWER(game_name) = LOWER($1)
+                ORDER BY retailer_id, reported_at DESC
+            """, game_name)
+        else:
+            rows = await conn.fetch("""
+                SELECT DISTINCT ON (retailer_id) retailer_id, has_stock, reported_at
+                FROM inventory_reports
+                WHERE retailer_id IS NOT NULL
+                ORDER BY retailer_id, reported_at DESC
+            """)
     return {
         "statuses": {
             r["retailer_id"]: {"has_stock": r["has_stock"], "reported_at": r["reported_at"]}
