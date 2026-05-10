@@ -21,6 +21,40 @@ def require_retailer(user: dict = Depends(require_member)) -> dict:
     return user
 
 
+# ── Games (all active, no EV filter) ──────────────────────────────────────────
+
+@router.get("/games")
+async def retailer_games(user: dict = Depends(require_retailer)):
+    """All active games for the retailer's state — no ev IS NOT NULL filter."""
+    async with get_pool().acquire() as conn:
+        profile = await conn.fetchrow(
+            "SELECT state_code FROM retailer_profiles WHERE user_id=$1", user["uid"]
+        )
+        if not profile:
+            raise HTTPException(status_code=404, detail="No retailer profile found")
+        rows = await conn.fetch(
+            """SELECT id, game_id, name, price, ev, return_pct,
+                      overall_odds_one_in, top_prize, top_prize_remaining,
+                      detail_url, image_url
+               FROM games
+               WHERE state_code=$1 AND is_active=TRUE
+               ORDER BY name""",
+            profile["state_code"],
+        )
+    return {
+        "games": [
+            {
+                "id": r["id"], "game_id": r["game_id"], "name": r["name"],
+                "price": r["price"], "ev": r["ev"], "return_pct": r["return_pct"],
+                "overall_odds_one_in": r["overall_odds_one_in"],
+                "top_prize": r["top_prize"], "top_prize_remaining": r["top_prize_remaining"],
+                "detail_url": r["detail_url"], "image_url": r["image_url"],
+            }
+            for r in rows
+        ]
+    }
+
+
 # ── Profile ───────────────────────────────────────────────────────────────────
 
 @router.get("/me")
