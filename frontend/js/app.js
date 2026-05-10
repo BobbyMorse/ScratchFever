@@ -461,12 +461,12 @@ async function loadPrizeClaims() {
 }
 
 let bigwinsLoaded = false;
+let allBigWins = [];
 
 async function loadBigWins() {
   try {
     const loadingEl = document.getElementById("bigwinsLoading");
     const list = document.getElementById("bigwinsList");
-    const countEl = document.getElementById("bigwinsCount");
     if (loadingEl) loadingEl.style.display = "";
     const res = await fetch("/api/prize-claims?min_prize=9000&days=7&limit=500");
     if (!res.ok) return;
@@ -474,12 +474,34 @@ async function loadBigWins() {
     if (loadingEl) loadingEl.style.display = "none";
     if (!data.claims || data.claims.length === 0) {
       list.innerHTML = '<div style="color:var(--text-muted);padding:2rem 1rem">No big wins in the last 7 days.</div>';
-      countEl.textContent = "";
+      document.getElementById("bigwinsCount").textContent = "";
       return;
     }
-    countEl.textContent = `${data.claims.length} claim${data.claims.length !== 1 ? "s" : ""}`;
-    list.innerHTML = data.claims.map(buildClaimItem).join("");
+    allBigWins = data.claims;
+    const sel = document.getElementById("bigwinsStateFilter");
+    const stateCodes = [...new Set(data.claims.map(c => c.state_code))].sort();
+    stateCodes.forEach(sc => {
+      const opt = document.createElement("option");
+      opt.value = sc;
+      opt.textContent = sc;
+      sel.appendChild(opt);
+    });
+    filterBigWins();
   } catch (_) {}
+}
+
+function filterBigWins() {
+  const state = document.getElementById("bigwinsStateFilter")?.value || "";
+  const list = document.getElementById("bigwinsList");
+  const countEl = document.getElementById("bigwinsCount");
+  const filtered = state ? allBigWins.filter(c => c.state_code === state) : allBigWins;
+  if (filtered.length === 0) {
+    list.innerHTML = '<div style="color:var(--text-muted);padding:2rem 1rem">No big wins for this state in the last 7 days.</div>';
+    countEl.textContent = "";
+    return;
+  }
+  countEl.textContent = `${filtered.length} claim${filtered.length !== 1 ? "s" : ""}`;
+  list.innerHTML = filtered.map(buildClaimItem).join("");
 }
 
 // ── Filters & sorting ─────────────────────────────────────────────────────────
