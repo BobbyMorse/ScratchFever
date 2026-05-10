@@ -227,7 +227,7 @@
 
     .inv-list { display: flex; flex-direction: column; gap: .45rem; }
     .inv-row {
-      display: flex; align-items: center; gap: .8rem;
+      display: flex; flex-direction: column; gap: 0;
       background: var(--card); border: 1px solid var(--border);
       border-radius: var(--radius-sm); padding: .7rem 1rem;
       transition: border-color .15s;
@@ -236,6 +236,7 @@
     .inv-row.status-in  { border-left: 3px solid var(--green); }
     .inv-row.status-out { border-left: 3px solid var(--red); }
     .inv-row.status-unknown { border-left: 3px solid var(--border); }
+    .inv-row-ctrl { display: flex; align-items: center; gap: .8rem; }
     .inv-game-info { flex: 1; min-width: 0; }
     .inv-game-name { font-size: .9rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .inv-game-meta { font-size: .72rem; color: var(--text-muted); margin-top: .05rem; }
@@ -255,8 +256,17 @@
       cursor: pointer; font-family: inherit; flex-shrink: 0;
     }
     .inv-notes-btn:hover { border-color: var(--teal); color: var(--teal); }
+    .inv-save-ind {
+      width: 18px; text-align: center; font-size: .78rem; flex-shrink: 0;
+    }
+    .inv-save-ind.busy { color: var(--text-muted); }
+    .inv-save-ind.ok   { color: var(--green); }
+    .inv-save-ind.err  { color: var(--red); }
+    .inv-notes-wrap {
+      display: none; margin-top: .45rem;
+    }
     .inv-notes-input {
-      margin-top: .4rem; width: 100%;
+      width: 100%;
       border: 1px solid var(--border); border-radius: var(--radius-sm);
       padding: .35rem .65rem; font-size: .8rem; font-family: inherit;
       color: var(--text);
