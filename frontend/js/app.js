@@ -423,7 +423,6 @@ async function loadAllGamesUnfiltered() {
 function loadGames() {
   allGames = applyClientFilters(allGamesUnfiltered);
   renderTable();
-  updateStats();
 }
 
 function applyClientFilters(games) {
