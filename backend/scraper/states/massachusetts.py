@@ -13,7 +13,6 @@ Formula
 """
 from __future__ import annotations
 import logging
-import time
 from backend.scraper.base import BaseScraper
 from backend.ev_calculator import parse_odds
 
