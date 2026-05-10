@@ -2171,7 +2171,7 @@ function storeProfileHtml(retailerId) {
         : '<span style="color:var(--red)">❌ Out of Stock</span>';
       const who = r.source === "caller" ? "📞 Call" : (r.reporter_username ? `@${escHtml(r.reporter_username)}` : "👤");
       const time = r.reported_at
-        ? timeAgo(new Date(r.reported_at + (r.reported_at.endsWith("Z") ? "" : "Z")))
+        ? timeAgo(parseReportedAt(r.reported_at))
         : "—";
       const price = r.game_price ? ` <span style="color:var(--text-muted);font-size:.78rem">$${r.game_price}</span>` : "";
       return `<div class="profile-report-item">
