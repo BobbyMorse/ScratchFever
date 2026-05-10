@@ -825,8 +825,8 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
 
 /* ── Store dropdowns ──────────────────────────────── */
 .store-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-sm); box-shadow: var(--shadow-pop); z-index: 100; max-height: 240px; overflow-y: auto; margin-top: 2px; }
-.store-dropdown-item { padding: .52rem .8rem; cursor: pointer; font-size: .83rem; border-bottom: 1px solid rgba(226,231,240,.7); transition: background .08s; }
-.store-dropdown-item:hover { background: var(--bg); }
+.store-dropdown-item { padding: .52rem .8rem; cursor: pointer; font-size: .83rem; border-bottom: 1px solid rgba(226,231,240,.7); transition: background .12s, color .12s; }
+.store-dropdown-item:hover { background: var(--orange-dim); color: var(--orange-dark); }
 .store-dropdown-item:last-child { border-bottom: none; }
 
 .game-filter-combo { position: relative; display: flex; align-items: center; }
