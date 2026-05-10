@@ -2197,7 +2197,10 @@ async function loadCommunityReports() {
     if (!res.ok) return;
     const data = await res.json();
     communityReports = data.reports || [];
+    // Build local status immediately for rendering, then refresh from full DB
     buildLatestStatusFromReports();
+    const activeGame = currentHuntState === 'AZ' ? selectedAzGame : selectedGame;
+    loadRetailerLatest(activeGame?.name);
     updateReportBadges();
     renderMaTable();
     renderAzTable();
