@@ -447,7 +447,7 @@ async function loadPrizeClaims() {
       return;
     }
     banner.style.display = "";
-    items.innerHTML = data.claims.map(c => {
+    const chips = data.claims.map(c => {
       const prize = fmtClaimPrize(c.prize_amount);
       const count = c.claimed_count > 1 ? ` ×${c.claimed_count}` : "";
       const clickable = c.game_db_id != null;
@@ -456,7 +456,9 @@ async function loadPrizeClaims() {
         <span class="bigwins-chip-game">${escHtml(c.game_name)}</span>
         <span class="bigwins-chip-prize">${prize}${count}</span>
       </span>`;
-    }).join("");
+    }).join('<span class="bigwins-banner-chip" style="opacity:.35">•</span>');
+    // Duplicate for seamless loop
+    items.innerHTML = `<span class="bigwins-ticker-track">${chips}<span class="bigwins-banner-chip" style="opacity:.35">•</span>${chips}<span class="bigwins-banner-chip" style="opacity:.35">•</span></span>`;
   } catch (_) {}
 }
 
