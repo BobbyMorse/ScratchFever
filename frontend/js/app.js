@@ -2372,7 +2372,7 @@ function applyGameFilter() {
 
   buildLatestStatusFromReports();
 
-  // Stat cards
+  // Stat cards — show local counts immediately, API call below will correct them
   if (selectedGame) {
     let inCount = 0, outCount = 0;
     for (const s of Object.values(retailerLatestStatus)) {
@@ -2382,9 +2382,11 @@ function applyGameFilter() {
     document.getElementById("maStatOutCard").style.display = "";
     document.getElementById("maStatInStock").textContent = inCount.toLocaleString();
     document.getElementById("maStatOut").textContent = outCount.toLocaleString();
+    loadRetailerLatest(selectedGame.name);
   } else {
     document.getElementById("maStatInStockCard").style.display = "none";
     document.getElementById("maStatOutCard").style.display = "none";
+    loadRetailerLatest();
   }
 
   renderMaTable();
