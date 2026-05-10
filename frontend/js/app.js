@@ -797,7 +797,7 @@ function refreshOpenModalCommunity() {
   if (!_openModalGame) return;
   const wrapper = document.getElementById("modalCommunityWrapper");
   if (!wrapper) return;
-  wrapper.innerHTML = modalCommunitySection(_openModalGame.name, _openModalGame.price);
+  wrapper.innerHTML = modalCommunitySection(_openModalGame.name, _openModalGame.price, _openModalGame.state_code, _openModalGame.state_name);
 }
 
 document.addEventListener("keydown", e => {
