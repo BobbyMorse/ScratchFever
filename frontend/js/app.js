@@ -361,6 +361,15 @@ function updateLastReportCells() {
 }
 
 // ── Data loading ──────────────────────────────────────────────────────────────
+async function loadAllGamesUnfiltered() {
+  try {
+    const res = await fetch("/api/games?sort_by=name&limit=1000");
+    if (!res.ok) return;
+    const data = await res.json();
+    allGamesUnfiltered = data.games || [];
+  } catch (_) {}
+}
+
 async function loadGames() {
   const params = buildParams();
   try {
