@@ -843,9 +843,14 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 
 /* ── Responsive ───────────────────────────────────── */
 @media (max-width: 900px) {
-  .sidebar { transform: translateX(-100%); }
+  .sidebar {
+    position: fixed;
+    left: 0; top: var(--header-h); bottom: 0;
+    height: auto;
+    transform: translateX(-100%);
+  }
   .sidebar.open { transform: translateX(0); box-shadow: 8px 0 32px rgba(0,0,0,.3); }
-  .main-area { margin-left: 0; border-radius: 0; }
+  .main-area { border-radius: 0; }
 }
 @media (max-width: 700px) {
   .stats-row { grid-template-columns: repeat(2,1fr); padding: 1rem; }
