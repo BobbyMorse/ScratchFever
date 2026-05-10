@@ -185,6 +185,10 @@ async def get_all_games(conn, state=None, min_price=None, max_price=None,
     if sort_by not in allowed_sorts:
         sort_by = "return_pct"
 
+    cache_key = (state, min_price, max_price, min_return, sort_by, limit)
+    if cache_key in _games_cache:
+        return _games_cache[cache_key]
+
     conditions = ["g.is_active = TRUE", "g.ev IS NOT NULL"]
     params = []
 
@@ -217,7 +221,9 @@ async def get_all_games(conn, state=None, min_price=None, max_price=None,
         ORDER BY g.{sort_by} {direction}
         LIMIT ${len(params)}
     """
-    return [tuple(r) for r in await conn.fetch(query, *params)]
+    result = [tuple(r) for r in await conn.fetch(query, *params)]
+    _games_cache[cache_key] = result
+    return result
 
 
 async def get_game_detail(conn, game_db_id: int):
