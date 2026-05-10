@@ -40,7 +40,6 @@ class MassachusettsScraper(BaseScraper):
         active_games = self._fetch_active_games()
         logger.info("MA active scratch games: %d", len(active_games))
 
-        import time
         resp = self.get(f"{PRIZES_URL}?_={int(time.time())}", headers=_HEADERS)
         items = resp.json()
         logger.info("MA prize API returned %d games", len(items))
