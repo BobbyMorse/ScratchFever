@@ -82,11 +82,12 @@ body {
 
 .logo-block {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   flex-shrink: 0;
+  align-self: stretch;
 }
 .logo-img {
-  height: 90px;
+  height: 100%;
   width: auto;
   display: block;
   mix-blend-mode: lighten;
