@@ -499,7 +499,7 @@ function buildClaimItem(c) {
 
 async function loadPrizeClaims() {
   try {
-    const res = await fetch("/api/prize-claims?min_prize=9000&limit=30");
+    const res = await fetch("/api/prize-claims?min_prize=10000&limit=30");
     if (!res.ok) return;
     const data = await res.json();
     const banner = document.getElementById("bigwinsBanner");
