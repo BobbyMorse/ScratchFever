@@ -57,13 +57,30 @@ class ArizonaScraper(BaseScraper):
             )
             page = ctx.new_page()
 
+            # Collect ticket image URLs while visiting listing pages.
+            # Images are JS-loaded; filenames embed the game ID (e.g. "1466-instant-millions-p2.jpg").
+            game_id_to_img: dict[str, str] = {}
+
+            def _capture_image(response):
+                m = re.search(r"/media/[a-z0-9]+/(.+?)\.(jpg|jpeg|png|gif|webp)", response.url)
+                if m:
+                    for gid in re.findall(r"\b(\d{4,})\b", m.group(1)):
+                        if gid not in game_id_to_img:
+                            game_id_to_img[gid] = response.url.split("?")[0]
+
+            page.on("response", _capture_image)
             slugs = self._get_slugs(page)
-            logger.info("AZ: %d game slugs found", len(slugs))
+            page.remove_listener("response", _capture_image)
+
+            logger.info("AZ: %d game slugs found, %d images captured", len(slugs), len(game_id_to_img))
 
             for slug in slugs:
                 url = f"{BASE_URL}/scratchers/{slug}/"
+                game_id_m = re.search(r"^(\d+)", slug)
+                game_id = game_id_m.group(1) if game_id_m else slug
+                image_url = game_id_to_img.get(game_id)
                 try:
-                    game = self._scrape_detail(page, slug, url)
+                    game = self._scrape_detail(page, slug, url, image_url=image_url)
                     if game:
                         games.append(game)
                 except Exception as e:
