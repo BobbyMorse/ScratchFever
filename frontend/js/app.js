@@ -343,6 +343,8 @@ async function loadRetailerLatest(gameName) {
     retailerLatestStatus = data.statuses || {};
     updateLastReportCells();
     _refreshStatCounts();
+    if (currentHuntState === "AZ") renderAzTable();
+    else renderMaTable();
   } catch (_) {}
 }
 
