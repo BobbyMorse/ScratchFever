@@ -7,45 +7,69 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/css/styles.css?v=3" />
+  <link rel="stylesheet" href="/static/css/styles.css?v=4" />
   <link rel="stylesheet" href="/static/css/leaflet.css" />
 </head>
 <body>
 
+<!-- ══════════════ FULL-WIDTH HEADER ══════════════ -->
+<header class="site-header">
+  <div class="logo-block">
+    <div class="logo-stacked">
+      <span class="logo-scratch">SCRATCH</span>
+      <span class="logo-fever">FEVER</span>
+    </div>
+    <span class="logo-tagline">Expected Value Tracker</span>
+  </div>
+
+  <div class="header-right">
+    <div class="status-bar" id="statusBar" style="display:none">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">Loading…</span>
+    </div>
+    <button class="btn btn-scrape" id="scrapeBtn" onclick="triggerScrape()" style="display:none">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+      Refresh Data
+    </button>
+    <button class="btn" id="cancelScrapeBtn" onclick="cancelScrape()" style="display:none;background:var(--red);color:#fff;border:none;font-size:.75rem">
+      ✕ Cancel
+    </button>
+    <div id="authControls">
+      <button class="btn btn-login" id="loginBtn" onclick="openAuthModal('login')">Log In</button>
+      <div class="user-chip" id="userChip" style="display:none">
+        <span class="user-chip-email" id="userEmail"></span>
+        <span class="user-chip-role" id="userRole"></span>
+        <button class="btn-logout" onclick="logout()">Log out</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+
+<!-- ══════════════ BELOW HEADER: SIDEBAR + MAIN ══════════════ -->
 <div class="app-shell">
 
-  <!-- ══════════════ SIDEBAR ══════════════ -->
+  <!-- Left sidebar — nav items ARE the tab buttons -->
   <aside class="sidebar" id="sidebar">
-
-    <div class="sidebar-brand">
-      <img src="/static/images/logo.png" class="sidebar-logo" alt="ScratchFever" />
-    </div>
-
     <nav class="sidebar-nav">
-      <!-- Dashboard maps to EV tab -->
-      <button class="sidebar-item active" data-tab="ev" onclick="switchTab('ev')">
+
+      <button class="sidebar-item tab-btn active" data-tab="ev" onclick="switchTab('ev')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-        </svg>
-        Dashboard
-      </button>
-      <button class="sidebar-item" data-tab="ev" onclick="switchTab('ev')">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
-          <line x1="6" y1="20" x2="6" y2="14"/>
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
         </svg>
         EV Games
       </button>
-      <button class="sidebar-item" data-tab="ma" onclick="switchTab('ma')">
+
+      <button class="sidebar-item tab-btn" data-tab="ma" onclick="switchTab('ma')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
-          <line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/>
-          <line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
         </svg>
         Hunt
       </button>
-      <button class="sidebar-item" data-tab="bigwins" onclick="switchTab('bigwins')">
+
+      <button class="sidebar-item tab-btn" data-tab="bigwins" onclick="switchTab('bigwins')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6m12 0h1.5a2.5 2.5 0 0 1 0 5H18"/>
           <path d="M8 3h8v11a5 5 0 0 1-5 5 5 5 0 0 1-5-5V3z"/>
@@ -53,7 +77,8 @@
         </svg>
         Big Wins
       </button>
-      <button class="sidebar-item" data-tab="caller" id="sidebarCallerBtn" onclick="switchTab('caller')" style="display:none">
+
+      <button class="sidebar-item tab-btn" id="callerTabBtn" data-tab="caller" onclick="switchTab('caller')" style="display:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.12 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 9a16 16 0 0 0 6.92 6.92l1.14-1.14a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
         </svg>
@@ -70,12 +95,14 @@
         </svg>
         Reports
       </button>
+
       <button class="sidebar-item sidebar-item-muted">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
         </svg>
         Watchlist
       </button>
+
       <button class="sidebar-item sidebar-item-muted">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"/>
@@ -83,81 +110,19 @@
         </svg>
         Settings
       </button>
+
     </nav>
 
     <div class="sidebar-footer">
-      <div class="sidebar-pro-card">
-        <div class="sidebar-pro-title">Pro Access</div>
-        <p class="sidebar-pro-sub">Unlock powerful tools and insights.</p>
-        <button class="btn-pro">View Perks</button>
+      <div class="sidebar-pro">
+        🏠 PRO ACCESS
       </div>
-      <div class="sidebar-gem">💎</div>
     </div>
   </aside>
 
 
-  <!-- ══════════════ MAIN AREA ══════════════ -->
+  <!-- ══════════════ MAIN AREA (light) ══════════════ -->
   <div class="main-area" id="mainArea">
-
-    <!-- Topbar -->
-    <header class="topbar">
-      <button class="topbar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/>
-        </svg>
-      </button>
-
-      <nav class="tab-nav">
-        <button class="tab-btn active" data-tab="ev" onclick="switchTab('ev')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-          </svg>
-          EV Games
-        </button>
-        <button class="tab-btn" data-tab="ma" onclick="switchTab('ma')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
-          </svg>
-          Hunt
-        </button>
-        <button class="tab-btn" data-tab="bigwins" onclick="switchTab('bigwins')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6m12 0h1.5a2.5 2.5 0 0 1 0 5H18"/>
-            <path d="M8 3h8v11a5 5 0 0 1-5 5 5 5 0 0 1-5-5V3z"/>
-          </svg>
-          Big Wins
-        </button>
-        <button class="tab-btn" id="callerTabBtn" data-tab="caller" onclick="switchTab('caller')" style="display:none">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.12 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 9a16 16 0 0 0 6.92 6.92l1.14-1.14a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
-          </svg>
-          Call Agent
-        </button>
-      </nav>
-
-      <div class="topbar-right">
-        <div class="status-bar" id="statusBar" style="display:none">
-          <span class="status-dot" id="statusDot"></span>
-          <span id="statusText">Loading…</span>
-        </div>
-        <button class="btn btn-scrape" id="scrapeBtn" onclick="triggerScrape()" style="display:none">
-          ↻ Refresh Data
-        </button>
-        <button class="btn" id="cancelScrapeBtn" onclick="cancelScrape()" style="display:none;background:var(--red);color:#fff;border:none;font-size:.75rem;padding:.3rem .65rem">
-          ✕ Cancel
-        </button>
-        <div id="authControls">
-          <button class="btn btn-login" id="loginBtn" onclick="openAuthModal('login')">Log In</button>
-          <div class="user-chip" id="userChip" style="display:none">
-            <span class="user-chip-email" id="userEmail"></span>
-            <span class="user-chip-role" id="userRole"></span>
-            <button class="btn btn-logout" onclick="logout()">Log out</button>
-          </div>
-        </div>
-      </div>
-    </header>
-
-    <!-- ─── Tab Content ─── -->
     <main class="content">
 
       <!-- ══════════════ EV GAMES TAB ══════════════ -->
@@ -165,118 +130,41 @@
 
         <!-- Stats row -->
         <section class="stats-row" id="statsRow">
-          <div class="stat-card stat-card-orange">
-            <div class="stat-card-top">
-              <div class="stat-icon stat-icon-orange">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                  <circle cx="9" cy="7" r="4"/>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                </svg>
-              </div>
-              <div class="stat-sparkline">
-                <svg viewBox="0 0 88 42" fill="none" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="sg1" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stop-color="#f97316" stop-opacity=".3"/>
-                      <stop offset="100%" stop-color="#f97316" stop-opacity="0"/>
-                    </linearGradient>
-                  </defs>
-                  <path d="M0 38 L11 34 L22 30 L33 26 L44 22 L55 18 L66 12 L77 8 L88 4" stroke="#f97316" stroke-width="2" stroke-linecap="round" fill="none"/>
-                  <path d="M0 38 L11 34 L22 30 L33 26 L44 22 L55 18 L66 12 L77 8 L88 4 L88 42 L0 42Z" fill="url(#sg1)"/>
-                </svg>
-              </div>
+          <div class="stat-card">
+            <div class="stat-icon-wrap orange">🎟️</div>
+            <div class="stat-info">
+              <div class="stat-value" id="statGames">—</div>
+              <div class="stat-label">Active Games</div>
             </div>
-            <div class="stat-value" id="statGames">—</div>
-            <div class="stat-label">Active Games</div>
           </div>
-
-          <div class="stat-card stat-card-purple">
-            <div class="stat-card-top">
-              <div class="stat-icon stat-icon-purple">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6m12 0h1.5a2.5 2.5 0 0 1 0 5H18"/>
-                  <path d="M8 3h8v11a5 5 0 0 1-5 5 5 5 0 0 1-5-5V3z"/>
-                  <line x1="12" y1="19" x2="12" y2="22"/>
-                  <line x1="9" y1="22" x2="15" y2="22"/>
-                </svg>
-              </div>
-              <div class="stat-sparkline">
-                <svg viewBox="0 0 88 42" fill="none" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="sg2" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stop-color="#a855f7" stop-opacity=".3"/>
-                      <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
-                    </linearGradient>
-                  </defs>
-                  <path d="M0 36 L11 34 L22 30 L33 28 L44 24 L55 22 L66 16 L77 10 L88 6" stroke="#a855f7" stroke-width="2" stroke-linecap="round" fill="none"/>
-                  <path d="M0 36 L11 34 L22 30 L33 28 L44 24 L55 22 L66 16 L77 10 L88 6 L88 42 L0 42Z" fill="url(#sg2)"/>
-                </svg>
-              </div>
+          <div class="stat-card">
+            <div class="stat-icon-wrap gray">📍</div>
+            <div class="stat-info">
+              <div class="stat-value" id="statStates">—</div>
+              <div class="stat-label">States Tracked</div>
             </div>
-            <div class="stat-value" id="statStates">—</div>
-            <div class="stat-label">States Tracked</div>
           </div>
-
-          <div class="stat-card stat-card-green">
-            <div class="stat-card-top">
-              <div class="stat-icon stat-icon-green">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/>
-                  <polyline points="16 7 22 7 22 13"/>
-                </svg>
-              </div>
-              <div class="stat-sparkline">
-                <svg viewBox="0 0 88 42" fill="none" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="sg3" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stop-color="#22c55e" stop-opacity=".3"/>
-                      <stop offset="100%" stop-color="#22c55e" stop-opacity="0"/>
-                    </linearGradient>
-                  </defs>
-                  <path d="M0 38 L11 36 L22 32 L33 28 L44 30 L55 22 L66 18 L77 10 L88 6" stroke="#22c55e" stroke-width="2" stroke-linecap="round" fill="none"/>
-                  <path d="M0 38 L11 36 L22 32 L33 28 L44 30 L55 22 L66 18 L77 10 L88 6 L88 42 L0 42Z" fill="url(#sg3)"/>
-                </svg>
-              </div>
+          <div class="stat-card">
+            <div class="stat-icon-wrap green">⭐</div>
+            <div class="stat-info">
+              <div class="stat-value" id="statPositive">—</div>
+              <div class="stat-label">Positive EV Tickets</div>
             </div>
-            <div class="stat-value" id="statPositive">—</div>
-            <div class="stat-label">Positive EV Tickets</div>
           </div>
-
-          <div class="stat-card stat-card-blue">
-            <div class="stat-card-top">
-              <div class="stat-icon stat-icon-blue">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="18" y1="20" x2="18" y2="10"/>
-                  <line x1="12" y1="20" x2="12" y2="4"/>
-                  <line x1="6" y1="20" x2="6" y2="14"/>
-                  <line x1="2" y1="20" x2="22" y2="20"/>
-                </svg>
-              </div>
-              <div class="stat-sparkline">
-                <svg viewBox="0 0 88 42" fill="none" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="sg4" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stop-color="#3b82f6" stop-opacity=".3"/>
-                      <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
-                    </linearGradient>
-                  </defs>
-                  <path d="M0 40 L11 36 L22 32 L33 26 L44 20 L55 16 L66 10 L77 6 L88 2" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" fill="none"/>
-                  <path d="M0 40 L11 36 L22 32 L33 26 L44 20 L55 16 L66 10 L77 6 L88 2 L88 42 L0 42Z" fill="url(#sg4)"/>
-                </svg>
-              </div>
+          <div class="stat-card">
+            <div class="stat-icon-wrap gold">🏆</div>
+            <div class="stat-info">
+              <div class="stat-value" id="statBest">—</div>
+              <div class="stat-label">Best Return %</div>
             </div>
-            <div class="stat-value" id="statBest">—</div>
-            <div class="stat-label">Best Return %</div>
           </div>
         </section>
 
         <!-- Big wins banner -->
         <div class="bigwins-banner" id="bigwinsBanner" style="display:none">
-          <span class="bigwins-banner-label">🏆 Big Wins</span>
+          <span class="bigwins-banner-label">🏆 BIG WINS</span>
           <div class="bigwins-banner-items" id="bigwinsBannerItems"></div>
-          <button class="bigwins-banner-link" onclick="switchTab('bigwins')">View All →</button>
+          <button class="bigwins-banner-link" onclick="switchTab('bigwins')">View All &rarr;</button>
         </div>
 
         <!-- Filters -->
@@ -321,22 +209,22 @@
               <option value="name">Name</option>
             </select>
           </div>
-          <div class="filter-group">
+          <div class="filter-group" style="flex:1;min-width:140px">
             <label>Search</label>
-            <input type="text" id="searchInput" placeholder="Game name…" oninput="renderTable()" />
+            <input type="text" id="searchInput" placeholder="Search game name…" oninput="renderTable()" />
           </div>
-          <div class="filter-group" style="justify-content:flex-end">
-            <label>&nbsp;</label>
-            <label class="toggle-pill" title="Show games that are nearly sold out">
+          <div class="filter-actions">
+            <button class="btn-apply-filters" onclick="applyFilters()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              Apply Filters
+            </button>
+            <label class="toggle-pill" title="Show nearly sold-out games">
               <input type="checkbox" id="hideSuspicious" onchange="renderTable()" />
-              Show Off-Shelf
+              Off-Shelf
             </label>
-          </div>
-          <div class="filter-group" style="justify-content:flex-end">
-            <label>&nbsp;</label>
-            <label class="toggle-pill" title="Hide states without ticket sales data">
+            <label class="toggle-pill" title="Hide states without ticket data">
               <input type="checkbox" id="hideNoData" checked onchange="renderTable()" />
-              Hide Data-Limited
+              Hide No-Data
             </label>
           </div>
         </section>
@@ -358,7 +246,7 @@
                   <th>#</th>
                   <th>Game</th>
                   <th style="width:60px;max-width:60px">Game ID</th>
-                  <th class="col-sort" data-col="price">Price</th>
+                  <th>Price</th>
                   <th class="col-sort active" data-col="return_pct">Return % ▼</th>
                   <th data-col="ev">Net EV</th>
                   <th data-col="jackpot_odds_one_in" title="Odds of winning $1M or more">$1M+ Odds</th>
@@ -385,7 +273,6 @@
       <div id="tab-ma" class="tab-content" style="display:none">
       <div class="hunt-layout">
 
-        <!-- State sidebar -->
         <aside class="hunt-sidebar">
           <div class="hunt-sidebar-hdr">State Hunt</div>
           <ul class="state-list" id="stateList">
@@ -443,10 +330,8 @@
           </ul>
         </aside>
 
-        <!-- Hunt console -->
         <div class="hunt-main">
 
-          <!-- Generic state console -->
           <div id="huntConsoleSoon" style="display:none">
             <div class="soon-state-header">
               <div>
@@ -456,7 +341,7 @@
               <button class="btn btn-report" id="huntSoonReportBtn" onclick="openReportModal()" style="display:none">+ Report a Store</button>
             </div>
             <div id="huntSoonGames" class="hunt-soon-games">
-              <div class="loading-cell" style="padding:2rem;text-align:center">Loading games…</div>
+              <div class="loading-cell">Loading games…</div>
             </div>
           </div>
 
@@ -481,22 +366,22 @@
               <div class="filter-group" style="min-width:200px;position:relative">
                 <label for="gameFilterInput">Hunting For</label>
                 <div class="game-filter-combo">
-                  <input type="text" id="gameFilterInput" placeholder="Any game…" aria-label="Filter by game name" oninput="searchGameFilter()" onfocus="searchGameFilter()" autocomplete="off" />
-                  <button class="game-filter-clear" id="gameFilterClear" onclick="clearGameFilter()" style="display:none" aria-label="Clear game filter">✕</button>
+                  <input type="text" id="gameFilterInput" placeholder="Any game…" oninput="searchGameFilter()" onfocus="searchGameFilter()" autocomplete="off" />
+                  <button class="game-filter-clear" id="gameFilterClear" onclick="clearGameFilter()" style="display:none">✕</button>
                 </div>
                 <div id="gameFilterDropdown" class="store-dropdown" style="display:none"></div>
               </div>
               <div class="filter-group">
                 <label for="maSearchInput">Store Name</label>
-                <input type="text" id="maSearchInput" placeholder="Store name…" aria-label="Filter by store name" oninput="renderMaTable()" />
+                <input type="text" id="maSearchInput" placeholder="Store name…" oninput="renderMaTable()" />
               </div>
               <div class="filter-group">
                 <label for="maCityInput">City</label>
-                <input type="text" id="maCityInput" placeholder="e.g. Gardner…" aria-label="Filter by city" oninput="renderMaTable()" />
+                <input type="text" id="maCityInput" placeholder="e.g. Gardner…" oninput="renderMaTable()" />
               </div>
               <div class="filter-group">
                 <label for="maInvFilter">Inventory</label>
-                <select id="maInvFilter" aria-label="Filter by inventory status" onchange="renderMaTable()">
+                <select id="maInvFilter" onchange="renderMaTable()">
                   <option value="">Any</option>
                   <option value="in">✅ In Stock</option>
                   <option value="out">❌ Out of Stock</option>
@@ -505,7 +390,7 @@
               </div>
               <div class="filter-group">
                 <label for="maDateFilter">Last Checked</label>
-                <select id="maDateFilter" aria-label="Filter by last checked date" onchange="renderMaTable()">
+                <select id="maDateFilter" onchange="renderMaTable()">
                   <option value="">Any</option>
                   <option value="today">Today</option>
                   <option value="7d">Last 7 Days</option>
@@ -515,12 +400,12 @@
               <div class="filter-group" style="justify-content:flex-end">
                 <label>&nbsp;</label>
                 <label class="toggle-pill">
-                  <input type="checkbox" id="maShowUnchecked" checked onchange="renderMaTable()" aria-label="Show unchecked retailers" />
+                  <input type="checkbox" id="maShowUnchecked" checked onchange="renderMaTable()" />
                   <span>Show Unchecked</span>
                 </label>
               </div>
               <div class="filter-actions">
-                <button class="btn btn-report" id="reportInvBtn" onclick="openReportModal()" style="display:none">📍 Report Inventory</button>
+                <button class="btn btn-report" id="reportInvBtn" onclick="openReportModal()" style="display:none">📍 Report</button>
                 <button class="btn btn-csv" onclick="downloadMaCsv()">⬇ CSV</button>
                 <button class="btn btn-heatmap" onclick="toggleMaMap()">🗺 Map</button>
               </div>
@@ -538,12 +423,8 @@
                 <table id="maTable">
                   <thead>
                     <tr>
-                      <th>#</th>
-                      <th>Store Name</th>
-                      <th>City</th>
-                      <th>ZIP</th>
-                      <th id="maLastReportTh">Last Report</th>
-                      <th>Links</th>
+                      <th>#</th><th>Store Name</th><th>City</th><th>ZIP</th>
+                      <th id="maLastReportTh">Last Report</th><th>Links</th>
                     </tr>
                   </thead>
                   <tbody id="maTableBody">
@@ -575,22 +456,22 @@
               <div class="filter-group" style="min-width:200px;position:relative">
                 <label for="azGameFilterInput">Hunting For</label>
                 <div class="game-filter-combo">
-                  <input type="text" id="azGameFilterInput" placeholder="Any game…" aria-label="Filter by game name" oninput="searchAzGameFilter()" onfocus="searchAzGameFilter()" autocomplete="off" />
-                  <button class="game-filter-clear" id="azGameFilterClear" onclick="clearAzGameFilter()" style="display:none" aria-label="Clear game filter">✕</button>
+                  <input type="text" id="azGameFilterInput" placeholder="Any game…" oninput="searchAzGameFilter()" onfocus="searchAzGameFilter()" autocomplete="off" />
+                  <button class="game-filter-clear" id="azGameFilterClear" onclick="clearAzGameFilter()" style="display:none">✕</button>
                 </div>
                 <div id="azGameFilterDropdown" class="store-dropdown" style="display:none"></div>
               </div>
               <div class="filter-group">
                 <label for="azSearchInput">Store Name</label>
-                <input type="text" id="azSearchInput" placeholder="Store name…" aria-label="Filter by store name" oninput="renderAzTable()" />
+                <input type="text" id="azSearchInput" placeholder="Store name…" oninput="renderAzTable()" />
               </div>
               <div class="filter-group">
                 <label for="azCityInput">City</label>
-                <input type="text" id="azCityInput" placeholder="e.g. Flagstaff…" aria-label="Filter by city" oninput="renderAzTable()" />
+                <input type="text" id="azCityInput" placeholder="e.g. Flagstaff…" oninput="renderAzTable()" />
               </div>
               <div class="filter-group">
                 <label for="azInvFilter">Inventory</label>
-                <select id="azInvFilter" aria-label="Filter by inventory status" onchange="renderAzTable()">
+                <select id="azInvFilter" onchange="renderAzTable()">
                   <option value="">Any</option>
                   <option value="in">✅ In Stock</option>
                   <option value="out">❌ Out of Stock</option>
@@ -599,7 +480,7 @@
               </div>
               <div class="filter-group">
                 <label for="azDateFilter">Last Checked</label>
-                <select id="azDateFilter" aria-label="Filter by last checked date" onchange="renderAzTable()">
+                <select id="azDateFilter" onchange="renderAzTable()">
                   <option value="">Any</option>
                   <option value="today">Today</option>
                   <option value="7d">Last 7 Days</option>
@@ -609,12 +490,12 @@
               <div class="filter-group" style="justify-content:flex-end">
                 <label>&nbsp;</label>
                 <label class="toggle-pill">
-                  <input type="checkbox" id="azShowUnchecked" checked onchange="renderAzTable()" aria-label="Show unchecked retailers" />
+                  <input type="checkbox" id="azShowUnchecked" checked onchange="renderAzTable()" />
                   <span>Show Unchecked</span>
                 </label>
               </div>
               <div class="filter-actions">
-                <button class="btn btn-report" id="azReportInvBtn" onclick="openReportModal()" style="display:none">📍 Report Inventory</button>
+                <button class="btn btn-report" id="azReportInvBtn" onclick="openReportModal()" style="display:none">📍 Report</button>
                 <button class="btn btn-csv" onclick="downloadAzCsv()">⬇ CSV</button>
                 <button class="btn btn-heatmap" onclick="toggleAzMap()">🗺 Map</button>
               </div>
@@ -632,12 +513,8 @@
                 <table id="azTable">
                   <thead>
                     <tr>
-                      <th>#</th>
-                      <th>Store Name</th>
-                      <th>City</th>
-                      <th>ZIP</th>
-                      <th id="azLastReportTh">Last Report</th>
-                      <th>Links</th>
+                      <th>#</th><th>Store Name</th><th>City</th><th>ZIP</th>
+                      <th id="azLastReportTh">Last Report</th><th>Links</th>
                     </tr>
                   </thead>
                   <tbody id="azTableBody">
@@ -655,7 +532,6 @@
 
       <!-- ══════════════ CALL AGENT TAB ══════════════ -->
       <div id="tab-caller" class="tab-content" style="display:none">
-
         <section class="stats-row">
           <div class="stat-card highlight-green">
             <div class="stat-value" id="callerStatHits">—</div>
@@ -697,13 +573,13 @@
               </div>
               <div class="filter-group">
                 <label>Max Stores (0 = all)</label>
-                <input type="number" id="cfMaxStores" value="0" min="0" max="9999" placeholder="0 = all" />
+                <input type="number" id="cfMaxStores" value="0" min="0" max="9999" />
               </div>
               <div class="filter-group">
                 <label>Call Backend</label>
                 <select id="cfBackend">
-                  <option value="twilio_ivr">Twilio IVR (press 1 or 2)</option>
-                  <option value="bland">Bland AI (voice conversation)</option>
+                  <option value="twilio_ivr">Twilio IVR</option>
+                  <option value="bland">Bland AI</option>
                 </select>
               </div>
               <div class="filter-group" style="justify-content:flex-end;align-items:flex-end">
@@ -734,9 +610,7 @@
         <section class="table-section" id="callerHitsSection" style="display:none">
           <div class="table-meta">
             <span id="callerHitsCount">Hits</span>
-            <span class="table-legend">
-              <span class="badge badge-green">Has Ticket</span>
-            </span>
+            <span class="table-legend"><span class="badge badge-green">Has Ticket</span></span>
           </div>
           <div class="table-scroll">
             <table id="callerHitsTable">
@@ -753,7 +627,6 @@
             </table>
           </div>
         </section>
-
         <div id="callerDetailView" style="display:none"></div>
       </div><!-- /tab-caller -->
 
@@ -790,8 +663,8 @@
         <a href="/contact">Contact</a>
       </nav>
     </footer>
-
   </div><!-- /main-area -->
+
 </div><!-- /app-shell -->
 
 
@@ -813,13 +686,13 @@
         <label>Password</label>
         <div class="pw-wrap">
           <input type="password" id="loginPassword" placeholder="Your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')submitLogin()">
-          <button type="button" class="pw-toggle" onclick="togglePw('loginPassword',this)" aria-label="Show password">
+          <button type="button" class="pw-toggle" onclick="togglePw('loginPassword',this)">
             <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             <svg class="eye-off-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
           </button>
         </div>
       </div>
-      <button class="btn btn-login auth-submit" onclick="submitLogin()">Log In</button>
+      <button class="btn auth-submit" onclick="submitLogin()">Log In</button>
       <div id="loginMsg" class="caller-msg" style="display:none;margin-top:.6rem"></div>
     </div>
     <div id="authFormRegister" style="display:none">
@@ -837,7 +710,7 @@
         <label>Password</label>
         <div class="pw-wrap">
           <input type="password" id="registerPassword" placeholder="At least 8 characters" autocomplete="new-password">
-          <button type="button" class="pw-toggle" onclick="togglePw('registerPassword',this)" aria-label="Show password">
+          <button type="button" class="pw-toggle" onclick="togglePw('registerPassword',this)">
             <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             <svg class="eye-off-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
           </button>
@@ -847,13 +720,13 @@
         <label>Confirm Password</label>
         <div class="pw-wrap">
           <input type="password" id="registerConfirm" placeholder="Repeat password" autocomplete="new-password" onkeydown="if(event.key==='Enter')submitRegister()">
-          <button type="button" class="pw-toggle" onclick="togglePw('registerConfirm',this)" aria-label="Show password">
+          <button type="button" class="pw-toggle" onclick="togglePw('registerConfirm',this)">
             <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
             <svg class="eye-off-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
           </button>
         </div>
       </div>
-      <button class="btn btn-register auth-submit" onclick="submitRegister()">Create Account</button>
+      <button class="btn auth-submit" onclick="submitRegister()">Create Account</button>
       <div id="registerMsg" class="caller-msg" style="display:none;margin-top:.6rem"></div>
     </div>
   </div>
@@ -916,7 +789,7 @@
       <input type="date" id="reportDate">
     </div>
 
-    <button class="btn btn-call-create" id="reportSubmitBtn" onclick="submitInventoryReport()" style="width:100%;justify-content:center">Submit Report</button>
+    <button class="btn btn-call-create" id="reportSubmitBtn" onclick="submitInventoryReport()" style="width:100%;justify-content:center;border-radius:var(--radius-sm)">Submit Report</button>
     <div id="reportMsg" class="caller-msg" style="display:none;margin-top:.7rem"></div>
   </div>
 </div>
