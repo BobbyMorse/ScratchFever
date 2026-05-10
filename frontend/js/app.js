@@ -1912,7 +1912,7 @@ function renderResultCard(r) {
   const cardCls = r.has_game === 1 ? "result-hit" : r.has_game === 0 ? "result-miss" : "";
   const conf = r.confidence != null ? `${(parseFloat(r.confidence) * 100).toFixed(0)}% conf` : "";
   const called = r.called_at
-    ? timeAgo(new Date(r.called_at + (r.called_at.endsWith("Z") ? "" : "Z")))
+    ? timeAgo(parseReportedAt(r.called_at))
     : "—";
 
   return `
