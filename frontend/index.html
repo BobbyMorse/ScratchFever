@@ -272,6 +272,69 @@
 
         <div class="hunt-main">
 
+          <!-- State picker dropdown -->
+          <div class="state-dd-wrap" id="stateDropdownWrap">
+            <button class="state-dd-trigger" id="stateDropdownBtn" onclick="toggleStateDropdown()">
+              <span class="state-abbr-pill" id="stateDropdownAbbr">MA</span>
+              <span class="state-dd-trigger-name" id="stateDropdownLabel">Massachusetts</span>
+              <span class="state-dd-chevron">▾</span>
+            </button>
+            <div class="state-dd-panel" id="stateDropdownPanel" style="display:none">
+              <div class="state-dd-group-lbl">Live</div>
+              <button class="state-dd-item active" data-state="MA" onclick="selectHuntState('MA')">
+                <span class="state-abbr">MA</span><span class="state-dd-item-name">Massachusetts</span><span class="state-live-dot"></span>
+              </button>
+              <button class="state-dd-item" data-state="AZ" onclick="selectHuntState('AZ')">
+                <span class="state-abbr">AZ</span><span class="state-dd-item-name">Arizona</span><span class="state-live-dot"></span>
+              </button>
+              <div class="state-dd-group-lbl">Coming Soon</div>
+              <button class="state-dd-item state-dd-soon" data-state="AR" onclick="selectHuntState('AR')"><span class="state-abbr">AR</span><span class="state-dd-item-name">Arkansas</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="CA" onclick="selectHuntState('CA')"><span class="state-abbr">CA</span><span class="state-dd-item-name">California</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="CO" onclick="selectHuntState('CO')"><span class="state-abbr">CO</span><span class="state-dd-item-name">Colorado</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="CT" onclick="selectHuntState('CT')"><span class="state-abbr">CT</span><span class="state-dd-item-name">Connecticut</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="DC" onclick="selectHuntState('DC')"><span class="state-abbr">DC</span><span class="state-dd-item-name">Washington DC</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="DE" onclick="selectHuntState('DE')"><span class="state-abbr">DE</span><span class="state-dd-item-name">Delaware</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="FL" onclick="selectHuntState('FL')"><span class="state-abbr">FL</span><span class="state-dd-item-name">Florida</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="GA" onclick="selectHuntState('GA')"><span class="state-abbr">GA</span><span class="state-dd-item-name">Georgia</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="ID" onclick="selectHuntState('ID')"><span class="state-abbr">ID</span><span class="state-dd-item-name">Idaho</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="IL" onclick="selectHuntState('IL')"><span class="state-abbr">IL</span><span class="state-dd-item-name">Illinois</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="IN" onclick="selectHuntState('IN')"><span class="state-abbr">IN</span><span class="state-dd-item-name">Indiana</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="IA" onclick="selectHuntState('IA')"><span class="state-abbr">IA</span><span class="state-dd-item-name">Iowa</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="KS" onclick="selectHuntState('KS')"><span class="state-abbr">KS</span><span class="state-dd-item-name">Kansas</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="KY" onclick="selectHuntState('KY')"><span class="state-abbr">KY</span><span class="state-dd-item-name">Kentucky</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="LA" onclick="selectHuntState('LA')"><span class="state-abbr">LA</span><span class="state-dd-item-name">Louisiana</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="ME" onclick="selectHuntState('ME')"><span class="state-abbr">ME</span><span class="state-dd-item-name">Maine</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="MD" onclick="selectHuntState('MD')"><span class="state-abbr">MD</span><span class="state-dd-item-name">Maryland</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="MI" onclick="selectHuntState('MI')"><span class="state-abbr">MI</span><span class="state-dd-item-name">Michigan</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="MN" onclick="selectHuntState('MN')"><span class="state-abbr">MN</span><span class="state-dd-item-name">Minnesota</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="MS" onclick="selectHuntState('MS')"><span class="state-abbr">MS</span><span class="state-dd-item-name">Mississippi</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="MO" onclick="selectHuntState('MO')"><span class="state-abbr">MO</span><span class="state-dd-item-name">Missouri</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="MT" onclick="selectHuntState('MT')"><span class="state-abbr">MT</span><span class="state-dd-item-name">Montana</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="NE" onclick="selectHuntState('NE')"><span class="state-abbr">NE</span><span class="state-dd-item-name">Nebraska</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="NH" onclick="selectHuntState('NH')"><span class="state-abbr">NH</span><span class="state-dd-item-name">New Hampshire</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="NJ" onclick="selectHuntState('NJ')"><span class="state-abbr">NJ</span><span class="state-dd-item-name">New Jersey</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="NM" onclick="selectHuntState('NM')"><span class="state-abbr">NM</span><span class="state-dd-item-name">New Mexico</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="NY" onclick="selectHuntState('NY')"><span class="state-abbr">NY</span><span class="state-dd-item-name">New York</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="NC" onclick="selectHuntState('NC')"><span class="state-abbr">NC</span><span class="state-dd-item-name">North Carolina</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="ND" onclick="selectHuntState('ND')"><span class="state-abbr">ND</span><span class="state-dd-item-name">North Dakota</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="OH" onclick="selectHuntState('OH')"><span class="state-abbr">OH</span><span class="state-dd-item-name">Ohio</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="OK" onclick="selectHuntState('OK')"><span class="state-abbr">OK</span><span class="state-dd-item-name">Oklahoma</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="OR" onclick="selectHuntState('OR')"><span class="state-abbr">OR</span><span class="state-dd-item-name">Oregon</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="PA" onclick="selectHuntState('PA')"><span class="state-abbr">PA</span><span class="state-dd-item-name">Pennsylvania</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="RI" onclick="selectHuntState('RI')"><span class="state-abbr">RI</span><span class="state-dd-item-name">Rhode Island</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="SC" onclick="selectHuntState('SC')"><span class="state-abbr">SC</span><span class="state-dd-item-name">South Carolina</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="SD" onclick="selectHuntState('SD')"><span class="state-abbr">SD</span><span class="state-dd-item-name">South Dakota</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="TN" onclick="selectHuntState('TN')"><span class="state-abbr">TN</span><span class="state-dd-item-name">Tennessee</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="TX" onclick="selectHuntState('TX')"><span class="state-abbr">TX</span><span class="state-dd-item-name">Texas</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="VT" onclick="selectHuntState('VT')"><span class="state-abbr">VT</span><span class="state-dd-item-name">Vermont</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="VA" onclick="selectHuntState('VA')"><span class="state-abbr">VA</span><span class="state-dd-item-name">Virginia</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="WA" onclick="selectHuntState('WA')"><span class="state-abbr">WA</span><span class="state-dd-item-name">Washington</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="WV" onclick="selectHuntState('WV')"><span class="state-abbr">WV</span><span class="state-dd-item-name">West Virginia</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="WI" onclick="selectHuntState('WI')"><span class="state-abbr">WI</span><span class="state-dd-item-name">Wisconsin</span></button>
+              <button class="state-dd-item state-dd-soon" data-state="WY" onclick="selectHuntState('WY')"><span class="state-abbr">WY</span><span class="state-dd-item-name">Wyoming</span></button>
+            </div>
+          </div>
+
           <div id="huntConsoleSoon" style="display:none">
             <div class="soon-state-header">
               <div>
