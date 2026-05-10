@@ -313,9 +313,12 @@ async function loadRetailerCounts() {
   } catch (_) {}
 }
 
-async function loadRetailerLatest() {
+async function loadRetailerLatest(gameName) {
   try {
-    const res = await protectedFetch("/api/inventory/retailer-latest");
+    const url = gameName
+      ? `/api/inventory/retailer-latest?game_name=${encodeURIComponent(gameName)}`
+      : "/api/inventory/retailer-latest";
+    const res = await protectedFetch(url);
     if (!res.ok) return;
     const data = await res.json();
     retailerLatestStatus = data.statuses || {};
