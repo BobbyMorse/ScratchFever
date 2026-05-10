@@ -673,17 +673,21 @@
           </div>
           <div class="inv-toggle-group">
             <button class="inv-toggle-btn ${status === 'in' ? 'sel-in' : ''}"
-              onclick="setInvStatus(${JSON.stringify(g.name)}, true)">In Stock</button>
+              data-game="${encoded}" data-stock="1"
+              onclick="setInvStatus(decodeURIComponent(this.dataset.game), true)">In Stock</button>
             <button class="inv-toggle-btn ${status === 'out' ? 'sel-out' : ''}"
-              onclick="setInvStatus(${JSON.stringify(g.name)}, false)">Out</button>
+              data-game="${encoded}" data-stock="0"
+              onclick="setInvStatus(decodeURIComponent(this.dataset.game), false)">Out</button>
           </div>
-          <button class="inv-notes-btn" onclick="toggleNotesInput(${JSON.stringify(g.name)}, this)">Notes</button>
+          <button class="inv-notes-btn" data-game="${encoded}"
+            onclick="toggleNotesInput(decodeURIComponent(this.dataset.game), this)">Notes</button>
           <span class="inv-save-ind" id="ind-${encoded}"></span>
         </div>
         <div class="inv-notes-wrap" id="noteswrap-${encoded}">
           <input type="text" class="inv-notes-input" placeholder="Optional note…"
             value="${escHtml(notes)}"
-            oninput="setInvNotes(${JSON.stringify(g.name)}, this.value)"
+            data-game="${encoded}"
+            oninput="setInvNotes(decodeURIComponent(this.dataset.game), this.value)"
             id="notesinput-${encoded}" />
         </div>
       </div>`;
