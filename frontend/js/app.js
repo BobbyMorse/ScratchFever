@@ -612,8 +612,7 @@ function gameRow(g, rank) {
   const nameEsc = escHtml(g.name).replace(/'/g, "\\'");
   return `<tr onclick="openGame(${g.id})">
     <td style="color:var(--text-muted);font-size:.8rem;font-weight:700">${rank}</td>
-    <td><span class="state-pill state-${g.state_code}">${g.state_code}</span></td>
-    <td><strong>${escHtml(g.name)}</strong>${reportBadge}</td>
+    <td><div class="game-cell"><span class="state-pill state-${g.state_code}">${g.state_code}</span><span class="game-name"><strong>${escHtml(g.name)}</strong>${reportBadge}</span></div></td>
     <td style="color:var(--text-muted);font-size:.8rem;width:60px;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(g.game_id)}</td>
     <td><span class="price-pill">$${g.price}</span></td>
     <td>${retCell}</td>
