@@ -240,6 +240,7 @@ async def api_trigger_scrape(
             scrape_status["last_results"] = results
             import datetime
             scrape_status["last_run"] = datetime.datetime.utcnow().isoformat()
+            clear_games_cache()
         finally:
             scrape_status["running"] = False
 
