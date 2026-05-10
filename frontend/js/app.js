@@ -2684,6 +2684,7 @@ function getAzFilteredRows() {
 
 function renderAzTable() {
   if (!azLoaded) return;
+  const myGen = ++azRenderGen;
   _openProfileId = null;
   const rows = getAzFilteredRows();
   const checkedCount = selectedAzGame ? Object.keys(retailerLatestStatus).length : null;
@@ -2705,6 +2706,7 @@ function renderAzTable() {
   if (rows.length > CHUNK) {
     let offset = CHUNK;
     const appendNext = () => {
+      if (myGen !== azRenderGen) return;
       if (offset >= rows.length) return;
       const end = Math.min(offset + CHUNK, rows.length);
       const tmp = document.createElement("tbody");
