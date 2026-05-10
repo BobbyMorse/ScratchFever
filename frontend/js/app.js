@@ -2323,10 +2323,46 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
   }
 
   const normGame = normalizeGameName(gameName);
-  const reports = communityReports.filter(r => normalizeGameName(r.game_name) === normGame);
+  const allReports = communityReports.filter(r => normalizeGameName(r.game_name) === normGame);
   const addBtn = `<button class="btn btn-report" onclick="openReportModalForGame(${JSON.stringify(gameName)},${gamePrice != null ? gamePrice : "null"})" style="font-size:.78rem;padding:.3rem .75rem">+ Add Report</button>`;
 
-  if (!reports.length) {
+  // --- Retailer-confirmed section ---
+  const latestByRetailer = {};
+  for (const r of allReports) {
+    if (r.source !== "retailer") continue;
+    const existing = latestByRetailer[r.retailer_id];
+    if (!existing || new Date(r.reported_at) > new Date(existing.reported_at)) {
+      latestByRetailer[r.retailer_id] = r;
+    }
+  }
+  const retailerConfirmed = Object.values(latestByRetailer)
+    .sort((a, b) => new Date(b.reported_at) - new Date(a.reported_at));
+
+  let retailerSection = "";
+  if (retailerConfirmed.length) {
+    const rows = retailerConfirmed.map(r => {
+      const inStock = r.has_stock;
+      const mapsUrl = r.lat && r.lng
+        ? `https://www.google.com/maps/search/?api=1&query=${r.lat},${r.lng}`
+        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((r.retailer_name || "") + ", " + (r.retailer_city || "") + ", " + (stateCode || ""))}`;
+      const time = r.reported_at ? timeAgo(parseReportedAt(r.reported_at)) : "—";
+      return `<div class="retailer-stock-row">
+        <span class="retailer-stock-dot ${inStock ? "dot-in" : "dot-out"}"></span>
+        <span class="retailer-stock-name"><a href="${mapsUrl}" target="_blank" rel="noopener" class="report-location-link">${escHtml(r.retailer_name || "Store")}</a>${r.retailer_city ? ` <span class="retailer-stock-city">${escHtml(r.retailer_city)}</span>` : ""}</span>
+        <span class="retailer-stock-status ${inStock ? "status-in" : "status-out"}">${inStock ? "In Stock" : "Out of Stock"}</span>
+        <span class="retailer-stock-time">${time}</span>
+      </div>`;
+    }).join("");
+    retailerSection = `<div class="modal-retailer-section">
+      <div class="modal-community-title" style="margin-bottom:.55rem">🏪 Retailer-Confirmed</div>
+      <div class="retailer-stock-list">${rows}</div>
+    </div>`;
+  }
+
+  // --- Community reports section ---
+  const reports = allReports.filter(r => r.source !== "retailer");
+
+  if (!reports.length && !retailerSection) {
     return `<div class="modal-community-section">
       <div class="modal-community-title" style="display:flex;align-items:center;justify-content:space-between">
         <span>📍 Community Reports</span>${addBtn}
@@ -2340,9 +2376,7 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
       ? '<span style="color:var(--green);font-weight:600">✅ In Stock</span>'
       : '<span style="color:var(--red)">❌ Out of Stock</span>';
     const who = r.source === "caller" ? "📞 Call" : (r.reporter_username ? `@${escHtml(r.reporter_username)}` : "👤");
-    const time = r.reported_at
-      ? timeAgo(parseReportedAt(r.reported_at))
-      : "—";
+    const time = r.reported_at ? timeAgo(parseReportedAt(r.reported_at)) : "—";
     const mapsUrl = r.lat && r.lng
       ? `https://www.google.com/maps/search/?api=1&query=${r.lat},${r.lng}`
       : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((r.retailer_name || "") + ", " + (r.retailer_city || "") + ", " + (stateCode || ""))}`;
@@ -2353,12 +2387,19 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
     </div>`;
   }).join("");
 
-  return `<div class="modal-community-section">
+  const communitySection = reports.length ? `<div class="modal-community-section">
     <div class="modal-community-title" style="display:flex;align-items:center;justify-content:space-between">
       <span>📍 Community Reports <span style="color:var(--text-muted);font-weight:400;font-size:.82rem">(${stateCode || ""})</span></span>${addBtn}
     </div>
     <div class="profile-reports-list">${items}</div>
+  </div>` : `<div class="modal-community-section">
+    <div class="modal-community-title" style="display:flex;align-items:center;justify-content:space-between">
+      <span>📍 Community Reports</span>${addBtn}
+    </div>
+    <div class="profile-no-reports">No community reports yet for this game in ${stateCode || "your state"}.</div>
   </div>`;
+
+  return retailerSection + communitySection;
 }
 
 function openReportModalForStore(retailerId) {
