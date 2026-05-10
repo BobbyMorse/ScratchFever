@@ -66,12 +66,29 @@ function _setUser(user) {
   if (user) {
     document.getElementById("userEmail").textContent = user.username || user.email;
     const roleEl = document.getElementById("userRole");
-    roleEl.textContent = user.role === "admin" ? "Admin" : "Member";
+    const roleLabel = user.role === "admin" ? "Admin" : user.role === "retailer" ? "Retailer" : "Member";
+    roleEl.textContent = roleLabel;
     roleEl.className = "user-chip-role role-" + user.role;
     chip.style.display = "";
     btn.style.display  = "none";
-    caller.style.display = user.role === "admin" ? "" : "none";
     const isAdmin = user.role === "admin";
+    caller.style.display = isAdmin ? "" : "none";
+    // Show "My Store" link for retailer accounts
+    let myStoreLink = document.getElementById("myStoreLink");
+    if (user.role === "retailer" || user.role === "admin") {
+      if (!myStoreLink) {
+        myStoreLink = document.createElement("a");
+        myStoreLink.id = "myStoreLink";
+        myStoreLink.href = "/retailer";
+        myStoreLink.className = "btn btn-login";
+        myStoreLink.textContent = "My Store";
+        myStoreLink.style.cssText = "text-decoration:none;background:rgba(20,184,166,0.15);border-color:rgba(20,184,166,0.4);color:#14b8a6";
+        chip.parentNode.insertBefore(myStoreLink, chip);
+      }
+      myStoreLink.style.display = "";
+    } else if (myStoreLink) {
+      myStoreLink.style.display = "none";
+    }
     document.getElementById("scrapeBtn").style.display = isAdmin ? "" : "none";
     document.getElementById("statusBar").style.display = isAdmin ? "" : "none";
     const repBtn = document.getElementById("reportInvBtn");
