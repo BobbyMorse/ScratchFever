@@ -861,7 +861,7 @@ async function pollScrapeStatus() {
     btn.textContent = "↻ Refresh Data";
     btn.disabled = false;
     document.getElementById("cancelScrapeBtn").style.display = "none";
-    await loadGames();
+    await loadAllGamesUnfiltered();
     await loadStatus();
     await loadStates();
   }
