@@ -869,11 +869,33 @@ function switchTab(name) {
   }
 }
 
+function toggleStateDropdown() {
+  const panel = document.getElementById("stateDropdownPanel");
+  if (!panel) return;
+  panel.style.display = panel.style.display === "none" ? "" : "none";
+}
+
+function closeStateDropdown() {
+  const panel = document.getElementById("stateDropdownPanel");
+  if (panel) panel.style.display = "none";
+}
+
+document.addEventListener("click", function(e) {
+  const wrap = document.getElementById("stateDropdownWrap");
+  if (wrap && !wrap.contains(e.target)) closeStateDropdown();
+});
+
 function selectHuntState(code) {
   currentHuntState = code;
-  document.querySelectorAll(".state-item").forEach(el =>
+  document.querySelectorAll(".state-dd-item").forEach(el =>
     el.classList.toggle("active", el.dataset.state === code)
   );
+  const nameEl = document.querySelector(`.state-dd-item[data-state="${code}"] .state-dd-item-name`);
+  if (nameEl) {
+    document.getElementById("stateDropdownLabel").textContent = nameEl.textContent;
+    document.getElementById("stateDropdownAbbr").textContent = code;
+  }
+  closeStateDropdown();
 
   document.getElementById("huntConsoleMA").style.display   = "none";
   document.getElementById("huntConsoleAZ").style.display   = "none";
@@ -889,8 +911,8 @@ function selectHuntState(code) {
     if (_currentUser) loadCommunityReports();
   } else {
     document.getElementById("huntConsoleSoon").style.display = "";
-    const nameEl = document.querySelector(`.state-item[data-state="${code}"] .state-name`);
-    const stateName = nameEl?.textContent || code;
+    const soonNameEl = document.querySelector(`.state-dd-item[data-state="${code}"] .state-dd-item-name`);
+    const stateName = soonNameEl?.textContent || code;
     document.getElementById("huntSoonTitle").textContent = stateName;
     document.getElementById("huntSoonSubtitle").textContent =
       "Top games by expected value. Full retailer hunt coming soon.";
