@@ -341,7 +341,8 @@ function buildLatestStatusFromReports() {
 function parseReportedAt(str) {
   if (!str) return new Date(0);
   const iso = str.includes("T") ? str : str.replace(" ", "T");
-  return new Date(/[+\-]\d{2}:\d{2}$|Z$/.test(iso) ? iso : iso + "Z");
+  if (/[+\-]\d{2}:\d{2}$|Z$/.test(iso)) return new Date(iso);
+  return new Date(iso.length <= 10 ? iso + "T00:00:00Z" : iso + "Z");
 }
 
 function lastReportCellHtml(rid) {
