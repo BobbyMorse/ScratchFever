@@ -556,7 +556,13 @@ async function loadBigWins() {
       sel.appendChild(opt);
     });
     filterBigWins();
-  } catch (_) {}
+  } catch (e) {
+    const loadingEl = document.getElementById("bigwinsLoading");
+    const list = document.getElementById("bigwinsList");
+    if (loadingEl) loadingEl.style.display = "none";
+    if (list) list.innerHTML = '<div style="color:var(--text-muted);padding:2rem 1rem">Failed to load wins. Try refreshing.</div>';
+    console.error("loadBigWins:", e);
+  }
 }
 
 function filterBigWins() {
