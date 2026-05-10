@@ -1,3 +1,4 @@
+import asyncio
 import asyncpg
 import datetime as dt
 import os
