@@ -571,7 +571,7 @@
     }
 
     renderProfile();
-    await Promise.all([loadInventory(), loadPosts(), loadActivity()]);
+    await Promise.allSettled([loadInventory(), loadPosts(), loadActivity()]);
   }
 
   /* ── Profile rendering ─────────────────────────────── */
