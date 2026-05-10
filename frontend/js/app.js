@@ -2218,7 +2218,7 @@ function normalizeGameName(name) {
   return (name || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
 }
 
-function modalCommunitySection(gameName, gamePrice) {
+function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
   const count = gameCounts[gameName.toLowerCase()] || 0;
   if (!count && !_currentUser) return "";
 
