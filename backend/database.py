@@ -8,8 +8,11 @@ _pool: asyncpg.Pool | None = None
 
 async def init_db():
     global _pool
+    db_url = os.environ.get("DATABASE_URL")
+    if not db_url:
+        raise RuntimeError("DATABASE_URL env var is not set — check Railway Variables tab")
     _pool = await asyncpg.create_pool(
-        os.environ["DATABASE_URL"],
+        db_url,
         min_size=2, max_size=10,
         statement_cache_size=0,
     )
