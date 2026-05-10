@@ -109,6 +109,37 @@ async def init_db():
         await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS jackpot_odds_one_in REAL")
 
 
+async def init_retailer_db():
+    async with _pool.acquire() as conn:
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS retailer_profiles (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+                retailer_id TEXT NOT NULL,
+                state_code TEXT NOT NULL DEFAULT 'MA',
+                store_name TEXT NOT NULL,
+                city TEXT,
+                zip TEXT,
+                phone TEXT,
+                verified BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMPTZ DEFAULT NOW()
+            )
+        """)
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS retailer_posts (
+                id SERIAL PRIMARY KEY,
+                retailer_id TEXT NOT NULL,
+                store_name TEXT,
+                title TEXT NOT NULL,
+                body TEXT,
+                created_at TIMESTAMPTZ DEFAULT NOW(),
+                updated_at TIMESTAMPTZ DEFAULT NOW()
+            )
+        """)
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_rprofile_user ON retailer_profiles(user_id)")
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_rposts_retailer ON retailer_posts(retailer_id)")
+
+
 def get_pool() -> asyncpg.Pool:
     return _pool
 
