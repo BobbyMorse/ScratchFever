@@ -2222,6 +2222,7 @@ async function submitInventoryReport() {
 
 async function loadCommunityReports() {
   if (!_currentUser) return;
+  communityReportsLastFetch = Date.now();
   try {
     const res  = await protectedFetch("/api/inventory/reports?limit=500");
     if (!res.ok) return;
