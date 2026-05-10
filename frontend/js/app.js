@@ -1,6 +1,7 @@
 /* ScratchFever — frontend */
 
 let allGames = [];
+let allGamesUnfiltered = [];
 let states = [];
 let currentSort = { col: "return_pct", asc: false };
 let currentTab = "ev";
