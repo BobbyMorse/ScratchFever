@@ -692,22 +692,82 @@
     wrap.innerHTML = `<div class="inv-list">${rows}</div>`;
   }
 
-  function setInvStatus(gameName, hasStock) {
-    if (!_changes[gameName]) _changes[gameName] = {};
-    _changes[gameName].has_stock = hasStock;
-    renderInvList();
-    document.getElementById("invSaveBtn").disabled = false;
+  async function setInvStatus(gameName, hasStock) {
+    const encoded = encodeURIComponent(gameName);
+    const key = gameName.toLowerCase();
+
+    // Update local cache
+    if (!_invStatus[key]) _invStatus[key] = {};
+    _invStatus[key].has_stock = hasStock;
+
+    // Update DOM immediately (no full re-render)
+    const row = document.getElementById("row-" + encoded);
+    if (row) {
+      row.className = `inv-row status-${hasStock ? "in" : "out"}`;
+      const [inBtn, outBtn] = row.querySelectorAll(".inv-toggle-btn");
+      if (inBtn) inBtn.className = "inv-toggle-btn" + (hasStock ? " sel-in" : "");
+      if (outBtn) outBtn.className = "inv-toggle-btn" + (!hasStock ? " sel-out" : "");
+    }
+
+    // Save to API with per-row indicator
+    const ind = document.getElementById("ind-" + encoded);
+    if (ind) { ind.textContent = "…"; ind.className = "inv-save-ind busy"; }
+
+    const game = _games.find(g => g.name === gameName);
+    try {
+      const res = await authFetch("/api/retailer/inventory", {
+        method: "POST",
+        body: JSON.stringify({ items: [{
+          game_name: gameName,
+          game_price: game?.price ?? null,
+          has_stock: hasStock,
+          notes: _invStatus[key]?.notes ?? null,
+        }] }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.detail || "Save failed");
+      _invStatus[key].reported_at = new Date().toISOString();
+      if (ind) {
+        ind.textContent = "✓"; ind.className = "inv-save-ind ok";
+        setTimeout(() => { ind.textContent = ""; ind.className = "inv-save-ind"; }, 2000);
+      }
+    } catch (e) {
+      if (ind) { ind.textContent = "!"; ind.className = "inv-save-ind err"; }
+      showMsg("invMsg", "Save failed: " + e.message, "err");
+    }
   }
 
   function setInvNotes(gameName, val) {
-    if (!_changes[gameName]) _changes[gameName] = {};
-    _changes[gameName].notes = val;
+    const key = gameName.toLowerCase();
+    if (!_invStatus[key]) _invStatus[key] = {};
+    _invStatus[key].notes = val || null;
+
+    clearTimeout(_noteTimers[gameName]);
+    _noteTimers[gameName] = setTimeout(() => saveNotesSilent(gameName), 800);
+  }
+
+  async function saveNotesSilent(gameName) {
+    const key = gameName.toLowerCase();
+    const s = _invStatus[key];
+    if (!s || s.has_stock === undefined || s.has_stock === null) return;
+    const game = _games.find(g => g.name === gameName);
+    try {
+      await authFetch("/api/retailer/inventory", {
+        method: "POST",
+        body: JSON.stringify({ items: [{
+          game_name: gameName,
+          game_price: game?.price ?? null,
+          has_stock: s.has_stock,
+          notes: s.notes ?? null,
+        }] }),
+      });
+    } catch (_) {}
   }
 
   function toggleNotesInput(gameName, btn) {
     const wrap = document.getElementById("noteswrap-" + encodeURIComponent(gameName));
     if (!wrap) return;
-    const open = wrap.style.display !== "none";
+    const open = wrap.style.display === "block";
     wrap.style.display = open ? "none" : "block";
     btn.style.borderColor = open ? "" : "var(--teal)";
     btn.style.color = open ? "" : "var(--teal)";
@@ -715,55 +775,6 @@
       const input = document.getElementById("notesinput-" + encodeURIComponent(gameName));
       if (input) input.focus();
     }
-  }
-
-  function updateChangeCount() {
-    const n = Object.keys(_changes).length;
-    const el = document.getElementById("invChangeCount");
-    el.textContent = n > 0 ? `${n} unsaved change${n === 1 ? "" : "s"}` : "";
-    document.getElementById("invSaveBtn").disabled = n === 0;
-  }
-
-  async function saveInventory() {
-    const btn = document.getElementById("invSaveBtn");
-    btn.disabled = true;
-    btn.textContent = "Saving…";
-
-    const items = Object.entries(_changes).map(([game_name, c]) => {
-      const key = game_name.toLowerCase();
-      const game = _games.find(g => g.name === game_name);
-      return {
-        game_name,
-        game_price: game?.price ?? null,
-        has_stock: c.has_stock,
-        notes: c.notes ?? (_invStatus[key]?.notes ?? null),
-      };
-    });
-
-    try {
-      const res = await authFetch("/api/retailer/inventory", {
-        method: "POST",
-        body: JSON.stringify({ items }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Save failed");
-
-      // Apply changes to local status cache
-      for (const item of items) {
-        _invStatus[item.game_name.toLowerCase()] = {
-          has_stock: item.has_stock,
-          notes: item.notes,
-          reported_at: new Date().toISOString(),
-        };
-      }
-      _changes = {};
-      showMsg("invMsg", `Saved ${items.length} update${items.length === 1 ? "" : "s"}.`, "ok");
-      renderInvList();
-    } catch (e) {
-      showMsg("invMsg", e.message, "err");
-      btn.disabled = false;
-    }
-    btn.textContent = "Save Changes";
   }
 
   /* ── POSTS ─────────────────────────────────────────── */
