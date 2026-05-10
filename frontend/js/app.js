@@ -127,7 +127,6 @@ async function restoreSession() {
     if (res.ok) {
       const data = await res.json();
       _setUser({ email: data.email, username: data.username, role: data.role });
-      loadCommunityReports();
     } else {
       localStorage.removeItem("sf_token");
       _setUser(null);
