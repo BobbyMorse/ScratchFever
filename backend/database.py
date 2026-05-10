@@ -18,11 +18,21 @@ async def init_db():
     db_url = os.environ.get("DATABASE_URL")
     if not db_url:
         raise RuntimeError("DATABASE_URL env var is not set — check Railway Variables tab")
-    _pool = await asyncpg.create_pool(
-        db_url,
-        min_size=2, max_size=10,
-        statement_cache_size=0,
-    )
+    for attempt in range(1, 6):
+        try:
+            _pool = await asyncpg.create_pool(
+                db_url,
+                min_size=2, max_size=10,
+                statement_cache_size=0,
+                timeout=30,
+            )
+            break
+        except Exception as e:
+            if attempt == 5:
+                raise
+            wait = 2 ** attempt
+            print(f"DB connect attempt {attempt} failed ({e}); retrying in {wait}s…")
+            await asyncio.sleep(wait)
     async with _pool.acquire() as conn:
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS games (
