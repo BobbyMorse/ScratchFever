@@ -274,7 +274,9 @@ body {
 .main-area {
   flex: 1;
   min-width: 0;
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image: radial-gradient(circle, rgba(99,119,180,0.09) 1.5px, transparent 1.5px);
+  background-size: 22px 22px;
   border-radius: 18px 0 0 0;
   min-height: calc(100vh - var(--header-h));
   display: flex;
