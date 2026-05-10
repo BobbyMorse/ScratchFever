@@ -663,32 +663,35 @@
     const rows = games.map(g => {
       const status = gameCurrentStatus(g);
       const key = g.name.toLowerCase();
-      const notes = (_changes[g.name]?.notes) ?? (_invStatus[key]?.notes ?? "");
+      const notes = _invStatus[key]?.notes ?? "";
       const price = g.price ? `$${g.price}` : "";
       const ev = g.return_pct ? ` · ${g.return_pct.toFixed(1)}% EV` : "";
-      return `<div class="inv-row status-${status}" id="row-${encodeURIComponent(g.name)}">
-        <div class="inv-game-info">
-          <div class="inv-game-name">${escHtml(g.name)}</div>
-          <div class="inv-game-meta">${price}${ev}</div>
+      const encoded = encodeURIComponent(g.name);
+      return `<div class="inv-row status-${status}" id="row-${encoded}">
+        <div class="inv-row-ctrl">
+          <div class="inv-game-info">
+            <div class="inv-game-name">${escHtml(g.name)}</div>
+            <div class="inv-game-meta">${price}${ev}</div>
+          </div>
+          <div class="inv-toggle-group">
+            <button class="inv-toggle-btn ${status === 'in' ? 'sel-in' : ''}"
+              onclick="setInvStatus(${JSON.stringify(g.name)}, true)">In Stock</button>
+            <button class="inv-toggle-btn ${status === 'out' ? 'sel-out' : ''}"
+              onclick="setInvStatus(${JSON.stringify(g.name)}, false)">Out</button>
+          </div>
+          <button class="inv-notes-btn" onclick="toggleNotesInput(${JSON.stringify(g.name)}, this)">Notes</button>
+          <span class="inv-save-ind" id="ind-${encoded}"></span>
         </div>
-        <div class="inv-toggle-group">
-          <button class="inv-toggle-btn ${status === 'in' ? 'sel-in' : ''}"
-            onclick="setInvStatus(${JSON.stringify(g.name)}, true)">In Stock</button>
-          <button class="inv-toggle-btn ${status === 'out' ? 'sel-out' : ''}"
-            onclick="setInvStatus(${JSON.stringify(g.name)}, false)">Out</button>
-        </div>
-        <button class="inv-notes-btn" onclick="toggleNotesInput(${JSON.stringify(g.name)}, this)">Notes</button>
-        <div style="display:none;width:100%;margin-top:.4rem" id="noteswrap-${encodeURIComponent(g.name)}">
+        <div class="inv-notes-wrap" id="noteswrap-${encoded}">
           <input type="text" class="inv-notes-input" placeholder="Optional note…"
             value="${escHtml(notes)}"
             oninput="setInvNotes(${JSON.stringify(g.name)}, this.value)"
-            id="notesinput-${encodeURIComponent(g.name)}" />
+            id="notesinput-${encoded}" />
         </div>
       </div>`;
     }).join("");
 
     wrap.innerHTML = `<div class="inv-list">${rows}</div>`;
-    updateChangeCount();
   }
 
   function setInvStatus(gameName, hasStock) {
