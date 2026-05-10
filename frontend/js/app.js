@@ -2242,7 +2242,7 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
       <div class="modal-community-title" style="display:flex;align-items:center;justify-content:space-between">
         <span>📍 Community Reports</span>${addBtn}
       </div>
-      <div class="profile-no-reports">No member reports yet for this game in MA.</div>
+      <div class="profile-no-reports">No member reports yet for this game in ${stateCode || "your state"}.</div>
     </div>`;
   }
 
