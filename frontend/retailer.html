@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Retailer Dashboard — ScratchFever</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --chrome:        #0d1117;
+      --chrome2:       #141d2c;
+      --chrome3:       #1c2840;
+      --chrome-border: rgba(255,255,255,0.07);
+      --chrome-text:   #94a3b8;
+      --chrome-muted:  #4b5563;
+      --bg:            #edf0f7;
+      --card:          #ffffff;
+      --border:        #e2e7f0;
+      --text:          #111827;
+      --text-muted:    #6b7280;
+      --orange:        #f97316;
+      --orange-dark:   #ea580c;
+      --green:         #22c55e;
+      --green-dim:     rgba(34,197,94,0.12);
+      --red:           #ef4444;
+      --red-dim:       rgba(239,68,68,0.10);
+      --teal:          #14b8a6;
+      --teal-dim:      rgba(20,184,166,0.12);
+      --yellow:        #f59e0b;
+      --radius:        12px;
+      --radius-sm:     8px;
+      --shadow:        0 4px 16px rgba(0,0,0,0.08);
+      --shadow-card:   0 2px 8px rgba(0,0,0,0.06);
+      --sidebar-w:     260px;
+      --header-h:      64px;
+    }
+
+    html { font-size: 15px; scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', -apple-system, sans-serif;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* ── Header ──────────────────────────────────────── */
+    .r-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: var(--header-h);
+      background:
+        repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(255,255,255,0.009) 8px, rgba(255,255,255,0.009) 16px),
+        radial-gradient(ellipse 45% 160% at 4% 50%, rgba(20,184,166,0.1) 0%, transparent 100%),
+        var(--chrome);
+      border-bottom: 1px solid rgba(20,184,166,0.18);
+      display: flex; align-items: center; gap: 1rem; padding: 0 1.5rem;
+    }
+    .r-header-logo {
+      font-size: .72rem; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--teal); opacity: .85;
+      text-decoration: none; flex-shrink: 0;
+    }
+    .r-header-divider { width: 1px; height: 20px; background: var(--chrome-border); flex-shrink: 0; }
+    .r-header-store {
+      font-size: 1rem; font-weight: 700; color: #e2e8f0;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;
+    }
+    .r-header-store em { font-style: normal; font-weight: 400; color: var(--chrome-text); font-size: .82rem; margin-left: .5rem; }
+    .r-header-right { display: flex; align-items: center; gap: .75rem; flex-shrink: 0; }
+    .r-badge-verified {
+      font-size: .67rem; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; padding: .22rem .6rem;
+      border-radius: 20px; border: 1px solid var(--teal);
+      color: var(--teal); white-space: nowrap;
+    }
+    .r-btn-logout {
+      background: none; border: 1px solid var(--chrome-border); border-radius: 20px;
+      color: var(--chrome-text); font-size: .78rem; font-family: inherit;
+      padding: .3rem .8rem; cursor: pointer; transition: border-color .15s, color .15s;
+    }
+    .r-btn-logout:hover { border-color: var(--red); color: var(--red); }
+
+    /* ── Layout ──────────────────────────────────────── */
+    .r-shell {
+      display: flex;
+      padding-top: var(--header-h);
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ─────────────────────────────────────── */
+    .r-sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      background: var(--chrome2);
+      border-right: 1px solid var(--chrome-border);
+      position: fixed;
+      top: var(--header-h); bottom: 0; left: 0;
+      overflow-y: auto;
+      display: flex; flex-direction: column;
+    }
+    .r-store-card {
+      padding: 1.4rem 1.2rem 1rem;
+      border-bottom: 1px solid var(--chrome-border);
+    }
+    .r-store-name {
+      font-size: 1.05rem; font-weight: 800;
+      color: #e2e8f0; line-height: 1.2; margin-bottom: .25rem;
+    }
+    .r-store-meta {
+      font-size: .78rem; color: var(--chrome-text); line-height: 1.6;
+    }
+    .r-store-badge {
+      display: inline-flex; align-items: center; gap: .3rem;
+      margin-top: .5rem;
+      font-size: .67rem; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; padding: .18rem .5rem;
+      border-radius: 20px;
+    }
+    .r-store-badge.verified { border: 1px solid var(--teal); color: var(--teal); }
+    .r-store-badge.unverified { border: 1px solid var(--chrome-muted); color: var(--chrome-muted); }
+
+    .r-nav { padding: .75rem .6rem; flex: 1; }
+    .r-nav-item {
+      display: flex; align-items: center; gap: .65rem;
+      width: 100%; padding: .65rem .8rem;
+      border-radius: var(--radius-sm);
+      border: none; background: none; cursor: pointer;
+      font-family: inherit; font-size: .88rem; font-weight: 500;
+      color: var(--chrome-text);
+      transition: background .15s, color .15s;
+      text-align: left;
+    }
+    .r-nav-item:hover { background: rgba(255,255,255,0.05); color: #e2e8f0; }
+    .r-nav-item.active { background: rgba(20,184,166,0.12); color: var(--teal); }
+    .r-nav-item svg { flex-shrink: 0; opacity: .7; }
+    .r-nav-item.active svg { opacity: 1; }
+    .r-nav-divider { height: 1px; background: var(--chrome-border); margin: .5rem .8rem; }
+
+    .r-sidebar-footer {
+      padding: .9rem 1.2rem;
+      border-top: 1px solid var(--chrome-border);
+    }
+    .r-sidebar-footer a {
+      font-size: .74rem; color: var(--chrome-muted);
+      text-decoration: none; display: block; margin-bottom: .2rem;
+    }
+    .r-sidebar-footer a:hover { color: var(--chrome-text); }
+
+    /* ── Main content ────────────────────────────────── */
+    .r-main {
+      flex: 1;
+      margin-left: var(--sidebar-w);
+      padding: 2rem;
+      max-width: 900px;
+    }
+
+    /* ── Section panels ──────────────────────────────── */
+    .r-section { display: none; }
+    .r-section.active { display: block; }
+
+    .r-section-header {
+      display: flex; align-items: baseline; justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+    .r-section-title {
+      font-size: 1.25rem; font-weight: 800; color: var(--text);
+    }
+    .r-section-sub {
+      font-size: .82rem; color: var(--text-muted); margin-top: .15rem;
+    }
+
+    /* ── Stat cards ──────────────────────────────────── */
+    .r-stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+      gap: .75rem;
+      margin-bottom: 1.5rem;
+    }
+    .r-stat-card {
+      background: var(--card); border-radius: var(--radius); padding: 1rem 1.1rem;
+      border: 1px solid var(--border); box-shadow: var(--shadow-card);
+    }
+    .r-stat-value { font-size: 1.7rem; font-weight: 800; line-height: 1; }
+    .r-stat-label { font-size: .72rem; color: var(--text-muted); font-weight: 500; margin-top: .2rem; text-transform: uppercase; letter-spacing: .04em; }
+    .r-stat-card.green .r-stat-value { color: var(--green); }
+    .r-stat-card.teal  .r-stat-value { color: var(--teal); }
+    .r-stat-card.orange .r-stat-value { color: var(--orange); }
+
+    /* ── Cards ───────────────────────────────────────── */
+    .r-card {
+      background: var(--card); border-radius: var(--radius);
+      border: 1px solid var(--border); box-shadow: var(--shadow-card);
+      padding: 1.25rem 1.4rem;
+      margin-bottom: 1rem;
+    }
+    .r-card-title {
+      font-size: .88rem; font-weight: 700; margin-bottom: .9rem;
+      color: var(--text);
+    }
+
+    /* ── Inventory list ──────────────────────────────── */
+    .inv-toolbar {
+      display: flex; align-items: center; gap: .6rem;
+      margin-bottom: 1rem; flex-wrap: wrap;
+    }
+    .inv-search {
+      flex: 1; min-width: 160px;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: .45rem .8rem; font-family: inherit; font-size: .85rem;
+      background: var(--card); color: var(--text);
+    }
+    .inv-search:focus { outline: none; border-color: var(--teal); }
+    .inv-filter-btn {
+      padding: .38rem .85rem; border-radius: 20px; font-size: .8rem; font-weight: 600;
+      cursor: pointer; border: 1px solid var(--border); background: var(--card);
+      color: var(--text-muted); font-family: inherit; transition: .12s;
+    }
+    .inv-filter-btn.active { background: var(--teal); border-color: var(--teal); color: #fff; }
+    .inv-save-bar {
+      display: flex; align-items: center; gap: .8rem;
+      justify-content: flex-end; margin-top: 1.1rem;
+    }
+
+    .inv-list { display: flex; flex-direction: column; gap: .45rem; }
+    .inv-row {
+      display: flex; align-items: center; gap: .8rem;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: .7rem 1rem;
+      transition: border-color .15s;
+    }
+    .inv-row:hover { border-color: #c8d0e0; }
+    .inv-row.status-in  { border-left: 3px solid var(--green); }
+    .inv-row.status-out { border-left: 3px solid var(--red); }
+    .inv-row.status-unknown { border-left: 3px solid var(--border); }
+    .inv-game-info { flex: 1; min-width: 0; }
+    .inv-game-name { font-size: .9rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .inv-game-meta { font-size: .72rem; color: var(--text-muted); margin-top: .05rem; }
+    .inv-toggle-group { display: flex; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--border); flex-shrink: 0; }
+    .inv-toggle-btn {
+      padding: .3rem .7rem; font-size: .75rem; font-weight: 600;
+      cursor: pointer; border: none; background: #f1f5f9; color: var(--text-muted);
+      font-family: inherit; transition: background .12s, color .12s;
+      white-space: nowrap;
+    }
+    .inv-toggle-btn + .inv-toggle-btn { border-left: 1px solid var(--border); }
+    .inv-toggle-btn.sel-in  { background: var(--green); color: #fff; }
+    .inv-toggle-btn.sel-out { background: var(--red);   color: #fff; }
+    .inv-notes-btn {
+      background: none; border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: .28rem .55rem; font-size: .72rem; color: var(--text-muted);
+      cursor: pointer; font-family: inherit; flex-shrink: 0;
+    }
+    .inv-notes-btn:hover { border-color: var(--teal); color: var(--teal); }
+    .inv-notes-input {
+      margin-top: .4rem; width: 100%;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: .35rem .65rem; font-size: .8rem; font-family: inherit;
+      color: var(--text);
+    }
+    .inv-notes-input:focus { outline: none; border-color: var(--teal); }
+
+    /* ── Buttons ─────────────────────────────────────── */
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .5rem 1.15rem; border-radius: 20px;
+      font-size: .85rem; font-weight: 700; cursor: pointer;
+      border: none; font-family: inherit;
+      background: var(--teal); color: #fff;
+      transition: opacity .15s, transform .1s;
+    }
+    .btn-primary:hover { opacity: .88; }
+    .btn-primary:active { transform: scale(.97); }
+    .btn-primary:disabled { opacity: .4; cursor: default; }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .45rem .9rem; border-radius: 20px;
+      font-size: .8rem; font-weight: 600; cursor: pointer;
+      border: 1px solid var(--border); background: var(--card);
+      color: var(--text-muted); font-family: inherit;
+      transition: border-color .12s, color .12s;
+    }
+    .btn-ghost:hover { border-color: var(--teal); color: var(--teal); }
+    .btn-danger {
+      display: inline-flex; align-items: center;
+      padding: .28rem .65rem; border-radius: var(--radius-sm);
+      font-size: .75rem; font-weight: 600; cursor: pointer;
+      border: 1px solid transparent; background: var(--red-dim);
+      color: var(--red); font-family: inherit;
+      transition: background .12s;
+    }
+    .btn-danger:hover { background: var(--red); color: #fff; }
+
+    /* ── Post form ───────────────────────────────────── */
+    .post-form { display: flex; flex-direction: column; gap: .7rem; }
+    .post-input {
+      width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: .6rem .9rem; font-family: inherit; font-size: .9rem;
+      color: var(--text); background: var(--bg);
+      transition: border-color .15s;
+    }
+    .post-input:focus { outline: none; border-color: var(--teal); background: var(--card); }
+    textarea.post-input { resize: vertical; min-height: 80px; }
+    .post-actions { display: flex; justify-content: flex-end; }
+
+    /* ── Post list ───────────────────────────────────── */
+    .post-item {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: .9rem 1.1rem;
+      margin-bottom: .6rem;
+    }
+    .post-item-header { display: flex; align-items: flex-start; justify-content: space-between; gap: .5rem; }
+    .post-item-title { font-size: .92rem; font-weight: 700; color: var(--text); }
+    .post-item-body { font-size: .84rem; color: var(--text-muted); margin-top: .35rem; white-space: pre-wrap; }
+    .post-item-meta { font-size: .72rem; color: var(--text-muted); margin-top: .5rem; }
+
+    /* ── Activity table ──────────────────────────────── */
+    .r-table-wrap { overflow-x: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+    .r-table { width: 100%; border-collapse: collapse; font-size: .83rem; }
+    .r-table th {
+      background: #f1f5f9; text-align: left; padding: .55rem .85rem;
+      font-size: .72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .04em; color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+    .r-table td { padding: .55rem .85rem; border-bottom: 1px solid #f1f5f9; color: var(--text); }
+    .r-table tr:last-child td { border-bottom: none; }
+    .r-table tr:hover td { background: #f8fafc; }
+
+    /* ── Status pills ────────────────────────────────── */
+    .pill {
+      display: inline-flex; align-items: center; gap: .25rem;
+      font-size: .7rem; font-weight: 700; padding: .18rem .5rem;
+      border-radius: 20px; white-space: nowrap;
+    }
+    .pill.green  { background: var(--green-dim); color: #16a34a; }
+    .pill.red    { background: var(--red-dim); color: #dc2626; }
+    .pill.teal   { background: var(--teal-dim); color: var(--teal); }
+
+    /* ── Loading / error ─────────────────────────────── */
+    .r-loading {
+      display: flex; align-items: center; justify-content: center;
+      height: 220px; flex-direction: column; gap: .75rem;
+      color: var(--text-muted); font-size: .9rem;
+    }
+    .r-spin {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 3px solid var(--border); border-top-color: var(--teal);
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .r-msg {
+      padding: .5rem .9rem; border-radius: var(--radius-sm);
+      font-size: .82rem; font-weight: 500; margin-top: .6rem;
+    }
+    .r-msg.ok   { background: var(--green-dim); color: #16a34a; }
+    .r-msg.err  { background: var(--red-dim); color: #dc2626; }
+
+    .inv-loading { padding: 2rem; text-align: center; color: var(--text-muted); }
+    .empty-state { text-align: center; color: var(--text-muted); padding: 2.5rem 1rem; font-size: .88rem; }
+
+    /* ── Responsive ──────────────────────────────────── */
+    @media (max-width: 700px) {
+      .r-sidebar { display: none; }
+      .r-main { margin-left: 0; padding: 1rem; }
+      .r-header-store em { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ─────────────────────────────────────────── -->
+<header class="r-header">
+  <a href="/" class="r-header-logo">ScratchFever</a>
+  <div class="r-header-divider"></div>
+  <div class="r-header-store" id="headerStoreName">Loading…</div>
+  <div class="r-header-right">
+    <span class="r-badge-verified" id="headerVerifiedBadge" style="display:none">Verified Retailer</span>
+    <button class="r-btn-logout" onclick="doLogout()">Log out</button>
+  </div>
+</header>
+
+<!-- ── Shell ──────────────────────────────────────────── -->
+<div class="r-shell">
+
+  <!-- Sidebar -->
+  <aside class="r-sidebar">
+    <div class="r-store-card">
+      <div class="r-store-name" id="sidebarStoreName">…</div>
+      <div class="r-store-meta" id="sidebarStoreMeta">…</div>
+      <span class="r-store-badge" id="sidebarBadge">…</span>
+    </div>
+
+    <nav class="r-nav">
+      <button class="r-nav-item active" id="navInventory" onclick="showSection('inventory')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+        </svg>
+        Inventory
+      </button>
+      <button class="r-nav-item" id="navPosts" onclick="showSection('posts')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        Marketing Posts
+      </button>
+      <button class="r-nav-item" id="navActivity" onclick="showSection('activity')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        Activity
+      </button>
+      <div class="r-nav-divider"></div>
+      <a href="/" style="text-decoration:none">
+        <button class="r-nav-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          Back to ScratchFever
+        </button>
+      </a>
+    </nav>
+
+    <div class="r-sidebar-footer">
+      <a href="mailto:support@scratchfever.app">support@scratchfever.app</a>
+      <div style="font-size:.7rem;color:var(--chrome-muted);margin-top:.4rem">© 2026 EVQ Agentic LLC</div>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="r-main" id="rMain">
+
+    <!-- ── INVENTORY SECTION ───────────────────── -->
+    <div class="r-section active" id="section-inventory">
+      <div class="r-section-header">
+        <div>
+          <div class="r-section-title">Inventory</div>
+          <div class="r-section-sub">Mark which scratch tickets you currently have in stock. ScratchFever members see your updates in real time.</div>
+        </div>
+      </div>
+
+      <div class="inv-toolbar">
+        <input type="text" class="inv-search" id="invSearch" placeholder="Search games…" oninput="filterInvList()" />
+        <button class="inv-filter-btn active" id="filterAll" onclick="setInvFilter('all')">All</button>
+        <button class="inv-filter-btn" id="filterIn" onclick="setInvFilter('in')">In Stock</button>
+        <button class="inv-filter-btn" id="filterOut" onclick="setInvFilter('out')">Out of Stock</button>
+        <button class="inv-filter-btn" id="filterUnknown" onclick="setInvFilter('unknown')">Not Set</button>
+      </div>
+
+      <div id="invListWrap">
+        <div class="inv-loading">Loading games…</div>
+      </div>
+
+      <div class="inv-save-bar">
+        <span id="invChangeCount" style="font-size:.82rem;color:var(--text-muted)"></span>
+        <button class="btn-primary" id="invSaveBtn" onclick="saveInventory()" disabled>Save Changes</button>
+      </div>
+      <div id="invMsg"></div>
+    </div>
+
+    <!-- ── POSTS SECTION ──────────────────────── -->
+    <div class="r-section" id="section-posts">
+      <div class="r-section-header">
+        <div>
+          <div class="r-section-title">Marketing Posts</div>
+          <div class="r-section-sub">Post updates for customers — promotions, new stock arrivals, or anything you want to share.</div>
+        </div>
+      </div>
+
+      <div class="r-card">
+        <div class="r-card-title">New Post</div>
+        <div class="post-form">
+          <input type="text" class="post-input" id="postTitle" placeholder="Title — e.g. Just restocked 300X!" maxlength="200" />
+          <textarea class="post-input" id="postBody" placeholder="Optional details — hours, quantities, special events…" rows="3" maxlength="2000"></textarea>
+          <div class="post-actions">
+            <button class="btn-primary" onclick="submitPost()">Publish Post</button>
+          </div>
+        </div>
+        <div id="postMsg"></div>
+      </div>
+
+      <div id="postsList">
+        <div class="r-loading"><div class="r-spin"></div></div>
+      </div>
+    </div>
+
+    <!-- ── ACTIVITY SECTION ───────────────────── -->
+    <div class="r-section" id="section-activity">
+      <div class="r-section-header">
+        <div>
+          <div class="r-section-title">Activity</div>
+          <div class="r-section-sub">See how ScratchFever members are engaging with your store.</div>
+        </div>
+      </div>
+
+      <div class="r-stats-row" id="activityStats">
+        <div class="r-loading"><div class="r-spin"></div></div>
+      </div>
+
+      <div class="r-card">
+        <div class="r-card-title">Recent Community Reports About Your Store</div>
+        <div id="activityTable">
+          <div class="r-loading"><div class="r-spin"></div></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  const API = "";  // same origin
+  let _token = "";
+  let _profile = null;
+  let _games = [];
+  let _invStatus = {};   // {game_name_lower: {has_stock, notes, reported_at}}
+  let _changes = {};     // {game_name: {has_stock, notes}}
+  let _invFilter = "all";
+
+  /* ── Auth ──────────────────────────────────────────── */
+  function getToken() { return localStorage.getItem("sf_token") || ""; }
+
+  async function authFetch(url, opts = {}) {
+    const token = getToken();
+    const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
+    if (token) headers["Authorization"] = "Bearer " + token;
+    const res = await fetch(API + url, { ...opts, headers });
+    return res;
+  }
+
+  function doLogout() {
+    localStorage.removeItem("sf_token");
+    window.location.href = "/";
+  }
+
+  async function init() {
+    const token = getToken();
+    if (!token) { window.location.href = "/?retailer_redirect=1"; return; }
+
+    try {
+      const meRes = await authFetch("/api/auth/me");
+      if (!meRes.ok) { doLogout(); return; }
+      const me = await meRes.json();
+      if (me.role !== "retailer" && me.role !== "admin") {
+        alert("This portal is for verified retailers only.");
+        window.location.href = "/";
+        return;
+      }
+    } catch { doLogout(); return; }
+
+    try {
+      const profRes = await authFetch("/api/retailer/me");
+      if (!profRes.ok) {
+        document.getElementById("rMain").innerHTML =
+          `<div class="r-loading" style="height:60vh;flex-direction:column;gap:1rem">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div style="font-size:.95rem;font-weight:600;color:#ef4444">No retailer profile found</div>
+            <div style="color:var(--text-muted);font-size:.85rem;max-width:320px;text-align:center">Your account hasn't been linked to a store yet. Contact <a href="mailto:support@scratchfever.app" style="color:var(--teal)">support@scratchfever.app</a> to get set up.</div>
+          </div>`;
+        return;
+      }
+      _profile = await profRes.json();
+    } catch {
+      alert("Failed to load your store profile. Please try again.");
+      return;
+    }
+
+    renderProfile();
+    await Promise.all([loadInventory(), loadPosts(), loadActivity()]);
+  }
+
+  /* ── Profile rendering ─────────────────────────────── */
+  function renderProfile() {
+    const p = _profile;
+    document.getElementById("headerStoreName").textContent = p.store_name;
+    document.getElementById("sidebarStoreName").textContent = p.store_name;
+    document.getElementById("sidebarStoreMeta").innerHTML =
+      `${p.city ? p.city + " · " : ""}${p.state_code}${p.phone ? "<br>" + p.phone : ""}`;
+    const badge = document.getElementById("sidebarBadge");
+    if (p.verified) {
+      badge.className = "r-store-badge verified";
+      badge.textContent = "Verified";
+      document.getElementById("headerVerifiedBadge").style.display = "";
+    } else {
+      badge.className = "r-store-badge unverified";
+      badge.textContent = "Pending Verification";
+    }
+    document.title = `${p.store_name} — ScratchFever Retailer`;
+  }
+
+  /* ── Section nav ───────────────────────────────────── */
+  function showSection(name) {
+    document.querySelectorAll(".r-section").forEach(s => s.classList.remove("active"));
+    document.querySelectorAll(".r-nav-item").forEach(b => b.classList.remove("active"));
+    document.getElementById("section-" + name).classList.add("active");
+    document.getElementById("nav" + name.charAt(0).toUpperCase() + name.slice(1)).classList.add("active");
+  }
+
+  /* ── INVENTORY ─────────────────────────────────────── */
+  async function loadInventory() {
+    const [gamesRes, statusRes] = await Promise.all([
+      fetch(API + `/api/games?state=${_profile.state_code}&limit=500`),
+      authFetch("/api/retailer/inventory/latest"),
+    ]);
+    if (gamesRes.ok) {
+      const g = await gamesRes.json();
+      _games = (g.games || []).sort((a, b) => b.return_pct - a.return_pct);
+    }
+    if (statusRes.ok) {
+      const s = await statusRes.json();
+      _invStatus = s.status || {};
+    }
+    renderInvList();
+  }
+
+  let _invFilterState = "all";
+  function setInvFilter(f) {
+    _invFilterState = f;
+    document.querySelectorAll(".inv-filter-btn").forEach(b => b.classList.remove("active"));
+    document.getElementById("filter" + f.charAt(0).toUpperCase() + f.slice(1)).classList.add("active");
+    renderInvList();
+  }
+
+  function filterInvList() { renderInvList(); }
+
+  function gameCurrentStatus(game) {
+    const key = game.name.toLowerCase();
+    if (_changes[game.name] !== undefined) return _changes[game.name].has_stock ? "in" : "out";
+    const s = _invStatus[key];
+    if (!s) return "unknown";
+    return s.has_stock ? "in" : "out";
+  }
+
+  function renderInvList() {
+    const search = document.getElementById("invSearch").value.toLowerCase().trim();
+    let games = _games;
+    if (search) games = games.filter(g => g.name.toLowerCase().includes(search));
+    if (_invFilterState === "in")      games = games.filter(g => gameCurrentStatus(g) === "in");
+    else if (_invFilterState === "out") games = games.filter(g => gameCurrentStatus(g) === "out");
+    else if (_invFilterState === "unknown") games = games.filter(g => gameCurrentStatus(g) === "unknown");
+
+    const wrap = document.getElementById("invListWrap");
+    if (!games.length) {
+      wrap.innerHTML = `<div class="empty-state">No games match your filter.</div>`;
+      return;
+    }
+
+    const rows = games.map(g => {
+      const status = gameCurrentStatus(g);
+      const key = g.name.toLowerCase();
+      const notes = (_changes[g.name]?.notes) ?? (_invStatus[key]?.notes ?? "");
+      const price = g.price ? `$${g.price}` : "";
+      const ev = g.return_pct ? ` · ${g.return_pct.toFixed(1)}% EV` : "";
+      return `<div class="inv-row status-${status}" id="row-${encodeURIComponent(g.name)}">
+        <div class="inv-game-info">
+          <div class="inv-game-name">${escHtml(g.name)}</div>
+          <div class="inv-game-meta">${price}${ev}</div>
+        </div>
+        <div class="inv-toggle-group">
+          <button class="inv-toggle-btn ${status === 'in' ? 'sel-in' : ''}"
+            onclick="setInvStatus(${JSON.stringify(g.name)}, true)">In Stock</button>
+          <button class="inv-toggle-btn ${status === 'out' ? 'sel-out' : ''}"
+            onclick="setInvStatus(${JSON.stringify(g.name)}, false)">Out</button>
+        </div>
+        <button class="inv-notes-btn" onclick="toggleNotesInput(${JSON.stringify(g.name)}, this)">Notes</button>
+        <div style="display:none;width:100%;margin-top:.4rem" id="noteswrap-${encodeURIComponent(g.name)}">
+          <input type="text" class="inv-notes-input" placeholder="Optional note…"
+            value="${escHtml(notes)}"
+            oninput="setInvNotes(${JSON.stringify(g.name)}, this.value)"
+            id="notesinput-${encodeURIComponent(g.name)}" />
+        </div>
+      </div>`;
+    }).join("");
+
+    wrap.innerHTML = `<div class="inv-list">${rows}</div>`;
+    updateChangeCount();
+  }
+
+  function setInvStatus(gameName, hasStock) {
+    if (!_changes[gameName]) _changes[gameName] = {};
+    _changes[gameName].has_stock = hasStock;
+    renderInvList();
+    document.getElementById("invSaveBtn").disabled = false;
+  }
+
+  function setInvNotes(gameName, val) {
+    if (!_changes[gameName]) _changes[gameName] = {};
+    _changes[gameName].notes = val;
+  }
+
+  function toggleNotesInput(gameName, btn) {
+    const wrap = document.getElementById("noteswrap-" + encodeURIComponent(gameName));
+    if (!wrap) return;
+    const open = wrap.style.display !== "none";
+    wrap.style.display = open ? "none" : "block";
+    btn.style.borderColor = open ? "" : "var(--teal)";
+    btn.style.color = open ? "" : "var(--teal)";
+    if (!open) {
+      const input = document.getElementById("notesinput-" + encodeURIComponent(gameName));
+      if (input) input.focus();
+    }
+  }
+
+  function updateChangeCount() {
+    const n = Object.keys(_changes).length;
+    const el = document.getElementById("invChangeCount");
+    el.textContent = n > 0 ? `${n} unsaved change${n === 1 ? "" : "s"}` : "";
+    document.getElementById("invSaveBtn").disabled = n === 0;
+  }
+
+  async function saveInventory() {
+    const btn = document.getElementById("invSaveBtn");
+    btn.disabled = true;
+    btn.textContent = "Saving…";
+
+    const items = Object.entries(_changes).map(([game_name, c]) => {
+      const key = game_name.toLowerCase();
+      const game = _games.find(g => g.name === game_name);
+      return {
+        game_name,
+        game_price: game?.price ?? null,
+        has_stock: c.has_stock,
+        notes: c.notes ?? (_invStatus[key]?.notes ?? null),
+      };
+    });
+
+    try {
+      const res = await authFetch("/api/retailer/inventory", {
+        method: "POST",
+        body: JSON.stringify({ items }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Save failed");
+
+      // Apply changes to local status cache
+      for (const item of items) {
+        _invStatus[item.game_name.toLowerCase()] = {
+          has_stock: item.has_stock,
+          notes: item.notes,
+          reported_at: new Date().toISOString(),
+        };
+      }
+      _changes = {};
+      showMsg("invMsg", `Saved ${items.length} update${items.length === 1 ? "" : "s"}.`, "ok");
+      renderInvList();
+    } catch (e) {
+      showMsg("invMsg", e.message, "err");
+      btn.disabled = false;
+    }
+    btn.textContent = "Save Changes";
+  }
+
+  /* ── POSTS ─────────────────────────────────────────── */
+  let _posts = [];
+
+  async function loadPosts() {
+    try {
+      const res = await authFetch("/api/retailer/posts");
+      if (!res.ok) throw new Error("Failed to load posts");
+      const data = await res.json();
+      _posts = data.posts || [];
+      renderPosts();
+    } catch {
+      document.getElementById("postsList").innerHTML =
+        `<div class="empty-state">Failed to load posts.</div>`;
+    }
+  }
+
+  function renderPosts() {
+    const el = document.getElementById("postsList");
+    if (!_posts.length) {
+      el.innerHTML = `<div class="empty-state">No posts yet. Write your first update above!</div>`;
+      return;
+    }
+    el.innerHTML = _posts.map(p => `
+      <div class="post-item" id="post-${p.id}">
+        <div class="post-item-header">
+          <div class="post-item-title">${escHtml(p.title)}</div>
+          <button class="btn-danger" onclick="deletePost(${p.id})">Delete</button>
+        </div>
+        ${p.body ? `<div class="post-item-body">${escHtml(p.body)}</div>` : ""}
+        <div class="post-item-meta">${fmtDate(p.created_at)}</div>
+      </div>
+    `).join("");
+  }
+
+  async function submitPost() {
+    const title = document.getElementById("postTitle").value.trim();
+    const body  = document.getElementById("postBody").value.trim();
+    if (!title) { showMsg("postMsg", "Title is required.", "err"); return; }
+
+    try {
+      const res = await authFetch("/api/retailer/posts", {
+        method: "POST",
+        body: JSON.stringify({ title, body }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Post failed");
+      _posts.unshift({ id: data.id, title, body: body || null, created_at: data.created_at });
+      document.getElementById("postTitle").value = "";
+      document.getElementById("postBody").value = "";
+      renderPosts();
+      showMsg("postMsg", "Post published!", "ok");
+    } catch (e) {
+      showMsg("postMsg", e.message, "err");
+    }
+  }
+
+  async function deletePost(id) {
+    if (!confirm("Delete this post?")) return;
+    try {
+      const res = await authFetch(`/api/retailer/posts/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Delete failed");
+      _posts = _posts.filter(p => p.id !== id);
+      renderPosts();
+    } catch (e) {
+      alert(e.message);
+    }
+  }
+
+  /* ── ACTIVITY ──────────────────────────────────────── */
+  async function loadActivity() {
+    try {
+      const res = await authFetch("/api/retailer/stats");
+      if (!res.ok) throw new Error("Failed");
+      const d = await res.json();
+
+      document.getElementById("activityStats").innerHTML = `
+        <div class="r-stat-card teal">
+          <div class="r-stat-value">${d.community_reports_7d}</div>
+          <div class="r-stat-label">Community Checks (7d)</div>
+        </div>
+        <div class="r-stat-card">
+          <div class="r-stat-value">${d.community_reports_total}</div>
+          <div class="r-stat-label">Total Community Reports</div>
+        </div>
+        <div class="r-stat-card green">
+          <div class="r-stat-value">${d.own_updates_total}</div>
+          <div class="r-stat-label">Your Inventory Updates</div>
+        </div>
+        <div class="r-stat-card orange">
+          <div class="r-stat-value">${d.post_count}</div>
+          <div class="r-stat-label">Marketing Posts</div>
+        </div>
+      `;
+
+      const recent = d.recent_community || [];
+      const actEl = document.getElementById("activityTable");
+      if (!recent.length) {
+        actEl.innerHTML = `<div class="empty-state">No community reports for your store yet. ScratchFever members will start reporting here as they visit.</div>`;
+        return;
+      }
+      actEl.innerHTML = `
+        <div class="r-table-wrap">
+          <table class="r-table">
+            <thead><tr><th>Game</th><th>Status</th><th>Reporter</th><th>Reported</th></tr></thead>
+            <tbody>
+              ${recent.map(r => `
+                <tr>
+                  <td><strong>${escHtml(r.game_name || "—")}</strong></td>
+                  <td>${r.has_stock
+                    ? '<span class="pill green">In Stock</span>'
+                    : '<span class="pill red">Out of Stock</span>'}</td>
+                  <td>${escHtml(r.reporter || "anonymous")}</td>
+                  <td style="color:var(--text-muted)">${fmtDate(r.reported_at)}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    } catch {
+      document.getElementById("activityStats").innerHTML =
+        `<div class="empty-state">Failed to load activity data.</div>`;
+    }
+  }
+
+  /* ── Helpers ───────────────────────────────────────── */
+  function escHtml(s) {
+    return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    const now = new Date();
+    const diffMs = now - d;
+    const mins = Math.floor(diffMs / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    if (days < 7) return `${days}d ago`;
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+
+  function showMsg(id, text, type) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.className = "r-msg " + type;
+    el.textContent = text;
+    el.style.display = "";
+    setTimeout(() => { el.style.display = "none"; }, 4000);
+  }
+
+  /* ── Boot ──────────────────────────────────────────── */
+  init();
+</script>
+</body>
+</html>
