@@ -189,7 +189,10 @@ body {
 .sidebar {
   width: var(--sidebar-w);
   flex-shrink: 0;
-  background: var(--chrome2);
+  background:
+    repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(255,255,255,0.007) 8px, rgba(255,255,255,0.007) 16px),
+    radial-gradient(ellipse 200% 28% at 50% 110%, rgba(249,115,22,0.09) 0%, transparent 100%),
+    linear-gradient(180deg, var(--chrome3) 0%, var(--chrome2) 35%, #0f1724 100%);
   position: sticky;
   top: var(--header-h);
   height: calc(100vh - var(--header-h));
