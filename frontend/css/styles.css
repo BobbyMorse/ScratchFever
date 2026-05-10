@@ -574,7 +574,7 @@ thead th {
   white-space: nowrap;
   cursor: pointer;
   user-select: none;
-  background: var(--bg);
+  background: linear-gradient(180deg, #f0f4fb 0%, #edf0f7 100%);
 }
 thead th:first-child { border-radius: var(--radius-sm) 0 0 0; }
 thead th:last-child  { border-radius: 0 var(--radius-sm) 0 0; }
