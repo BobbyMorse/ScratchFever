@@ -2040,7 +2040,7 @@ function searchReportGames() {
   const dd = document.getElementById("reportGameDropdown");
   document.getElementById("reportLinkedGameId").value = "";
   if (!q || q.length < 2) { dd.style.display = "none"; return; }
-  const matches = allGames.filter(g => g.name.toLowerCase().includes(q)).slice(0, 8);
+  const matches = allGamesUnfiltered.filter(g => g.name.toLowerCase().includes(q)).slice(0, 8);
   if (!matches.length) { dd.style.display = "none"; return; }
   dd.innerHTML = matches.map(g =>
     `<div class="store-option" onclick="selectReportGame(${g.id}, ${JSON.stringify(g.name).replace(/"/g, '&quot;')}, ${g.price != null ? g.price : 'null'})">${escHtml(g.name)} <span style="color:var(--text-muted);font-size:.78rem">$${g.price} · ${g.state_code}</span></div>`
