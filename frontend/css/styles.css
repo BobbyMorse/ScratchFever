@@ -279,7 +279,7 @@ body {
 /* ── Main area (light) ────────────────────────────── */
 .main-area {
   flex: 1;
-  margin-left: var(--sidebar-w);
+  min-width: 0;
   background: var(--bg);
   border-radius: 18px 0 0 0;
   min-height: calc(100vh - var(--header-h));
