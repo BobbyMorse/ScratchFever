@@ -2252,7 +2252,7 @@ function modalCommunitySection(gameName, gamePrice) {
       : '<span style="color:var(--red)">❌ Out of Stock</span>';
     const who = r.source === "caller" ? "📞 Call" : (r.reporter_username ? `@${escHtml(r.reporter_username)}` : "👤");
     const time = r.reported_at
-      ? timeAgo(new Date(r.reported_at + (r.reported_at.endsWith("Z") ? "" : "Z")))
+      ? timeAgo(parseReportedAt(r.reported_at))
       : "—";
     const mapsUrl = r.lat && r.lng
       ? `https://www.google.com/maps/search/?api=1&query=${r.lat},${r.lng}`
@@ -2387,7 +2387,7 @@ function updateInventoryMapLayer(visibleRetailers) {
       iconSize: [10, 10], iconAnchor: [5, 5],
     });
     const time = r.reported_at
-      ? timeAgo(new Date(r.reported_at + (r.reported_at.endsWith("Z") ? "" : "Z")))
+      ? timeAgo(parseReportedAt(r.reported_at))
       : "";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}`;
     return L.marker([r.lat, r.lng], { icon }).bindPopup(
@@ -2681,7 +2681,7 @@ function updateAzInventoryMapLayer(visibleRetailers) {
       iconSize: [10, 10], iconAnchor: [5, 5],
     });
     const time = r.reported_at
-      ? timeAgo(new Date(r.reported_at + (r.reported_at.endsWith("Z") ? "" : "Z")))
+      ? timeAgo(parseReportedAt(r.reported_at))
       : "";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}`;
     return L.marker([r.lat, r.lng], { icon }).bindPopup(
