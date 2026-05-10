@@ -520,7 +520,7 @@
   let _profile = null;
   let _games = [];
   let _invStatus = {};   // {game_name_lower: {has_stock, notes, reported_at}}
-  let _changes = {};     // {game_name: {has_stock, notes}}
+  let _noteTimers = {};  // debounce timers for notes auto-save
   let _invFilter = "all";
 
   /* ── Auth ──────────────────────────────────────────── */
