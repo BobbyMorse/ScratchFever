@@ -377,18 +377,21 @@ async function loadAllGamesUnfiltered() {
   } catch (_) {}
 }
 
-async function loadGames() {
-  const params = buildParams();
-  try {
-    const res = await fetch(`/api/games?${params}`);
-    const data = await res.json();
-    allGames = data.games || [];
-    renderTable();
-    updateStats();
-  } catch (e) {
-    document.getElementById("gamesBody").innerHTML =
-      `<tr><td colspan="15" class="loading-cell">Failed to load data. Is the server running?</td></tr>`;
-  }
+function loadGames() {
+  allGames = applyClientFilters(allGamesUnfiltered);
+  renderTable();
+  updateStats();
+}
+
+function applyClientFilters(games) {
+  const state  = document.getElementById("filterState")?.value || "";
+  const price  = document.getElementById("filterPrice")?.value || "";
+  const minRet = document.getElementById("filterMinReturn")?.value || "";
+  let result = games;
+  if (state)  result = result.filter(g => g.state_code === state);
+  if (price)  { const p = Number(price); result = result.filter(g => g.price === p); }
+  if (minRet) result = result.filter(g => (g.return_pct || 0) >= Number(minRet));
+  return result;
 }
 
 async function loadStates() {
