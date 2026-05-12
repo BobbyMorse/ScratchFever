@@ -88,6 +88,10 @@ function _setUser(user) {
     btn.style.display  = "none";
     const isAdmin = user.role === "admin";
     caller.style.display = isAdmin ? "" : "none";
+    document.getElementById("playsTabBtn").style.display = "";
+    document.getElementById("playsLoginNudge").style.display = "none";
+    document.getElementById("playsStatsRow").style.display = "";
+    document.getElementById("plays-log-section-inner").style.display = "";
     // Show "My Store" link for retailer accounts
     let myStoreLink = document.getElementById("myStoreLink");
     if (user.role === "retailer" || user.role === "admin") {
