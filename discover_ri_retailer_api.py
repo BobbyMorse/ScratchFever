@@ -1,16 +1,48 @@
 """
-Quick discovery: visit the RI retailer finder page, intercept all API calls.
+Discover RI retailer API: intercept the locations API call via Playwright.
+Tries several ZIP codes and captures response shape + cookies.
 """
 import json
 import time
 from playwright.sync_api import sync_playwright
 
-URL = "https://www.rilot.com/en-us/player-zone/find-a-retailer.html"
-ZIP = "02831"
+RETAILER_URL = "https://www.rilot.com/en-us/player-zone/find-a-retailer.html"
+LOCATIONS_API = "/api/v1/locations"
+
+ZIPS_TO_TRY = ["02831", "02903", "02860", "02840", "02895"]
+
+
+def scrape_zip(page, zip_code):
+    captured = {"data": None, "request_url": None}
+
+    def handle_route(route, request):
+        if LOCATIONS_API in request.url:
+            captured["request_url"] = request.url
+            try:
+                resp = route.fetch()
+                if resp.ok:
+                    captured["data"] = resp.json()
+            except Exception as e:
+                print(f"  Route fetch error: {e}")
+            route.continue_()
+        else:
+            route.continue_()
+
+    page.route("**/*", handle_route)
+
+    try:
+        page.goto(f"{RETAILER_URL}?zipCity={zip_code}", wait_until="networkidle", timeout=30_000)
+    except Exception as e:
+        print(f"  Nav error: {e}")
+
+    if captured["data"] is None:
+        time.sleep(3)
+
+    page.unroute("**/*")
+    return captured
+
 
 def main():
-    captured = []
-
     with sync_playwright() as pw:
         browser = pw.chromium.launch(headless=True)
         ctx = browser.new_context(
@@ -22,54 +54,36 @@ def main():
         )
         page = ctx.new_page()
 
-        def on_request(req):
-            url = req.url
-            skip = [".css", ".woff", ".png", ".jpg", ".svg", ".ico", ".gif",
-                    "google-analytics", "googletagmanager", "facebook", "hotjar"]
-            if any(s in url.lower() for s in skip):
-                return
-            try:
-                pd = req.post_data
-            except Exception:
-                pd = None
-            captured.append({
-                "method": req.method,
-                "url": url,
-                "post_data": pd,
-            })
+        for zip_code in ZIPS_TO_TRY:
+            print(f"\n--- ZIP {zip_code} ---")
+            result = scrape_zip(page, zip_code)
+            if result["request_url"]:
+                print(f"  API URL: {result['request_url']}")
+            if result["data"] is not None:
+                data = result["data"]
+                dtype = type(data).__name__
+                if isinstance(data, list):
+                    print(f"  Got list of {len(data)} items")
+                    if data:
+                        print(f"  First item keys: {list(data[0].keys()) if isinstance(data[0], dict) else 'not dict'}")
+                        print(f"  First item: {json.dumps(data[0], indent=2)[:500]}")
+                elif isinstance(data, dict):
+                    print(f"  Dict keys: {list(data.keys())}")
+                    print(f"  Data: {json.dumps(data, indent=2)[:500]}")
+                else:
+                    print(f"  Type: {dtype}")
+            else:
+                print("  No data captured")
 
-        page.on("request", on_request)
-
-        # Load with zip param in URL
-        page.goto(f"{URL}?zipCity={ZIP}", wait_until="networkidle", timeout=30_000)
-        time.sleep(3)
-
-        # Also try filling the search box
-        try:
-            inputs = page.query_selector_all(
-                'input[type="text"], input[type="search"], '
-                'input[placeholder*="zip" i], input[placeholder*="city" i], '
-                'input[name*="zip" i], input[id*="zip" i]'
-            )
-            if inputs:
-                inputs[0].fill(ZIP)
-                page.keyboard.press("Enter")
-                time.sleep(3)
-                print(f"Filled input with {ZIP} and pressed Enter")
-        except Exception as e:
-            print(f"Input fill error: {e}")
+            # Don't hammer — one zip is enough if we get data
+            if result["data"] is not None:
+                # Save full response
+                with open(f"ri_locations_{zip_code}.json", "w") as f:
+                    json.dump(result["data"], f, indent=2)
+                print(f"  Saved to ri_locations_{zip_code}.json")
+                break
 
         browser.close()
-
-    print(f"\nCaptured {len(captured)} requests\n")
-    for r in captured:
-        print(f"  [{r['method']}] {r['url']}")
-        if r.get("post_data"):
-            print(f"    Body: {r['post_data'][:500]}")
-
-    with open("ri_retailer_api_discovery.json", "w") as f:
-        json.dump(captured, f, indent=2)
-    print("\nSaved to ri_retailer_api_discovery.json")
 
 
 if __name__ == "__main__":
