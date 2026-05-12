@@ -883,6 +883,29 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
 .ma-map-section { margin-bottom: 1rem; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
 #maMap, #azMap { height: 400px; }
 
+/* ── My Plays ─────────────────────────────────────── */
+.plays-log-section { margin: 0 1.5rem 1.25rem; }
+.plays-log-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.4rem; box-shadow: var(--shadow-card); }
+.plays-log-title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: .9rem; }
+.plays-log-row { display: flex; flex-wrap: wrap; gap: .65rem; align-items: flex-end; }
+
+.plays-chart-section { margin: 0 1.5rem 1.25rem; }
+.plays-chart-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.2rem .7rem; box-shadow: var(--shadow-card); }
+.plays-chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: .6rem; }
+.plays-chart-title { font-size: .83rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+.plays-svg { width: 100%; height: 120px; display: block; }
+
+.plays-delete-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: .85rem; padding: .2rem .4rem; border-radius: 4px; transition: color .12s, background .12s; }
+.plays-delete-btn:hover { color: var(--red); background: var(--red-dim); }
+
+.plays-login-nudge { display: flex; align-items: center; justify-content: center; padding: 4rem 1.5rem; }
+.plays-nudge-inner { text-align: center; max-width: 320px; }
+
+@media (max-width: 700px) {
+  .plays-log-section, .plays-chart-section { margin-left: 1rem; margin-right: 1rem; }
+  .plays-log-row { flex-direction: column; }
+}
+
 /* ── Footer ───────────────────────────────────────── */
 footer { background: var(--card); border-top: 1px solid var(--border); padding: 1.4rem; text-align: center; }
 .footer-legal { font-size: .7rem; color: var(--text-muted); line-height: 1.7; margin-bottom: .2rem; }
