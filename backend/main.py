@@ -392,6 +392,20 @@ async def api_ma_retailers(
     return {"retailers": retailers[:limit], "total": len(retailers)}
 
 
+@app.get("/api/ri/retailers")
+async def api_ri_retailers(
+    search: Optional[str] = Query(None, description="Name / city search"),
+    limit:  int           = Query(500, le=7000),
+):
+    from backend.ri_scorer import load_and_score_async
+    async with get_pool().acquire() as conn:
+        retailers = await load_and_score_async(conn)
+    if search:
+        q = search.lower()
+        retailers = [r for r in retailers if q in r["name"].lower() or q in r["city"].lower()]
+    return {"retailers": retailers[:limit], "total": len(retailers)}
+
+
 @app.get("/api/scrape/status")
 async def api_scrape_status():
     return {
