@@ -989,6 +989,7 @@ function selectHuntState(code) {
 
   document.getElementById("huntConsoleMA").style.display   = "none";
   document.getElementById("huntConsoleAZ").style.display   = "none";
+  document.getElementById("huntConsoleRI").style.display   = "none";
   document.getElementById("huntConsoleSoon").style.display = "none";
 
   if (code === "MA") {
@@ -998,6 +999,10 @@ function selectHuntState(code) {
   } else if (code === "AZ") {
     document.getElementById("huntConsoleAZ").style.display = "";
     if (!azLoaded) loadAzRetailers();
+    if (_currentUser && Date.now() - communityReportsLastFetch > 30_000) loadCommunityReports();
+  } else if (code === "RI") {
+    document.getElementById("huntConsoleRI").style.display = "";
+    if (!riLoaded) loadRiRetailers();
     if (_currentUser && Date.now() - communityReportsLastFetch > 30_000) loadCommunityReports();
   } else {
     document.getElementById("huntConsoleSoon").style.display = "";
