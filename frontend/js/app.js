@@ -894,7 +894,7 @@ function refreshOpenModalCommunity() {
 }
 
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape") { closeModal(); closeAuthModal(); closeReportModal(); }
+  if (e.key === "Escape") { closeModal(); closeAuthModal(); closeReportModal(); closeGameNotes(); }
 });
 
 // ── Scrape trigger ────────────────────────────────────────────────────────────
