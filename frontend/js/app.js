@@ -2627,7 +2627,8 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
 
 function openReportModalForStore(retailerId) {
   const r = allRetailers.find(ret => String(ret.id) === String(retailerId))
-         || allAzRetailers.find(ret => String(ret.id) === String(retailerId));
+         || allAzRetailers.find(ret => String(ret.id) === String(retailerId))
+         || allRiRetailers.find(ret => String(ret.id) === String(retailerId));
   openReportModal();
   if (r) setTimeout(() => selectReportStore(r), 0);
 }
