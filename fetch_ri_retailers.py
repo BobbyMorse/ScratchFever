@@ -218,20 +218,21 @@ def main():
             logger.info("  %-25s → %3d total, %3d new  (running: %d)", city, len(locs), new, len(seen))
         time.sleep(0.15)
 
-    # Phase 2: query by ZIP code — catches any retailers in unrecognized city names
+    # Phase 2: query by ZIP code — catches retailers in unrecognized city names
+    # The API likely ignores zip/postalCode params and just returns no results,
+    # but worth trying; no pagination needed since these return at most a small set.
     logger.info("\nQuerying %d ZIP codes to catch stragglers...", len(RI_ZIPS))
     zip_new = 0
     for zip_code in RI_ZIPS:
-        data = fetch_page(session, f"{AWC_BASE}{LOC_PATH}", {"zip": zip_code})
-        # Also try postalCode param
-        if not data:
-            data = fetch_page(session, f"{AWC_BASE}{LOC_PATH}", {"postalCode": zip_code})
-        if data:
-            for raw in data.get("locations", []):
-                rid = raw.get("id")
-                if rid and rid not in seen:
-                    seen[rid] = normalize(raw)
-                    zip_new += 1
+        for param in ({"zip": zip_code}, {"postalCode": zip_code}, {"zipCode": zip_code}):
+            data = fetch_page(session, f"{AWC_BASE}{LOC_PATH}", param)
+            if data and data.get("locations"):
+                for raw in data.get("locations", []):
+                    rid = raw.get("id")
+                    if rid and rid not in seen:
+                        seen[rid] = normalize(raw)
+                        zip_new += 1
+                break
         time.sleep(0.1)
 
     logger.info("ZIP sweep found %d additional retailers", zip_new)
