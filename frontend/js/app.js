@@ -961,6 +961,10 @@ function switchTab(name) {
     bigwinsLoaded = true;
     loadBigWins();
   }
+  if (name === "plays") {
+    if (_currentUser) loadPlays();
+    else document.getElementById("playsLoginNudge").style.display = "";
+  }
 }
 
 function toggleStateDropdown() {
