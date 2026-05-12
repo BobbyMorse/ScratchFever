@@ -139,6 +139,13 @@ async def init_db():
         """)
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_state_retailers_state ON state_retailers(state_code)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_state_retailers_geo ON state_retailers(latitude, longitude)")
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS retailer_scrape_log (
+                state_code TEXT PRIMARY KEY,
+                last_scraped_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                retailers_count INTEGER NOT NULL DEFAULT 0
+            )
+        """)
 
 
 async def init_retailer_db():
