@@ -1,11 +1,9 @@
 """
 New York Lottery scratch-off scraper.
 API: https://nylottery.ny.gov/drupal-api/api/scratch_off_games?_format=json&page=N
-  Paginated (18/page, ~7 pages, ~111 games)
-  Fields: title, ticket_price ("$5.00"), overall_odds ("1 in 4.35"), game_number
-  odds_prizes[]: prize_amount ("$500,000"), overall_odds ("1 in X"), prizes_remaining ("3"),
-                 prizes_paid_out ("0")
-  prizes_total = prizes_remaining + prizes_paid_out (computed)
+  Paginated (~6-18/page), fields: title, ticket_price ("5.00"), overall_odds ("1 in 4.35"),
+  game_number, art[{uri, altText}], cropped_art{uri, altText},
+  odds_prizes[{prize_amount, overall_odds, prizes_remaining, prizes_paid_out}]
 """
 from __future__ import annotations
 import logging
