@@ -120,6 +120,25 @@ async def init_db():
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_claims_prize_detected ON prize_claims(prize_amount, detected_at DESC)")
         await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS jackpot_odds_one_in REAL")
         await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS how_to_play TEXT")
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS state_retailers (
+                id SERIAL PRIMARY KEY,
+                state_code TEXT NOT NULL,
+                external_id TEXT NOT NULL,
+                name TEXT NOT NULL,
+                address TEXT,
+                city TEXT,
+                zip_code TEXT,
+                phone TEXT,
+                latitude REAL,
+                longitude REAL,
+                is_active BOOLEAN DEFAULT TRUE,
+                scraped_at TIMESTAMPTZ DEFAULT NOW(),
+                UNIQUE(state_code, external_id)
+            )
+        """)
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_state_retailers_state ON state_retailers(state_code)")
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_state_retailers_geo ON state_retailers(latitude, longitude)")
 
 
 async def init_retailer_db():
