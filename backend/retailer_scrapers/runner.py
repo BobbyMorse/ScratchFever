@@ -1,57 +1,105 @@
 """
-Retailer scraper runner — runs all state retailer scrapers and logs results.
-Designed to be called monthly from the scheduler.
-Each scraper runs in its own thread pool executor to avoid blocking the event loop.
+Retailer scraper runner.
+
+run_stale(max_age_days=30) — checks retailer_scrape_log for each state;
+    runs scrapers for any state not updated within max_age_days.
+    Call on startup and on a daily interval so the scrape happens automatically
+    the first time the server comes up after a 30-day gap.
+
+run_all() — forces a full scrape of every state regardless of staleness.
 """
 from __future__ import annotations
 import asyncio
+import importlib
 import logging
-from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
 
 from backend.database import get_pool
 
 logger = logging.getLogger(__name__)
 
-# Map of state_code -> scrape function (sync, returns list[dict])
-# Each module exposes run(conn) which is async and handles upsert.
-SCRAPERS = {
-    "NY": "backend.retailer_scrapers.ny",
-    "NJ": "backend.retailer_scrapers.nj",
-    "GA": "backend.retailer_scrapers.ga",
-    "CA": "backend.retailer_scrapers.ca",
-}
+# Ordered list of states to scrape.
+# Each entry maps to backend/retailer_scrapers/<state_lower>.py exposing run(conn).
+SCRAPERS: list[str] = ["MA", "AZ", "NY", "NJ", "GA", "CA"]
 
 
-async def run_all() -> list[dict]:
-    """Run all state retailer scrapers sequentially and return summary."""
-    results = []
+async def _log_scrape(conn, state_code: str, count: int) -> None:
+    await conn.execute("""
+        INSERT INTO retailer_scrape_log (state_code, last_scraped_at, retailers_count)
+        VALUES ($1, NOW(), $2)
+        ON CONFLICT (state_code) DO UPDATE SET
+            last_scraped_at = NOW(),
+            retailers_count = EXCLUDED.retailers_count
+    """, state_code, count)
+
+
+async def _get_last_scraped(conn) -> dict[str, datetime]:
+    rows = await conn.fetch("SELECT state_code, last_scraped_at FROM retailer_scrape_log")
+    return {r["state_code"]: r["last_scraped_at"] for r in rows}
+
+
+async def _run_state(state_code: str) -> dict:
+    module = importlib.import_module(f"backend.retailer_scrapers.{state_code.lower()}")
     pool = get_pool()
+    async with pool.acquire() as conn:
+        count = await module.run(conn)
+    async with pool.acquire() as conn:
+        await _log_scrape(conn, state_code, count)
+    return {"state": state_code, "count": count, "error": None}
 
-    for state_code, module_path in SCRAPERS.items():
-        logger.info("Retailer scrape starting: %s", state_code)
+
+async def run_stale(max_age_days: int = 30) -> list[dict]:
+    """Scrape states whose retailer data is older than max_age_days (or never scraped)."""
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        last_scraped = await _get_last_scraped(conn)
+
+    now = datetime.now(timezone.utc)
+    stale = []
+    for state in SCRAPERS:
+        last = last_scraped.get(state)
+        if last is None:
+            age_days = None
+            stale.append(state)
+        else:
+            last_aware = last if last.tzinfo else last.replace(tzinfo=timezone.utc)
+            age_days = (now - last_aware).days
+            if age_days >= max_age_days:
+                stale.append(state)
+        logger.info(
+            "Retailer freshness %s: %s days old%s",
+            state,
+            age_days if age_days is not None else "never",
+            " → STALE" if state in stale else "",
+        )
+
+    if not stale:
+        logger.info("All retailer states are fresh, skipping scrape")
+        return []
+
+    logger.info("Starting retailer scrape for stale states: %s", stale)
+    results = []
+    for state in stale:
         try:
-            mod = __import__(module_path, fromlist=["run"])
-            async with pool.acquire() as conn:
-                count = await mod.run(conn)
-            logger.info("Retailer scrape complete: %s — %d upserted", state_code, count)
-            results.append({"state": state_code, "count": count, "error": None})
+            result = await _run_state(state)
+            logger.info("Retailer scrape done: %s — %d retailers", state, result["count"])
         except Exception as e:
-            logger.error("Retailer scrape failed: %s — %s", state_code, e)
-            results.append({"state": state_code, "count": 0, "error": str(e)})
+            logger.error("Retailer scrape failed: %s — %s", state, e)
+            result = {"state": state, "count": 0, "error": str(e)}
+        results.append(result)
 
     return results
 
 
-async def run_state(state_code: str) -> dict:
-    """Run a single state's retailer scraper."""
-    module_path = SCRAPERS.get(state_code.upper())
-    if not module_path:
-        return {"state": state_code, "count": 0, "error": "No scraper registered"}
-    try:
-        mod = __import__(module_path, fromlist=["run"])
-        async with get_pool().acquire() as conn:
-            count = await mod.run(conn)
-        return {"state": state_code, "count": count, "error": None}
-    except Exception as e:
-        logger.error("Retailer scrape failed: %s — %s", state_code, e)
-        return {"state": state_code, "count": 0, "error": str(e)}
+async def run_all() -> list[dict]:
+    """Force-scrape every state regardless of staleness."""
+    results = []
+    for state in SCRAPERS:
+        try:
+            result = await _run_state(state)
+            logger.info("Retailer scrape done: %s — %d retailers", state, result["count"])
+        except Exception as e:
+            logger.error("Retailer scrape failed: %s — %s", state, e)
+            result = {"state": state, "count": 0, "error": str(e)}
+        results.append(result)
+    return results
