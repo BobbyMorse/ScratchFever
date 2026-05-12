@@ -71,6 +71,16 @@ async def scheduled_ma_retailer_scrape():
         logger.error("MA retailer scrape failed: %s", e)
 
 
+async def scheduled_state_retailer_scrape():
+    logger.info("Starting monthly state retailer scrape (NY, NJ, GA, CA)")
+    try:
+        from backend.retailer_scrapers.runner import run_all
+        results = await run_all()
+        logger.info("Monthly retailer scrape complete: %s", results)
+    except Exception as e:
+        logger.error("Monthly state retailer scrape failed: %s", e)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
@@ -83,6 +93,8 @@ async def lifespan(app: FastAPI):
     scheduler.add_job(scheduled_scrape, "interval", hours=1, id="scrape_all")
     # MA retailer list changes slowly — re-scrape weekly
     scheduler.add_job(scheduled_ma_retailer_scrape, "interval", weeks=1, id="scrape_ma_retailers")
+    # Multi-state retailer scrape monthly (NY, NJ, GA, CA)
+    scheduler.add_job(scheduled_state_retailer_scrape, "interval", days=30, id="scrape_state_retailers")
 
     # Attach call runner to scheduler
     runner = CallRunner()
