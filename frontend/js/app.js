@@ -2247,14 +2247,16 @@ async function loadCommunityReports() {
     communityReports = data.reports || [];
     // Build local status immediately for rendering, then refresh from full DB
     buildLatestStatusFromReports();
-    const activeGame = currentHuntState === 'AZ' ? selectedAzGame : selectedGame;
+    const activeGame = currentHuntState === 'AZ' ? selectedAzGame : currentHuntState === 'RI' ? selectedRiGame : selectedGame;
     loadRetailerLatest(activeGame?.name);
     updateReportBadges();
     renderMaTable();
     renderAzTable();
+    renderRiTable();
     refreshOpenProfile();
     refreshOpenModalCommunity();
     if (currentHuntState === 'AZ') updateAzInventoryMapLayer();
+    else if (currentHuntState === 'RI') updateRiInventoryMapLayer();
     else updateInventoryMapLayer();
   } catch (_) {}
 }
