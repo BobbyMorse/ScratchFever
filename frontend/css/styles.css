@@ -876,6 +876,61 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
 .store-profile-tr td { padding: 0; background: var(--bg) !important; }
 .store-profile-open > td:first-child { border-left: 3px solid var(--orange); }
 
+/* ── Per-store inventory toggle panel ────────────────────────────────────── */
+.inv-panel { background: var(--card); }
+.inv-panel-hd { display: flex; align-items: center; justify-content: space-between; padding: .65rem 1rem; border-bottom: 1px solid var(--border); }
+.inv-panel-title { font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); }
+.inv-summary { font-size: .77rem; color: var(--text-muted); display: flex; align-items: center; gap: .35rem; }
+
+.inv-login-banner { display: flex; align-items: center; gap: .65rem; flex-wrap: wrap; padding: .55rem 1rem; background: var(--orange-dim); border-bottom: 1px solid rgba(249,115,22,.15); font-size: .79rem; color: var(--text-muted); }
+
+.inv-filter-row { display: flex; gap: .35rem; padding: .5rem .75rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.inv-filter-tab { padding: .24rem .65rem; border-radius: 20px; border: 1.5px solid var(--border); background: transparent; color: var(--text-muted); font-size: .74rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: border-color .12s, background .12s, color .12s; }
+.inv-filter-tab.active { border-color: var(--mint); background: var(--mint); color: #fff; }
+
+.inv-game-list { max-height: 380px; overflow-y: auto; background: var(--bg); }
+.inv-game-row { display: flex; align-items: stretch; background: var(--card); border-bottom: 1px solid var(--border); }
+.inv-game-row[data-game-status="in"] { background: rgba(16,185,129,.03); }
+.inv-game-row[data-game-status="out"] { background: rgba(239,68,68,.03); }
+
+.inv-accent { width: 4px; flex-shrink: 0; }
+.acc-in  { background: var(--mint); }
+.acc-out { background: var(--red); }
+.acc-none { background: var(--border); }
+
+.inv-game-body { flex: 1; padding: .6rem .85rem; min-width: 0; }
+.inv-game-top { display: flex; align-items: center; gap: .65rem; }
+.inv-game-info { flex: 1; min-width: 0; }
+.inv-game-name { font-size: .83rem; font-weight: 700; color: var(--text); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.inv-game-meta { font-size: .73rem; color: var(--text-muted); display: block; margin-top: 1px; }
+
+.inv-btn-grp { display: flex; gap: .28rem; flex-shrink: 0; }
+.inv-btn { padding: .28rem .58rem; border-radius: 7px; border: 1.5px solid var(--border); background: var(--bg); color: var(--text-muted); font-size: .72rem; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; transition: border-color .1s, background .1s, color .1s; }
+.inv-btn:hover { border-color: var(--text-dim); color: var(--text); }
+.inv-btn.is-in  { border-color: var(--mint); background: var(--mint); color: #fff; }
+.inv-btn.is-out { border-color: var(--red);  background: var(--red);  color: #fff; }
+.inv-btn:disabled { opacity: .45; cursor: default; }
+
+.inv-upd { font-size: .69rem; color: var(--text-muted); font-style: italic; margin-top: .38rem; }
+.inv-no-games { padding: 1.1rem; text-align: center; color: var(--text-muted); font-size: .83rem; }
+
+/* ── Inventory notes bottom-sheet modal ──────────────────────────────────── */
+.inv-notes-overlay { position: fixed; inset: 0; z-index: 1100; background: rgba(0,0,0,.45); display: none; align-items: flex-end; justify-content: center; }
+.inv-notes-overlay.open { display: flex; }
+.inv-notes-sheet { background: var(--card); border-radius: 20px 20px 0 0; width: 100%; max-width: 520px; padding: 1.1rem 1.35rem 2rem; box-shadow: 0 -8px 32px rgba(0,0,0,.14); }
+.inv-notes-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--border); margin: 0 auto .85rem; }
+.inv-notes-title { font-size: .97rem; font-weight: 700; margin-bottom: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inv-notes-lbl { font-size: .69rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); margin-bottom: .42rem; display: block; }
+.inv-notes-stock-row { display: flex; gap: .55rem; margin-bottom: .95rem; }
+.inv-notes-stock-btn { flex: 1; padding: .52rem; border-radius: 8px; border: 1.5px solid var(--border); background: var(--bg); color: var(--text-muted); font-size: .82rem; font-weight: 600; cursor: pointer; font-family: inherit; text-align: center; transition: all .12s; }
+.inv-notes-stock-btn.is-in  { border-color: var(--mint); background: var(--mint); color: #fff; }
+.inv-notes-stock-btn.is-out { border-color: var(--red);  background: var(--red);  color: #fff; }
+.inv-notes-textarea { width: 100%; min-height: 70px; padding: .65rem .8rem; border: 1.5px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font-size: .87rem; font-family: inherit; resize: vertical; margin-bottom: .95rem; }
+.inv-notes-textarea:focus { outline: none; border-color: var(--orange); }
+.inv-notes-submit { width: 100%; padding: .72rem; background: var(--orange); color: #fff; border: none; border-radius: 8px; font-size: .9rem; font-weight: 700; cursor: pointer; font-family: inherit; transition: background .12s; }
+.inv-notes-submit:hover { background: var(--orange-dark); }
+.inv-notes-submit:disabled { opacity: .45; cursor: default; }
+
 #callerDetailView { padding: 0 1.5rem 2rem; }
 .link-btn { background: none; border: none; color: var(--orange); cursor: pointer; font-size: .81rem; font-family: inherit; text-decoration: underline; padding: 0; }
 .link-btn:hover { color: var(--orange-dark); }
