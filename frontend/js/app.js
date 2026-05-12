@@ -118,6 +118,8 @@ function _setUser(user) {
     chip.style.display  = "none";
     btn.style.display   = "";
     caller.style.display = "none";
+    document.getElementById("playsTabBtn").style.display = "none";
+    document.getElementById("playsLoginNudge").style.display = "";
     const msl = document.getElementById("myStoreLink");
     if (msl) msl.style.display = "none";
     document.getElementById("scrapeBtn").style.display = "none";
