@@ -25,7 +25,7 @@ SEED_URL    = "https://www.rilot.com/en-us/player-zone/find-a-retailer.html"
 AWC_BASE    = "https://ris.p1.awc.lotteryservices.net"
 LOC_PATH    = "/api/v1/locations"
 PAGE_PATH   = "/api/v1/locations/page"
-PAGE_SIZE   = 50   # API caps at 10 per page; try 50, fall back gracefully
+PAGE_SIZE   = 10   # Must match the initial fetch size so the seed-based offset is correct
 
 FIELDNAMES = ["id", "name", "address", "city", "state", "zipCode", "phone", "latitude", "longitude"]
 
