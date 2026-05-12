@@ -744,6 +744,137 @@
         </section>
       </div><!-- /tab-bigwins -->
 
+
+      <!-- ══════════════ MY PLAYS TAB ══════════════ -->
+      <div id="tab-plays" class="tab-content" style="display:none">
+
+        <!-- Stats row -->
+        <section class="stats-row" id="playsStatsRow">
+          <div class="stat-card">
+            <div class="stat-icon-wrap orange">💸</div>
+            <div class="stat-info">
+              <div class="stat-value" id="playStatSpent">—</div>
+              <div class="stat-label">Total Spent</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon-wrap green">💰</div>
+            <div class="stat-info">
+              <div class="stat-value" id="playStatWon">—</div>
+              <div class="stat-label">Total Won</div>
+            </div>
+          </div>
+          <div class="stat-card" id="playStatNetCard">
+            <div class="stat-icon-wrap gray" id="playStatNetIcon">📊</div>
+            <div class="stat-info">
+              <div class="stat-value" id="playStatNet">—</div>
+              <div class="stat-label">Net P/L</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon-wrap gold">📈</div>
+            <div class="stat-info">
+              <div class="stat-value" id="playStatRoi">—</div>
+              <div class="stat-label">Return %</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Quick-log form -->
+        <section class="plays-log-section">
+          <div class="plays-log-card">
+            <h2 class="plays-log-title">Log a Ticket</h2>
+            <div class="plays-log-row">
+              <div class="filter-group" style="flex:2;min-width:160px;position:relative">
+                <label>Game *</label>
+                <input type="text" id="plGameName" placeholder="e.g. 300X, Wild Cash…" oninput="searchPlaysGame()" onfocus="searchPlaysGame()" autocomplete="off">
+                <div id="plGameDropdown" class="store-dropdown" style="display:none"></div>
+                <input type="hidden" id="plGameDbId">
+                <input type="hidden" id="plGameState">
+              </div>
+              <div class="filter-group" style="width:90px">
+                <label>Price ($)</label>
+                <input type="number" id="plPrice" placeholder="30" min="1" max="100" step="1">
+              </div>
+              <div class="filter-group" style="width:110px">
+                <label>Prize Won ($)</label>
+                <input type="number" id="plPrize" placeholder="0" min="0" step="1" value="0">
+              </div>
+              <div class="filter-group" style="flex:1;min-width:130px">
+                <label>Store <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
+                <input type="text" id="plStore" placeholder="Store name…">
+              </div>
+              <div class="filter-group" style="width:130px">
+                <label>Date</label>
+                <input type="date" id="plDate">
+              </div>
+              <div class="filter-group" style="justify-content:flex-end;align-items:flex-end">
+                <button class="btn btn-call-create" id="plLogBtn" onclick="logPlay()">+ Log Ticket</button>
+              </div>
+            </div>
+            <div id="plMsg" class="caller-msg" style="display:none;margin-top:.5rem"></div>
+          </div>
+        </section>
+
+        <!-- 30-day P/L chart -->
+        <section class="plays-chart-section" id="playsChartSection" style="display:none">
+          <div class="plays-chart-card">
+            <div class="plays-chart-header">
+              <span class="plays-chart-title">30-Day Cumulative P/L</span>
+            </div>
+            <svg id="playsChart" class="plays-svg" preserveAspectRatio="none"></svg>
+          </div>
+        </section>
+
+        <!-- By-game breakdown -->
+        <section class="table-section" id="playsBreakdownSection" style="display:none">
+          <div class="table-meta"><span>Performance by Game</span></div>
+          <div class="table-scroll">
+            <table id="playsBreakdownTable">
+              <thead>
+                <tr>
+                  <th>Game</th><th>State</th><th>Plays</th>
+                  <th>Spent</th><th>Won</th><th>Net</th><th>Return %</th>
+                </tr>
+              </thead>
+              <tbody id="playsBreakdownBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Recent plays log -->
+        <section class="table-section" id="playsLogSection">
+          <div class="table-meta">
+            <span id="playsLogCount">—</span>
+            <button class="btn" onclick="loadPlays()" style="font-size:.75rem;padding:.28rem .7rem">↻ Refresh</button>
+          </div>
+          <div class="table-scroll">
+            <table id="playsLogTable">
+              <thead>
+                <tr>
+                  <th>Date</th><th>Game</th><th>State</th>
+                  <th>Price</th><th>Won</th><th>Net</th><th>Store</th><th></th>
+                </tr>
+              </thead>
+              <tbody id="playsLogBody">
+                <tr><td colspan="8" class="loading-cell">Log a ticket above to get started.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Login nudge (shown when logged out) -->
+        <div id="playsLoginNudge" class="plays-login-nudge" style="display:none">
+          <div class="plays-nudge-inner">
+            <div style="font-size:2.5rem;margin-bottom:.6rem">💸</div>
+            <h3 style="margin-bottom:.4rem">Track your plays</h3>
+            <p style="color:var(--text-muted);margin-bottom:1.1rem;font-size:.9rem">Log wins and losses, see your ROI, and get a 30-day P/L chart. Free account required.</p>
+            <button class="btn btn-call-create" onclick="openAuthModal('login')">Log In / Sign Up</button>
+          </div>
+        </div>
+
+      </div><!-- /tab-plays -->
+
     </main>
 
     <footer>
