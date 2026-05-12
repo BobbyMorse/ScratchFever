@@ -1,138 +1,191 @@
 """
 DC Lottery (District of Columbia) scratch-off scraper.
-Listing: https://dclottery.com/games/scratchers
-DC publishes odds and prize data on individual game pages.
+Listing: https://dclottery.com/dc-scratchers  (paginated ~20/page via ?page=N)
+Detail:  https://dclottery.com/dc-scratchers/{slug}
+
+Prize table columns: Prize Amount | Total Prizes | Prizes Paid | Prizes Remaining
+Overall odds labeled as "Odds  1:X.XX" (separate from "Top Prize Odds").
+Game number in "Game No" field and encoded in image filename (DC{num}...).
 """
 import re
 import json
 import logging
 from backend.scraper.base import BaseScraper
-from backend.ev_calculator import parse_prize_amount, parse_odds
+from backend.ev_calculator import parse_prize_amount
 
 logger = logging.getLogger(__name__)
 
-GAMES_URL = "https://dclottery.com/dc-scratchers/"
-BASE_URL = "https://dclottery.com"
+GAMES_URL = "https://dclottery.com/dc-scratchers"
+BASE_URL  = "https://dclottery.com"
+
+_SLUG_RE  = re.compile(r"/dc-scratchers/([a-z0-9][a-z0-9-]*[a-z0-9])/?$")
 
 
 class DCScraper(BaseScraper):
     state_code = "DC"
     state_name = "District of Columbia"
-    base_url = BASE_URL
+    base_url   = BASE_URL
 
     def scrape(self) -> list[dict]:
-        soup = self.soup(GAMES_URL)
+        slugs = self._collect_slugs()
+        logger.info("DC: %d unique game slugs found", len(slugs))
+
         games = []
-        seen = set()
-
-        items = soup.select(".scratcher, .game-card, .ticket, .scratch-game, [data-game]")
-        if not items:
-            items = soup.select("article, .game")
-
-        for item in items:
+        for slug in slugs:
+            url = f"{BASE_URL}/dc-scratchers/{slug}"
             try:
-                link = item.find("a", href=True)
-                name_el = item.select_one(".game-name, .gameName, h3, h4, .name, .title")
-                price_el = item.select_one(".price, .ticket-price, [data-price]")
-
-                if not name_el:
-                    continue
-                name = name_el.get_text(strip=True)
-                if not name:
-                    continue
-
-                price_txt = price_el.get_text(strip=True) if price_el else ""
-                if not price_txt:
-                    m = re.search(r"\$(\d+)", item.get_text())
-                    price_txt = "$" + m.group(1) if m else ""
-                price = parse_prize_amount(price_txt)
-                if not price:
-                    continue
-
-                href = link.get("href", "") if link else ""
-                detail_url = (BASE_URL + href) if href.startswith("/") else href or None
-                if detail_url in seen:
-                    continue
-                seen.add(detail_url or name)
-
-                m_id = re.search(r"/(\d+|[a-z0-9-]+)/?$", href)
-                game_id = m_id.group(1) if m_id else re.sub(r"[^a-z0-9]", "", name.lower())[:20]
-
-                tiers = []
-                node_id = None
-                overall_odds = None
-                if detail_url:
-                    try:
-                        tiers, node_id, overall_odds = self._scrape_detail(detail_url)
-                    except Exception as e:
-                        logger.debug("DC detail failed for %s: %s", name, e)
-
-                if node_id:
-                    game_id = node_id
-
-                # Derive ticket counts from overall odds + prize totals
-                tickets_remaining = None
-                total_tickets = None
-                if overall_odds and tiers:
-                    total_prizes = sum(t.get("prizes_total") or 0 for t in tiers)
-                    remaining_prizes = sum(t.get("prizes_remaining") or 0 for t in tiers)
-                    if total_prizes > 0:
-                        total_tickets = round(overall_odds * total_prizes)
-                        for t in tiers:
-                            if t.get("prizes_total"):
-                                t["odds_one_in"] = round(total_tickets / t["prizes_total"], 2)
-                    if remaining_prizes > 0:
-                        tickets_remaining = round(overall_odds * remaining_prizes)
-
-                games.append(self.build_game(
-                    game_id=str(game_id),
-                    name=name,
-                    price=price,
-                    tiers=tiers,
-                    tickets_remaining=tickets_remaining,
-                    total_tickets=total_tickets,
-                    overall_odds=overall_odds,
-                    detail_url=detail_url,
-                ))
+                game = self._scrape_detail(url, slug)
+                if game:
+                    games.append(game)
             except Exception as e:
-                logger.debug("DC item parse error: %s", e)
+                logger.debug("DC detail failed %s: %s", slug, e)
 
+        logger.info("DC: %d games scraped", len(games))
         return games
 
-    def _scrape_detail(self, url: str) -> tuple[list[dict], str | None, float | None]:
+    # ── listing ───────────────────────────────────────────────────────────────
+
+    def _collect_slugs(self) -> list[str]:
+        seen: set[str] = set()
+        slugs: list[str] = []
+        consecutive_empty = 0
+
+        for page in range(25):
+            url = GAMES_URL if page == 0 else f"{GAMES_URL}?page={page}"
+            try:
+                soup = self.soup(url)
+            except Exception as e:
+                logger.debug("DC listing page %d failed: %s", page, e)
+                break
+
+            new_count = 0
+            for a in soup.find_all("a", href=True):
+                m = _SLUG_RE.search(a["href"])
+                if not m:
+                    continue
+                slug = m.group(1)
+                if slug not in seen:
+                    seen.add(slug)
+                    slugs.append(slug)
+                    new_count += 1
+
+            if new_count == 0:
+                consecutive_empty += 1
+                if consecutive_empty >= 2:
+                    break
+            else:
+                consecutive_empty = 0
+
+        return slugs
+
+    # ── detail ────────────────────────────────────────────────────────────────
+
+    def _scrape_detail(self, url: str, slug: str) -> dict | None:
         soup = self.soup(url)
         page_text = soup.get_text(" ", strip=True)
 
-        node_id = None
+        # Game name from <h1>
+        h1 = soup.find("h1")
+        name = h1.get_text(strip=True) if h1 else ""
+        if not name:
+            return None
+
+        # Game number — from Drupal JSON, then "Game No XXXX", then image filename
+        game_id = self._extract_game_id(soup, page_text, slug)
+
+        # Price — "Price $X.XX"
+        price = None
+        m = re.search(r"\bPrice\s+\$\s*([\d]+(?:\.\d{1,2})?)", page_text, re.I)
+        if m:
+            price = float(m.group(1))
+        if not price:
+            return None
+
+        # Overall odds — "Odds  1:X.XX"  (smallest denominator on the page)
+        overall_odds = self._extract_overall_odds(page_text)
+
+        # Image URL
+        image_url = None
+        img = soup.select_one("img[src*='/sites/default/files/']")
+        if img:
+            src = img.get("src") or img.get("data-src") or ""
+            if src:
+                image_url = (BASE_URL + src) if src.startswith("/") else src
+                image_url = image_url.split("?")[0]
+
+        # Prize table
+        tiers = []
+        for table in soup.find_all("table"):
+            text = table.get_text().lower()
+            if any(k in text for k in ("prize", "remaining", "paid")):
+                tiers = self.parse_table_tiers(table)
+                if tiers:
+                    break
+
+        # Ticket counts
+        total_tickets = None
+        tickets_remaining = None
+        if tiers and overall_odds:
+            total_prizes     = sum(t.get("prizes_total") or 0 for t in tiers)
+            remaining_prizes = sum(t.get("prizes_remaining") or 0 for t in tiers)
+            if total_prizes > 0:
+                total_tickets = round(overall_odds * total_prizes)
+                for t in tiers:
+                    if t.get("prizes_total"):
+                        t["odds_one_in"] = round(total_tickets / t["prizes_total"], 2)
+            if remaining_prizes > 0:
+                tickets_remaining = round(overall_odds * remaining_prizes)
+
+        return self.build_game(
+            game_id=str(game_id),
+            name=name,
+            price=price,
+            tiers=tiers,
+            tickets_remaining=tickets_remaining,
+            total_tickets=total_tickets,
+            overall_odds=overall_odds,
+            detail_url=url,
+            image_url=image_url,
+        )
+
+    # ── helpers ───────────────────────────────────────────────────────────────
+
+    def _extract_game_id(self, soup, page_text: str, slug: str) -> str:
+        # 1. Drupal node ID from embedded JSON
         for script in soup.find_all("script", type="application/json"):
             try:
                 data = json.loads(script.string or "")
                 path = data.get("path", {}).get("currentPath", "")
                 m = re.match(r"^node/(\d+)$", path)
                 if m:
-                    node_id = m.group(1)
-                    break
+                    return m.group(1)
             except Exception:
                 pass
 
-        # Extract overall odds — DC shows "Odds 1:3.99"; take the smallest value found
-        # (overall odds are small; top prize odds like "Top Prize Odds 1:61,200" are large)
-        overall_odds = None
-        odds_vals = [
-            float(v.replace(",", ""))
-            for v in re.findall(r"\bodds\b[^0-9]*1\s*[:\s]+([\d,]+\.?\d*)", page_text, re.I)
-            if v.replace(",", "").replace(".", "").isdigit() or "." in v
-        ]
-        if odds_vals:
-            candidate = min(odds_vals)
-            if candidate < 100:  # overall odds should be small (1 in 3-10 range)
-                overall_odds = candidate
+        # 2. "Game No XXXX" on the page
+        m = re.search(r"\bGame\s+No\s+(\d{3,6})\b", page_text, re.I)
+        if m:
+            return m.group(1)
 
-        tiers = []
-        for table in soup.find_all("table"):
-            text = table.get_text().lower()
-            if any(k in text for k in ("prize", "odds", "1 in")):
-                tiers = self.parse_table_tiers(table)
-                if tiers:
-                    break
-        return tiers, node_id, overall_odds
+        # 3. Game number embedded in image filename (DC1661...)
+        m = re.search(r"/DC(\d{3,6})[^/]*\.(?:jpg|png|webp)", page_text, re.I)
+        if m:
+            return m.group(1)
+
+        # 4. Slug sanitized
+        return re.sub(r"[^a-z0-9]", "", slug)[:20]
+
+    @staticmethod
+    def _extract_overall_odds(page_text: str) -> float | None:
+        """Return the smallest odds denominator found (overall odds < top-prize odds)."""
+        vals = []
+        for m in re.finditer(r"\bOdds\s+1[:/]([\d,]+(?:\.\d+)?)", page_text, re.I):
+            try:
+                v = float(m.group(1).replace(",", ""))
+                vals.append(v)
+            except ValueError:
+                pass
+        if not vals:
+            return None
+        candidate = min(vals)
+        return candidate if candidate < 100 else None
