@@ -89,8 +89,8 @@ async def lifespan(app: FastAPI):
 
     scheduler.start()
 
-    # Warm retailer caches in background so first user request is instant
-    async def _warm_retailer_caches():
+    # Warm retailer caches then check if any state's retailers are stale
+    async def _startup_retailer_tasks():
         try:
             from backend.ma_scorer import load_and_score_async as warm_ma
             from backend.az_scorer import load_and_score_async as warm_az
@@ -102,7 +102,9 @@ async def lifespan(app: FastAPI):
             logger.info("Retailer caches warmed")
         except Exception as e:
             logger.warning("Cache warm failed: %s", e)
-    asyncio.create_task(_warm_retailer_caches())
+        # Run after warm so the DB is ready
+        await check_and_run_stale_retailers()
+    asyncio.create_task(_startup_retailer_tasks())
 
     yield
     scheduler.shutdown()
