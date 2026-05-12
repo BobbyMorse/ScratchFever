@@ -62,11 +62,17 @@ class ArizonaScraper(BaseScraper):
             game_id_to_img: dict[str, str] = {}
 
             def _capture_image(response):
-                m = re.search(r"/media/[a-z0-9]+/(.+?)\.(jpg|jpeg|png|gif|webp)", response.url)
-                if m:
-                    for gid in re.findall(r"\b(\d{4,})\b", m.group(1)):
-                        if gid not in game_id_to_img:
-                            game_id_to_img[gid] = response.url.split("?")[0]
+                url = response.url
+                low = url.lower()
+                if "arizonalottery.com" not in low:
+                    return
+                if not any(low.endswith(ext) or (ext + "?") in low
+                           for ext in (".jpg", ".jpeg", ".png", ".gif", ".webp")):
+                    return
+                path = url.split("?")[0]
+                for gid in re.findall(r"\b(\d{4,})\b", path):
+                    if gid not in game_id_to_img:
+                        game_id_to_img[gid] = path
 
             page.on("response", _capture_image)
             slugs = self._get_slugs(page)
