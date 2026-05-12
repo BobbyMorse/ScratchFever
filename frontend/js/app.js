@@ -2291,51 +2291,239 @@ function toggleStoreProfile(tr) {
   tr.insertAdjacentElement("afterend", profileTr);
 }
 
+// ── Per-retailer inventory helpers ────────────────────────────────────────────
+
+function getRetailerState(retailerId) {
+  if (allRetailers.some(r => String(r.id) === String(retailerId))) return 'MA';
+  if (allAzRetailers.some(r => String(r.id) === String(retailerId))) return 'AZ';
+  if (allRiRetailers.some(r => String(r.id) === String(retailerId))) return 'RI';
+  return null;
+}
+
+function getGamesForRetailer(retailerId) {
+  const state = getRetailerState(retailerId);
+  if (state === 'MA') return maGames;
+  if (state === 'AZ') return azGames;
+  if (state === 'RI') return riGames;
+  return [];
+}
+
+function getPerGameStatuses(retailerId) {
+  const result = {};
+  const sorted = [...communityReports]
+    .filter(r => r.retailer_id === retailerId)
+    .sort((a, b) => parseReportedAt(b.reported_at) - parseReportedAt(a.reported_at));
+  for (const r of sorted) {
+    const key = (r.game_name || '').toLowerCase();
+    if (!result[key]) {
+      result[key] = {
+        has_stock: r.has_stock,
+        reported_at: r.reported_at,
+        reporter_username: r.reporter_username,
+        notes: r.notes,
+        game_name: r.game_name,
+      };
+    }
+  }
+  return result;
+}
+
 function storeProfileHtml(retailerId) {
-  if (!_currentUser) {
-    const cnt = retailerCounts[retailerId] || 0;
-    const cntMsg = cnt > 0
-      ? `<strong>${cnt} community report${cnt > 1 ? "s" : ""}</strong> for this store — log in to view.`
-      : "Community reports are <strong>members only</strong>.";
-    return `<div class="store-profile-panel">
-      <div class="profile-login-gate">
-        <span>🔒 ${cntMsg}</span>
-        <button class="btn btn-login" onclick="openAuthModal('login')">Log In</button>
-        <button class="btn btn-register" onclick="openAuthModal('register')">Join Free</button>
+  const games = getGamesForRetailer(retailerId);
+  const perGameStatuses = getPerGameStatuses(retailerId);
+
+  const inCount  = Object.values(perGameStatuses).filter(s => s.has_stock === true).length;
+  const outCount = Object.values(perGameStatuses).filter(s => s.has_stock === false).length;
+
+  const loginBanner = !_currentUser
+    ? `<div class="inv-login-banner">
+        <span>🔒 Log in to see reports and update inventory</span>
+        <button class="btn btn-login" style="font-size:.74rem;padding:.22rem .6rem" onclick="openAuthModal('login')">Log In</button>
+        <button class="btn" style="font-size:.74rem;padding:.22rem .6rem" onclick="openAuthModal('register')">Join Free</button>
+      </div>`
+    : '';
+
+  const rid = escHtml(retailerId);
+
+  const gameRows = games.map(g => {
+    const key = (g.name || '').toLowerCase();
+    const status = perGameStatuses[key] ?? null;
+    const hs = status?.has_stock ?? null;
+    const accentClass = hs === true ? 'acc-in' : hs === false ? 'acc-out' : 'acc-none';
+    const inClass  = hs === true  ? ' is-in'  : '';
+    const outClass = hs === false ? ' is-out' : '';
+    const filterVal = hs === true ? 'in' : hs === false ? 'out' : 'not_set';
+    const gName  = escHtml(g.name);
+    const gPrice = g.price != null ? g.price : '';
+    const meta   = `$${g.price ?? '?'} · ${g.return_pct != null ? g.return_pct.toFixed(1) + '% EV' : '—'}`;
+    const updLine = status
+      ? `<div class="inv-upd">Updated ${timeAgo(parseReportedAt(status.reported_at))}${status.reporter_username ? ` · @${escHtml(status.reporter_username)}` : ''}${status.notes ? ` · <em>${escHtml(status.notes)}</em>` : ''}</div>`
+      : '';
+    return `<div class="inv-game-row" data-game-status="${filterVal}">
+      <div class="inv-accent ${accentClass}"></div>
+      <div class="inv-game-body">
+        <div class="inv-game-top">
+          <div class="inv-game-info">
+            <span class="inv-game-name">${escHtml(g.name)}</span>
+            <span class="inv-game-meta">${escHtml(meta)}</span>
+          </div>
+          <div class="inv-btn-grp">
+            <button class="inv-btn${inClass}" data-rid="${rid}" data-game="${gName}" data-price="${gPrice}" data-stock="true"  onclick="toggleGameInvBtn(this)">In Stock</button>
+            <button class="inv-btn${outClass}" data-rid="${rid}" data-game="${gName}" data-price="${gPrice}" data-stock="false" onclick="toggleGameInvBtn(this)">Out</button>
+            <button class="inv-btn"            data-rid="${rid}" data-game="${gName}" data-price="${gPrice}"                   onclick="openGameNotesBtn(this)">Notes</button>
+          </div>
+        </div>
+        ${updLine}
       </div>
     </div>`;
-  }
+  }).join('');
 
-  const reports = communityReports.filter(r => r.retailer_id === retailerId);
+  const summaryHtml = (inCount || outCount)
+    ? `<span style="color:var(--mint)">●</span> ${inCount} in &ensp;<span style="color:var(--red)">●</span> ${outCount} out`
+    : `No reports yet`;
 
-  let reportsHtml;
-  if (!reports.length) {
-    reportsHtml = `<div class="profile-no-reports">No community reports yet for this store. Be the first!</div>`;
-  } else {
-    reportsHtml = `<div class="profile-reports-list">` + reports.map(r => {
-      const stock = r.has_stock
-        ? '<span style="color:var(--green);font-weight:600">✅ In Stock</span>'
-        : '<span style="color:var(--red)">❌ Out of Stock</span>';
-      const who = r.source === "caller" ? "📞 Call" : (r.reporter_username ? `@${escHtml(r.reporter_username)}` : "👤");
-      const time = r.reported_at
-        ? timeAgo(parseReportedAt(r.reported_at))
-        : "—";
-      const price = r.game_price ? ` <span style="color:var(--text-muted);font-size:.78rem">$${r.game_price}</span>` : "";
-      return `<div class="profile-report-item">
-        <span class="profile-report-game">${escHtml(r.game_name || "")}${price}</span>
-        <span>${stock}</span>
-        <span class="profile-report-meta">${who} · ${time}${r.notes ? ` · <em>${escHtml(r.notes)}</em>` : ""}</span>
-      </div>`;
-    }).join("") + `</div>`;
-  }
-
-  return `<div class="store-profile-panel">
-    <div class="profile-header">
-      <span class="profile-title">Community Reports</span>
-      <button class="btn btn-report profile-add-btn" onclick="openReportModalForStore('${escHtml(retailerId)}')">+ Add Report</button>
+  return `<div class="inv-panel">
+    <div class="inv-panel-hd">
+      <span class="inv-panel-title">Update Inventory</span>
+      <span class="inv-summary">${summaryHtml}</span>
     </div>
-    ${reportsHtml}
+    ${loginBanner}
+    <div class="inv-filter-row">
+      <button class="inv-filter-tab active" onclick="setInvPanelFilter(this,'all')">All</button>
+      <button class="inv-filter-tab" onclick="setInvPanelFilter(this,'in')">In Stock</button>
+      <button class="inv-filter-tab" onclick="setInvPanelFilter(this,'out')">Out of Stock</button>
+      <button class="inv-filter-tab" onclick="setInvPanelFilter(this,'not_set')">Not Set</button>
+    </div>
+    <div class="inv-game-list">
+      ${games.length ? gameRows : '<div class="inv-no-games">No games tracked for this state yet.</div>'}
+    </div>
   </div>`;
+}
+
+function setInvPanelFilter(btn, filter) {
+  const panel = btn.closest('.inv-panel');
+  if (!panel) return;
+  panel.querySelectorAll('.inv-filter-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  panel.querySelectorAll('.inv-game-row').forEach(row => {
+    row.style.display = (filter === 'all' || row.dataset.gameStatus === filter) ? '' : 'none';
+  });
+}
+
+function toggleGameInvBtn(btn) {
+  const rid     = btn.dataset.rid;
+  const game    = btn.dataset.game;
+  const price   = btn.dataset.price !== '' ? parseFloat(btn.dataset.price) : null;
+  const hasStock = btn.dataset.stock === 'true';
+  toggleGameInv(rid, game, price, hasStock, null);
+}
+
+async function toggleGameInv(retailerId, gameName, gamePrice, hasStock, notes) {
+  if (!_currentUser) { openAuthModal('login'); return; }
+
+  const ret = allRetailers.find(r => String(r.id) === String(retailerId))
+           || allAzRetailers.find(r => String(r.id) === String(retailerId))
+           || allRiRetailers.find(r => String(r.id) === String(retailerId));
+
+  const now = new Date().toISOString();
+  const newReport = {
+    id: Date.now(),
+    retailer_id: retailerId,
+    retailer_name: ret?.name || '',
+    retailer_city: ret?.city || '',
+    lat: ret?.latitude || null,
+    lng: ret?.longitude || null,
+    game_name: gameName,
+    game_price: gamePrice,
+    has_stock: hasStock,
+    reporter_username: _currentUser.username,
+    notes: notes || null,
+    reported_at: now,
+    source: 'community',
+  };
+
+  const gameKey = (gameName || '').toLowerCase();
+  communityReports = [
+    newReport,
+    ...communityReports.filter(r =>
+      !(r.retailer_id === retailerId && (r.game_name || '').toLowerCase() === gameKey)
+    ),
+  ];
+
+  buildLatestStatusFromReports();
+  refreshOpenProfile();
+  updateLastReportCells();
+  updateReportBadges();
+
+  try {
+    await protectedFetch('/api/inventory/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        retailer_id:   retailerId,
+        retailer_name: ret?.name || '',
+        retailer_city: ret?.city || '',
+        lat:           ret?.latitude || null,
+        lng:           ret?.longitude || null,
+        game_name:     gameName,
+        game_price:    gamePrice,
+        has_stock:     hasStock,
+        notes:         notes || null,
+      }),
+    });
+  } catch (_) {
+    await loadCommunityReports();
+  }
+}
+
+let _invNotesRid   = null;
+let _invNotesGame  = null;
+let _invNotesPrice = null;
+let _invNotesStock = null;
+
+function openGameNotesBtn(btn) {
+  const rid   = btn.dataset.rid;
+  const game  = btn.dataset.game;
+  const price = btn.dataset.price !== '' ? parseFloat(btn.dataset.price) : null;
+  openGameNotes(rid, game, price);
+}
+
+function openGameNotes(retailerId, gameName, gamePrice) {
+  if (!_currentUser) { openAuthModal('login'); return; }
+  _invNotesRid   = retailerId;
+  _invNotesGame  = gameName;
+  _invNotesPrice = gamePrice;
+  const status = getPerGameStatuses(retailerId)[(gameName || '').toLowerCase()] ?? null;
+  _invNotesStock = status?.has_stock ?? null;
+  setInvNotesStock(_invNotesStock);
+  document.getElementById('invNotesGameName').textContent = gameName;
+  document.getElementById('invNotesText').value = status?.notes || '';
+  document.getElementById('invNotesOverlay').classList.add('open');
+}
+
+function closeGameNotes() {
+  document.getElementById('invNotesOverlay').classList.remove('open');
+  _invNotesRid = _invNotesGame = _invNotesPrice = _invNotesStock = null;
+}
+
+function setInvNotesStock(v) {
+  _invNotesStock = v;
+  document.getElementById('invNotesBtnIn').className  = 'inv-notes-stock-btn' + (v === true  ? ' is-in'  : '');
+  document.getElementById('invNotesBtnOut').className = 'inv-notes-stock-btn' + (v === false ? ' is-out' : '');
+}
+
+async function submitGameNotes() {
+  if (_invNotesStock === null) return;
+  const rid   = _invNotesRid;
+  const game  = _invNotesGame;
+  const price = _invNotesPrice;
+  const stock = _invNotesStock;
+  const notes = document.getElementById('invNotesText').value.trim() || null;
+  const btn   = document.getElementById('invNotesSubmitBtn');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+  closeGameNotes();
+  await toggleGameInv(rid, game, price, stock, notes);
+  btn.disabled = false; btn.textContent = 'Submit';
 }
 
 function normalizeGameName(name) {
