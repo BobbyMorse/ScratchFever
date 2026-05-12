@@ -79,10 +79,8 @@ async def lifespan(app: FastAPI):
 
     # Schedule scrape every hour (no startup trigger)
     scheduler.add_job(scheduled_scrape, "interval", hours=1, id="scrape_all")
-    # MA retailer list changes slowly — re-scrape weekly
-    scheduler.add_job(scheduled_ma_retailer_scrape, "interval", weeks=1, id="scrape_ma_retailers")
-    # Multi-state retailer scrape monthly (NY, NJ, GA, CA)
-    scheduler.add_job(scheduled_state_retailer_scrape, "interval", days=30, id="scrape_state_retailers")
+    # Check retailer freshness daily — scrapes any state older than 30 days
+    scheduler.add_job(check_and_run_stale_retailers, "interval", days=1, id="check_retailer_freshness")
 
     # Attach call runner to scheduler
     runner = CallRunner()
