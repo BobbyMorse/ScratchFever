@@ -2565,6 +2565,306 @@ function updateInventoryMapLayer(visibleRetailers) {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
+// RI HUNT
+// ══════════════════════════════════════════════════════════════════════════════
+
+async function loadRiRetailers() {
+  try {
+    const res = await fetch("/api/ri/retailers?limit=7000");
+    const data = await res.json();
+    allRiRetailers = data.retailers || [];
+    riLoaded = true;
+    updateRiStats();
+    renderRiTable();
+  } catch (e) {
+    const tbody = document.getElementById("riTableBody");
+    if (tbody) tbody.innerHTML =
+      `<tr><td colspan="6" class="loading-cell">Failed to load RI retailers.</td></tr>`;
+  }
+}
+
+function updateRiStats() {
+  const el = document.getElementById("riStatTotal");
+  if (el) el.textContent = allRiRetailers.length.toLocaleString();
+}
+
+function getRiFilteredRows() {
+  const q             = (document.getElementById("riSearchInput")?.value || "").toLowerCase().trim();
+  const city          = (document.getElementById("riCityInput")?.value   || "").toLowerCase().trim();
+  const invFilter     = document.getElementById("riInvFilter")?.value  || "";
+  const dateFilter    = document.getElementById("riDateFilter")?.value || "";
+  const showUnchecked = document.getElementById("riShowUnchecked")?.checked ?? true;
+
+  riMapReportFilter = (invFilter === "in" || invFilter === "out") ? invFilter : "all";
+
+  let rows = allRiRetailers;
+  if (q)    rows = rows.filter(r => r.name.toLowerCase().includes(q));
+  if (city) rows = rows.filter(r => r.city.toLowerCase().includes(city));
+
+  if (!showUnchecked) rows = rows.filter(r => !!retailerLatestStatus[r.id]);
+
+  if (invFilter) {
+    rows = rows.filter(r => {
+      const s = retailerLatestStatus[r.id];
+      if (invFilter === "in")      return s && s.has_stock;
+      if (invFilter === "out")     return s && !s.has_stock;
+      if (invFilter === "checked") return !!s;
+      return true;
+    });
+  }
+
+  if (dateFilter) {
+    const now = Date.now();
+    const cutoffs = { today: 86400000, "7d": 7 * 86400000, "30d": 30 * 86400000 };
+    const cutoff  = cutoffs[dateFilter];
+    rows = rows.filter(r => {
+      const s = retailerLatestStatus[r.id];
+      if (!s) return false;
+      return (now - parseReportedAt(s.reported_at).getTime()) <= cutoff;
+    });
+  }
+
+  return rows;
+}
+
+function renderRiTable() {
+  if (!riLoaded) return;
+  const myGen = ++riRenderGen;
+  _openProfileId = null;
+  const rows = getRiFilteredRows();
+  const checkedCount = selectedRiGame ? Object.keys(retailerLatestStatus).length : null;
+  const countSuffix = checkedCount != null
+    ? ` · <strong style="color:var(--grape)">${checkedCount} checked for ${escHtml(selectedRiGame.name)}</strong>`
+    : "";
+  const countEl = document.getElementById("riResultCount");
+  if (countEl) countEl.innerHTML = `${rows.length.toLocaleString()} retailers${countSuffix}`;
+  const tbody = document.getElementById("riTableBody");
+  if (!tbody) return;
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="loading-cell">No retailers match.</td></tr>`;
+    return;
+  }
+  const CHUNK = 100;
+  tbody.innerHTML = rows.slice(0, CHUNK).map((r, i) => riRow(r, i + 1)).join("");
+  updateReportBadges();
+  if (riMapVisible) renderRiMapLayers(rows);
+  if (rows.length > CHUNK) {
+    let offset = CHUNK;
+    const appendNext = () => {
+      if (myGen !== riRenderGen) return;
+      if (offset >= rows.length) return;
+      const end = Math.min(offset + CHUNK, rows.length);
+      const tmp = document.createElement("tbody");
+      tmp.innerHTML = rows.slice(offset, end).map((r, i) => riRow(r, offset + i + 1)).join("");
+      while (tmp.firstChild) tbody.appendChild(tmp.firstChild);
+      offset = end;
+      requestAnimationFrame(appendNext);
+    };
+    requestAnimationFrame(appendNext);
+  }
+}
+
+function riRow(r, rank) {
+  const addr = encodeURIComponent(`${r.name}, ${r.address}, ${r.city}, RI ${r.zipCode}`);
+  const mapsUrl       = `https://www.google.com/maps/search/?api=1&query=${addr}`;
+  const searchUrl     = `https://www.google.com/search?q=${encodeURIComponent(r.name + ' ' + r.city + ' RI lottery')}`;
+  const directionsUrl = (r.latitude && r.longitude)
+    ? `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`
+    : mapsUrl;
+
+  const links = `
+    <a class="link-btn link-maps" href="${mapsUrl}" target="_blank" rel="noopener" title="View on Maps">Maps</a>
+    <a class="link-btn link-dir"  href="${directionsUrl}" target="_blank" rel="noopener" title="Get Directions">Dir</a>
+    <a class="link-btn link-srch" href="${searchUrl}" target="_blank" rel="noopener" title="Google Search">Search</a>`;
+
+  const rid = escHtml(r.id || "");
+
+  return `<tr class="ma-store-row" data-retailer-id="${rid}" onclick="toggleStoreProfile(this)">
+    <td style="color:var(--text-muted);font-size:.8rem;font-weight:700">${rank}</td>
+    <td><strong>${escHtml(r.name)}</strong><br><span style="font-size:.78rem;color:var(--text-muted)">${escHtml(r.address)}</span><span class="report-count-badge" id="rbadge-${rid}" style="display:none"></span></td>
+    <td>${escHtml(r.city)}</td>
+    <td>${escHtml(r.zipCode)}</td>
+    <td class="last-report-cell" data-rid="${rid}">${lastReportCellHtml(rid)}</td>
+    <td class="links-cell" onclick="event.stopPropagation()">${links}</td>
+  </tr>`;
+}
+
+function downloadRiCsv() {
+  const rows = getRiFilteredRows();
+  const cols = ["name","address","city","zipCode","phone","latitude","longitude"];
+  const header = cols.join(",");
+  const csvRows = rows.map(r =>
+    cols.map(c => {
+      const v = String(r[c] ?? "");
+      return v.includes(",") || v.includes('"') ? `"${v.replace(/"/g,'""')}"` : v;
+    }).join(",")
+  );
+  const blob = new Blob([header + "\n" + csvRows.join("\n")], { type: "text/csv" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "ri_retailers.csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ── RI Leaflet map ────────────────────────────────────────────────────────────
+
+function toggleRiMap() {
+  const sec = document.getElementById("riMapSection");
+  riMapVisible = !riMapVisible;
+  sec.style.display = riMapVisible ? "" : "none";
+  if (riMapVisible) {
+    if (!riMap) initRiMap();
+    else riMap.invalidateSize();
+    renderRiMapLayers(getRiFilteredRows());
+  }
+}
+
+function initRiMap() {
+  riMap = L.map("riMap").setView([41.7, -71.5], 11);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors",
+    maxZoom: 19,
+  }).addTo(riMap);
+}
+
+function renderRiMapLayers(retailers) {
+  if (!riMap) return;
+  riMap.eachLayer(layer => { if (!(layer instanceof L.TileLayer)) riMap.removeLayer(layer); });
+  window._riInventoryLayer = null;
+  updateRiInventoryMapLayer(retailers);
+}
+
+function updateRiInventoryMapLayer(visibleRetailers) {
+  if (!riMap) return;
+
+  if (window._riInventoryLayer) {
+    riMap.removeLayer(window._riInventoryLayer);
+    window._riInventoryLayer = null;
+  }
+
+  const retailers = visibleRetailers || getRiFilteredRows();
+
+  const retailerMarkers = retailers
+    .filter(r => r.latitude && r.longitude)
+    .map(r => {
+      const status = retailerLatestStatus[r.id];
+      const color = status
+        ? (status.has_stock ? "#00cc44" : "#cc2200")
+        : "#4a9eff";
+      const icon = L.divIcon({
+        className: "",
+        html: `<div style="width:8px;height:8px;border-radius:50%;background:${color};border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>`,
+        iconSize: [8, 8], iconAnchor: [4, 4],
+      });
+      const statusTxt = status
+        ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock")
+        : "Not yet checked";
+      const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
+      return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon })
+        .bindPopup(
+          `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br>` +
+          `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+        );
+    });
+
+  const riIds = new Set(allRiRetailers.map(r => String(r.id)));
+  let reports = communityReports.filter(r => r.lat && r.lng && riIds.has(String(r.retailer_id)));
+  if (selectedRiGame) reports = reports.filter(r => r.game_name?.toLowerCase() === selectedRiGame.name.toLowerCase());
+  if (riMapReportFilter === "in")  reports = reports.filter(r =>  r.has_stock);
+  if (riMapReportFilter === "out") reports = reports.filter(r => !r.has_stock);
+
+  const reportMarkers = reports.map(r => {
+    const color = r.has_stock ? "#00cc44" : "#cc2200";
+    const icon  = L.divIcon({
+      className: "",
+      html: `<div style="width:10px;height:10px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>`,
+      iconSize: [10, 10], iconAnchor: [5, 5],
+    });
+    const time = r.reported_at ? timeAgo(parseReportedAt(r.reported_at)) : "";
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}`;
+    return L.marker([r.lat, r.lng], { icon }).bindPopup(
+      `<b>${escHtml(r.retailer_name || "")}</b><br>` +
+      `${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>` +
+      `${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br>` +
+      `<span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br>` +
+      `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+    );
+  });
+
+  const allMarkers = [...retailerMarkers, ...reportMarkers];
+  if (allMarkers.length) {
+    window._riInventoryLayer = L.layerGroup(allMarkers).addTo(riMap);
+  }
+}
+
+// ── RI game filter ────────────────────────────────────────────────────────────
+
+function searchRiGameFilter() {
+  const input = document.getElementById("riGameFilterInput");
+  const dd    = document.getElementById("riGameFilterDropdown");
+  const clear = document.getElementById("riGameFilterClear");
+  if (!input) return;
+  const q = input.value.trim().toLowerCase();
+  clear.style.display = q ? "" : "none";
+  const matches = q ? riGames.filter(g => g.name.toLowerCase().includes(q)) : riGames.slice(0, 50);
+  if (!matches.length) { dd.style.display = "none"; return; }
+  dd.innerHTML = matches.map(g => {
+    const meta = [g.price != null ? `$${g.price}` : null, g.return_pct != null ? `${g.return_pct.toFixed(1)}%` : null]
+      .filter(Boolean).join(" · ");
+    const sub = meta ? `<span style="color:var(--text-muted);font-size:.78rem">${escHtml(meta)}</span>` : "";
+    return `<div class="store-option" onmousedown="selectRiGameFilter(${JSON.stringify(g.name).replace(/"/g, '&quot;')})">${escHtml(g.name)} ${sub}</div>`;
+  }).join("");
+  dd.style.display = "";
+}
+
+function selectRiGameFilter(name) {
+  const input = document.getElementById("riGameFilterInput");
+  const dd    = document.getElementById("riGameFilterDropdown");
+  const clear = document.getElementById("riGameFilterClear");
+  input.value = name;
+  dd.style.display = "none";
+  clear.style.display = "";
+  const g = riGames.find(g => g.name === name) || { name, price: null };
+  selectedRiGame = { name: g.name, price: g.price ?? null };
+  applyRiGameFilter();
+}
+
+function clearRiGameFilter() {
+  document.getElementById("riGameFilterInput").value = "";
+  document.getElementById("riGameFilterDropdown").style.display = "none";
+  document.getElementById("riGameFilterClear").style.display = "none";
+  selectedRiGame = null;
+  applyRiGameFilter();
+}
+
+function applyRiGameFilter() {
+  const th = document.getElementById("riLastReportTh");
+  if (th) th.textContent = selectedRiGame ? selectedRiGame.name : "Last Report";
+
+  buildLatestStatusFromReports();
+
+  if (selectedRiGame) {
+    let inCount = 0, outCount = 0;
+    for (const s of Object.values(retailerLatestStatus)) {
+      s.has_stock ? inCount++ : outCount++;
+    }
+    document.getElementById("riStatInStockCard").style.display = "";
+    document.getElementById("riStatOutCard").style.display = "";
+    document.getElementById("riStatInStock").textContent = inCount.toLocaleString();
+    document.getElementById("riStatOut").textContent = outCount.toLocaleString();
+    loadRetailerLatest(selectedRiGame.name);
+  } else {
+    document.getElementById("riStatInStockCard").style.display = "none";
+    document.getElementById("riStatOutCard").style.display = "none";
+    loadRetailerLatest();
+  }
+
+  renderRiTable();
+  if (riMapVisible) renderRiMapLayers(getRiFilteredRows());
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
 // AZ HUNT
 // ══════════════════════════════════════════════════════════════════════════════
 
