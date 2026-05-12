@@ -58,27 +58,15 @@ async def scheduled_scrape():
         scrape_status["running"] = False
 
 
-async def scheduled_ma_retailer_scrape():
-    logger.info("Starting weekly MA retailer scrape")
+async def check_and_run_stale_retailers():
+    """Check retailer_scrape_log and scrape any state not updated in 30 days."""
     try:
-        from retailer_scraper import scrape_and_save_db
-        from backend.ma_scorer import clear_cache
-        async with get_pool().acquire() as conn:
-            result = await scrape_and_save_db(conn)
-        clear_cache()
-        logger.info("MA retailer scrape complete: %s", result)
+        from backend.retailer_scrapers.runner import run_stale
+        results = await run_stale(max_age_days=30)
+        if results:
+            logger.info("Retailer scrape complete: %s", results)
     except Exception as e:
-        logger.error("MA retailer scrape failed: %s", e)
-
-
-async def scheduled_state_retailer_scrape():
-    logger.info("Starting monthly state retailer scrape (NY, NJ, GA, CA)")
-    try:
-        from backend.retailer_scrapers.runner import run_all
-        results = await run_all()
-        logger.info("Monthly retailer scrape complete: %s", results)
-    except Exception as e:
-        logger.error("Monthly state retailer scrape failed: %s", e)
+        logger.error("Retailer staleness check failed: %s", e)
 
 
 @asynccontextmanager
