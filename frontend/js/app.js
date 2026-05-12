@@ -28,9 +28,19 @@ let azMap = null;
 let azMapVisible = false;
 let azMapReportFilter = "all";
 
+// ── RI Hunt state ─────────────────────────────────────────────────────────────
+let allRiRetailers = [];
+let riGames = [];
+let selectedRiGame = null; // { name, price } or null
+let riLoaded = false;
+let riMap = null;
+let riMapVisible = false;
+let riMapReportFilter = "all";
+
 // ── Render generation counters (cancel in-flight RAF renders on new render) ───
 let maRenderGen = 0;
 let azRenderGen = 0;
+let riRenderGen = 0;
 let communityReportsLastFetch = 0;
 
 // ── Community inventory ───────────────────────────────────────────────────────
