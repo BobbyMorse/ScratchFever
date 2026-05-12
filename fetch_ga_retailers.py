@@ -84,43 +84,46 @@ def normalize(raw: dict) -> dict:
 
 
 def main():
-    # Seed request — any zip works since the API returns all GA retailers regardless
     logger.info("Fetching page 0 to get session seed …")
-    d0 = get(BASE_URL, {"zip": "30301"})
-    if not d0:
-        raise RuntimeError("Failed to reach GA lottery API")
-
-    next_items = d0.get("nextItems", 0)
-    total_est  = next_items + len(d0.get("locations", []))
-    next_url   = d0.get("nextPageUrl", "")
-    seed       = parse_qs(urlparse(next_url).query).get("seed", [None])[0]
-
-    if not seed:
-        raise RuntimeError(f"Could not extract seed from nextPageUrl: {next_url!r}")
-
-    logger.info("Estimated total retailers: %d  |  seed: %s", total_est, seed)
+    seed, page0_locs = fresh_seed()
+    logger.info("Seed: %s", seed)
 
     seen: dict[str, dict] = {}
-    for raw in d0.get("locations", []):
+    for raw in page0_locs:
         rid = raw.get("id")
         if rid:
             seen[str(rid)] = normalize(raw)
 
-    # Paginate
-    page = 1
-    consecutive_empty = 0
+    # Paginate through all pages; refresh seed if the server rejects it
+    page       = 1
+    fail_count = 0
     while True:
         data = get(PAGE_URL, {"zip": "30301", "page": page, "size": PAGE_SIZE, "seed": seed})
+
         if not data:
-            consecutive_empty += 1
-            if consecutive_empty >= 3:
-                logger.warning("3 consecutive failures — stopping at page %d", page)
-                break
+            fail_count += 1
+            logger.warning("Page %d failed (attempt %d)", page, fail_count)
+            if fail_count >= 3:
+                # Seed likely expired — refresh and restart pagination from page 1
+                # We keep already-seen IDs so no data is lost
+                logger.info("Refreshing seed and resuming from page 1 …")
+                try:
+                    seed, page0_locs = fresh_seed()
+                    for raw in page0_locs:
+                        rid = raw.get("id")
+                        if rid and str(rid) not in seen:
+                            seen[str(rid)] = normalize(raw)
+                    page       = 1
+                    fail_count = 0
+                    time.sleep(1)
+                    continue
+                except Exception as e:
+                    logger.error("Seed refresh failed: %s — stopping", e)
+                    break
             time.sleep(1)
-            page += 1
             continue
 
-        consecutive_empty = 0
+        fail_count = 0
         locs = data.get("locations", [])
         new  = 0
         for raw in locs:
@@ -131,13 +134,17 @@ def main():
 
         remaining = data.get("nextItems", 0)
 
-        if page % 100 == 0 or not locs:
+        if page % 100 == 0:
             logger.info(
                 "page %d  got=%d  new=%d  total=%d  remaining=%d",
                 page, len(locs), new, len(seen), remaining,
             )
 
         if not locs or remaining == 0:
+            logger.info(
+                "page %d  got=%d  new=%d  total=%d  remaining=%d  [done]",
+                page, len(locs), new, len(seen), remaining,
+            )
             break
 
         page += 1
