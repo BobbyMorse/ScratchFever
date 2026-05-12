@@ -3183,3 +3183,278 @@ function updateAzInventoryMapLayer(visibleRetailers) {
     window._azInventoryLayer = L.layerGroup(allMarkers).addTo(azMap);
   }
 }
+
+// ── My Plays ──────────────────────────────────────────────────────────────────
+
+let _allPlays = [];
+
+async function loadPlays() {
+  if (!_currentUser) return;
+  try {
+    const res = await protectedFetch("/api/plays");
+    if (!res.ok) return;
+    const data = await res.json();
+    _allPlays = data.plays || [];
+    renderPlays();
+  } catch (e) {
+    console.error("loadPlays error", e);
+  }
+}
+
+function renderPlays() {
+  const plays = _allPlays;
+
+  // ── Stats ──
+  const totalSpent = plays.reduce((s, p) => s + p.price_paid, 0);
+  const totalWon   = plays.reduce((s, p) => s + p.prize_won,  0);
+  const net        = totalWon - totalSpent;
+  const roi        = totalSpent > 0 ? (totalWon / totalSpent) * 100 : null;
+
+  document.getElementById("playStatSpent").textContent = plays.length ? "$" + totalSpent.toLocaleString("en-US", {minimumFractionDigits:2, maximumFractionDigits:2}) : "—";
+  document.getElementById("playStatWon").textContent   = plays.length ? "$" + totalWon.toLocaleString("en-US", {minimumFractionDigits:2, maximumFractionDigits:2}) : "—";
+  document.getElementById("playStatNet").textContent   = plays.length ? (net >= 0 ? "+" : "") + "$" + Math.abs(net).toLocaleString("en-US", {minimumFractionDigits:2, maximumFractionDigits:2}) : "—";
+  document.getElementById("playStatNet").style.color   = plays.length ? (net >= 0 ? "var(--green)" : "var(--red)") : "";
+  document.getElementById("playStatRoi").textContent   = roi !== null ? roi.toFixed(1) + "%" : "—";
+  document.getElementById("playStatRoi").style.color   = roi !== null ? (roi >= 100 ? "var(--green)" : "var(--red)") : "";
+
+  // ── Log count ──
+  document.getElementById("playsLogCount").textContent = plays.length
+    ? `${plays.length} ticket${plays.length !== 1 ? "s" : ""} logged`
+    : "No plays yet";
+
+  // ── Log table ──
+  const tbody = document.getElementById("playsLogBody");
+  if (!plays.length) {
+    tbody.innerHTML = `<tr><td colspan="8" class="loading-cell">Log a ticket above to get started.</td></tr>`;
+  } else {
+    tbody.innerHTML = plays.map(p => {
+      const date = p.played_at ? new Date(p.played_at).toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"}) : "—";
+      const netVal = p.prize_won - p.price_paid;
+      const netStr = (netVal >= 0 ? "+" : "") + "$" + Math.abs(netVal).toFixed(2);
+      const netColor = netVal >= 0 ? "var(--green)" : "var(--red)";
+      return `<tr>
+        <td style="font-size:.83rem;color:var(--text-muted)">${date}</td>
+        <td><strong>${escHtml(p.game_name)}</strong></td>
+        <td>${p.state_code ? `<span class="state-badge">${escHtml(p.state_code)}</span>` : "—"}</td>
+        <td>$${p.price_paid.toFixed(2)}</td>
+        <td style="color:${p.prize_won > 0 ? "var(--green)" : "var(--text-muted)"}">$${p.prize_won.toFixed(2)}</td>
+        <td style="color:${netColor};font-weight:700">${netStr}</td>
+        <td style="font-size:.8rem;color:var(--text-muted)">${p.retailer_name ? escHtml(p.retailer_name) : "—"}</td>
+        <td><button class="plays-delete-btn" onclick="deletePlay(${p.id})" title="Delete">✕</button></td>
+      </tr>`;
+    }).join("");
+  }
+
+  // ── Breakdown by game ──
+  if (plays.length) {
+    const byGame = {};
+    plays.forEach(p => {
+      const key = (p.game_name || "?").toLowerCase();
+      if (!byGame[key]) byGame[key] = { name: p.game_name, state: p.state_code || "", spent: 0, won: 0, count: 0 };
+      byGame[key].spent += p.price_paid;
+      byGame[key].won   += p.prize_won;
+      byGame[key].count += 1;
+    });
+    const rows = Object.values(byGame).sort((a, b) => (b.won - b.spent) - (a.won - a.spent));
+    document.getElementById("playsBreakdownBody").innerHTML = rows.map(g => {
+      const n = g.won - g.spent;
+      const r = g.spent > 0 ? (g.won / g.spent * 100).toFixed(1) + "%" : "—";
+      const nc = n >= 0 ? "var(--green)" : "var(--red)";
+      return `<tr>
+        <td><strong>${escHtml(g.name)}</strong></td>
+        <td>${g.state ? `<span class="state-badge">${escHtml(g.state)}</span>` : "—"}</td>
+        <td>${g.count}</td>
+        <td>$${g.spent.toFixed(2)}</td>
+        <td style="color:${g.won > 0 ? "var(--green)" : "var(--text-muted)"}">$${g.won.toFixed(2)}</td>
+        <td style="color:${nc};font-weight:700">${(n >= 0 ? "+" : "") + "$" + Math.abs(n).toFixed(2)}</td>
+        <td style="color:${nc}">${r}</td>
+      </tr>`;
+    }).join("");
+    document.getElementById("playsBreakdownSection").style.display = "";
+  } else {
+    document.getElementById("playsBreakdownSection").style.display = "none";
+  }
+
+  // ── 30-day chart ──
+  renderPlaysChart(plays);
+}
+
+function renderPlaysChart(plays) {
+  const chartSection = document.getElementById("playsChartSection");
+  if (plays.length < 2) { chartSection.style.display = "none"; return; }
+
+  const now = new Date();
+  const since = new Date(now); since.setDate(since.getDate() - 29);
+
+  // bucket by day, compute cumulative net
+  const dayMap = {};
+  plays.forEach(p => {
+    if (!p.played_at) return;
+    const d = new Date(p.played_at);
+    if (d < since) return;
+    const key = d.toISOString().slice(0, 10);
+    dayMap[key] = (dayMap[key] || 0) + (p.prize_won - p.price_paid);
+  });
+
+  // build 30-day series
+  const points = [];
+  let cum = 0;
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(since); d.setDate(d.getDate() + i);
+    const key = d.toISOString().slice(0, 10);
+    cum += (dayMap[key] || 0);
+    points.push(cum);
+  }
+
+  if (points.every(v => v === 0)) { chartSection.style.display = "none"; return; }
+  chartSection.style.display = "";
+
+  const svg = document.getElementById("playsChart");
+  const W = 700, H = 120, padL = 52, padR = 12, padT = 12, padB = 24;
+  const iW = W - padL - padR, iH = H - padT - padB;
+  const minV = Math.min(0, ...points), maxV = Math.max(0, ...points);
+  const range = maxV - minV || 1;
+
+  const xs = points.map((_, i) => padL + (i / (points.length - 1)) * iW);
+  const ys = points.map(v => padT + iH - ((v - minV) / range) * iH);
+  const zeroY = padT + iH - ((0 - minV) / range) * iH;
+
+  const pathD = xs.map((x, i) => (i === 0 ? `M${x},${ys[i]}` : `L${x},${ys[i]}`)).join(" ");
+  const areaD = `${pathD} L${xs[xs.length-1]},${zeroY} L${xs[0]},${zeroY} Z`;
+
+  const lastVal = points[points.length - 1];
+  const lineColor = lastVal >= 0 ? "var(--green)" : "var(--red)";
+  const areaColor = lastVal >= 0 ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.10)";
+
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.innerHTML = `
+    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT+iH}" stroke="var(--border)" stroke-width="1"/>
+    <line x1="${padL}" y1="${zeroY}" x2="${padL+iW}" y2="${zeroY}" stroke="var(--border)" stroke-width="1" stroke-dasharray="3,3"/>
+    <text x="${padL-6}" y="${padT+4}" text-anchor="end" font-size="9" fill="var(--text-muted)">$${maxV >= 0 ? "+" : ""}${maxV.toFixed(0)}</text>
+    <text x="${padL-6}" y="${padT+iH+4}" text-anchor="end" font-size="9" fill="var(--text-muted)">${minV < 0 ? "-$" + Math.abs(minV).toFixed(0) : "$0"}</text>
+    <text x="${padL-6}" y="${zeroY+4}" text-anchor="end" font-size="9" fill="var(--text-muted)">$0</text>
+    <path d="${areaD}" fill="${areaColor}"/>
+    <path d="${pathD}" fill="none" stroke="${lineColor}" stroke-width="2" stroke-linejoin="round"/>
+    <text x="${padL}" y="${H-4}" font-size="9" fill="var(--text-muted)">30 days ago</text>
+    <text x="${padL+iW}" y="${H-4}" text-anchor="end" font-size="9" fill="var(--text-muted)">Today</text>
+  `;
+}
+
+async function logPlay() {
+  const gameName = document.getElementById("plGameName").value.trim();
+  const price    = parseFloat(document.getElementById("plPrice").value);
+  const prize    = parseFloat(document.getElementById("plPrize").value) || 0;
+  const store    = document.getElementById("plStore").value.trim();
+  const dateVal  = document.getElementById("plDate").value;
+  const gameDbId = document.getElementById("plGameDbId").value || null;
+  const state    = document.getElementById("plGameState").value || null;
+
+  const msgEl = document.getElementById("plMsg");
+  msgEl.style.display = "none";
+
+  if (!gameName) { showPlMsg("Game name is required", true); return; }
+  if (!price || price <= 0) { showPlMsg("Enter a valid ticket price", true); return; }
+
+  const body = {
+    game_name: gameName,
+    game_db_id: gameDbId ? parseInt(gameDbId) : null,
+    state_code: state || null,
+    price_paid: price,
+    prize_won: prize,
+    retailer_name: store || null,
+    played_at: dateVal ? dateVal + "T12:00:00" : null,
+  };
+
+  document.getElementById("plLogBtn").disabled = true;
+  try {
+    const res = await protectedFetch("/api/plays", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (!res.ok) { showPlMsg(data.detail || "Failed to log play", true); return; }
+
+    showPlMsg("Logged!", false);
+    // reset form
+    document.getElementById("plGameName").value = "";
+    document.getElementById("plGameDbId").value = "";
+    document.getElementById("plGameState").value = "";
+    document.getElementById("plPrice").value = "";
+    document.getElementById("plPrize").value = "0";
+    document.getElementById("plStore").value = "";
+    document.getElementById("plDate").value = "";
+    document.getElementById("plGameDropdown").style.display = "none";
+
+    await loadPlays();
+    setTimeout(() => { msgEl.style.display = "none"; }, 2500);
+  } catch(e) {
+    showPlMsg("Network error", true);
+  } finally {
+    document.getElementById("plLogBtn").disabled = false;
+  }
+}
+
+async function deletePlay(id) {
+  if (!confirm("Remove this play from your log?")) return;
+  try {
+    const res = await protectedFetch(`/api/plays/${id}`, { method: "DELETE" });
+    if (res.ok) await loadPlays();
+  } catch(e) { /* silent */ }
+}
+
+function showPlMsg(msg, isErr) {
+  const el = document.getElementById("plMsg");
+  el.textContent = msg;
+  el.style.display = "";
+  el.style.background = isErr ? "var(--red-dim)" : "var(--green-dim)";
+  el.style.color = isErr ? "var(--red)" : "var(--green)";
+  el.style.border = isErr ? "1px solid rgba(239,68,68,.3)" : "1px solid rgba(34,197,94,.3)";
+}
+
+function searchPlaysGame() {
+  const q = document.getElementById("plGameName").value.trim().toLowerCase();
+  const dd = document.getElementById("plGameDropdown");
+  if (q.length < 1) { dd.style.display = "none"; return; }
+  const matches = (allGames || []).filter(g =>
+    g.name.toLowerCase().includes(q)
+  ).slice(0, 8);
+  if (!matches.length) { dd.style.display = "none"; return; }
+  dd.innerHTML = matches.map(g =>
+    `<div class="store-dropdown-item" onclick="selectPlaysGame(${g.id},${JSON.stringify(g.name)},${JSON.stringify(g.price)},${JSON.stringify(g.state_code)})">
+      <strong>${escHtml(g.name)}</strong>
+      <span style="color:var(--text-muted);font-size:.8rem;margin-left:.4rem">${escHtml(g.state_code)} · $${g.price}</span>
+    </div>`
+  ).join("");
+  dd.style.display = "";
+}
+
+function selectPlaysGame(id, name, price, state) {
+  document.getElementById("plGameName").value  = name;
+  document.getElementById("plGameDbId").value  = id;
+  document.getElementById("plGameState").value = state;
+  if (!document.getElementById("plPrice").value) {
+    document.getElementById("plPrice").value = price;
+  }
+  document.getElementById("plGameDropdown").style.display = "none";
+}
+
+document.addEventListener("click", function(e) {
+  const dd = document.getElementById("plGameDropdown");
+  const wrap = document.getElementById("plGameName");
+  if (dd && wrap && !wrap.contains(e.target) && !dd.contains(e.target)) {
+    dd.style.display = "none";
+  }
+});
+
+// Pre-fill today's date on tab open
+(function() {
+  const orig = window.switchTab;
+  window.switchTab = function(name) {
+    if (name === "plays") {
+      const d = document.getElementById("plDate");
+      if (d && !d.value) d.value = new Date().toISOString().slice(0, 10);
+    }
+    return orig(name);
+  };
+})();
