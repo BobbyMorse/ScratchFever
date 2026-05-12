@@ -70,6 +70,17 @@ class NewYorkScraper(BaseScraper):
         alias = row.get("alias") or ""
         detail_url = (BASE_URL + alias) if alias.startswith("/") else BASE_URL
 
+        # Image URL: Drupal APIs often return an image field or field_image
+        image_url = None
+        raw_img = (
+            row.get("image") or row.get("field_image") or row.get("imageUrl") or
+            row.get("image_url") or row.get("thumbnail") or row.get("game_image") or ""
+        )
+        if isinstance(raw_img, dict):
+            raw_img = raw_img.get("url") or raw_img.get("src") or ""
+        if raw_img:
+            image_url = (BASE_URL + raw_img) if raw_img.startswith("/") else raw_img
+
         tiers_raw = row.get("odds_prizes") or []
         tiers = []
         total_prizes_printed = 0
@@ -119,4 +130,5 @@ class NewYorkScraper(BaseScraper):
             total_tickets=total_tickets,
             tickets_remaining=tickets_remaining,
             detail_url=detail_url,
+            image_url=image_url,
         )

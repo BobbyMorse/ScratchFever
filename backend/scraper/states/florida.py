@@ -53,6 +53,15 @@ class FloridaScraper(BaseScraper):
 
         overall_odds = g.get("OverallOdds") or None
 
+        # Image URL: check common field names in the FL API response
+        image_url = None
+        raw_img = (
+            g.get("ImageUrl") or g.get("GameImage") or g.get("imageUrl") or
+            g.get("image") or g.get("thumbnailUrl") or g.get("ThumbnailUrl") or ""
+        )
+        if raw_img:
+            image_url = (BASE_URL + raw_img) if raw_img.startswith("/") else raw_img
+
         tiers_raw = g.get("OddsTiers") or []
         tiers = []
         total_prizes_printed = 0
@@ -100,4 +109,5 @@ class FloridaScraper(BaseScraper):
             total_tickets=total_tickets,
             tickets_remaining=tickets_remaining,
             detail_url=detail_url,
+            image_url=image_url,
         )

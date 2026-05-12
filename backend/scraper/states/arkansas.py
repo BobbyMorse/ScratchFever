@@ -43,6 +43,13 @@ class ArkansasScraper(BaseScraper):
             if not name:
                 continue
 
+            # Image URL from listing page img src
+            image_url = None
+            if img:
+                src = img.get("src", "")
+                if src:
+                    image_url = (BASE_URL + src) if src.startswith("/") else src
+
             slug = href.split("/")[-1]
             detail_url = BASE_URL + href
             price, tiers, overall_odds = None, [], None
@@ -61,6 +68,7 @@ class ArkansasScraper(BaseScraper):
                 tiers=tiers,
                 overall_odds=overall_odds,
                 detail_url=detail_url,
+                image_url=image_url,
             ))
 
         logger.info("AR: %d games scraped", len(games))

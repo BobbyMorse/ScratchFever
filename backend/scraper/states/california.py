@@ -56,6 +56,17 @@ class CaliforniaScraper(BaseScraper):
         product_page = g.get("productPage") or ""
         detail_url = (BASE_URL + product_page) if product_page.startswith("/") else (product_page or BASE_URL)
 
+        # Image URL: try explicit field first, then construct from game number
+        image_url = None
+        raw_img = (
+            g.get("imageUrl") or g.get("thumbnailUrl") or g.get("image") or
+            g.get("img") or g.get("gameImage") or g.get("ticketImage") or ""
+        )
+        if raw_img:
+            image_url = (BASE_URL + raw_img) if raw_img.startswith("/") else raw_img
+        elif game_id:
+            image_url = f"https://www.calottery.com/api/games/scratchers/{game_id}/image"
+
         tiers_raw = g.get("prizeTiers") or []
         tiers = []
         total_prizes_printed = 0
@@ -102,4 +113,5 @@ class CaliforniaScraper(BaseScraper):
             total_tickets=total_tickets,
             tickets_remaining=tickets_remaining,
             detail_url=detail_url,
+            image_url=image_url,
         )

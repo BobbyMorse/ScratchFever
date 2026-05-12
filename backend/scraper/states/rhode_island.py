@@ -126,6 +126,15 @@ class RhodeIslandScraper(BaseScraper):
         total_tickets = g.get("totalTicket") or None
 
         overall_odds_raw = g.get("overallOdds")
+
+        # Image URL: check common field names in the RI API response
+        image_url = None
+        raw_img = (
+            g.get("imageUrl") or g.get("image") or g.get("thumbnailUrl") or
+            g.get("gameImage") or g.get("ticketImage") or g.get("img") or ""
+        )
+        if raw_img:
+            image_url = (self.base_url + raw_img) if raw_img.startswith("/") else raw_img
         overall_odds = float(overall_odds_raw) if overall_odds_raw else None
 
         tiers = []
@@ -170,4 +179,5 @@ class RhodeIslandScraper(BaseScraper):
             tickets_remaining=tickets_remaining,
             overall_odds=overall_odds,
             detail_url=f"{self.base_url}/en-us/games/scratchers.html",
+            image_url=image_url,
         )

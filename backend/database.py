@@ -119,6 +119,7 @@ async def init_db():
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_claims_detected ON prize_claims(detected_at DESC)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_claims_prize_detected ON prize_claims(prize_amount, detected_at DESC)")
         await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS jackpot_odds_one_in REAL")
+        await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS how_to_play TEXT")
 
 
 async def init_retailer_db():
@@ -161,15 +162,17 @@ async def upsert_game(conn: asyncpg.Connection, state_code: str, state_name: str
         INSERT INTO games (state_code, state_name, game_id, name, price, ev, return_pct,
             overall_odds_one_in, top_prize, top_prize_remaining,
             total_tickets, tickets_remaining, prize_pool_left, jackpot_odds_one_in,
-            detail_url, image_url, scraped_at, is_active)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), TRUE)
+            detail_url, image_url, how_to_play, scraped_at, is_active)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, NOW(), TRUE)
         ON CONFLICT(state_code, game_id) DO UPDATE SET
             name=EXCLUDED.name, price=EXCLUDED.price, ev=EXCLUDED.ev,
             return_pct=EXCLUDED.return_pct, overall_odds_one_in=EXCLUDED.overall_odds_one_in,
             top_prize=EXCLUDED.top_prize, top_prize_remaining=EXCLUDED.top_prize_remaining,
             total_tickets=EXCLUDED.total_tickets, tickets_remaining=EXCLUDED.tickets_remaining,
             prize_pool_left=EXCLUDED.prize_pool_left, jackpot_odds_one_in=EXCLUDED.jackpot_odds_one_in,
-            detail_url=EXCLUDED.detail_url, image_url=EXCLUDED.image_url, scraped_at=NOW(), is_active=TRUE
+            detail_url=EXCLUDED.detail_url, image_url=EXCLUDED.image_url,
+            how_to_play=COALESCE(EXCLUDED.how_to_play, games.how_to_play),
+            scraped_at=NOW(), is_active=TRUE
         RETURNING id
     """,
         state_code, state_name, game_id,
@@ -178,6 +181,7 @@ async def upsert_game(conn: asyncpg.Connection, state_code: str, state_name: str
         game_data.get("total_tickets"), game_data.get("tickets_remaining"),
         game_data.get("prize_pool_left"), game_data.get("jackpot_odds_one_in"),
         game_data.get("detail_url"), game_data.get("image_url"),
+        game_data.get("how_to_play"),
     )
     return row["id"]
 
@@ -282,6 +286,7 @@ async def get_game_detail(conn, game_db_id: int):
                g.ev, g.return_pct, g.overall_odds_one_in,
                g.top_prize, g.top_prize_remaining, g.total_tickets, g.tickets_remaining,
                g.prize_pool_left, g.is_active, g.detail_url, g.image_url, g.scraped_at,
+               g.how_to_play,
                pt.prize_amount, pt.odds_one_in, pt.prizes_total, pt.prizes_remaining
         FROM games g
         LEFT JOIN prize_tiers pt ON pt.game_db_id = g.id

@@ -37,10 +37,10 @@ class MississippiScraper(BaseScraper):
             seen.add(slug)
 
             detail_url = (BASE_URL + href) if href.startswith("/") else href
-            name, price, tiers, overall_odds, tickets_remaining, total_tickets = \
-                None, None, [], None, None, None
+            name, price, tiers, overall_odds, tickets_remaining, total_tickets, image_url = \
+                None, None, [], None, None, None, None
             try:
-                name, price, tiers, overall_odds, tickets_remaining, total_tickets = \
+                name, price, tiers, overall_odds, tickets_remaining, total_tickets, image_url = \
                     self._scrape_detail(detail_url)
             except Exception as e:
                 logger.debug("MS detail failed for %s: %s", slug, e)
@@ -57,6 +57,7 @@ class MississippiScraper(BaseScraper):
                 tickets_remaining=tickets_remaining,
                 total_tickets=total_tickets,
                 detail_url=detail_url,
+                image_url=image_url,
             ))
 
         logger.info("MS: %d games scraped", len(games))
@@ -65,6 +66,25 @@ class MississippiScraper(BaseScraper):
     def _scrape_detail(self, url: str):
         soup = self.soup(url)
         page_text = soup.get_text(" ", strip=True)
+
+        # Image URL: look for a prominent game ticket image
+        image_url = None
+        for img in soup.find_all("img"):
+            src = img.get("src", "")
+            if not src:
+                continue
+            # Skip tiny icons/logos; prefer images with game-related path segments
+            src_lower = src.lower()
+            if any(k in src_lower for k in ("ticket", "game", "instant", "scratch")):
+                image_url = (BASE_URL + src) if src.startswith("/") else src
+                break
+        # Fallback: first non-trivial img on the page
+        if not image_url:
+            for img in soup.find_all("img"):
+                src = img.get("src", "")
+                if src and not any(k in src.lower() for k in ("logo", "icon", "banner", "header", "footer", "button")):
+                    image_url = (BASE_URL + src) if src.startswith("/") else src
+                    break
 
         # Name and price from H1: "Wheel of Fortune ($10)"
         name = price = None

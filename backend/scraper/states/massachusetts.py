@@ -13,6 +13,8 @@ Formula
 """
 from __future__ import annotations
 import logging
+import time
+from bs4 import BeautifulSoup
 from backend.scraper.base import BaseScraper
 from backend.ev_calculator import parse_odds
 
@@ -56,12 +58,47 @@ class MassachusettsScraper(BaseScraper):
                 image_url = meta.get("image_url")
                 game = self._parse_item(item, official_odds, image_url)
                 if game:
+                    game["how_to_play"] = self._fetch_how_to_play(slug)
+                    time.sleep(0.3)  # polite rate limit
                     games.append(game)
             except Exception as e:
                 logger.debug("MA parse error for %s: %s", item.get("gameName"), e)
 
         logger.info("MA: %d active games parsed, %d inactive skipped", len(games), skipped)
         return games
+
+    def _fetch_how_to_play(self, slug: str) -> str | None:
+        """Scrape the 'How to Play' section from the MA Lottery game detail page."""
+        try:
+            url = f"{DETAIL_BASE}/{slug}"
+            resp = self.get(url, timeout=15)
+            soup = BeautifulSoup(resp.text, "lxml")
+
+            # Find any heading that says "How to Play" and collect text that follows
+            for tag in soup.find_all(["h2", "h3", "h4", "strong", "b"]):
+                if "how to play" in tag.get_text(strip=True).lower():
+                    parts = []
+                    for sib in tag.find_next_siblings():
+                        if sib.name in ["h2", "h3", "h4"]:
+                            break
+                        text = sib.get_text(separator=" ", strip=True)
+                        if text:
+                            parts.append(text)
+                    if parts:
+                        return " ".join(parts)[:3000]
+
+            # Fallback: look for a div/section with class containing "how" or "play"
+            for el in soup.find_all(["div", "section"], class_=True):
+                classes = " ".join(el.get("class", [])).lower()
+                if "how" in classes or "play" in classes or "instructions" in classes:
+                    text = el.get_text(separator=" ", strip=True)
+                    if len(text) > 50:
+                        return text[:3000]
+
+            return None
+        except Exception as e:
+            logger.debug("how_to_play fetch failed for %s: %s", slug, e)
+            return None
 
     def _fetch_active_games(self) -> dict:
         """Returns {identifier: {odds: float}} for active scratch games."""

@@ -56,12 +56,16 @@ class NewMexicoScraper(BaseScraper):
                         overall_odds = float(om.group(1))
                         break
 
-                # Game ID from img src filename
+                # Game ID and image URL from img src filename
                 img = container.find("img")
                 game_id = None
+                image_url = None
                 if img:
-                    m = re.search(r"/(\d+)\.(?:jpg|png|webp)", img.get("src", ""), re.I)
+                    src = img.get("src", "")
+                    m = re.search(r"/(\d+)\.(?:jpg|png|webp)", src, re.I)
                     game_id = m.group(1) if m else None
+                    if src:
+                        image_url = (BASE_URL + src) if src.startswith("/") else src
                 if not game_id:
                     game_id = re.sub(r"[^a-z0-9]", "", name.lower())[:20]
 
@@ -105,6 +109,7 @@ class NewMexicoScraper(BaseScraper):
                     price=price,
                     tiers=tiers,
                     overall_odds=overall_odds,
+                    image_url=image_url,
                 ))
             except Exception as e:
                 logger.debug("NM parse error: %s", e)

@@ -44,6 +44,13 @@ class SouthCarolinaScraper(BaseScraper):
             if not name:
                 name = f"Game {game_id}"
 
+            # Image URL from listing page img src
+            image_url = None
+            if img:
+                src = img.get("src", "")
+                if src:
+                    image_url = (BASE_URL + src) if src.startswith("/") else src
+
             detail_url = (BASE_URL + href) if href.startswith("/") else href
             price, tiers, overall_odds, tickets_remaining, total_tickets = \
                 None, [], None, None, None
@@ -65,6 +72,7 @@ class SouthCarolinaScraper(BaseScraper):
                 tickets_remaining=tickets_remaining,
                 total_tickets=total_tickets,
                 detail_url=detail_url,
+                image_url=image_url,
             ))
 
         logger.info("SC: %d games scraped", len(games))
