@@ -108,12 +108,6 @@ function _setUser(user) {
     }
     document.getElementById("scrapeBtn").style.display = isAdmin ? "" : "none";
     document.getElementById("statusBar").style.display = isAdmin ? "" : "none";
-    const repBtn = document.getElementById("reportInvBtn");
-    if (repBtn) repBtn.style.display = "";
-    const azRepBtn = document.getElementById("azReportInvBtn");
-    if (azRepBtn) azRepBtn.style.display = "";
-    const soonRepBtn = document.getElementById("huntSoonReportBtn");
-    if (soonRepBtn) soonRepBtn.style.display = "";
   } else {
     chip.style.display  = "none";
     btn.style.display   = "";
@@ -124,12 +118,6 @@ function _setUser(user) {
     if (msl) msl.style.display = "none";
     document.getElementById("scrapeBtn").style.display = "none";
     document.getElementById("statusBar").style.display = "none";
-    const repBtn = document.getElementById("reportInvBtn");
-    if (repBtn) repBtn.style.display = "none";
-    const azRepBtn = document.getElementById("azReportInvBtn");
-    if (azRepBtn) azRepBtn.style.display = "none";
-    const soonRepBtn = document.getElementById("huntSoonReportBtn");
-    if (soonRepBtn) soonRepBtn.style.display = "none";
     // Close any open store profile and clear report badges
     _openProfileId = null;
     document.querySelectorAll(".store-profile-tr").forEach(el => el.remove());
