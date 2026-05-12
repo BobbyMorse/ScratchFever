@@ -47,11 +47,26 @@ def get(url: str, params: dict) -> dict | None:
     try:
         r = requests.get(url, params=params, headers=HEADERS, timeout=15)
         if r.status_code == 200:
+            ct = r.headers.get("content-type", "")
+            if "json" not in ct and not r.text.strip().startswith(("{", "[")):
+                logger.debug("Non-JSON response at %s: %s", url, r.text[:100])
+                return None
             return r.json()
         logger.debug("HTTP %d for %s %s", r.status_code, url, params)
     except Exception as e:
         logger.debug("Request error: %s", e)
     return None
+
+
+def fresh_seed() -> tuple[str, list[dict]]:
+    """Get a new session seed and the first page of results."""
+    d0 = get(BASE_URL, {"zip": "30301"})
+    if not d0:
+        raise RuntimeError("Failed to reach GA lottery API")
+    seed = parse_qs(urlparse(d0.get("nextPageUrl", "")).query).get("seed", [None])[0]
+    if not seed:
+        raise RuntimeError("Could not extract seed")
+    return seed, d0.get("locations", [])
 
 
 def normalize(raw: dict) -> dict:
