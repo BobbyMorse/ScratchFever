@@ -1,0 +1,937 @@
+{
+  "nextPageUrl": "/api/v1/locations/page?city=Cranston&page=1&size=10&seed=489524030",
+  "nextItems": 70,
+  "previousItems": 0,
+  "locations": [
+    {
+      "id": "5234",
+      "type": "RETAILER",
+      "name": "LAUREL HILL SOCIAL ATHLETIC CLUB(K)",
+      "address1": "49 GOVERNOR STREET",
+      "city": "CRANSTON",
+      "county": "007",
+      "state": "RI",
+      "country": "USA",
+      "postalCode": "02920",
+      "phoneNumber": "4019429805",
+      "businessHours": [
+        {
+          "dayOfWeek": "SATURDAY",
+          "openTime": "11:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "THURSDAY",
+          "openTime": "11:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "SUNDAY",
+          "openTime": "11:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "FRIDAY",
+          "openTime": "11:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "TUESDAY",
+          "openTime": "11:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "WEDNESDAY",
+          "openTime": "11:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "MONDAY",
+          "openTime": "11:00",
+          "closeTime": "22:00"
+        }
+      ],
+      "lattitude": 41.79201,
+      "longitude": -71.45507,
+      "drawGameDetails": [
+        {
+          "gameName": "Wild Money",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Lucky For Life",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Powerball",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Bingo",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Keno",
+          "soldAtLocation": true,
+          "monitorDisplay": true
+        },
+        {
+          "gameName": "The Numbers",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Mega Millions",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Extra",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        }
+      ]
+    },
+    {
+      "id": "5042",
+      "type": "RETAILER",
+      "name": "STOP & SHOP #707",
+      "address1": "200 ATWOOD AVENUE",
+      "city": "CRANSTON",
+      "county": "007",
+      "state": "RI",
+      "country": "USA",
+      "postalCode": "02920",
+      "phoneNumber": "4019446300",
+      "businessHours": [
+        {
+          "dayOfWeek": "THURSDAY",
+          "openTime": "08:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "MONDAY",
+          "openTime": "08:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "SUNDAY",
+          "openTime": "09:00",
+          "closeTime": "17:00"
+        },
+        {
+          "dayOfWeek": "TUESDAY",
+          "openTime": "08:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "FRIDAY",
+          "openTime": "08:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "WEDNESDAY",
+          "openTime": "08:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "SATURDAY",
+          "openTime": "08:00",
+          "closeTime": "22:00"
+        }
+      ],
+      "lattitude": 41.78179,
+      "longitude": -71.47285,
+      "drawGameDetails": [
+        {
+          "gameName": "Wild Money",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Lucky For Life",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Powerball",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Bingo",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Keno",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "The Numbers",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Mega Millions",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Extra",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        }
+      ]
+    },
+    {
+      "id": "5032",
+      "type": "RETAILER",
+      "name": "WINES & MORE OF RI, INC.",
+      "address1": "125 SOCKANOSSET CROSSROAD",
+      "city": "CRANSTON",
+      "county": "007",
+      "state": "RI",
+      "country": "USA",
+      "postalCode": "02920",
+      "phoneNumber": "4012705500",
+      "businessHours": [
+        {
+          "dayOfWeek": "SUNDAY",
+          "openTime": "12:00",
+          "closeTime": "18:00"
+        },
+        {
+          "dayOfWeek": "WEDNESDAY",
+          "openTime": "09:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "THURSDAY",
+          "openTime": "09:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "SATURDAY",
+          "openTime": "09:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "TUESDAY",
+          "openTime": "09:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "MONDAY",
+          "openTime": "09:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "FRIDAY",
+          "openTime": "09:00",
+          "closeTime": "22:00"
+        }
+      ],
+      "lattitude": 41.755,
+      "longitude": -71.45614,
+      "drawGameDetails": [
+        {
+          "gameName": "Wild Money",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Lucky For Life",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Powerball",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Bingo",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Keno",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "The Numbers",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Mega Millions",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Extra",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        }
+      ]
+    },
+    {
+      "id": "5016",
+      "type": "RETAILER",
+      "name": "SHREE MAA OF RI INC.(K)",
+      "address1": "480 Pontiac Ave",
+      "city": "Cranston",
+      "county": "007",
+      "state": "RI",
+      "country": "USA",
+      "postalCode": "02910",
+      "phoneNumber": "4014611463",
+      "businessHours": [
+        {
+          "dayOfWeek": "SATURDAY",
+          "openTime": "05:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "SUNDAY",
+          "openTime": "05:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "WEDNESDAY",
+          "openTime": "05:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "TUESDAY",
+          "openTime": "05:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "FRIDAY",
+          "openTime": "05:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "MONDAY",
+          "openTime": "05:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "THURSDAY",
+          "openTime": "05:00",
+          "closeTime": "22:00"
+        }
+      ],
+      "lattitude": 41.77418,
+      "longitude": -71.43723,
+      "drawGameDetails": [
+        {
+          "gameName": "Wild Money",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Lucky For Life",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Powerball",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Bingo",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Keno",
+          "soldAtLocation": true,
+          "monitorDisplay": true
+        },
+        {
+          "gameName": "The Numbers",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Mega Millions",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Extra",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        }
+      ]
+    },
+    {
+      "id": "5793",
+      "type": "RETAILER",
+      "name": "BD MART, INC.(K)",
+      "address1": "1356 CRANSTON STREET",
+      "city": "CRANSTON",
+      "county": "007",
+      "state": "RI",
+      "country": "USA",
+      "postalCode": "02920",
+      "phoneNumber": "4019465482",
+      "businessHours": [
+        {
+          "dayOfWeek": "TUESDAY",
+          "openTime": "06:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "SATURDAY",
+          "openTime": "06:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "THURSDAY",
+          "openTime": "06:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "MONDAY",
+          "openTime": "06:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "SUNDAY",
+          "openTime": "06:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "WEDNESDAY",
+          "openTime": "06:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "FRIDAY",
+          "openTime": "06:00",
+          "closeTime": "22:00"
+        }
+      ],
+      "lattitude": 41.79031,
+      "longitude": -71.45646,
+      "drawGameDetails": [
+        {
+          "gameName": "Wild Money",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Lucky For Life",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Powerball",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Bingo",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Keno",
+          "soldAtLocation": true,
+          "monitorDisplay": true
+        },
+        {
+          "gameName": "The Numbers",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Mega Millions",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Extra",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        }
+      ]
+    },
+    {
+      "id": "5092",
+      "type": "RETAILER",
+      "name": "CHELO'S OF CRANSTON  (K)",
+      "address1": "1275 RESERVOIR AVENUE",
+      "city": "CRANSTON",
+      "county": "007",
+      "state": "RI",
+      "country": "USA",
+      "postalCode": "02920",
+      "phoneNumber": "4019427666",
+      "businessHours": [
+        {
+          "dayOfWeek": "SUNDAY",
+          "openTime": "12:00",
+          "closeTime": "22:00"
+        },
+        {
+          "dayOfWeek": "WEDNESDAY",
+          "openTime": "11:30",
+          "closeTime": "22:30"
+        },
+        {
+          "dayOfWeek": "TUESDAY",
+          "openTime": "11:30",
+          "closeTime": "22:30"
+        },
+        {
+          "dayOfWeek": "THURSDAY",
+          "openTime": "11:30",
+          "closeTime": "22:30"
+        },
+        {
+          "dayOfWeek": "MONDAY",
+          "openTime": "11:30",
+          "closeTime": "22:30"
+        },
+        {
+          "dayOfWeek": "SATURDAY",
+          "openTime": "11:30",
+          "closeTime": "23:30"
+        },
+        {
+          "dayOfWeek": "FRIDAY",
+          "openTime": "11:00",
+          "closeTime": "23:30"
+        }
+      ],
+      "lattitude": 41.76697,
+      "longitude": -71.45814,
+      "drawGameDetails": [
+        {
+          "gameName": "Wild Money",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Lucky For Life",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Powerball",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Bingo",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Keno",
+          "soldAtLocation": true,
+          "monitorDisplay": true
+        },
+        {
+          "gameName": "The Numbers",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Mega Millions",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Extra",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        }
+      ]
+    },
+    {
+      "id": "100170",
+      "type": "RETAILER",
+      "name": "ATHENA'S RESTAURANT  (K)",
+      "address1": "1482 Park Ave",
+      "city": "Cranston",
+      "county": "007",
+      "state": "RI",
+      "country": "USA",
+      "postalCode": "02920",
+      "phoneNumber": "4014649904",
+      "businessHours": [
+        {
+          "dayOfWeek": "MONDAY",
+          "openTime": "06:00",
+          "closeTime": "14:00"
+        },
+        {
+          "dayOfWeek": "THURSDAY",
+          "openTime": "06:00",
+          "closeTime": "14:00"
+        },
+        {
+          "dayOfWeek": "TUESDAY",
+          "openTime": "06:00",
+          "closeTime": "14:00"
+        },
+        {
+          "dayOfWeek": "SATURDAY",
+          "openTime": "06:00",
+          "closeTime": "14:00"
+        },
+        {
+          "dayOfWeek": "SUNDAY",
+          "openTime": "06:00",
+          "closeTime": "14:00"
+        },
+        {
+          "dayOfWeek": "WEDNESDAY",
+          "openTime": "06:00",
+          "closeTime": "14:00"
+        },
+        {
+          "dayOfWeek": "FRIDAY",
+          "openTime": "06:00",
+          "closeTime": "14:00"
+        }
+      ],
+      "lattitude": 41.7833,
+      "longitude": -71.46155,
+      "drawGameDetails": [
+        {
+          "gameName": "Wild Money",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Lucky For Life",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Powerball",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Bingo",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Keno",
+          "soldAtLocation": true,
+          "monitorDisplay": true
+        },
+        {
+          "gameName": "The Numbers",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Mega Millions",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Extra",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        }
+      ]
+    },
+    {
+      "id": "5769",
+      "type": "RETAILER",
+      "name": "CRANSTON KOFC COUNCIL 1738(K)",
+      "address1": "70 PETTACONSETT AVENUE",
+      "city": "CRANSTON",
+      "county": "007",
+      "state": "RI",
+      "country": "USA",
+      "postalCode": "02920",
+      "phoneNumber": "4014614900",
+      "businessHours": [
+        {
+          "dayOfWeek": "SATURDAY",
+          "openTime": "13:00",
+          "closeTime": "23:55"
+        },
+        {
+          "dayOfWeek": "SUNDAY",
+          "openTime": "13:00",
+          "closeTime": "23:55"
+        },
+        {
+          "dayOfWeek": "THURSDAY",
+          "openTime": "13:00",
+          "closeTime": "23:55"
+        },
+        {
+          "dayOfWeek": "TUESDAY",
+          "openTime": "13:00",
+          "closeTime": "23:55"
+        },
+        {
+          "dayOfWeek": "FRIDAY",
+          "openTime": "13:00",
+          "closeTime": "23:55"
+        },
+        {
+          "dayOfWeek": "MONDAY",
+          "openTime": "13:00",
+          "closeTime": "23:55"
+        },
+        {
+          "dayOfWeek": "WEDNESDAY",
+          "openTime": "13:00",
+          "closeTime": "23:55"
+        }
+      ],
+      "lattitude": 41.75241,
+      "longitude": -71.44636,
+      "drawGameDetails": [
+        {
+          "gameName": "Wild Money",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Lucky For Life",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Powerball",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Bingo",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Keno",
+          "soldAtLocation": true,
+          "monitorDisplay": true
+        },
+        {
+          "gameName": "The Numbers",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Mega Millions",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Extra",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        }
+      ]
+    },
+    {
+      "id": "5142",
+      "type": "RETAILER",
+      "name": "SHORE'S MARKET",
+      "address1": "435 ATWOOD AVENUE",
+      "city": "CRANSTON",
+      "county": "007",
+      "state": "RI",
+      "country": "USA",
+      "postalCode": "02920",
+      "phoneNumber": "4019429050",
+      "businessHours": [
+        {
+          "dayOfWeek": "WEDNESDAY",
+          "openTime": "08:00",
+          "closeTime": "20:00"
+        },
+        {
+          "dayOfWeek": "MONDAY",
+          "openTime": "08:00",
+          "closeTime": "20:00"
+        },
+        {
+          "dayOfWeek": "SUNDAY",
+          "openTime": "08:00",
+          "closeTime": "18:00"
+        },
+        {
+          "dayOfWeek": "SATURDAY",
+          "openTime": "08:00",
+          "closeTime": "18:00"
+        },
+        {
+          "dayOfWeek": "TUESDAY",
+          "openTime": "08:00",
+          "closeTime": "20:00"
+        },
+        {
+          "dayOfWeek": "FRIDAY",
+          "openTime": "08:00",
+          "closeTime": "20:00"
+        },
+        {
+          "dayOfWeek": "THURSDAY",
+          "openTime": "08:00",
+          "closeTime": "20:00"
+        }
+      ],
+      "lattitude": 41.78789,
+      "longitude": -71.47178,
+      "drawGameDetails": [
+        {
+          "gameName": "Wild Money",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Lucky For Life",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Powerball",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Bingo",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Keno",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "The Numbers",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Mega Millions",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Extra",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        }
+      ]
+    },
+    {
+      "id": "5620",
+      "type": "RETAILER",
+      "name": "STOP & SHOP #714",
+      "address1": "204 GARFIELD AVENUE",
+      "city": "CRANSTON",
+      "county": "007",
+      "state": "RI",
+      "country": "USA",
+      "postalCode": "02920",
+      "phoneNumber": "4019437601",
+      "businessHours": [
+        {
+          "dayOfWeek": "MONDAY",
+          "openTime": "07:00",
+          "closeTime": "23:59"
+        },
+        {
+          "dayOfWeek": "SUNDAY",
+          "openTime": "07:00",
+          "closeTime": "21:00"
+        },
+        {
+          "dayOfWeek": "SATURDAY",
+          "openTime": "07:00",
+          "closeTime": "23:59"
+        },
+        {
+          "dayOfWeek": "THURSDAY",
+          "openTime": "07:00",
+          "closeTime": "23:59"
+        },
+        {
+          "dayOfWeek": "TUESDAY",
+          "openTime": "07:00",
+          "closeTime": "23:59"
+        },
+        {
+          "dayOfWeek": "WEDNESDAY",
+          "openTime": "07:00",
+          "closeTime": "23:59"
+        },
+        {
+          "dayOfWeek": "FRIDAY",
+          "openTime": "07:00",
+          "closeTime": "23:59"
+        }
+      ],
+      "lattitude": 41.7956,
+      "longitude": -71.44345,
+      "drawGameDetails": [
+        {
+          "gameName": "Wild Money",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Lucky For Life",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Powerball",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Bingo",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Keno",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "The Numbers",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Mega Millions",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        },
+        {
+          "gameName": "Extra",
+          "soldAtLocation": true,
+          "monitorDisplay": false
+        }
+      ]
+    }
+  ]
+}
