@@ -5,6 +5,8 @@ API: https://apim-website-prod-eastus.azure-api.net/scratchgamesapp/getscratchin
   OddsTiers: PrizeAmount (string "$X.XX"), WinningOdds ("1-in-X"),
              TotalPrizes, PrizesRemaining, PrizesPaid
   total_tickets = sum(TotalPrizes) * OverallOdds
+
+Images: fetched from AEM CMS endpoint which returns teaserImage paths per game ID.
 """
 from __future__ import annotations
 import logging
@@ -14,6 +16,7 @@ from backend.ev_calculator import parse_prize_amount, parse_odds
 logger = logging.getLogger(__name__)
 
 API_URL = "https://apim-website-prod-eastus.azure-api.net/scratchgamesapp/getscratchinfo"
+AEM_URL = "https://floridalottery.com/content/flalottery-web/us/en/games/scratch-offs.scratch-offs.json"
 BASE_URL = "https://floridalottery.com"
 
 _HEADERS = {
@@ -27,21 +30,43 @@ class FloridaScraper(BaseScraper):
     state_name = "Florida"
     base_url = BASE_URL
 
+    def _fetch_image_map(self) -> dict[str, str]:
+        """Return {game_id: absolute_image_url} from the AEM scratch-offs JSON."""
+        try:
+            resp = self.session.get(AEM_URL, timeout=15)
+            if resp.status_code != 200:
+                logger.warning("FL AEM image endpoint returned %d", resp.status_code)
+                return {}
+            entries = resp.json()
+            result = {}
+            for entry in entries:
+                gid = str(entry.get("id") or "")
+                img = entry.get("teaserImage") or ""
+                if gid and img:
+                    result[gid] = (BASE_URL + img) if img.startswith("/") else img
+            logger.info("FL: image map built for %d games", len(result))
+            return result
+        except Exception as e:
+            logger.warning("FL: failed to fetch image map: %s", e)
+            return {}
+
     def scrape(self) -> list[dict]:
+        image_map = self._fetch_image_map()
+
         resp = self.get(API_URL, headers=_HEADERS)
         raw_games = resp.json()
         logger.info("FL: %d games from API", len(raw_games))
 
         games = []
         for g in raw_games:
-            game = self._parse_game(g)
+            game = self._parse_game(g, image_map)
             if game:
                 games.append(game)
 
         logger.info("FL: %d games parsed", len(games))
         return games
 
-    def _parse_game(self, g: dict) -> dict | None:
+    def _parse_game(self, g: dict, image_map: dict[str, str]) -> dict | None:
         name = (g.get("GameName") or "").strip().title()
         if not name:
             return None
@@ -52,15 +77,7 @@ class FloridaScraper(BaseScraper):
             return None
 
         overall_odds = g.get("OverallOdds") or None
-
-        # Image URL: check common field names in the FL API response
-        image_url = None
-        raw_img = (
-            g.get("ImageUrl") or g.get("GameImage") or g.get("imageUrl") or
-            g.get("image") or g.get("thumbnailUrl") or g.get("ThumbnailUrl") or ""
-        )
-        if raw_img:
-            image_url = (BASE_URL + raw_img) if raw_img.startswith("/") else raw_img
+        image_url = image_map.get(game_id)
 
         tiers_raw = g.get("OddsTiers") or []
         tiers = []
