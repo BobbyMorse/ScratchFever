@@ -146,6 +146,22 @@ async def init_db():
                 retailers_count INTEGER NOT NULL DEFAULT 0
             )
         """)
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS user_plays (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                game_name TEXT NOT NULL,
+                game_db_id INTEGER REFERENCES games(id) ON DELETE SET NULL,
+                state_code TEXT,
+                price_paid REAL NOT NULL,
+                prize_won REAL NOT NULL DEFAULT 0,
+                retailer_name TEXT,
+                notes TEXT,
+                played_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                created_at TIMESTAMPTZ DEFAULT NOW()
+            )
+        """)
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_plays_user ON user_plays(user_id, played_at DESC)")
 
 
 async def init_retailer_db():
