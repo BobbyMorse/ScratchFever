@@ -80,7 +80,7 @@ class FloridaScraper(BaseScraper):
         image_url = image_map.get(game_id)
 
         tiers_raw = g.get("OddsTiers") or []
-        tiers = []
+        tiers: list[dict] = []
         total_prizes_printed = 0
         total_prizes_remaining = 0
 
