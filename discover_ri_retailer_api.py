@@ -28,10 +28,14 @@ def main():
                     "google-analytics", "googletagmanager", "facebook", "hotjar"]
             if any(s in url.lower() for s in skip):
                 return
+            try:
+                pd = req.post_data
+            except Exception:
+                pd = None
             captured.append({
                 "method": req.method,
                 "url": url,
-                "post_data": req.post_data,
+                "post_data": pd,
             })
 
         page.on("request", on_request)
