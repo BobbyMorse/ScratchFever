@@ -521,6 +521,96 @@
             </section>
           </div><!-- /huntConsoleAZ -->
 
+          <!-- RI console -->
+          <div id="huntConsoleRI" style="display:none">
+            <section class="stats-row" id="riStatsRow">
+              <div class="stat-card">
+                <div class="stat-value" id="riStatTotal">—</div>
+                <div class="stat-label">Total Retailers</div>
+              </div>
+              <div class="stat-card highlight-green" id="riStatInStockCard" style="display:none">
+                <div class="stat-value" id="riStatInStock">—</div>
+                <div class="stat-label">In Stock</div>
+              </div>
+              <div class="stat-card highlight-red" id="riStatOutCard" style="display:none">
+                <div class="stat-value" id="riStatOut">—</div>
+                <div class="stat-label">Out of Stock</div>
+              </div>
+            </section>
+
+            <section class="filters-bar" role="search" aria-label="Filter Rhode Island retailers">
+              <div class="filter-group" style="min-width:200px;position:relative">
+                <label for="riGameFilterInput">Chasing</label>
+                <div class="game-filter-combo">
+                  <input type="text" id="riGameFilterInput" placeholder="Any game…" oninput="searchRiGameFilter()" onfocus="searchRiGameFilter()" autocomplete="off" />
+                  <button class="game-filter-clear" id="riGameFilterClear" onclick="clearRiGameFilter()" style="display:none">✕</button>
+                </div>
+                <div id="riGameFilterDropdown" class="store-dropdown" style="display:none"></div>
+              </div>
+              <div class="filter-group">
+                <label for="riSearchInput">Store Name</label>
+                <input type="text" id="riSearchInput" placeholder="Store name…" oninput="renderRiTable()" />
+              </div>
+              <div class="filter-group">
+                <label for="riCityInput">City</label>
+                <input type="text" id="riCityInput" placeholder="e.g. Providence…" oninput="renderRiTable()" />
+              </div>
+              <div class="filter-group">
+                <label for="riInvFilter">Inventory</label>
+                <select id="riInvFilter" onchange="renderRiTable()">
+                  <option value="">Any</option>
+                  <option value="in">✅ In Stock</option>
+                  <option value="out">❌ Out of Stock</option>
+                  <option value="checked">Checked</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label for="riDateFilter">Last Checked</label>
+                <select id="riDateFilter" onchange="renderRiTable()">
+                  <option value="">Any</option>
+                  <option value="today">Today</option>
+                  <option value="7d">Last 7 Days</option>
+                  <option value="30d">Last 30 Days</option>
+                </select>
+              </div>
+              <div class="filter-group" style="justify-content:flex-end">
+                <label>&nbsp;</label>
+                <label class="toggle-pill">
+                  <input type="checkbox" id="riShowUnchecked" checked onchange="renderRiTable()" />
+                  <span>Show Unchecked</span>
+                </label>
+              </div>
+              <div class="filter-actions">
+                <button class="btn btn-report" id="riReportInvBtn" onclick="openReportModal()" style="display:none">📍 Report</button>
+                <button class="btn btn-csv" onclick="downloadRiCsv()">⬇ CSV</button>
+                <button class="btn btn-heatmap" onclick="toggleRiMap()">🗺 Map</button>
+              </div>
+            </section>
+
+            <section class="ma-map-section" id="riMapSection" style="display:none">
+              <div id="riMap"></div>
+            </section>
+
+            <section class="table-section">
+              <div class="table-meta">
+                <span id="riResultCount" aria-live="polite">Loading…</span>
+              </div>
+              <div class="table-scroll">
+                <table id="riTable">
+                  <thead>
+                    <tr>
+                      <th>#</th><th>Store Name</th><th>City</th><th>ZIP</th>
+                      <th id="riLastReportTh">Last Report</th><th>Links</th>
+                    </tr>
+                  </thead>
+                  <tbody id="riTableBody">
+                    <tr><td colspan="6" class="loading-cell">Loading retailers…</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div><!-- /huntConsoleRI -->
+
         </div><!-- /hunt-main -->
       </div><!-- /hunt-layout -->
       </div><!-- /tab-ma -->
