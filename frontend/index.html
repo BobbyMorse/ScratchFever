@@ -1018,6 +1018,22 @@
   </div>
 </div>
 
+<!-- ── Inventory notes bottom-sheet ──────────────────────────────────────── -->
+<div class="inv-notes-overlay" id="invNotesOverlay" onclick="closeGameNotes()">
+  <div class="inv-notes-sheet" onclick="event.stopPropagation()">
+    <div class="inv-notes-handle"></div>
+    <div class="inv-notes-title" id="invNotesGameName">Game</div>
+    <span class="inv-notes-lbl">STOCK STATUS</span>
+    <div class="inv-notes-stock-row">
+      <button class="inv-notes-stock-btn" id="invNotesBtnIn" onclick="setInvNotesStock(true)">In Stock</button>
+      <button class="inv-notes-stock-btn" id="invNotesBtnOut" onclick="setInvNotesStock(false)">Out of Stock</button>
+    </div>
+    <span class="inv-notes-lbl">NOTES (OPTIONAL)</span>
+    <textarea class="inv-notes-textarea" id="invNotesText" placeholder="Any details to share…"></textarea>
+    <button class="inv-notes-submit" id="invNotesSubmitBtn" onclick="submitGameNotes()">Submit</button>
+  </div>
+</div>
+
 <script src="/static/js/leaflet.js"></script>
 <script src="/static/js/app.js"></script>
 <script>
