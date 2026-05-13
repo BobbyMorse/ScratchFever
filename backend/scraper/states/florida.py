@@ -56,10 +56,12 @@ class FloridaScraper(BaseScraper):
 
         resp = self.get(API_URL, headers=_HEADERS)
         raw_games = resp.json()
-        logger.info("FL: %d games from API", len(raw_games))
+        today = date.today().isoformat()
+        active = [g for g in raw_games if (g.get("EndDate") or "9999-01-01")[:10] >= today]
+        logger.info("FL: %d active games from API (of %d total)", len(active), len(raw_games))
 
         games = []
-        for g in raw_games:
+        for g in active:
             game = self._parse_game(g, image_map)
             if game:
                 games.append(game)
