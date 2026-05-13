@@ -30,15 +30,22 @@ class DCScraper(BaseScraper):
         slugs = self._collect_slugs()
         logger.info("DC: %d unique game slugs found", len(slugs))
 
-        games = []
-        for slug in slugs:
-            url = f"{BASE_URL}/dc-scratchers/{slug}"
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+
+        def fetch(slug):
             try:
-                game = self._scrape_detail(url, slug)
-                if game:
-                    games.append(game)
+                return self._scrape_detail(f"{BASE_URL}/dc-scratchers/{slug}", slug)
             except Exception as e:
                 logger.debug("DC detail failed %s: %s", slug, e)
+                return None
+
+        games = []
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            futures = {pool.submit(fetch, s): s for s in slugs}
+            for fut in as_completed(futures):
+                game = fut.result()
+                if game:
+                    games.append(game)
 
         logger.info("DC: %d games scraped", len(games))
         return games
