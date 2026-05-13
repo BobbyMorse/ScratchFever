@@ -32,7 +32,12 @@ class NewJerseyScraper(BaseScraper):
         resp = self.get(API_URL, headers=_HEADERS)
         data = resp.json()
         raw_games = data.get("games", [])
-        active = [g for g in raw_games if g.get("validationStatus") == "ACTIVE"]
+        now_ms = time.time() * 1000
+        active = [
+            g for g in raw_games
+            if g.get("validationStatus") == "ACTIVE"
+            and (g.get("endDistributionDate") or 0) > now_ms
+        ]
         logger.info("NJ: %d active games (of %d total)", len(active), len(raw_games))
 
         games = []
