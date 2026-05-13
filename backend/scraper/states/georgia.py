@@ -55,14 +55,8 @@ class GeorgiaScraper(BaseScraper):
         if not price:
             return None
 
-        # Image URL: check common field names in the GA API response
-        image_url = None
-        raw_img = (
-            g.get("imageUrl") or g.get("image") or g.get("thumbnailUrl") or
-            g.get("gameImage") or g.get("ticketImage") or g.get("img") or ""
-        )
-        if raw_img:
-            image_url = (BASE_URL + raw_img) if raw_img.startswith("/") else raw_img
+        # GA API has no image fields; construct URL from game ID using the site's CDN pattern
+        image_url = f"{BASE_URL}/content/dam/portal/images/scratchers-games/{game_id}/thumb.png" if game_id else None
 
         tiers_raw = g.get("prizeTiers") or []
         tiers = []
