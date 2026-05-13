@@ -194,16 +194,16 @@ class DCScraper(BaseScraper):
         return re.sub(r"[^a-z0-9]", "", slug)[:20]
 
     @staticmethod
-    def _extract_overall_odds(page_text: str) -> float | None:
-        """Return the smallest odds denominator found (overall odds < top-prize odds)."""
+    def _extract_odds(page_text: str) -> tuple[float | None, float | None]:
+        """Return (overall_odds, top_prize_odds) — min and max denominators on the page."""
         vals = []
         for m in re.finditer(r"\bOdds\s+1[:/]([\d,]+(?:\.\d+)?)", page_text, re.I):
             try:
-                v = float(m.group(1).replace(",", ""))
-                vals.append(v)
+                vals.append(float(m.group(1).replace(",", "")))
             except ValueError:
                 pass
         if not vals:
-            return None
-        candidate = min(vals)
-        return candidate if candidate < 100 else None
+            return None, None
+        overall = min(vals)
+        top     = max(vals)
+        return (overall if overall < 100 else None), (top if top > 100 else None)
