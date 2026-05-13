@@ -104,14 +104,21 @@ class DCScraper(BaseScraper):
         # Overall odds — "Odds  1:X.XX"  (smallest denominator on the page)
         overall_odds = self._extract_overall_odds(page_text)
 
-        # Image URL
+        # Image URL — prefer ticket image (DC+digits in filename) over generic banners
         image_url = None
-        img = soup.select_one("img[src*='/sites/default/files/']")
-        if img:
-            src = img.get("src") or img.get("data-src") or ""
-            if src:
-                image_url = (BASE_URL + src) if src.startswith("/") else src
-                image_url = image_url.split("?")[0]
+        all_imgs = soup.find_all("img", src=True)
+        ticket_img = next(
+            (i for i in all_imgs if re.search(r"/DC\d+", i["src"], re.I)),
+            None,
+        ) or next(
+            (i for i in all_imgs if "/sites/default/files/" in i["src"]
+             and "inline-images" not in i["src"]),
+            None,
+        )
+        if ticket_img:
+            src = ticket_img["src"]
+            image_url = (BASE_URL + src) if src.startswith("/") else src
+            image_url = image_url.split("?")[0]
 
         # Prize table
         tiers = []
