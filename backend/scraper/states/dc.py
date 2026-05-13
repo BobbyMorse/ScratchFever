@@ -101,8 +101,8 @@ class DCScraper(BaseScraper):
         if not price:
             return None
 
-        # Overall odds — "Odds  1:X.XX"  (smallest denominator on the page)
-        overall_odds = self._extract_overall_odds(page_text)
+        # Extract all odds values from page; smallest = overall, largest = top-prize
+        overall_odds, top_prize_odds = self._extract_odds(page_text)
 
         # Image URL — prefer ticket image (DC+digits in filename) over generic banners
         image_url = None
