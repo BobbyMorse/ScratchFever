@@ -148,11 +148,16 @@ class DCScraper(BaseScraper):
                 total_tickets = round(overall_odds * total_prizes)
 
             if total_tickets and total_prizes > 0:
-                for t in tiers:
-                    if t.get("prizes_total"):
-                        t["odds_one_in"] = round(total_tickets / t["prizes_total"], 2)
-                if remaining_prizes > 0:
-                    tickets_remaining = round(total_tickets * remaining_prizes / total_prizes)
+                # If total prizes exceeds total tickets the prize table is counting
+                # per-play wins (multi-play game) — EV is undefined, skip it.
+                if total_prizes > total_tickets:
+                    total_tickets = None
+                else:
+                    for t in tiers:
+                        if t.get("prizes_total"):
+                            t["odds_one_in"] = round(total_tickets / t["prizes_total"], 2)
+                    if remaining_prizes > 0:
+                        tickets_remaining = round(total_tickets * remaining_prizes / total_prizes)
 
         return self.build_game(
             game_id=str(game_id),
