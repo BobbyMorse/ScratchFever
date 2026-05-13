@@ -25,10 +25,11 @@ class CaliforniaScraper(BaseScraper):
         resp = self.get(API_URL)
         data = resp.json()
         raw_games = data.get("games", []) if isinstance(data, dict) else data
-        logger.info("CA: %d games from API", len(raw_games))
+        active = [g for g in raw_games if g.get("state") == "Active"]
+        logger.info("CA: %d active games from API (of %d total)", len(active), len(raw_games))
 
         games = []
-        for g in raw_games:
+        for g in active:
             game = self._parse_game(g)
             if game:
                 games.append(game)
