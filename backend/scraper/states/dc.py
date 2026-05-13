@@ -130,18 +130,29 @@ class DCScraper(BaseScraper):
                     break
 
         # Ticket counts
+        # Use top-prize odds × top-prize count for total tickets — mathematically exact
+        # (if there are N jackpots and odds are 1:X, there are exactly N×X tickets).
+        # This avoids the multi-play / missing-free-ticket issue where "Overall Odds"
+        # on DC's site can refer to per-play odds rather than per-ticket odds.
         total_tickets = None
         tickets_remaining = None
-        if tiers and overall_odds:
+        if tiers:
             total_prizes     = sum(t.get("prizes_total") or 0 for t in tiers)
             remaining_prizes = sum(t.get("prizes_remaining") or 0 for t in tiers)
-            if total_prizes > 0:
+            top_tier = max(tiers, key=lambda t: t.get("prize_amount", 0), default=None)
+            top_count = (top_tier or {}).get("prizes_total") or 0
+
+            if top_prize_odds and top_count:
+                total_tickets = round(top_prize_odds * top_count)
+            elif overall_odds and total_prizes:
                 total_tickets = round(overall_odds * total_prizes)
+
+            if total_tickets and total_prizes > 0:
                 for t in tiers:
                     if t.get("prizes_total"):
                         t["odds_one_in"] = round(total_tickets / t["prizes_total"], 2)
-            if remaining_prizes > 0:
-                tickets_remaining = round(overall_odds * remaining_prizes)
+                if remaining_prizes > 0:
+                    tickets_remaining = round(total_tickets * remaining_prizes / total_prizes)
 
         return self.build_game(
             game_id=str(game_id),
