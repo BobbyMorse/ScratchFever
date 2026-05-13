@@ -195,11 +195,20 @@ class DCScraper(BaseScraper):
 
     @staticmethod
     def _extract_odds(page_text: str) -> tuple[float | None, float | None]:
-        """Return (overall_odds, top_prize_odds) — min and max denominators on the page."""
+        """Return (overall_odds, top_prize_odds) — min and max denominators on the page.
+        Handles DC's quirk of using colons as thousands separators (e.g. '1:183:420.00')."""
         vals = []
-        for m in re.finditer(r"\bOdds\s+1[:/]([\d,]+(?:\.\d+)?)", page_text, re.I):
+        for m in re.finditer(r"\bOdds\s+1[:/]([\d,.: ]+)", page_text, re.I):
+            raw = m.group(1).strip()
+            # Strip internal colons/commas/spaces, preserving the decimal point
+            if "." in raw:
+                int_part, dec_part = raw.rsplit(".", 1)
+                int_part = re.sub(r"[,:\s]", "", int_part)
+                clean = f"{int_part}.{dec_part.strip()}"
+            else:
+                clean = re.sub(r"[,:\s]", "", raw)
             try:
-                vals.append(float(m.group(1).replace(",", "")))
+                vals.append(float(clean))
             except ValueError:
                 pass
         if not vals:
