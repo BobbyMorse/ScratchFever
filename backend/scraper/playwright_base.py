@@ -8,8 +8,13 @@ and is automatically torn down when safe_scrape() exits.
 """
 from __future__ import annotations
 import logging
+import os
 from bs4 import BeautifulSoup
 from backend.scraper.base import BaseScraper, HEADERS
+
+# Ensure Playwright finds Chromium in the path used during the nixpacks build.
+# Railway's startCommand env-var prefix doesn't always propagate to subprocesses.
+os.environ.setdefault("PLAYWRIGHT_BROWSERS_PATH", "/app/.playwright")
 
 logger = logging.getLogger(__name__)
 
