@@ -1,0 +1,13 @@
+name = "scan-ticket"
+main = "worker.js"
+compatibility_date = "2024-09-23"
+
+# Routes: intercept /api/scan-ticket on the main domain so the mobile app
+# needs zero changes. Requires scratchfever.app DNS proxied through Cloudflare.
+[[routes]]
+pattern = "scratchfever.app/api/scan-ticket"
+zone_name = "scratchfever.app"
+
+# Secrets — never stored here, set via CLI:
+#   wrangler secret put SECRET_KEY          (same value as Railway SECRET_KEY)
+#   wrangler secret put GOOGLE_GEMINI_API_KEY
