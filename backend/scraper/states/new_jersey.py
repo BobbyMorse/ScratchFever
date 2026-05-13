@@ -8,6 +8,7 @@ API: https://www.njlottery.com/api/v1/instant-games/games?size=500
 """
 from __future__ import annotations
 import logging
+import time
 from backend.scraper.base import BaseScraper
 
 logger = logging.getLogger(__name__)
