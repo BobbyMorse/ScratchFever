@@ -33,7 +33,12 @@ class GeorgiaScraper(BaseScraper):
         resp = self.get(API_URL, headers=_HEADERS)
         data = resp.json()
         raw_games = data.get("games", []) if isinstance(data, dict) else data
-        active = [g for g in raw_games if g.get("validationStatus") == "ACTIVE"]
+        now_ms = time.time() * 1000
+        active = [
+            g for g in raw_games
+            if g.get("validationStatus") == "ACTIVE"
+            and (g.get("endDistributionDate") or 0) > now_ms
+        ]
         logger.info("GA: %d active games from API (of %d total)", len(active), len(raw_games))
 
         games = []
