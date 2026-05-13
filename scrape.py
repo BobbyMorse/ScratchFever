@@ -8,6 +8,8 @@ Usage:
 import sys
 import asyncio
 import logging
+from dotenv import load_dotenv
+load_dotenv()
 from backend.database import init_db
 from backend.scraper.runner import run_all
 
