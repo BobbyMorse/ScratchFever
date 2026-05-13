@@ -70,8 +70,27 @@ async def check_and_run_stale_retailers():
         logger.error("Retailer staleness check failed: %s", e)
 
 
+def _ensure_playwright_chromium():
+    """Install Chromium if not present — self-heals stale Railway build cache."""
+    import subprocess, sys
+    browsers_path = os.environ.get("PLAYWRIGHT_BROWSERS_PATH", "/app/.playwright")
+    os.environ["PLAYWRIGHT_BROWSERS_PATH"] = browsers_path
+    try:
+        result = subprocess.run(
+            [sys.executable, "-m", "playwright", "install", "chromium"],
+            capture_output=True, text=True, timeout=120,
+        )
+        if result.returncode == 0:
+            logger.info("Playwright Chromium ready at %s", browsers_path)
+        else:
+            logger.warning("playwright install chromium exited %d: %s", result.returncode, result.stderr[:200])
+    except Exception as e:
+        logger.warning("playwright install chromium failed: %s", e)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    await asyncio.to_thread(_ensure_playwright_chromium)
     await init_db()
     await init_caller_db()
     await init_users_db()
