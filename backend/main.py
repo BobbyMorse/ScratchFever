@@ -73,7 +73,7 @@ async def check_and_run_stale_retailers():
 def _ensure_playwright_chromium():
     """Install Chromium if not present — self-heals stale Railway build cache."""
     import subprocess, sys
-    browsers_path = os.environ.get("PLAYWRIGHT_BROWSERS_PATH", "/app/.playwright")
+    browsers_path = os.environ.get("PLAYWRIGHT_BROWSERS_PATH") or "/app/.playwright"
     os.environ["PLAYWRIGHT_BROWSERS_PATH"] = browsers_path
     try:
         result = subprocess.run(
