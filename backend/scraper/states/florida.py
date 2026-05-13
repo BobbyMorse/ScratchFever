@@ -81,6 +81,7 @@ class FloridaScraper(BaseScraper):
 
         tiers_raw = g.get("OddsTiers") or []
         tiers: list[dict] = []
+        seen: set[tuple] = set()
         total_prizes_printed = 0
         total_prizes_remaining = 0
 
@@ -92,6 +93,11 @@ class FloridaScraper(BaseScraper):
 
             if not prize or prize <= 0 or total <= 0:
                 continue
+
+            key = (prize, total)
+            if key in seen:
+                continue
+            seen.add(key)
 
             total_prizes_printed += total
             total_prizes_remaining += remaining
