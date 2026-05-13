@@ -33,6 +33,7 @@ from backend.users import init_users_db, seed_admin, require_member, require_adm
 from backend.auth_api import router as auth_router
 from backend.retailer_api import router as retailer_router, public_router as retailer_public_router
 from backend.plays_api import router as plays_router
+from backend.ocr_api import router as ocr_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -127,6 +128,7 @@ app.include_router(caller_api_router)
 app.include_router(retailer_router)
 app.include_router(retailer_public_router)
 app.include_router(plays_router)
+app.include_router(ocr_router)
 
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
 if os.path.isdir(FRONTEND_DIR):
