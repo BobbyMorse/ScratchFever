@@ -103,8 +103,14 @@ class RhodeIslandScraper(BaseScraper):
             logger.warning("RI: no API data captured")
             return []
 
+        import time as _time
         raw_games = _data[0].get("games", [])
-        active = [g for g in raw_games if g.get("validationStatus") == "ACTIVE"]
+        now_ms = _time.time() * 1000
+        active = [
+            g for g in raw_games
+            if g.get("validationStatus") == "ACTIVE"
+            and (g.get("endDistributionDate") or 0) > now_ms
+        ]
         logger.info("RI: %d active games from API (of %d total)", len(active), len(raw_games))
 
         games = []
