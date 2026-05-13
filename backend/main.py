@@ -90,7 +90,7 @@ def _ensure_playwright_chromium():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await asyncio.to_thread(_ensure_playwright_chromium)
+    asyncio.create_task(asyncio.to_thread(_ensure_playwright_chromium))
     await init_db()
     await init_caller_db()
     await init_users_db()
