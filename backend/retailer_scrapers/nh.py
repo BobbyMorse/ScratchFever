@@ -84,8 +84,12 @@ def _playwright_scrape() -> list[dict]:
     def handle_route(route, request):
         url = request.url
         low = url.lower()
+        # Only intercept XHR/fetch calls, not document/page navigations
+        if request.resource_type not in ("xhr", "fetch"):
+            route.continue_()
+            return
         # Intercept any request that looks like a retailer search endpoint
-        if any(kw in low for kw in ("retailer", "store", "location", "locator", "dealer", "vendor", "where")):
+        if any(kw in low for kw in ("retailer", "store", "location", "locator", "dealer", "vendor", "where", "find")):
             if api_info["url"] is None:
                 api_info["url"] = url
                 api_info["method"] = request.method
