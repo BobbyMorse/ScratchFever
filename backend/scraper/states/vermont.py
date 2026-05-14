@@ -223,5 +223,6 @@ class VermontScraper(BaseScraper):
             "prize_pool_left":      total_unclaimed,
             "detail_url":           url,
             "image_url":            image_url,
+            "end_date":             end_date,
             "tiers":                tiers,
         }
