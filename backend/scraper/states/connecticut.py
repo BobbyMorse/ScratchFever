@@ -53,6 +53,8 @@ class ConnecticutScraper(BaseScraper):
                 col["price"] = i
             elif "top prize" in h and "unclaimed" not in h:
                 col["top_prize"] = i
+            elif "redeem" in h or "last day" in h:
+                col["end_date"] = i
 
         if "name" not in col:
             logger.warning("CT: listing table missing 'Game Name' column")
