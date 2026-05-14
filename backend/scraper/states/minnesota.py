@@ -27,21 +27,30 @@ class MinnesotaScraper(BaseScraper):
         games = []
         seen = set()
 
+        # Collect the first anchor per unique slug
+        slug_to_anchor = {}
         for a in soup.find_all("a", href=True):
-            try:
-                href = a.get("href", "")
-                if not re.search(r"/games/scratch/[a-z0-9-]+", href):
-                    continue
-                slug = href.rstrip("/").split("/")[-1]
-                if not slug or slug in seen or not re.search(r"[a-z]", slug):
-                    continue
+            href = a.get("href", "")
+            if not re.search(r"/games/scratch/[a-z0-9-]+", href):
+                continue
+            slug = href.rstrip("/").split("/")[-1]
+            if slug and re.search(r"[a-z]", slug) and slug not in slug_to_anchor:
+                slug_to_anchor[slug] = a
 
-                # Navigate up from the link to find a card container that has
-                # both a heading (game name) and a dollar amount (price).
+        for slug, a in slug_to_anchor.items():
+            if slug in seen:
+                continue
+            try:
+                # Navigate up until we find a container that holds exactly this
+                # one slug (handles cards with both an image link and "Learn More" link).
                 card = a
                 for _ in range(6):
-                    heading = card.find(["h2", "h3", "h4", "h5", "h6"])
-                    if heading and re.search(r"\$\s*\d+", card.get_text()):
+                    slugs_in_card = {
+                        x.get("href","").rstrip("/").split("/")[-1]
+                        for x in card.find_all("a", href=True)
+                        if re.search(r"/games/scratch/[a-z0-9-]+", x.get("href",""))
+                    }
+                    if slugs_in_card == {slug}:
                         break
                     if card.parent:
                         card = card.parent
@@ -58,6 +67,7 @@ class MinnesotaScraper(BaseScraper):
                     continue
 
                 seen.add(slug)
+                href = a.get("href", "")
                 detail_url = (BASE_URL + href) if href.startswith("/") else href
 
                 tiers, tickets_remaining, total_tickets = [], None, None
