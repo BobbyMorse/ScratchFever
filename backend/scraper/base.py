@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 import requests
 from bs4 import BeautifulSoup
 
-from backend.ev_calculator import calculate_ev, calculate_jackpot_odds, calculate_top_prize_odds, find_top_prize, parse_prize_amount, parse_odds
+from backend.ev_calculator import calculate_ev, calculate_jackpot_odds, find_top_prize, parse_prize_amount, parse_odds
 
 logger = logging.getLogger(__name__)
 
