@@ -82,31 +82,34 @@ def _playwright_scrape() -> list[dict]:
     seen_ids: set[str] = set()
 
     def handle_route(route, request):
+        from urllib.parse import urlparse
         url = request.url
-        low = url.lower()
         # Only intercept XHR/fetch calls, not document/page navigations
         if request.resource_type not in ("xhr", "fetch"):
             route.continue_()
             return
-        # Only intercept first-party requests (nhlottery.com)
-        if "nhlottery.com" not in url:
+        # Only intercept first-party requests — check the actual hostname, not query params
+        hostname = urlparse(url).hostname or ""
+        if "nhlottery.com" not in hostname:
             route.continue_()
             return
-        # Intercept any request that looks like a retailer search endpoint
-        if any(kw in low for kw in ("retailer", "store", "location", "locator", "dealer", "vendor", "where")):
-            if api_info["url"] is None:
-                api_info["url"] = url
-                api_info["method"] = request.method
-                api_info["req_headers"] = dict(request.headers)
-                api_info["post_body"] = request.post_data
-                logger.info("NH: discovered retailer API: %s %s", request.method, url)
-            # Fetch and capture results for this request
-            try:
-                resp = route.fetch()
-                if resp.ok:
+        # Try all first-party XHR/fetch requests for retailer data
+        try:
+            resp = route.fetch()
+            if resp.ok:
+                before = len(retailers)
+                try:
                     _parse_and_add(resp.json(), seen_ids, retailers)
-            except Exception as e:
-                logger.debug("NH: route fetch error: %s", e)
+                except Exception:
+                    pass
+                if api_info["url"] is None and len(retailers) > before:
+                    api_info["url"] = url
+                    api_info["method"] = request.method
+                    api_info["req_headers"] = dict(request.headers)
+                    api_info["post_body"] = request.post_data
+                    logger.info("NH: discovered retailer API: %s %s", request.method, url)
+        except Exception as e:
+            logger.debug("NH: route fetch error: %s", e)
         route.continue_()
 
     with sync_playwright() as pw:
