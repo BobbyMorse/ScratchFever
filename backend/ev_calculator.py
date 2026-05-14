@@ -82,37 +82,6 @@ def calculate_jackpot_odds(tiers: list[dict], tickets_remaining: int = None) -> 
         return round(1 / total_prob, 1)
 
 
-def calculate_top_prize_odds(tiers: list[dict], tickets_remaining: int = None) -> float | None:
-    """1-in-X odds of winning the top prize per ticket (any prize amount)."""
-    if not tiers:
-        return None
-    top_amount = max((t.get("prize_amount") or 0) for t in tiers)
-    if top_amount <= 0:
-        return None
-    top_tiers = [t for t in tiers if (t.get("prize_amount") or 0) >= top_amount]
-
-    use_remaining = (
-        tickets_remaining is not None
-        and tickets_remaining > 0
-        and all(t.get("prizes_remaining") is not None for t in top_tiers)
-    )
-
-    if use_remaining:
-        total = sum(t.get("prizes_remaining", 0) or 0 for t in top_tiers)
-        if total <= 0:
-            return None
-        return round(tickets_remaining / total, 1)
-    else:
-        total_prob = sum(
-            1 / t["odds_one_in"]
-            for t in top_tiers
-            if t.get("odds_one_in") and t["odds_one_in"] > 0
-        )
-        if total_prob <= 0:
-            return None
-        return round(1 / total_prob, 1)
-
-
 def find_top_prize(tiers: list[dict]) -> tuple[float, int]:
     if not tiers:
         return 0, None
