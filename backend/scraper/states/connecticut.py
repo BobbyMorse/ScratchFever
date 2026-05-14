@@ -139,6 +139,7 @@ class ConnecticutScraper(BaseScraper):
                 overall_odds=overall_odds,
                 detail_url=detail_url,
                 image_url=f"https://www.ctlottery.org/Content/images/Scratch/thumbnails/{game_num}.jpg",
+                end_date=end_date,
             ))
 
         logger.info("CT: %d games scraped", len(games))
