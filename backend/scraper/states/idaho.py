@@ -51,7 +51,7 @@ class IdahoScraper(BaseScraper):
                 if not slug or slug in seen or re.match(r"^\d+$", slug):
                     continue
 
-                name_el = a.find(["h2", "h3", "h4", "span"])
+                name_el = a.find(["h2", "h3", "h4", "h5", "span"])
                 name = name_el.get_text(strip=True) if name_el else a.get_text(strip=True)
                 if not name:
                     continue
