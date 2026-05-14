@@ -283,7 +283,7 @@ async def upsert_prize_tiers(conn: asyncpg.Connection, game_db_id: int, tiers: l
 
 async def get_all_games(conn, state=None, min_price=None, max_price=None,
                         min_return=None, sort_by="return_pct", limit=500):
-    allowed_sorts = {"return_pct", "ev", "price", "name", "state_code", "top_prize", "overall_odds_one_in", "jackpot_odds_one_in"}
+    allowed_sorts = {"return_pct", "ev", "price", "name", "state_code", "top_prize", "overall_odds_one_in", "jackpot_odds_one_in", "top_prize_odds_one_in"}
     if sort_by not in allowed_sorts:
         sort_by = "return_pct"
 
