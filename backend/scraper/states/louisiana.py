@@ -40,7 +40,7 @@ class LouisianaScraper(BaseScraper):
             if not name:
                 continue
 
-            # Price and odds from <dl><div><dt>label</dt><dd>value</dd></div></dl>
+            # Price and odds — try dl/dt/dd first (old layout), fall back to regex on card text
             price = None
             overall_odds = None
             for div in a.select("dl div"):
@@ -54,6 +54,14 @@ class LouisianaScraper(BaseScraper):
                     price = parse_prize_amount(value)
                 elif "overall odds" in label:
                     overall_odds = parse_odds(value.replace(":", " in "))
+            if not price:
+                card_text = a.get_text(" ", strip=True)
+                pm = re.search(r"Ticket\s+Price\s+\$?([\d.]+)", card_text, re.I)
+                if pm:
+                    price = float(pm.group(1))
+                om = re.search(r"Overall\s+Odds\s+1[:\s]+([\d.]+)", card_text, re.I)
+                if om:
+                    overall_odds = parse_odds(om.group(1))
 
             if not price:
                 continue
