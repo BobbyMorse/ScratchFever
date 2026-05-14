@@ -376,7 +376,7 @@ body {
 }
 .bigwins-ticker-track {
   display: inline-flex; gap: .6rem; white-space: nowrap;
-  animation: bigwins-ticker 480s linear infinite;
+  animation: bigwins-ticker 1200s linear infinite;
 }
 .bigwins-ticker-track:hover { animation-play-state: paused; }
 @keyframes bigwins-ticker {
