@@ -137,4 +137,5 @@ class FloridaScraper(BaseScraper):
             tickets_remaining=tickets_remaining,
             detail_url=detail_url,
             image_url=image_url,
+            end_date=end_date,
         )
