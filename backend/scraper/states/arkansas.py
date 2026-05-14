@@ -39,7 +39,7 @@ class ArkansasScraper(BaseScraper):
             # Name from img alt: "$200,000 Bonus Cash - Game No. 895" → strip " - Game No. XXX"
             img = a.find("img")
             alt = img.get("alt", "").strip() if img else ""
-            name = re.sub(r"\s*-\s*Game\s+No\.?\s*\d+\s*$", "", alt, flags=re.I).strip()
+            name = re.sub(r"\s*-\s*Game\s+No\.?\s*\d+.*$", "", alt, flags=re.I).strip()
             if not name:
                 continue
 
