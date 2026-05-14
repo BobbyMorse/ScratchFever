@@ -353,7 +353,7 @@ async def get_states_summary(conn):
                AVG(return_pct) as avg_return,
                MAX(return_pct) as best_return
         FROM games
-        WHERE is_active=TRUE
+        WHERE is_active=TRUE AND ev IS NOT NULL
         GROUP BY state_code, state_name
         ORDER BY state_name
     """)
