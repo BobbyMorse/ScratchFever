@@ -27,46 +27,46 @@ class MinnesotaScraper(BaseScraper):
         games = []
         seen = set()
 
-        items = soup.select("[data-game-id]")
-
-        for item in items:
+        for a in soup.find_all("a", href=True):
             try:
-                name_el = item.select_one(".card--lottery-headline")
-                price_el = item.select_one(".lottery-details")
-                link = item.select_one("a[href*='/games/scratch/']")
-
-                if not name_el or not link:
+                href = a.get("href", "")
+                if not re.search(r"/games/scratch/[a-z0-9-]+", href):
                     continue
-                name = name_el.get_text(strip=True)
+                slug = href.rstrip("/").split("/")[-1]
+                if not slug or slug in seen or not re.search(r"[a-z]", slug):
+                    continue
+
+                # Name from any heading inside the link, or image alt, or link text
+                name_el = a.find(["h2", "h3", "h4", "h5", "h6"])
+                if name_el:
+                    name = name_el.get_text(strip=True)
+                else:
+                    img = a.find("img")
+                    if img and img.get("alt"):
+                        name = img["alt"].strip()
+                    else:
+                        name = a.get_text(strip=True)
                 if not name:
                     continue
 
-                price_txt = price_el.get_text(strip=True) if price_el else ""
-                price = parse_prize_amount(price_txt)
-                if not price:
-                    m = re.search(r"\$(\d+)", item.get_text())
-                    price = float(m.group(1)) if m else None
+                # Price: first dollar amount in card text
+                card_text = a.get_text(" ", strip=True)
+                pm = re.search(r"\$\s*(\d+(?:\.\d+)?)", card_text)
+                price = float(pm.group(1)) if pm else None
                 if not price:
                     continue
 
-                href = link.get("href", "")
-                detail_url = (BASE_URL + href) if href.startswith("/") else href or None
-                if detail_url in seen:
-                    continue
-                seen.add(detail_url or name)
-
-                m_id = re.search(r"/([a-z0-9-]+)/?$", href)
-                game_id = m_id.group(1) if m_id else re.sub(r"[^a-z0-9]", "", name.lower())[:20]
+                seen.add(slug)
+                detail_url = (BASE_URL + href) if href.startswith("/") else href
 
                 tiers, tickets_remaining, total_tickets = [], None, None
-                if detail_url:
-                    try:
-                        tiers, tickets_remaining, total_tickets = self._scrape_detail(detail_url)
-                    except Exception as e:
-                        logger.debug("MN detail failed for %s: %s", name, e)
+                try:
+                    tiers, tickets_remaining, total_tickets = self._scrape_detail(detail_url)
+                except Exception as e:
+                    logger.debug("MN detail failed for %s: %s", name, e)
 
                 games.append(self.build_game(
-                    game_id=str(game_id),
+                    game_id=slug,
                     name=name,
                     price=price,
                     tiers=tiers,
