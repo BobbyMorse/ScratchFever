@@ -101,7 +101,7 @@ class VermontScraper(BaseScraper):
                 slug = href.lstrip("/")
                 detail_url = BASE_URL + href
                 try:
-                    game = self._scrape_detail(slug, detail_url)
+                    game = self._scrape_detail(slug, detail_url, end_date_map, today)
                     if game:
                         games.append(game)
                 except Exception as e:
