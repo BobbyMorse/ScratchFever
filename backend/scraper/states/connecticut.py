@@ -88,34 +88,20 @@ class ConnecticutScraper(BaseScraper):
 
             # Last day to redeem — skip expired games
             end_date = None
+            expired = False
             if col.get("end_date") is not None and col["end_date"] < len(cells):
                 raw_date = cells[col["end_date"]].strip()
-                if raw_date:
-                    for fmt in ("%m/%d/%Y", "%m/%d/%y", "%Y-%m-%d"):
-                        try:
-                            parsed = datetime.strptime(raw_date, fmt).date()
-                            if parsed < date.today():
-                                break  # skip this game
+                for fmt in ("%m/%d/%Y", "%m/%d/%y", "%Y-%m-%d"):
+                    try:
+                        parsed = datetime.strptime(raw_date, fmt).date()
+                        if parsed < date.today():
+                            expired = True
+                        else:
                             end_date = parsed.isoformat()
-                            break
-                        except ValueError:
-                            continue
-                    else:
-                        pass  # unknown format, proceed without end_date
-                    if end_date is None and raw_date:
-                        # If we parsed a date but it was expired, skip
-                        try:
-                            for fmt in ("%m/%d/%Y", "%m/%d/%y", "%Y-%m-%d"):
-                                try:
-                                    parsed = datetime.strptime(raw_date, fmt).date()
-                                    if parsed < date.today():
-                                        game_num = None  # signal to skip
-                                    break
-                                except ValueError:
-                                    continue
-                        except Exception:
-                            pass
-            if game_num is None:
+                        break
+                    except ValueError:
+                        continue
+            if expired:
                 continue
 
             detail_url = f"{BASE_URL}/ScratchGames/{game_num}/"
