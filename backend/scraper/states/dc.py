@@ -190,6 +190,7 @@ class DCScraper(BaseScraper):
             overall_odds=overall_odds,
             detail_url=url,
             image_url=image_url,
+            end_date=end_date,
         )
 
     # ── helpers ───────────────────────────────────────────────────────────────
