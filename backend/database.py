@@ -119,7 +119,6 @@ async def init_db():
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_claims_detected ON prize_claims(detected_at DESC)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_claims_prize_detected ON prize_claims(prize_amount, detected_at DESC)")
         await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS jackpot_odds_one_in REAL")
-        await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS top_prize_odds_one_in REAL")
         await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS how_to_play TEXT")
         await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS end_date DATE")
         await conn.execute("""
