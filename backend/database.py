@@ -287,7 +287,7 @@ async def get_all_games(conn, state=None, min_price=None, max_price=None,
     if cache_key in _games_cache:
         return _games_cache[cache_key]
 
-    conditions = ["g.is_active = TRUE", "g.ev IS NOT NULL"]
+    conditions = ["g.is_active = TRUE", "g.ev IS NOT NULL", "(g.end_date IS NULL OR g.end_date >= CURRENT_DATE)"]
     params = []
 
     if state:
