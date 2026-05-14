@@ -38,7 +38,37 @@ class VermontScraper(BaseScraper):
     state_name = "Vermont"
     base_url = BASE_URL
 
+    def _fetch_end_date_map(self) -> dict[str, str]:
+        """Return {game_number: end_date_iso} from the last-day-to-redeem page.
+        Games with end_date in the past are filtered out by the caller."""
+        result: dict[str, str] = {}
+        try:
+            soup = self.soup(END_DATE_URL)
+            for row in soup.select("table tr"):
+                cells = row.find_all(["td", "th"])
+                if len(cells) < 5:
+                    continue
+                game_num = cells[0].get_text(strip=True)
+                game_end_text = cells[4].get_text(strip=True)
+                if not game_num.isdigit() or not game_end_text or game_end_text.upper() == "TBD":
+                    continue
+                try:
+                    parsed = datetime.strptime(game_end_text, "%m/%d/%y").date()
+                    result[game_num] = parsed.isoformat()
+                except ValueError:
+                    try:
+                        parsed = datetime.strptime(game_end_text, "%m/%d/%Y").date()
+                        result[game_num] = parsed.isoformat()
+                    except ValueError:
+                        pass
+            logger.info("VT: end date map built for %d games", len(result))
+        except Exception as e:
+            logger.warning("VT: failed to fetch end date map: %s", e)
+        return result
+
     def scrape(self) -> list[dict]:
+        end_date_map = self._fetch_end_date_map()
+        today = date.today().isoformat()
         games = []
         seen = set()
 
