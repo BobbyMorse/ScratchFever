@@ -107,6 +107,11 @@ class GeorgiaScraper(BaseScraper):
                 if t["prizes_total"] and total_tickets:
                     t["odds_one_in"] = round(total_tickets / t["prizes_total"], 2)
 
+        end_date = None
+        end_ms = g.get("endDistributionDate")
+        if end_ms:
+            end_date = datetime.fromtimestamp(end_ms / 1000, tz=timezone.utc).date().isoformat()
+
         return self.build_game(
             game_id=game_id,
             name=name,
@@ -116,4 +121,5 @@ class GeorgiaScraper(BaseScraper):
             tickets_remaining=tickets_remaining,
             detail_url=f"{BASE_URL}/en-us/games/scratchers.html",
             image_url=image_url,
+            end_date=end_date,
         )
