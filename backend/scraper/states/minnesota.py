@@ -36,21 +36,22 @@ class MinnesotaScraper(BaseScraper):
                 if not slug or slug in seen or not re.search(r"[a-z]", slug):
                     continue
 
-                # Name from any heading inside the link, or image alt, or link text
-                name_el = a.find(["h2", "h3", "h4", "h5", "h6"])
-                if name_el:
-                    name = name_el.get_text(strip=True)
-                else:
-                    img = a.find("img")
-                    if img and img.get("alt"):
-                        name = img["alt"].strip()
-                    else:
-                        name = a.get_text(strip=True)
+                # Navigate up from the link to find a card container that has
+                # both a heading (game name) and a dollar amount (price).
+                card = a
+                for _ in range(6):
+                    heading = card.find(["h2", "h3", "h4", "h5", "h6"])
+                    if heading and re.search(r"\$\s*\d+", card.get_text()):
+                        break
+                    if card.parent:
+                        card = card.parent
+
+                name_el = card.find(["h2", "h3", "h4", "h5", "h6"])
+                name = name_el.get_text(strip=True) if name_el else ""
                 if not name:
                     continue
 
-                # Price: first dollar amount in card text
-                card_text = a.get_text(" ", strip=True)
+                card_text = card.get_text(" ", strip=True)
                 pm = re.search(r"\$\s*(\d+(?:\.\d+)?)", card_text)
                 price = float(pm.group(1)) if pm else None
                 if not price:
