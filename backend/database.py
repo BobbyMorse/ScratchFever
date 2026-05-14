@@ -308,7 +308,7 @@ async def get_all_games(conn, state=None, min_price=None, max_price=None,
         conditions.append(f"g.return_pct >= ${len(params)}")
 
     params.append(limit)
-    direction = "ASC" if sort_by in ("price", "name", "jackpot_odds_one_in") else "DESC"
+    direction = "ASC" if sort_by in ("price", "name", "jackpot_odds_one_in", "top_prize_odds_one_in") else "DESC"
     query = f"""
         SELECT g.id, g.state_code, g.state_name, g.game_id, g.name, g.price,
                g.ev, g.return_pct, g.overall_odds_one_in,
