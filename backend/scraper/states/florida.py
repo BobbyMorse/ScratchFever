@@ -81,6 +81,7 @@ class FloridaScraper(BaseScraper):
 
         overall_odds = g.get("OverallOdds") or None
         image_url = image_map.get(game_id)
+        end_date = (g.get("EndDate") or "")[:10] or None
 
         tiers_raw = g.get("OddsTiers") or []
         tiers: list[dict] = []
