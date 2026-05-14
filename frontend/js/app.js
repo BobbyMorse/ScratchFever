@@ -711,7 +711,7 @@ function gameRow(g, rank) {
     <td>${odds}</td>
     <td>${left}</td>
     <td>${pool}</td>
-    <td style="color:var(--text-muted);font-size:.8rem">${updated}</td>
+    <td style="color:var(--text-muted);font-size:.8rem" title="${updatedFull}">${updated}</td>
     <td onclick="event.stopPropagation()">
       <button class="btn-campaign-launch" onclick="launchCampaign('${nameEsc}', ${g.price}, '${escHtml(g.game_id)}')" title="Create calling campaign for this game">📞</button>
     </td>
