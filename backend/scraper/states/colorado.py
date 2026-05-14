@@ -72,9 +72,11 @@ class ColoradoScraper(BaseScraper):
         if price_el:
             price = parse_prize_amount(price_el.get_text(strip=True))
         if not price:
-            # Search in page text
             text = soup.get_text()
+            # Try "$X scratch/ticket/game" or "Ticket Price $X" / "Price: $X"
             m = re.search(r"\$(\d+)\s+(?:scratch|ticket|game)", text, re.I)
+            if not m:
+                m = re.search(r"(?:ticket\s+)?price[:\s]+\$?(\d+)", text, re.I)
             if m:
                 price = float(m.group(1))
         if not price:
