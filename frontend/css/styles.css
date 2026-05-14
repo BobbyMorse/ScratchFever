@@ -379,6 +379,13 @@ body {
   animation: bigwins-ticker 1200s linear infinite;
 }
 .bigwins-ticker-track:hover { animation-play-state: paused; }
+.bigwins-freshness {
+  text-align: center;
+  font-size: .68rem;
+  color: #64748b;
+  padding: 2px 0 3px;
+  letter-spacing: .03em;
+}
 @keyframes bigwins-ticker {
   0%   { transform: translateX(0); }
   100% { transform: translateX(-50%); }
