@@ -449,13 +449,32 @@ async def api_debug_fetch(url: str = Query(...)):
     soup = _BS(r.text, "lxml")
     all_links = soup.find_all("a", href=True)
     scratch_links = [a["href"] for a in all_links if "scratch" in a.get("href","").lower()]
+
+    # Inspect first data-game-id element
+    game_id_els = soup.select("[data-game-id]")
+    game_id_info = []
+    for el in game_id_els[:2]:
+        child_classes = [" ".join(c.get("class", [])) for c in el.find_all(True)[:8]]
+        headings = [h.get_text(strip=True) for h in el.find_all(["h2","h3","h4","h5","h6"])[:3]]
+        prices = [p.get_text(strip=True) for p in el.find_all(["p","span","div"]) if "$" in p.get_text()][:3]
+        game_id_info.append({
+            "data-game-id": el.get("data-game-id"),
+            "tag": el.name,
+            "classes": " ".join(el.get("class", [])),
+            "child_classes_sample": child_classes,
+            "headings": headings,
+            "price_texts": prices,
+            "text_snippet": el.get_text(" ", strip=True)[:200],
+        })
+
     return {
         "status": r.status_code,
         "total_links": len(all_links),
         "scratch_links": len(scratch_links),
         "sample_scratch_hrefs": scratch_links[:5],
         "page_length": len(r.text),
-        "has_game_id_attr": "data-game-id" in r.text,
+        "game_id_elements_found": len(game_id_els),
+        "game_id_sample": game_id_info,
     }
 
 
