@@ -436,6 +436,29 @@ async def api_scrape_status():
     }
 
 
+@app.get("/api/debug/fetch")
+async def api_debug_fetch(url: str = Query(...)):
+    """Temp debug: fetch a URL and return link counts to diagnose scraper issues."""
+    import requests as _req
+    from bs4 import BeautifulSoup as _BS
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    }
+    r = _req.get(url, headers=headers, timeout=30)
+    soup = _BS(r.text, "lxml")
+    all_links = soup.find_all("a", href=True)
+    scratch_links = [a["href"] for a in all_links if "scratch" in a.get("href","").lower()]
+    return {
+        "status": r.status_code,
+        "total_links": len(all_links),
+        "scratch_links": len(scratch_links),
+        "sample_scratch_hrefs": scratch_links[:5],
+        "page_length": len(r.text),
+        "has_game_id_attr": "data-game-id" in r.text,
+    }
+
+
 # ── Community inventory reports ───────────────────────────────────────────────
 
 class InventoryReportBody(BaseModel):
