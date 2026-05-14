@@ -10,6 +10,7 @@ Game number in "Game No" field and encoded in image filename (DC{num}...).
 import re
 import json
 import logging
+from datetime import date, datetime
 from backend.scraper.base import BaseScraper
 from backend.ev_calculator import parse_prize_amount
 
