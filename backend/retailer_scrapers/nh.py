@@ -123,7 +123,7 @@ def _playwright_scrape() -> list[dict]:
         page.route("**/*", handle_route)
 
         try:
-            page.goto(LOCATOR_URL, wait_until="networkidle", timeout=30_000)
+            page.goto(LOCATOR_URL, wait_until="domcontentloaded", timeout=30_000)
         except Exception as e:
             logger.warning("NH: locator page error: %s", e)
 
