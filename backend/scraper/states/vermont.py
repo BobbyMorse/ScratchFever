@@ -114,7 +114,7 @@ class VermontScraper(BaseScraper):
         logger.info("VT: %d games scraped across %d pages", len(games), page)
         return games
 
-    def _scrape_detail(self, slug: str, url: str) -> dict | None:
+    def _scrape_detail(self, slug: str, url: str, end_date_map: dict, today: str) -> dict | None:
         soup = self.soup(url)
         page_text = soup.get_text(" ", strip=True)
 
