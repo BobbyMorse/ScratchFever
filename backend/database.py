@@ -54,7 +54,6 @@ async def init_db():
                 image_url TEXT,
                 prize_pool_left REAL,
                 jackpot_odds_one_in REAL,
-                top_prize_odds_one_in REAL,
                 scraped_at TIMESTAMPTZ DEFAULT NOW(),
                 UNIQUE(state_code, game_id)
             )
