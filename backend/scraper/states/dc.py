@@ -101,6 +101,19 @@ class DCScraper(BaseScraper):
         # Game number — from Drupal JSON, then "Game No XXXX", then image filename
         game_id = self._extract_game_id(soup, page_text, slug)
 
+        # Last Date to Claim — skip expired games
+        end_date = None
+        m = re.search(r"Last\s+Date\s+to\s+Claim\s+(\d{1,2}/\d{1,2}/\d{4})", page_text, re.I)
+        if m:
+            try:
+                parsed = datetime.strptime(m.group(1), "%m/%d/%Y").date()
+                if parsed < date.today():
+                    logger.debug("DC: skipping expired game %s (claim date %s)", slug, parsed)
+                    return None
+                end_date = parsed.isoformat()
+            except ValueError:
+                pass
+
         # Price — "Price $X.XX"
         price = None
         m = re.search(r"\bPrice\s+\$\s*([\d]+(?:\.\d{1,2})?)", page_text, re.I)
