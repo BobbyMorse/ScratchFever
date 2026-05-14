@@ -15,12 +15,14 @@ EV method: EV = Total Unclaimed / tickets_remaining - price
 from __future__ import annotations
 import re
 import logging
+from datetime import date, datetime
 from backend.scraper.base import BaseScraper
 from backend.ev_calculator import parse_prize_amount
 
 logger = logging.getLogger(__name__)
 
 LIST_URL = "https://www.vtlottery.com/games/instant-tickets"
+END_DATE_URL = "https://www.vtlottery.com/games/instant-tickets/last-day-to-redeem"
 BASE_URL = "https://www.vtlottery.com"
 
 # Nav/utility paths to skip when following links from listing
