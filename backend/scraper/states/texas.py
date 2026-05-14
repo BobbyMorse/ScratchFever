@@ -11,6 +11,7 @@ import csv
 import io
 import logging
 from collections import defaultdict
+from datetime import date, datetime
 from backend.scraper.base import BaseScraper
 
 logger = logging.getLogger(__name__)
