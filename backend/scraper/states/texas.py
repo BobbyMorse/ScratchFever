@@ -138,4 +138,5 @@ class TexasScraper(BaseScraper):
             total_tickets=total_tickets,
             tickets_remaining=tickets_remaining,
             detail_url=DETAIL_BASE,
+            end_date=end_date,
         )
