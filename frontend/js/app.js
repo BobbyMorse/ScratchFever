@@ -626,7 +626,7 @@ function buildParams() {
 async function applyFilters() {
   const sortBy = document.getElementById("sortBy")?.value || "return_pct";
   currentSort.col = sortBy;
-  currentSort.asc = sortBy === "name" || sortBy === "price" || sortBy === "top_prize_odds_one_in";
+  currentSort.asc = sortBy === "name" || sortBy === "price";
   document.querySelectorAll("thead th[data-col]").forEach(h => {
     h.textContent = h.textContent.replace(/[▲▼]/, "").trim();
     h.classList.remove("active");
