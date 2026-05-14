@@ -134,7 +134,7 @@ def _playwright_scrape() -> list[dict]:
 
         if api_info["url"]:
             # Discovered the API — use direct HTTP for speed
-            page.remove_all_listeners("route")  # stop intercepting
+            page.unroute_all()  # stop intercepting
             browser.close()
             logger.info("NH: API discovered, fetching %d remaining zips via HTTP", len(remaining_zips))
             _bulk_fetch(api_info, remaining_zips, seen_ids, retailers)
