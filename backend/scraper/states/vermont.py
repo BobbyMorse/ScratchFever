@@ -142,6 +142,12 @@ class VermontScraper(BaseScraper):
         game_num_m = re.search(r"Game\s*#\s*(\d+)", page_text, re.IGNORECASE)
         game_number = game_num_m.group(1) if game_num_m else None
 
+        # End date from last-day-to-redeem page; skip if expired
+        end_date = end_date_map.get(game_number) if game_number else None
+        if end_date and end_date < today:
+            logger.debug("VT: skipping expired game %s (end %s)", slug, end_date)
+            return None
+
         # Overall odds
         odds_m = re.search(r"Overall\s+Odds\s*1\s+in\s+([\d.]+)", page_text, re.IGNORECASE)
         overall_odds = float(odds_m.group(1)) if odds_m else None
