@@ -105,6 +105,11 @@ class NewJerseyScraper(BaseScraper):
             fraction_rem = total_prizes_remaining / total_prizes_printed
             tickets_remaining = round(total_tickets * fraction_rem)
 
+        end_date = None
+        end_ms = g.get("endDistributionDate")
+        if end_ms:
+            end_date = datetime.fromtimestamp(end_ms / 1000, tz=timezone.utc).date().isoformat()
+
         return self.build_game(
             game_id=game_id,
             name=name,
@@ -114,4 +119,5 @@ class NewJerseyScraper(BaseScraper):
             tickets_remaining=tickets_remaining,
             detail_url=f"{BASE_URL}/en-us/games/scratchers.html",
             image_url=image_url,
+            end_date=end_date,
         )
