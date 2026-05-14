@@ -218,7 +218,6 @@ async def upsert_game(conn: asyncpg.Connection, state_code: str, state_name: str
             detail_url=EXCLUDED.detail_url, image_url=EXCLUDED.image_url,
             how_to_play=COALESCE(EXCLUDED.how_to_play, games.how_to_play),
             end_date=COALESCE(EXCLUDED.end_date, games.end_date),
-            top_prize_odds_one_in=EXCLUDED.top_prize_odds_one_in,
             scraped_at=NOW(), is_active=TRUE
         RETURNING id
     """,
