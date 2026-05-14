@@ -536,6 +536,24 @@ async function loadPrizeClaims() {
     }).join('<span class="bigwins-banner-chip" style="opacity:.35">•</span>');
     // Duplicate for seamless loop
     items.innerHTML = `<span class="bigwins-ticker-track">${chips}<span class="bigwins-banner-chip" style="opacity:.35">•</span>${chips}<span class="bigwins-banner-chip" style="opacity:.35">•</span></span>`;
+
+    if (data.fetched_at) {
+      const fetchedAt = new Date(data.fetched_at);
+      const freshnessEl = document.getElementById("bigwinsFreshness");
+      if (freshnessEl) {
+        const update = () => {
+          const secs = Math.floor((Date.now() - fetchedAt) / 1000);
+          let label;
+          if (secs < 60) label = `Updated ${secs}s ago`;
+          else if (secs < 3600) label = `Updated ${Math.floor(secs / 60)}m ago`;
+          else label = `Updated ${Math.floor(secs / 3600)}h ago`;
+          freshnessEl.textContent = label;
+        };
+        update();
+        freshnessEl.style.display = "";
+        setInterval(update, 30000);
+      }
+    }
   } catch (_) {}
 }
 
