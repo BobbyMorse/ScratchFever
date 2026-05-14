@@ -380,7 +380,7 @@ async def api_prize_claims(days: int = Query(7, le=30), min_prize: float = Query
     for c in claims:
         if c.get("detected_at"):
             c["detected_at"] = c["detected_at"].isoformat()
-    result = {"claims": claims, "count": len(claims)}
+    result = {"claims": claims, "count": len(claims), "fetched_at": datetime.datetime.utcnow().isoformat() + "Z"}
     _prize_claims_cache[cache_key] = (datetime.datetime.utcnow().timestamp(), result)
     return result
 
