@@ -9,6 +9,7 @@ Detail:  https://www.ctlottery.org/ScratchGames/{NUMBER}/
 from __future__ import annotations
 import re
 import logging
+from datetime import date, datetime
 from backend.scraper.base import BaseScraper
 from backend.ev_calculator import parse_prize_amount
 
