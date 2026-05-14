@@ -65,6 +65,20 @@ class TexasScraper(BaseScraper):
         if not name:
             return None
 
+        # Game Close Date — skip expired games
+        end_date = None
+        raw_close = rows[0][2].strip() if len(rows[0]) > 2 else ""
+        if raw_close:
+            for fmt in ("%m/%d/%Y", "%Y-%m-%d", "%m/%d/%y"):
+                try:
+                    parsed = datetime.strptime(raw_close, fmt).date()
+                    if parsed < date.today():
+                        return None
+                    end_date = parsed.isoformat()
+                    break
+                except ValueError:
+                    continue
+
         try:
             price = float(rows[0][3])
         except (ValueError, IndexError):
