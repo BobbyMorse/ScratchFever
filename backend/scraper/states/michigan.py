@@ -28,7 +28,7 @@ class MichiganScraper(PlaywrightScraper):
     scraper_timeout = 600
 
     def scrape(self) -> list[dict]:
-        soup = self.pw_soup(GAMES_URL, wait_for="load", selector=None, timeout=30_000)
+        soup = self.pw_soup(GAMES_URL, wait_for="networkidle", selector=None, timeout=60_000)
 
         # Give the page a moment to finish rendering then re-fetch content
         # (pw_soup already waits for 'load', additional JS settle handled by detail pages)
