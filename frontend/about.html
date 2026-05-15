@@ -61,6 +61,86 @@
 
     <h2>Contact</h2>
     <p>Questions? Visit our <a href="/contact" style="color:var(--grape);font-weight:600">Contact page</a>.</p>
+
+    <!-- ── FAQ ──────────────────────────────────────────────────────────── -->
+    <div class="faq-section">
+      <h1>Frequently Asked Questions</h1>
+
+      <p class="faq-q">Which states are currently covered?</p>
+      <p class="faq-a">We actively scrape and display data for <strong>33 states plus D.C.</strong> Our goal is full 50-state coverage. Here's where we stand today:</p>
+      <div class="state-grid">
+        <span class="state-pill">AR</span><span class="state-pill">AZ</span><span class="state-pill">CA</span><span class="state-pill">CO</span><span class="state-pill">CT</span>
+        <span class="state-pill">DC</span><span class="state-pill">DE</span><span class="state-pill">FL</span><span class="state-pill">GA</span><span class="state-pill">ID</span>
+        <span class="state-pill">IL</span><span class="state-pill">IN</span><span class="state-pill">KY</span><span class="state-pill">LA</span><span class="state-pill">MA</span>
+        <span class="state-pill">MD</span><span class="state-pill">MI</span><span class="state-pill">MN</span><span class="state-pill">MS</span><span class="state-pill">MT</span>
+        <span class="state-pill">NC</span><span class="state-pill">NE</span><span class="state-pill">NJ</span><span class="state-pill">NM</span><span class="state-pill">NY</span>
+        <span class="state-pill">PA</span><span class="state-pill">RI</span><span class="state-pill">SC</span><span class="state-pill">TX</span><span class="state-pill">VA</span>
+        <span class="state-pill">VT</span><span class="state-pill">WI</span><span class="state-pill">NH</span>
+      </div>
+
+      <p class="faq-q">Why are some states missing from the EV rankings?</p>
+      <p class="faq-a">Every state lottery is required by law to publish prize odds — we cover them all in the dropdown. But a handful of states can't be included in EV rankings right now due to technical blockers on their websites. Here's the full breakdown:</p>
+      <table class="reason-table">
+        <thead>
+          <tr><th>State(s)</th><th>Why it's missing from EV rankings</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>WY</td>
+            <td>Wyoming does not sell traditional scratch-off lottery tickets.</td>
+          </tr>
+          <tr>
+            <td>KS</td>
+            <td>Kansas sells eInstants (digital-only games) — no physical scratch-off tickets with publicly disclosed odds.</td>
+          </tr>
+          <tr>
+            <td>ND</td>
+            <td>North Dakota does not publish prize odds for scratch-off games in a format we can access.</td>
+          </tr>
+          <tr>
+            <td>TN</td>
+            <td>The Tennessee Lottery website blocks all automated data requests (403 Forbidden). We cannot retrieve prize data without a manual source.</td>
+          </tr>
+          <tr>
+            <td>OH</td>
+            <td>The Ohio Lottery uses a proprietary authentication API on their site that actively blocks non-browser data access. Their prize data is public, but their tech stack makes it inaccessible to scrapers.</td>
+          </tr>
+          <tr>
+            <td>WA, OR, MO, WV, OK, SD</td>
+            <td>These states use fully JavaScript-rendered single-page apps with no accessible data endpoints. Prize data is rendered client-side in a way that requires a logged-in browser session we can't replicate reliably.</td>
+          </tr>
+          <tr>
+            <td>IA</td>
+            <td>The Iowa Lottery site uses legacy ASP.NET postback navigation — each page requires a form submission that can't be automated with standard tools.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="faq-a">We're actively working on workarounds for these states. If a state is listed above, it means the data exists — we just can't get to it yet.</p>
+
+      <p class="faq-q">Why do some states appear but have no EV score?</p>
+      <p class="faq-a">A few states publish <em>partial</em> prize data — enough to show games and top prizes, but not enough to compute a full expected value:</p>
+      <table class="reason-table">
+        <thead>
+          <tr><th>State</th><th>What's missing</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>PA</td>
+            <td>The Pennsylvania Lottery website only publishes the top 6 prize tiers on their remaining-prizes page. A complete prize table (needed for EV) is available in PDF format but not in a machine-readable form. We show PA games with top-prize data but cannot compute full EV without the lower tiers.</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="faq-a">When we solve these, EV will appear automatically — no action needed on your end.</p>
+
+      <p class="faq-q">How often is the data updated?</p>
+      <p class="faq-a">Game odds and prizes-remaining data is refreshed every hour from each state lottery's official website. The timestamp shown on each game card reflects when that state's data was last successfully pulled. Retailer location data is updated monthly.</p>
+
+      <p class="faq-q">Why doesn't ScratchFever cover every state's retailers?</p>
+      <p class="faq-a">Retailer locator tools vary wildly by state — some use open APIs, others use JavaScript-protected maps with no accessible data endpoint. We currently have retailer data for MA, AZ, NY, NJ, GA, CA, NH, CT, and IL, and are expanding to more states as we crack each site's locator format.</p>
+
+      <p class="faq-q">Is this data official?</p>
+      <p class="faq-a">All prize odds and remaining-prize counts come directly from each state lottery's official website. ScratchFever does not generate, estimate, or alter this data — we read what the state publishes and run the math. We are not affiliated with any state lottery commission.</p>
+    </div>
   </main>
 
   <footer>
