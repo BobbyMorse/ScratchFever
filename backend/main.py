@@ -77,7 +77,7 @@ def _ensure_playwright_chromium():
     os.environ["PLAYWRIGHT_BROWSERS_PATH"] = browsers_path
     try:
         result = subprocess.run(
-            [sys.executable, "-m", "playwright", "install", "chromium"],
+            [sys.executable, "-m", "playwright", "install", "--with-deps", "chromium"],
             capture_output=True, text=True, timeout=120,
         )
         if result.returncode == 0:
