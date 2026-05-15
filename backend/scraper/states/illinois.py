@@ -191,21 +191,11 @@ class IllinoisScraper(PlaywrightScraper):
                 ))
                 continue
 
-            # Estimate tickets_remaining from prizes_remaining total + assumed overall odds
-            prizes_rem_sum = sum(t["prizes_remaining"] or 0 for t in tiers)
-            tickets_remaining = int(prizes_rem_sum * ASSUMED_OVERALL_ODDS) if prizes_rem_sum > 0 else None
-
-            # Also estimate total_tickets from prizes_total if available
-            prizes_tot_sum = sum(t["prizes_total"] or 0 for t in tiers)
-            total_tickets = int(prizes_tot_sum * ASSUMED_OVERALL_ODDS) if prizes_tot_sum > 0 else None
-
             games.append(self.build_game(
                 game_id=game_id,
                 name=name,
                 price=price,
                 tiers=tiers,
-                tickets_remaining=tickets_remaining,
-                total_tickets=total_tickets,
                 detail_url=f"{BASE_URL}/games-hub/instant-tickets",
             ))
 
