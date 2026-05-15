@@ -23,7 +23,6 @@ from backend.scraper.states.colorado import ColoradoScraper
 from backend.scraper.states.connecticut import ConnecticutScraper
 from backend.scraper.states.vermont import VermontScraper
 from backend.scraper.states.rhode_island import RhodeIslandScraper
-from backend.scraper.states.maine import MaineScraper
 from backend.scraper.states.new_hampshire import NewHampshireScraper
 from backend.scraper.states.arizona import ArizonaScraper
 from backend.scraper.states.washington import WashingtonScraper
