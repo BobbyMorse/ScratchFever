@@ -95,42 +95,37 @@ async def persist_games(conn, state_code: str, state_name: str, games: list[dict
     return count
 
 
-DEFAULT_TIMEOUT = 120   # seconds for HTTP-based scrapers
-PLAYWRIGHT_TIMEOUT = 600  # seconds for Playwright scrapers (up to 74 pages)
-
-
-async def run_scraper(scraper_cls, sem: asyncio.Semaphore) -> tuple[str, int, str | None]:
-    async with sem:
-        if _cancel_requested:
-            scraper = scraper_cls()
-            return scraper.state_code, 0, "cancelled"
+async def run_scraper(scraper_cls) -> tuple[str, int, str | None]:
+    if _cancel_requested:
         scraper = scraper_cls()
-        timeout = getattr(scraper, "scraper_timeout", DEFAULT_TIMEOUT)
-        logger.info("Starting scraper: %s (%s)", scraper.state_name, scraper.state_code)
+        return scraper.state_code, 0, "cancelled"
+    scraper = scraper_cls()
+    timeout = getattr(scraper, "scraper_timeout", DEFAULT_TIMEOUT)
+    logger.info("Starting scraper: %s (%s)", scraper.state_name, scraper.state_code)
+    try:
+        games, error = await asyncio.wait_for(
+            asyncio.to_thread(scraper.safe_scrape),
+            timeout=timeout,
+        )
+    except asyncio.TimeoutError:
+        error = f"timed out after {timeout}s"
+        games = None
+    count = 0
+    if games and not _cancel_requested:
         try:
-            games, error = await asyncio.wait_for(
-                asyncio.to_thread(scraper.safe_scrape),
-                timeout=timeout,
-            )
-        except asyncio.TimeoutError:
-            error = f"timed out after {timeout}s"
-            games = None
-        count = 0
-        if games and not _cancel_requested:
-            try:
-                async with get_pool().acquire() as conn:
-                    async with conn.transaction():
-                        await conn.execute("UPDATE games SET is_active=FALSE WHERE state_code=$1", scraper.state_code)
-                        count = await persist_games(conn, scraper.state_code, scraper.state_name, games)
-                        if count == 0:
-                            raise RuntimeError(f"0/{len(games)} upserts succeeded — rolling back to protect existing data")
-            except RuntimeError as e:
-                error = error or str(e)
-                logger.error("%s: %s", scraper.state_code, e)
-        async with get_pool().acquire() as conn:
-            await log_scrape(conn, scraper.state_code, error is None, count, error)
-        logger.info("  %s: %d games%s", scraper.state_code, count, f" [ERROR: {error}]" if error else "")
-        return scraper.state_code, count, error
+            async with get_pool().acquire() as conn:
+                async with conn.transaction():
+                    await conn.execute("UPDATE games SET is_active=FALSE WHERE state_code=$1", scraper.state_code)
+                    count = await persist_games(conn, scraper.state_code, scraper.state_name, games)
+                    if count == 0:
+                        raise RuntimeError(f"0/{len(games)} upserts succeeded — rolling back to protect existing data")
+        except RuntimeError as e:
+            error = error or str(e)
+            logger.error("%s: %s", scraper.state_code, e)
+    async with get_pool().acquire() as conn:
+        await log_scrape(conn, scraper.state_code, error is None, count, error)
+    logger.info("  %s: %d games%s", scraper.state_code, count, f" [ERROR: {error}]" if error else "")
+    return scraper.state_code, count, error
 
 
 async def run_all(state_filter: str = None) -> list[dict]:
@@ -139,18 +134,19 @@ async def run_all(state_filter: str = None) -> list[dict]:
     if state_filter:
         scrapers = [s for s in ALL_SCRAPERS if s.state_code.upper() == state_filter.upper()]
 
-    sem = asyncio.Semaphore(CONCURRENCY)
-    tasks = [run_scraper(cls, sem) for cls in scrapers]
-    results_raw = await asyncio.gather(*tasks, return_exceptions=True)
-
     results = []
-    for item in results_raw:
-        if isinstance(item, Exception):
-            logger.error("Unhandled scraper exception: %s", item)
-            results.append({"state": "?", "games": 0, "error": str(item)})
-        else:
-            code, count, error = item
+    for i, cls in enumerate(scrapers):
+        if _cancel_requested:
+            break
+        if i > 0:
+            logger.info("Waiting %ds before next state...", DELAY_BETWEEN_STATES)
+            await asyncio.sleep(DELAY_BETWEEN_STATES)
+        try:
+            code, count, error = await run_scraper(cls)
             results.append({"state": code, "games": count, "error": error})
+        except Exception as exc:
+            logger.error("Unhandled scraper exception: %s", exc)
+            results.append({"state": "?", "games": 0, "error": str(exc)})
     return results
 
 
