@@ -15,7 +15,7 @@ from backend.scraper.base import BaseScraper
 
 logger = logging.getLogger(__name__)
 
-API_URL = "https://www.galottery.com/api/v1/instant-games/games?size=1000"
+API_URL = "https://www.galottery.com/api/v1/instant-games/games?size=1000&page=0"
 BASE_URL = "https://www.galottery.com"
 
 _PAYOUT_RATE = 0.65  # GA lottery mandated return rate (approximate)
