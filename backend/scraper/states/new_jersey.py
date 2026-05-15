@@ -14,7 +14,7 @@ from backend.scraper.base import BaseScraper
 
 logger = logging.getLogger(__name__)
 
-API_URL = "https://www.njlottery.com/api/v1/instant-games/games?size=500"
+API_URL = "https://www.njlottery.com/api/v2/instant-games/games?size=500"
 BASE_URL = "https://www.njlottery.com"
 
 _HEADERS = {
