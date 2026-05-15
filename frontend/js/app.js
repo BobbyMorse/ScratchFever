@@ -1,5 +1,11 @@
 /* ScratchFever — frontend */
 
+// States excluded from EV rankings — no reliable ticket-count data published by state.
+// IL: publishes remaining prizes only, no total tickets or per-game odds.
+// GA: API has tier counts but no total tickets or per-game odds.
+// TX: CSV has tier counts but no total tickets or per-game odds.
+const EV_EXCLUDED_STATES = new Set(["IL", "GA", "TX"]);
+
 let allGames = [];
 let allGamesUnfiltered = [];
 let states = [];
