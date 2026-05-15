@@ -253,6 +253,9 @@ async def bland_webhook(request: Request):
     if answered_by in ("voicemail", "machine") or not transcript:
         ctx = _pending_calls.pop(queue_id, {})
         q = ctx.get("queue_item", {})
+        runner = get_runner()
+        if runner and call_id:
+            runner.call_completed(call_id)
         attempts = q.get("attempts", 1) or 1
         new_status = "pending" if attempts < 3 else "voicemail"
         await update_queue_status(queue_id, new_status)
