@@ -386,13 +386,19 @@ async def ivr_status(queue_id: int, request: Request):
     ctx = _pending_calls.get(queue_id)
     q   = ctx.get("queue_item", {}) if ctx else {}
 
+    runner = get_runner()
+
     if answered_by in ("machine_start", "machine_end_beep", "machine_end_silence"):
         _pending_calls.pop(queue_id, None)
+        if runner and call_sid:
+            runner.call_completed(call_sid)
         if q.get("id"):
             new_status = "pending" if (q.get("attempts", 0) or 0) < 3 else "voicemail"
             await update_queue_status(q["id"], new_status)
     elif call_status in ("no-answer", "busy", "failed"):
         _pending_calls.pop(queue_id, None)
+        if runner and call_sid:
+            runner.call_completed(call_sid)
         if q.get("id"):
             new_status = "pending" if (q.get("attempts", 0) or 0) < 3 else "no_answer"
             await update_queue_status(q["id"], new_status)
