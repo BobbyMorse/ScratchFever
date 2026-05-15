@@ -105,7 +105,7 @@ class PlaywrightScraper(BaseScraper):
                 return games, None
             except Exception as exc:
                 logger.error("%s: scrape failed: %s", self.state_code, exc, exc_info=True)
-                return [], str(exc)
+                return None, str(exc)
             finally:
                 self._close_browser()
 
