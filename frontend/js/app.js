@@ -653,7 +653,7 @@ function renderTable() {
     games = games.filter(g => {
       if (!g.total_tickets || !g.tickets_remaining) return true;
       const pctLeft = g.tickets_remaining / g.total_tickets;
-      return !(pctLeft < 0.02 && g.return_pct >= 100);
+      return !(pctLeft < 0.03 && g.return_pct >= 100);
     });
   }
 
