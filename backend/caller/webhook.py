@@ -286,6 +286,9 @@ async def bland_webhook(request: Request):
     )
     await update_queue_status(queue_id, "done")
     _pending_calls.pop(queue_id, None)
+    runner = get_runner()
+    if runner and call_id:
+        runner.call_completed(call_id)
 
     logger.info("Bland result saved: queue=%d has_game=%s confidence=%.2f",
                 queue_id, result.get("has_game"), result.get("confidence", 0))
