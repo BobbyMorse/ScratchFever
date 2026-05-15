@@ -76,9 +76,9 @@ ALL_SCRAPERS = [
     DelawareScraper, DCScraper, MississippiScraper,
 ]
 
-# Max scrapers running simultaneously. Each scraper makes HTTP requests to an
-# external site; too many in parallel risks getting IP-blocked and spikes RAM.
-CONCURRENCY = 4
+DEFAULT_TIMEOUT = 120   # seconds for HTTP-based scrapers
+PLAYWRIGHT_TIMEOUT = 600  # seconds for Playwright scrapers
+DELAY_BETWEEN_STATES = 180  # seconds to sleep between each state
 
 
 async def persist_games(conn, state_code: str, state_name: str, games: list[dict]):
