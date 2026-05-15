@@ -122,9 +122,10 @@ async def lifespan(app: FastAPI):
             logger.info("Retailer caches warmed")
         except Exception as e:
             logger.warning("Cache warm failed: %s", e)
-        # Run after warm so the DB is ready
         await check_and_run_stale_retailers()
     asyncio.create_task(_startup_retailer_tasks())
+    # Scrape games immediately on startup so a restart never leaves data stale
+    asyncio.create_task(scheduled_scrape())
 
     yield
     scheduler.shutdown()
