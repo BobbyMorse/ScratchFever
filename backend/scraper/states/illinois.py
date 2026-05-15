@@ -20,10 +20,6 @@ logger = logging.getLogger(__name__)
 PRIZES_URL = "https://www.illinoislottery.com/about-the-games/unpaid-instant-games-prizes"
 BASE_URL = "https://www.illinoislottery.com"
 
-# IL scratch games win roughly 1 in every 4–5 tickets; 4.5 is the midpoint.
-# Used only to convert sum(prizes_remaining) → tickets_remaining for EV.
-ASSUMED_OVERALL_ODDS = 4.5
-
 
 def _parse_int(text: str) -> int | None:
     cleaned = text.replace(",", "").strip()
