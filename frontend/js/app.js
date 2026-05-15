@@ -444,7 +444,7 @@ function applyClientFilters(games) {
   const state  = document.getElementById("filterState")?.value || "";
   const price  = document.getElementById("filterPrice")?.value || "";
   const minRet = document.getElementById("filterMinReturn")?.value || "";
-  let result = games;
+  let result = games.filter(g => !EV_EXCLUDED_STATES.has(g.state_code));
   if (state)  result = result.filter(g => g.state_code === state);
   if (price)  { const p = Number(price); result = result.filter(g => g.price === p); }
   if (minRet) result = result.filter(g => (g.return_pct || 0) >= Number(minRet));
