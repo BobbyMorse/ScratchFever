@@ -77,14 +77,19 @@ def _parse_pdf_odds(pdf_bytes: bytes) -> list[dict]:
         logger.warning("PA: pdfplumber error: %s", e)
         return []
 
-    # Match "$AMOUNT = ODDS" — only present in the CONSOLIDATED CHANCES column
-    pattern = r"\$([\d,]+(?:\.\d+)?)\s*=\s*([\d,]+(?:\.\d+)?)"
+    # Match consolidated odds: "$PRIZE= ODDS" or "$PRIZE: ODDS"
+    # pdfplumber injects spaces inside large numbers due to PDF kerning, e.g.:
+    #   "$5,000= 6 00,000" → real odds are 600,000 (not 6)
+    #   "$1,000= 1 33,333" → real odds are 133,333 (not 1)
+    # Also some PDFs render "=" as ":" for mid-range prizes.
+    pattern = r"\$([\d,]+(?:\.\d+)?)\s*[=:]\s*([\d][\d,\. ]*)"
     seen: set[float] = set()
     tiers: list[dict] = []
     for m in re.finditer(pattern, text):
         prize = parse_prize_amount("$" + m.group(1))
         try:
-            odds = float(m.group(2).replace(",", ""))
+            odds_raw = m.group(2).strip()
+            odds = float(odds_raw.replace(" ", "").replace(",", ""))
         except ValueError:
             continue
         if prize and prize > 0 and odds > 0 and prize not in seen:
