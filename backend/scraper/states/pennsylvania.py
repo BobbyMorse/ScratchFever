@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 LIST_URL = "https://www.palottery.pa.gov/Scratch-Offs/Prizes-Remaining.aspx"
 BASE_URL = "https://www.palottery.pa.gov"
-CACHE_FILE = Path(__file__).parent / "pa_odds_cache.json"
+CACHE_FILE = Path(__file__).parent / "pa_odds_cache_v2.json"
 
 
 # ── cache helpers ─────────────────────────────────────────────────────────────
