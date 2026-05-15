@@ -1,7 +1,7 @@
 """
 New Jersey Lottery scratch-off scraper.
-API: https://www.njlottery.com/api/v1/instant-games/games?size=500
-  Returns all games (active + expired); filter by validationStatus == "ACTIVE".
+API: https://www.njlottery.com/api/v2/instant-games/games?size=500
+  Returns all games (active + expired); filter by endDistributionDate > now_ms.
   Amounts in CENTS: ticketPrice, prizeTiers[].prizeAmount
   prizeTiers[]: prizeAmount, winningTickets (total), paidTickets (claimed)
   totalTicketsPrinted: total tickets for the game
