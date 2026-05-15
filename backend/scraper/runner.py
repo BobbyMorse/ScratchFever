@@ -118,8 +118,9 @@ async def run_scraper(scraper_cls, sem: asyncio.Semaphore) -> tuple[str, int, st
         count = 0
         if games and not _cancel_requested:
             async with get_pool().acquire() as conn:
-                await conn.execute("UPDATE games SET is_active=FALSE WHERE state_code=$1", scraper.state_code)
-                count = await persist_games(conn, scraper.state_code, scraper.state_name, games)
+                async with conn.transaction():
+                    await conn.execute("UPDATE games SET is_active=FALSE WHERE state_code=$1", scraper.state_code)
+                    count = await persist_games(conn, scraper.state_code, scraper.state_name, games)
         async with get_pool().acquire() as conn:
             await log_scrape(conn, scraper.state_code, error is None, count, error)
         logger.info("  %s: %d games%s", scraper.state_code, count, f" [ERROR: {error}]" if error else "")
