@@ -67,9 +67,6 @@ class VermontScraper(BaseScraper):
         return result
 
     def scrape(self) -> list[dict]:
-        # VT disabled — vtlottery.com data is stale/unreliable; tickets no longer available in market
-        return []
-
         end_date_map = self._fetch_end_date_map()
         today = date.today().isoformat()
         games = []
