@@ -22,6 +22,7 @@ class ColoradoScraper(BaseScraper):
     state_code = "CO"
     state_name = "Colorado"
     base_url = BASE_URL
+    scraper_timeout = 300
 
     def scrape(self) -> list[dict]:
         soup = self.soup(LIST_URL)
