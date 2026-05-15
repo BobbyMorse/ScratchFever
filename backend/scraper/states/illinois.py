@@ -7,8 +7,8 @@ Table structure: scrollable prize-amount columns as <th> headers, with per-row
 cells for each tier's remaining count. A "Total" cell (br-separated) and an
 "Unclaimed" cell (br-separated) may also appear.
 
-EV is estimated using prizes_remaining per tier with tickets_remaining derived
-from sum(prizes_remaining) * ASSUMED_OVERALL_ODDS (IL ~1-in-4.5 overall win rate).
+IL publishes remaining prize counts but NOT total tickets printed or per-game odds.
+EV cannot be computed reliably; games will have ev=NULL and won't appear in rankings.
 """
 import re
 import logging
