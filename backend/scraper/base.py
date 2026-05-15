@@ -78,7 +78,7 @@ class BaseScraper(ABC):
             return games, None
         except Exception as exc:
             logger.error("%s: scrape failed: %s", self.state_code, exc, exc_info=True)
-            return [], str(exc)
+            return None, str(exc)
 
     # ── helpers ────────────────────────────────────────────────────────────────
 
