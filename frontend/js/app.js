@@ -877,8 +877,8 @@ function renderModal(g) {
       <thead>
         <tr>
           <th>Prize</th>
-          <th>Odds</th>
-          <th>Current Win Odds</th>
+          <th>Original Odds</th>
+          <th>Current Odds</th>
           <th>Remaining</th>
           <th>Total Printed</th>
         </tr>
