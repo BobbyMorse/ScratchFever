@@ -24,6 +24,7 @@ from backend.caller.dialogue import (
     extract_result, format_transcript, opening_line,
     should_end_call, stream_response,
 )
+from backend.caller.api import get_runner
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
