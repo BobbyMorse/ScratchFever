@@ -147,40 +147,15 @@
       <p class="faq-a">Every state lottery is required by law to publish prize odds — we want to cover all of them. A handful of states can't be ranked right now due to technical blockers on their official websites:</p>
       <table class="reason-table">
         <thead>
-          <tr><th>State(s)</th><th>Why it's not in EV rankings</th></tr>
+          <tr><th>State(s)</th><th>Status</th></tr>
         </thead>
         <tbody>
-          <tr>
-            <td>WY</td>
-            <td>Wyoming does not sell traditional scratch-off lottery tickets.</td>
-          </tr>
-          <tr>
-            <td>KS</td>
-            <td>Kansas sells eInstants (digital-only games) — no physical scratch-off tickets with publicly disclosed prize odds.</td>
-          </tr>
-          <tr>
-            <td>ND</td>
-            <td>North Dakota does not publish scratch-off prize odds in any machine-readable format.</td>
-          </tr>
-          <tr>
-            <td>TN</td>
-            <td>The Tennessee Lottery blocks all automated data requests (403 Forbidden on every endpoint).</td>
-          </tr>
-          <tr>
-            <td>OH</td>
-            <td>Ohio Lottery prize data is public, but their site uses a proprietary auth API that blocks non-browser access.</td>
-          </tr>
-          <tr>
-            <td>WA, OR, MO,<br>WV, OK, SD</td>
-            <td>These states use fully JavaScript-rendered single-page apps. Prize data loads client-side with no accessible API endpoint we can reach without a live browser session.</td>
-          </tr>
-          <tr>
-            <td>IA</td>
-            <td>Iowa Lottery uses legacy ASP.NET postback navigation — every page requires a stateful form submission that can't be automated reliably.</td>
-          </tr>
+          <tr><td>WY</td><td>No scratch-off lottery tickets sold in this state.</td></tr>
+          <tr><td>KS</td><td>Digital (eInstant) games only — no physical scratch-off tickets.</td></tr>
+          <tr><td>ND, TN, OH,<br>WA, OR, MO,<br>WV, OK, SD, IA</td><td>Data not publicly accessible.</td></tr>
         </tbody>
       </table>
-      <p class="faq-a">If a state is in that table, the data exists — we just can't get to it yet. We're actively working on workarounds.</p>
+      <p class="faq-a">We're actively working on adding these states. If a state is listed, the lottery exists — we're just working on getting the data.</p>
 
       <p class="faq-q">Why do some states show games but no EV score?</p>
       <p class="faq-a">A few states publish <em>partial</em> prize data — enough to list games and top prizes, but not a complete prize table needed for EV calculation:</p>
