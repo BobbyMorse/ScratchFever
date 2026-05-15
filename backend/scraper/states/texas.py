@@ -118,24 +118,11 @@ class TexasScraper(BaseScraper):
         if not tiers:
             return None
 
-        total_tickets = None
-        tickets_remaining = None
-        if total_prize_value > 0 and price > 0:
-            total_tickets = round(total_prize_value / (_PAYOUT_RATE * price))
-            if total_prizes_printed > 0:
-                fraction_rem = total_prizes_remaining / total_prizes_printed
-                tickets_remaining = round(total_tickets * fraction_rem)
-            for t in tiers:
-                if t["prizes_total"] and total_tickets:
-                    t["odds_one_in"] = round(total_tickets / t["prizes_total"], 2)
-
         return self.build_game(
             game_id=game_num,
             name=name,
             price=price,
             tiers=tiers,
-            total_tickets=total_tickets,
-            tickets_remaining=tickets_remaining,
             detail_url=DETAIL_BASE,
             end_date=end_date,
         )
