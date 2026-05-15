@@ -41,22 +41,28 @@ scheduler = AsyncIOScheduler()
 scrape_status = {"running": False, "last_run": None, "last_results": []}
 
 
+SCRAPE_COOLDOWN_SEC = 300  # 5-min pause between full crawl cycles
+
+
 async def scheduled_scrape():
     if scrape_status["running"]:
-        logger.info("Scrape already running, skipping scheduled run")
+        logger.info("Scrape already running, skipping")
         return
     scrape_status["running"] = True
     try:
-        logger.info("Starting scheduled scrape of all states")
+        logger.info("Starting scrape of all states")
         from backend.scraper.runner import run_all
         results = await run_all()
         scrape_status["last_results"] = results
-        import datetime
         scrape_status["last_run"] = datetime.datetime.utcnow().isoformat()
         clear_games_cache()
-        logger.info("Scheduled scrape complete")
+        logger.info("Scrape complete — next cycle in %ds", SCRAPE_COOLDOWN_SEC)
     finally:
         scrape_status["running"] = False
+    # Re-schedule immediately after finishing so the crawl runs continuously
+    scheduler.add_job(scheduled_scrape, "date",
+                      run_date=datetime.datetime.utcnow() + datetime.timedelta(seconds=SCRAPE_COOLDOWN_SEC),
+                      id="scrape_next", replace_existing=True)
 
 
 async def check_and_run_stale_retailers():
