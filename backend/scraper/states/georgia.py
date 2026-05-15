@@ -94,18 +94,6 @@ class GeorgiaScraper(BaseScraper):
         if not tiers:
             return None
 
-        # Estimate total_tickets from prize pool and assumed payout rate
-        total_tickets = None
-        tickets_remaining = None
-        if total_prize_value > 0 and price > 0:
-            total_tickets = round(total_prize_value / (_PAYOUT_RATE * price))
-            if total_prizes_printed > 0:
-                fraction_rem = total_prizes_remaining / total_prizes_printed
-                tickets_remaining = round(total_tickets * fraction_rem)
-            for t in tiers:
-                if t["prizes_total"] and total_tickets:
-                    t["odds_one_in"] = round(total_tickets / t["prizes_total"], 2)
-
         end_date = None
         end_ms = g.get("endDistributionDate")
         if end_ms:
