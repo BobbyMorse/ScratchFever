@@ -4,7 +4,8 @@ CSV: https://www.texaslottery.com/export/sites/lottery/Games/Scratch_Offs/scratc
   Columns: Game Number, Game Name, Game Close Date, Ticket Price (whole dollars),
            Prize Level (prize amount in dollars), Total Prizes in Level, Prizes Claimed
   One row per prize tier per game; "TOTAL" row skipped.
-  EV: estimated from prize pool assuming ~65% return rate (TX: ~67% mandated return).
+  TX CSV provides prize tiers with total/claimed counts but no total tickets or per-game odds.
+  EV cannot be computed reliably; games will have ev=NULL and won't appear in rankings.
 """
 from __future__ import annotations
 import csv
