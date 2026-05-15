@@ -149,6 +149,11 @@ async def conversation_ws(websocket: WebSocket, queue_id: int):
     except Exception as exc:
         logger.error("[call %s] WS error: %s", call_sid, exc, exc_info=True)
     finally:
+        ctx = _pending_calls.pop(queue_id, {})
+        if call_sid:
+            runner = get_runner()
+            if runner:
+                runner.call_completed(call_sid)
         # Post-call extraction + save
         if messages and call_sid:
             transcript = format_transcript(messages)
@@ -159,7 +164,6 @@ async def conversation_ws(websocket: WebSocket, queue_id: int):
                 logger.error("[call %s] extract_result failed: %s", call_sid, exc)
                 result = {"has_game": None, "confidence": 0.0, "can_order": None, "notes": str(exc)}
 
-            ctx = _pending_calls.pop(queue_id, {})
             q = ctx.get("queue_item", {})
             cid = campaign_id or q.get("campaign_id")
 
