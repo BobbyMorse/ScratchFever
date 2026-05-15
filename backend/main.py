@@ -103,9 +103,7 @@ async def lifespan(app: FastAPI):
     await init_retailer_db()
     await seed_admin()
 
-    # Schedule scrape every hour (no startup trigger)
-    scheduler.add_job(scheduled_scrape, "interval", hours=1, id="scrape_all")
-    # Check retailer freshness daily — scrapes any state older than 30 days
+    # Retailer freshness check — daily
     scheduler.add_job(check_and_run_stale_retailers, "interval", days=1, id="check_retailer_freshness")
 
     # Attach call runner to scheduler
