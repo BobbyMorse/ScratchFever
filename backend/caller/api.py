@@ -26,6 +26,10 @@ def set_runner(runner):
     _runner = runner
 
 
+def get_runner():
+    return _runner
+
+
 # ── Request models ────────────────────────────────────────────────────────────
 
 class CampaignCreate(BaseModel):
