@@ -117,10 +117,16 @@ async def run_scraper(scraper_cls, sem: asyncio.Semaphore) -> tuple[str, int, st
             games = None
         count = 0
         if games and not _cancel_requested:
-            async with get_pool().acquire() as conn:
-                async with conn.transaction():
-                    await conn.execute("UPDATE games SET is_active=FALSE WHERE state_code=$1", scraper.state_code)
-                    count = await persist_games(conn, scraper.state_code, scraper.state_name, games)
+            try:
+                async with get_pool().acquire() as conn:
+                    async with conn.transaction():
+                        await conn.execute("UPDATE games SET is_active=FALSE WHERE state_code=$1", scraper.state_code)
+                        count = await persist_games(conn, scraper.state_code, scraper.state_name, games)
+                        if count == 0:
+                            raise RuntimeError(f"0/{len(games)} upserts succeeded — rolling back to protect existing data")
+            except RuntimeError as e:
+                error = error or str(e)
+                logger.error("%s: %s", scraper.state_code, e)
         async with get_pool().acquire() as conn:
             await log_scrape(conn, scraper.state_code, error is None, count, error)
         logger.info("  %s: %d games%s", scraper.state_code, count, f" [ERROR: {error}]" if error else "")
