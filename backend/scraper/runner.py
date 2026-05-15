@@ -77,8 +77,8 @@ ALL_SCRAPERS = [
 ]
 
 # Max scrapers running simultaneously. Each scraper makes HTTP requests to an
-# external site; too many in parallel risks getting IP-blocked.
-CONCURRENCY = 10
+# external site; too many in parallel risks getting IP-blocked and spikes RAM.
+CONCURRENCY = 4
 
 
 async def persist_games(conn, state_code: str, state_name: str, games: list[dict]):
