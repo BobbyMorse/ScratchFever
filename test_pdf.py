@@ -19,10 +19,17 @@ with pdfplumber.open(pdf_path) as pdf:
     for page in pdf.pages:
         full_text += (page.extract_text() or '') + '\n'
 
-    print('=== REGEX MATCHES (current pattern) ===')
-    pattern = r'\$([\d,]+(?:\.\d+)?)\s*=\s*([\d,]+(?:\.\d+)?)'
-    matches = re.findall(pattern, full_text)
-    print(matches)
+    print('=== OLD REGEX MATCHES ===')
+    old_pattern = r'\$([\d,]+(?:\.\d+)?)\s*=\s*([\d,]+(?:\.\d+)?)'
+    print(re.findall(old_pattern, full_text))
+
+    print()
+    print('=== FIXED REGEX MATCHES ===')
+    new_pattern = r'\$([\d,]+(?:\.\d+)?)\s*[=:]\s*([\d][\d,\. ]*)'
+    for m in re.finditer(new_pattern, full_text):
+        raw = m.group(2).strip()
+        odds = float(raw.replace(' ', '').replace(',', ''))
+        print(f'  ${m.group(1)} => odds {odds:,.2f}')
 
     print()
     print('=== ALL LINES WITH $ ===')
