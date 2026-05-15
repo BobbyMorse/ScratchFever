@@ -651,9 +651,8 @@ function renderTable() {
 
   if (!showNearSoldOut) {
     games = games.filter(g => {
-      if (!g.total_tickets || !g.tickets_remaining) return true;
-      const pctLeft = g.tickets_remaining / g.total_tickets;
-      return !(pctLeft <= 0.03 && g.return_pct >= 100);
+      if (g.tickets_remaining == null) return true;
+      return g.tickets_remaining >= 30000;
     });
   }
 
