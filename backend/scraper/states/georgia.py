@@ -4,8 +4,8 @@ API: https://www.galottery.com/api/v1/instant-games/games?size=1000
   Fields: gameId, gameName, validationStatus, ticketPrice (cents),
           prizeTiers[]: prizeAmount (1/100 cent = divide by 10000 for dollars), winningTickets (total), paidTickets (claimed)
 
-Total tickets not provided by API; estimated from prize pool assuming ~65% return rate.
-EV: remaining_prize_pool / tickets_remaining - ticket_price
+GA API provides per-tier winningTickets/paidTickets but no total tickets or per-game odds.
+EV cannot be computed reliably; games will have ev=NULL and won't appear in rankings.
 """
 from __future__ import annotations
 import logging
