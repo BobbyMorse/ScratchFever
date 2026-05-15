@@ -269,11 +269,13 @@ class PennsylvaniaScraper(BaseScraper):
                     for pa, rem in top6.items()
                 ]
 
-            # Estimate tickets_remaining from top-6 tiers that have both data points
+            # Estimate tickets_remaining from tiers that have both data points.
+            # Only use tiers with prizes_remaining > 0; depleted tiers (0) would
+            # drive the median toward zero and produce astronomical EV values.
             estimates = [
                 t["prizes_remaining"] * t["odds_one_in"]
                 for t in all_tiers
-                if t.get("prizes_remaining") is not None and t.get("odds_one_in")
+                if t.get("prizes_remaining") and t.get("odds_one_in")
             ]
             tickets_remaining = statistics.median(estimates) if estimates else None
 
