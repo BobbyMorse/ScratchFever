@@ -67,7 +67,7 @@ ALL_SCRAPERS = [
     TexasScraper, FloridaScraper, CaliforniaScraper, NewYorkScraper, PennsylvaniaScraper,
     OhioScraper, MichiganScraper, IllinoisScraper, GeorgiaScraper, NorthCarolinaScraper,
     NewJerseyScraper, VirginiaScraper, MassachusettsScraper, MarylandScraper, ColoradoScraper,
-    ConnecticutScraper, VermontScraper, RhodeIslandScraper, MaineScraper, NewHampshireScraper,
+    ConnecticutScraper, VermontScraper, RhodeIslandScraper, NewHampshireScraper,
     ArizonaScraper, WashingtonScraper, OregonScraper, IdahoScraper, MontanaScraper,
     WyomingScraper, NorthDakotaScraper, SouthDakotaScraper, NebraskaScraper, KansasScraper,
     MinnesotaScraper, IowaScraper, WisconsinScraper, IndianaScraper, MissouriScraper,
