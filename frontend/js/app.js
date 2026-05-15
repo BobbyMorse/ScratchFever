@@ -803,8 +803,8 @@ function renderModal(g) {
     const tot = t.prizes_total != null ? fmtNum(t.prizes_total) : "—";
     const odds = t.odds_one_in ? `1 in ${fmtNum(t.odds_one_in)}` : "—";
     const prob = t.prizes_remaining != null && g.tickets_remaining
-      ? ((t.prizes_remaining / g.tickets_remaining) * 100).toFixed(4) + "%"
-      : (t.odds_one_in ? ((1 / t.odds_one_in) * 100).toFixed(4) + "%" : "—");
+      ? `1 in ${fmtNum(g.tickets_remaining / t.prizes_remaining)}`
+      : (t.odds_one_in ? `1 in ${fmtNum(t.odds_one_in)}` : "—");
     return `<tr>
       <td><strong>$${fmtMoney(t.prize_amount)}</strong></td>
       <td>${odds}</td>
