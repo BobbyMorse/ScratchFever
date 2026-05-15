@@ -1,4 +1,5 @@
-import pdfplumber, re
+import pdfplumber, re, sys
+sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 pdf_path = 'C:/Users/rober/.claude/projects/c--Users-rober-Desktop-ScratchFever/8f6248cc-55f2-4f29-9997-3cca5cd8772a/tool-results/webfetch-1778810422387-n08kju.pdf'
 with pdfplumber.open(pdf_path) as pdf:
