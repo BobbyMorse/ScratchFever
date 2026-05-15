@@ -21,8 +21,6 @@ CSV_URL = "https://www.texaslottery.com/export/sites/lottery/Games/Scratch_Offs/
 BASE_URL = "https://www.texaslottery.com"
 DETAIL_BASE = f"{BASE_URL}/export/sites/lottery/Games/Scratch_Offs"
 
-_PAYOUT_RATE = 0.65
-
 
 class TexasScraper(BaseScraper):
     state_code = "TX"
