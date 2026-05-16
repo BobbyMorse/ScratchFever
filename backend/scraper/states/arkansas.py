@@ -56,8 +56,9 @@ class ArkansasScraper(BaseScraper):
             price, tiers, overall_odds = None, [], None
             try:
                 price, tiers, overall_odds = self._scrape_detail(detail_url)
+                time.sleep(0.5)
             except Exception as e:
-                logger.debug("AR detail failed for %s: %s", name, e)
+                logger.warning("AR detail failed for %s: %s", name, e)
 
             if not price:
                 continue
