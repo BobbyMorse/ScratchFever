@@ -112,12 +112,12 @@ def main():
             results["failed"].append(f"{state_upper} import")
 
     # Summary
-    print(f"\n{'═'*60}")
-    print(f"  DONE — {datetime.now().strftime('%H:%M:%S')}")
+    print(f"\n{'='*60}")
+    print(f"  DONE -- {datetime.now().strftime('%H:%M:%S')}")
     print(f"  OK:      {', '.join(results['ok']) or 'none'}")
     print(f"  Failed:  {', '.join(results['failed']) or 'none'}")
     print(f"  Skipped: {', '.join(results['skipped']) or 'none'}")
-    print(f"{'═'*60}\n")
+    print(f"{'='*60}\n")
 
     if results["failed"]:
         sys.exit(1)
