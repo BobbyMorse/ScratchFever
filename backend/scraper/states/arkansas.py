@@ -8,6 +8,7 @@ EV computed by deriving per-tier odds from overall_odds * total_prizes / tier_to
 """
 from __future__ import annotations
 import re
+import time
 import logging
 from backend.scraper.base import BaseScraper
 from backend.ev_calculator import parse_prize_amount, parse_odds
