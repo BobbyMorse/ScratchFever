@@ -121,6 +121,12 @@ async def init_db():
         await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS jackpot_odds_one_in REAL")
         await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS how_to_play TEXT")
         await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS end_date DATE")
+        # Clear stale past end_dates for states whose scrapers no longer set end_date (e.g. CA).
+        # Active games with a past end_date were set by an older scraper version and should not
+        # suppress display.
+        await conn.execute(
+            "UPDATE games SET end_date = NULL WHERE is_active = TRUE AND end_date < CURRENT_DATE"
+        )
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS state_retailers (
                 id SERIAL PRIMARY KEY,
