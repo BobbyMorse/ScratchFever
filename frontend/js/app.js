@@ -2364,6 +2364,9 @@ function getRetailerState(retailerId) {
   if (allRetailers.some(r => String(r.id) === String(retailerId))) return 'MA';
   if (allAzRetailers.some(r => String(r.id) === String(retailerId))) return 'AZ';
   if (allRiRetailers.some(r => String(r.id) === String(retailerId))) return 'RI';
+  if (allFlRetailers.some(r => String(r.id) === String(retailerId))) return 'FL';
+  if (allGaRetailers.some(r => String(r.id) === String(retailerId))) return 'GA';
+  if (allNyRetailers.some(r => String(r.id) === String(retailerId))) return 'NY';
   return null;
 }
 
@@ -2372,6 +2375,9 @@ function getGamesForRetailer(retailerId) {
   if (state === 'MA') return maGames;
   if (state === 'AZ') return azGames;
   if (state === 'RI') return riGames;
+  if (state === 'FL') return flGames;
+  if (state === 'GA') return gaGames;
+  if (state === 'NY') return nyGames;
   return [];
 }
 
