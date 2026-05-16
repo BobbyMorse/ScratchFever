@@ -486,12 +486,6 @@ function applyClientFilters(games) {
   if (state)  result = result.filter(g => g.state_code === state);
   if (price)  { const p = Number(price); result = result.filter(g => g.price === p); }
   if (minRet) result = result.filter(g => (g.return_pct || 0) >= Number(minRet));
-  // Hide near-depleted games (< 2% tickets left) showing positive EV —
-  // these are mathematically real but practically unfindable in stores.
-  result = result.filter(g => {
-    if (!g.total_tickets || !g.tickets_remaining || (g.return_pct || 0) < 100) return true;
-    return (g.tickets_remaining / g.total_tickets) >= 0.02;
-  });
   return result;
 }
 
