@@ -413,7 +413,12 @@ function _refreshStatCounts() {
 
 function buildLatestStatusFromReports() {
   const status = {};
-  const activeGame = currentHuntState === 'AZ' ? selectedAzGame : selectedGame;
+  const activeGame = currentHuntState === 'AZ' ? selectedAzGame
+    : currentHuntState === 'RI' ? selectedRiGame
+    : currentHuntState === 'FL' ? selectedFlGame
+    : currentHuntState === 'GA' ? selectedGaGame
+    : currentHuntState === 'NY' ? selectedNyGame
+    : selectedGame;
   const gameFilter = activeGame?.name.toLowerCase();
   for (const rep of communityReports) {
     if (gameFilter && rep.game_name?.toLowerCase() !== gameFilter) continue;
