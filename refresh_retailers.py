@@ -36,10 +36,10 @@ STATES = [
 
 
 def run(script: str, label: str) -> bool:
-    print(f"\n{'─'*60}")
+    print(f"\n{'-'*60}")
     print(f"  {label}")
     print(f"  {script}")
-    print(f"{'─'*60}")
+    print(f"{'-'*60}")
     start = time.time()
     result = subprocess.run(
         [sys.executable, str(ROOT / script)],
