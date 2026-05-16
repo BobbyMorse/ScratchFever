@@ -2355,6 +2355,15 @@ async function loadCommunityReports() {
 
 // ── Store profile (inline expand) ─────────────────────────────────────────────
 
+function goToStoreFromModal(retailerId) {
+  closeModal();
+  const tr = document.querySelector(`tr[data-retailer-id="${CSS.escape(String(retailerId))}"]`);
+  if (tr) {
+    tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    toggleStoreProfile(tr);
+  }
+}
+
 function toggleStoreProfile(tr) {
   const rid = tr.dataset.retailerId;
 
