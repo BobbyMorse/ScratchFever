@@ -2243,7 +2243,8 @@ function searchReportStores() {
     const dd = document.getElementById("reportStoreDropdown");
     if (!q || q.length < 2) { dd.style.display = "none"; return; }
     try {
-      const endpoint = currentHuntState === 'AZ' ? '/api/az/retailers' : '/api/ma/retailers';
+      const stateEndpoints = { MA: '/api/ma/retailers', AZ: '/api/az/retailers', RI: '/api/ri/retailers', FL: '/api/fl/retailers', GA: '/api/ga/retailers', NY: '/api/ny/retailers' };
+      const endpoint = stateEndpoints[currentHuntState] || '/api/ma/retailers';
       const res = await fetch(`${endpoint}?search=${encodeURIComponent(q)}&limit=12`);
       const data = await res.json();
       if (!data.retailers?.length) { dd.style.display = "none"; return; }
