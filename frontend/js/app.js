@@ -2653,23 +2653,31 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
 
   let retailerSection = "";
   if (retailerConfirmed.length) {
-    const rows = retailerConfirmed.map(r => {
-      const inStock = r.has_stock;
-      const mapsUrl = r.lat && r.lng
-        ? `https://www.google.com/maps/search/?api=1&query=${r.lat},${r.lng}`
-        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((r.retailer_name || "") + ", " + (r.retailer_city || "") + ", " + (stateCode || ""))}`;
-      const time = r.reported_at ? timeAgo(parseReportedAt(r.reported_at)) : "—";
-      return `<div class="retailer-stock-row">
-        <span class="retailer-stock-dot ${inStock ? "dot-in" : "dot-out"}"></span>
-        <span class="retailer-stock-name"><a href="${mapsUrl}" target="_blank" rel="noopener" class="report-location-link">${escHtml(r.retailer_name || "Store")}</a>${r.retailer_city ? ` <span class="retailer-stock-city">${escHtml(r.retailer_city)}</span>` : ""}</span>
-        <span class="retailer-stock-status ${inStock ? "status-in" : "status-out"}">${inStock ? "In Stock" : "Out of Stock"}</span>
-        <span class="retailer-stock-time">${time}</span>
+    if (!_currentUser) {
+      retailerSection = `<div class="modal-retailer-section">
+        <div class="modal-community-title" style="margin-bottom:.55rem">🏪 Retailer-Confirmed</div>
+        <div class="modal-community-gate">
+          <span>${retailerConfirmed.length} retailer report${retailerConfirmed.length > 1 ? "s" : ""} for this game.</span>
+          <button class="btn btn-login" onclick="closeModal();openAuthModal('login')" style="font-size:.78rem;padding:.3rem .75rem">Log In to See</button>
+          <button class="btn btn-register" onclick="closeModal();openAuthModal('register')" style="font-size:.78rem;padding:.3rem .75rem">Join Free</button>
+        </div>
       </div>`;
-    }).join("");
-    retailerSection = `<div class="modal-retailer-section">
-      <div class="modal-community-title" style="margin-bottom:.55rem">🏪 Retailer-Confirmed</div>
-      <div class="retailer-stock-list">${rows}</div>
-    </div>`;
+    } else {
+      const rows = retailerConfirmed.map(r => {
+        const inStock = r.has_stock;
+        const time = r.reported_at ? timeAgo(parseReportedAt(r.reported_at)) : "—";
+        return `<div class="retailer-stock-row" onclick="goToStoreFromModal(${JSON.stringify(String(r.retailer_id))})" style="cursor:pointer">
+          <span class="retailer-stock-dot ${inStock ? "dot-in" : "dot-out"}"></span>
+          <span class="retailer-stock-name">${escHtml(r.retailer_name || "Store")}${r.retailer_city ? ` <span class="retailer-stock-city">${escHtml(r.retailer_city)}</span>` : ""}</span>
+          <span class="retailer-stock-status ${inStock ? "status-in" : "status-out"}">${inStock ? "In Stock" : "Out of Stock"}</span>
+          <span class="retailer-stock-time">${time}</span>
+        </div>`;
+      }).join("");
+      retailerSection = `<div class="modal-retailer-section">
+        <div class="modal-community-title" style="margin-bottom:.55rem">🏪 Retailer-Confirmed</div>
+        <div class="retailer-stock-list">${rows}</div>
+      </div>`;
+    }
   }
 
   // --- Community reports section ---
