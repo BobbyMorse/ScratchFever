@@ -79,9 +79,7 @@ class CaliforniaScraper(BaseScraper):
                 continue
             odds = float(t.get("odds") or 0) or None
             total = int(t.get("totalNumberOfPrizes") or 0)
-            cashed = int(t.get("numberOfPrizesCashed") or 0)
-            pending = int(t.get("numberOfPrizesPending") or 0)
-            remaining = max(total - cashed - pending, 0)
+            remaining = int(t.get("number") or 0)
 
             if total <= 0:
                 continue
