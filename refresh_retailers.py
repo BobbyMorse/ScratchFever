@@ -48,7 +48,7 @@ def run(script: str, label: str) -> bool:
     elapsed = time.time() - start
     ok = result.returncode == 0
     status = "OK" if ok else f"FAILED (exit {result.returncode})"
-    print(f"  → {status}  [{elapsed:.1f}s]")
+    print(f"  -> {status}  [{elapsed:.1f}s]")
     return ok
 
 
