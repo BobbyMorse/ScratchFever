@@ -223,7 +223,7 @@ async def upsert_game(conn: asyncpg.Connection, state_code: str, state_name: str
             prize_pool_left=EXCLUDED.prize_pool_left, jackpot_odds_one_in=EXCLUDED.jackpot_odds_one_in,
             detail_url=EXCLUDED.detail_url, image_url=EXCLUDED.image_url,
             how_to_play=COALESCE(EXCLUDED.how_to_play, games.how_to_play),
-            end_date=COALESCE(EXCLUDED.end_date, games.end_date),
+            end_date=EXCLUDED.end_date,
             scraped_at=NOW(), is_active=TRUE
         RETURNING id
     """,
