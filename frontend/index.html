@@ -1211,10 +1211,16 @@
         <section class="caller-form-section" id="callerFormSection">
           <div class="caller-form-card">
             <h2 class="caller-form-title">New Calling Campaign</h2>
-            <p class="caller-form-subtitle">Loads every scored MA retailer into a queue and calls them top-down (highest score first) during business hours (9 AM–8 PM ET, Mon–Sat).</p>
+            <p class="caller-form-subtitle">Select a state and game, then load retailers into a calling queue (highest score first) during business hours (9 AM–8 PM ET, Mon–Sat).</p>
             <div class="caller-form-row">
+              <div class="filter-group">
+                <label>State *</label>
+                <select id="cfStateSelect" onchange="onCallerStateSelect()">
+                  <option value="">— State —</option>
+                </select>
+              </div>
               <div class="filter-group" style="min-width:220px">
-                <label>Game Name *</label>
+                <label>Game *</label>
                 <select id="cfGameSelect" onchange="onCallerGameSelect()">
                   <option value="">— Select a game —</option>
                 </select>
