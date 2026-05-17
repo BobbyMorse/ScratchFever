@@ -1278,7 +1278,7 @@ function renderModal(g) {
       <tbody>${tierRows}</tbody>
     </table>` : "<p style='color:var(--text-muted)'>Prize tier data not available.</p>"}
 
-    ${g.detail_url ? `<a class="detail-link" href="${escHtml(g.detail_url)}" target="_blank" rel="noopener">
+    ${(g.detail_url || STATE_LOTTERY_URLS[g.state_code]) ? `<a class="detail-link" href="${escHtml(g.detail_url || STATE_LOTTERY_URLS[g.state_code])}" target="_blank" rel="noopener">
       View on ${g.state_name} Lottery website ↗
     </a>` : ""}
 
