@@ -1733,8 +1733,9 @@ async function sendTestCall() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ phone, game_name: name, game_number: number, game_price: price }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || "Failed");
+    let data = {};
+    try { data = await res.json(); } catch (_) {}
+    if (!res.ok) throw new Error(data.detail || `Server error (${res.status})`);
     showCallerMsg(`Test call placed — you should receive a call shortly! SID: ${data.call_sid}`, "ok");
   } catch (e) {
     showCallerMsg(`Test call failed: ${e.message}`, "err");
