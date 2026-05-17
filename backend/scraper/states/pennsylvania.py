@@ -481,7 +481,7 @@ class PennsylvaniaScraper(BaseScraper):
                 "total_tickets":       total_tickets,
                 "tickets_remaining":   tickets_remaining,
                 "detail_url":          g["detail_url"],
-                "image_url":           None,
+                "image_url":           image_url,
                 "end_date":            None,
                 "tiers":               all_tiers,
             })
