@@ -243,7 +243,9 @@ async def admin_health(user: dict = Depends(require_admin)):
                 MAX(scraped_at) AS last_scraped,
                 ROUND(100.0 * COUNT(image_url) / COUNT(*), 1) AS image_pct,
                 ROUND(100.0 * COUNT(ev) / COUNT(*), 1) AS ev_pct,
-                ROUND(AVG(CASE WHEN ev IS NOT NULL THEN return_pct END)::numeric, 1) AS avg_return
+                ROUND(AVG(CASE WHEN ev IS NOT NULL THEN return_pct END)::numeric, 1) AS avg_return,
+                ROUND(100.0 * COUNT(CASE WHEN tickets_remaining > 0 THEN 1 END) / COUNT(*), 1) AS remaining_pct,
+                COUNT(CASE WHEN tickets_remaining = 0 THEN 1 END) AS zero_remaining_count
             FROM games
             WHERE is_active = TRUE
             GROUP BY state_code, state_name
