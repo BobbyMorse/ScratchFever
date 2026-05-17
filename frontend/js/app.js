@@ -386,7 +386,8 @@ function populateCallerStateSelect() {
   const sel = document.getElementById("cfStateSelect");
   if (!sel) return;
   const prev = sel.value;
-  const codes = [...new Set(allGamesUnfiltered.map(g => g.state_code).filter(Boolean))].sort();
+  const source = allGamesUnfiltered.length ? allGamesUnfiltered : maGames;
+  const codes = [...new Set(source.map(g => g.state_code).filter(Boolean))].sort();
   sel.innerHTML = '<option value="">— State —</option>';
   codes.forEach(code => {
     const opt = document.createElement("option");
