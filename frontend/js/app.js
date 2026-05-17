@@ -5249,18 +5249,7 @@ document.addEventListener("click", function(e) {
   };
 })();
 
-// ── Admin Health Panel ──────────────────────────────────────────────────────
-
-function openAdminPanel() {
-  document.getElementById("apPanel").classList.add("open");
-  document.getElementById("apBackdrop").style.display = "";
-  loadAdminHealth();
-}
-
-function closeAdminPanel() {
-  document.getElementById("apPanel").classList.remove("open");
-  document.getElementById("apBackdrop").style.display = "none";
-}
+// ── Admin Health Tab ───────────────────────────────────────────────────────
 
 function _apTimeAgo(iso) {
   if (!iso) return "—";
