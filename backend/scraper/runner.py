@@ -114,11 +114,22 @@ async def run_scraper(scraper_cls) -> tuple[str, int, str | None]:
     if games and not _cancel_requested:
         try:
             async with get_pool().acquire() as conn:
-                async with conn.transaction():
-                    await conn.execute("UPDATE games SET is_active=FALSE WHERE state_code=$1", scraper.state_code)
-                    count = await persist_games(conn, scraper.state_code, scraper.state_name, games)
-                    if count == 0:
-                        raise RuntimeError(f"0/{len(games)} upserts succeeded — rolling back to protect existing data")
+                existing = await conn.fetchval(
+                    "SELECT COUNT(*) FROM games WHERE state_code=$1 AND is_active=TRUE",
+                    scraper.state_code
+                )
+                if existing and len(games) < existing * 0.5:
+                    error = (
+                        f"scraped {len(games)} games but DB has {existing} active — "
+                        f"looks like a site outage, skipping update to protect existing data"
+                    )
+                    logger.warning("%s: %s", scraper.state_code, error)
+                else:
+                    async with conn.transaction():
+                        await conn.execute("UPDATE games SET is_active=FALSE WHERE state_code=$1", scraper.state_code)
+                        count = await persist_games(conn, scraper.state_code, scraper.state_name, games)
+                        if count == 0:
+                            raise RuntimeError(f"0/{len(games)} upserts succeeded — rolling back to protect existing data")
         except RuntimeError as e:
             error = error or str(e)
             logger.error("%s: %s", scraper.state_code, e)
