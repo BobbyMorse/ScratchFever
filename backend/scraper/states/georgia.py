@@ -95,9 +95,9 @@ class GeorgiaScraper(BaseScraper):
             return None
 
         end_date = None
-        end_ms = g.get("endDistributionDate")
-        if end_ms:
-            end_date = datetime.fromtimestamp(end_ms / 1000, tz=timezone.utc).date().isoformat()
+        disable_ms = g.get("disableDate")
+        if disable_ms:
+            end_date = datetime.fromtimestamp(disable_ms / 1000, tz=timezone.utc).date().isoformat()
 
         return self.build_game(
             game_id=game_id,
