@@ -629,25 +629,55 @@ async function loadStates() {
   } catch (_) {}
 }
 
-async function loadStatus() {
+async function loadStateHealth() {
+  const grid = document.getElementById("dsGrid");
+  const banner = document.getElementById("dsScraperStatus");
+  if (!grid) return;
+  grid.innerHTML = `<div class="ds-loading">Loading…</div>`;
   try {
-    const res = await fetch("/api/status");
+    const res = await fetch("/api/status/states");
+    if (!res.ok) throw new Error(res.status);
     const data = await res.json();
-    const dot = document.getElementById("statusDot");
-    const txt = document.getElementById("statusText");
 
-    if (data.scraper_running) {
-      dot.className = "status-dot busy";
-      txt.textContent = "Scraping…";
-    } else if (data.last_run) {
-      dot.className = "status-dot ok";
-      const d = new Date(/Z$|[+-]\d{2}:\d{2}$/.test(data.last_run) ? data.last_run : data.last_run + 'Z');
-      txt.textContent = `Updated ${timeAgo(d)}`;
-    } else {
-      dot.className = "status-dot";
-      txt.textContent = "No data yet";
-    }
-  } catch (_) {}
+    // scraper running banner
+    if (banner) banner.style.display = data.scraper_running ? "" : "none";
+
+    // summary chips
+    let ok = 0, warn = 0, err = 0, never = 0;
+    data.states.forEach(s => {
+      if (s.status === "ok") ok++;
+      else if (s.status === "warn") warn++;
+      else if (s.status === "error") err++;
+      else never++;
+    });
+    const setN = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = n; };
+    setN("dsOkN", ok); setN("dsWarnN", warn); setN("dsErrN", err); setN("dsNeverN", never);
+
+    document.getElementById("dsLastUpdated").textContent =
+      `${data.states.length} states · refreshed just now`;
+
+    const rows = data.states.map(s => {
+      const dotCls = s.status === "ok" ? "ds-sdot ok"
+                   : s.status === "error" ? "ds-sdot err"
+                   : s.status === "warn" ? "ds-sdot warn"
+                   : "ds-sdot never";
+      const when = s.last_scrape_at
+        ? timeAgo(new Date(s.last_scrape_at.endsWith("Z") ? s.last_scrape_at : s.last_scrape_at + "Z"))
+        : "—";
+      const games = s.games_in_db > 0 ? `${s.games_in_db} games` : "no data";
+      return `<div class="ds-state-row">
+        <span class="${dotCls}"></span>
+        <span class="ds-state-code">${s.state_code}</span>
+        <span class="ds-state-name">${s.state_name}</span>
+        <span class="ds-state-when">${when}</span>
+        <span class="ds-state-games">${games}</span>
+      </div>`;
+    }).join("");
+
+    grid.innerHTML = rows || `<div class="ds-loading">No states found.</div>`;
+  } catch (e) {
+    grid.innerHTML = `<div class="ds-loading" style="color:var(--red)">Failed to load: ${e.message}</div>`;
+  }
 }
 
 function fmtClaimPrize(amount) {
