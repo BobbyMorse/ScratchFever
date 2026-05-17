@@ -1692,8 +1692,9 @@ async function createCallerCampaign() {
       body: JSON.stringify({ game_name: name, game_number: number, game_price: price,
                              max_stores: max, call_backend: document.getElementById("cfBackend").value }),
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.detail || "Failed");
+    let data = {};
+    try { data = await res.json(); } catch (_) {}
+    if (!res.ok) throw new Error(data.detail || `Server error (${res.status})`);
     showCallerMsg(
       `Campaign #${data.campaign.id} created — ${data.queue_loaded} stores queued. Hit Start to begin calling.`,
       "ok"
