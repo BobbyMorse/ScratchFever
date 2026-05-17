@@ -108,6 +108,18 @@ body {
   flex-shrink: 0;
 }
 @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.3} }
+.status-bar {
+  display: flex; align-items: center; gap: .35rem;
+  font-size: .76rem; color: var(--chrome-text);
+  white-space: nowrap;
+}
+.status-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--chrome-muted); flex-shrink: 0;
+}
+.status-dot.ok   { background: var(--green); box-shadow: 0 0 5px var(--green); }
+.status-dot.busy { background: var(--yellow); animation: pulse 1s infinite; }
+.status-dot.err  { background: var(--red); }
 
 /* ── Data Status tab ─────────────────────────────────────────────────────── */
 .ds-wrap { padding: 1.25rem 1.5rem; }
