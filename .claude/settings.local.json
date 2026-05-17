@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "mcp__supabase__execute_sql"
+      "mcp__supabase__execute_sql",
+      "WebFetch(domain:wvlottery.com)",
+      "WebFetch(domain:walottery.com)",
+      "WebFetch(domain:lottery.sd.gov)"
     ]
   }
 }
