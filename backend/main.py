@@ -189,6 +189,11 @@ async def retailer_dashboard():
     return FileResponse(os.path.join(FRONTEND_DIR, "retailer.html"))
 
 
+@app.get("/admin", include_in_schema=False)
+async def admin_page():
+    return FileResponse(os.path.join(FRONTEND_DIR, "admin.html"))
+
+
 # ── Admin: create retailer account ────────────────────────────────────────────
 
 class CreateRetailerBody(BaseModel):
