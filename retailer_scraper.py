@@ -90,7 +90,9 @@ async def fetch_point(
                         return data
                     return []
                 if r.status_code == 429:
-                    await asyncio.sleep(2 ** attempt)
+                    wait = int(r.headers.get("Retry-After", 60))
+                    logger.warning("Rate-limited (429) at attempt %d; backing off %ds", attempt + 1, wait)
+                    await asyncio.sleep(wait)
             except (httpx.TimeoutException, httpx.NetworkError):
                 if attempt < retries - 1:
                     await asyncio.sleep(1)
