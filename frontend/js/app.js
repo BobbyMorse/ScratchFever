@@ -1578,14 +1578,16 @@ function toggleTranscript(queueId) {
 }
 
 async function createCallerCampaign() {
-  const name   = document.getElementById("cfGameName").value.trim();
-  const number = document.getElementById("cfGameNumber").value.trim();
+  const sel    = document.getElementById("cfGameSelect");
+  const opt    = sel.options[sel.selectedIndex];
+  const name   = opt?.dataset.name  || "";
+  const number = opt?.value         || "";
   const price  = parseFloat(document.getElementById("cfGamePrice").value) || 0;
   const max    = parseInt(document.getElementById("cfMaxStores").value) || 200;
   const btn    = document.getElementById("cfCreateBtn");
 
   if (!name) {
-    showCallerMsg("Game name is required.", "err");
+    showCallerMsg("Select a game first.", "err");
     return;
   }
 
@@ -1606,9 +1608,8 @@ async function createCallerCampaign() {
       `Campaign #${data.campaign.id} created — ${data.queue_loaded} stores queued. Hit Start to begin calling.`,
       "ok"
     );
-    document.getElementById("cfGameName").value  = "";
-    document.getElementById("cfGameNumber").value = "";
-    document.getElementById("cfGamePrice").value  = "";
+    sel.value = "";
+    document.getElementById("cfGamePrice").value = "";
     await loadCallerData();
   } catch (e) {
     showCallerMsg(e.message, "err");
