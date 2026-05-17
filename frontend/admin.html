@@ -333,6 +333,43 @@
       color: var(--text-muted);
       font-size: .9rem;
     }
+
+    .scrape-btn {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      padding: .3rem .75rem;
+      font-family: inherit;
+      font-size: .75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: border-color .15s, color .15s;
+      white-space: nowrap;
+      letter-spacing: .02em;
+    }
+    .scrape-btn:hover:not(:disabled) { border-color: var(--orange); color: var(--orange); }
+    .scrape-btn.running { border-color: var(--blue); color: var(--blue); cursor: default; }
+    .scrape-btn:disabled { opacity: .45; cursor: not-allowed; }
+
+    .scrape-toast {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      background: var(--chrome);
+      color: #fff;
+      padding: .65rem 1.1rem;
+      border-radius: 8px;
+      font-size: .82rem;
+      font-weight: 600;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      z-index: 999;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity .2s, transform .2s;
+      pointer-events: none;
+    }
+    .scrape-toast.show { opacity: 1; transform: translateY(0); }
   </style>
 </head>
 <body>
