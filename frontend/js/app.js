@@ -5296,7 +5296,7 @@ function _apRetailerCell(s) {
 }
 
 async function loadAdminHealth() {
-  document.getElementById("apHealthBody").innerHTML =
+  document.getElementById("htHealthBody").innerHTML =
     `<tr><td colspan="10" class="ap-loading">Loading…</td></tr>`;
   try {
     const res = await protectedFetch("/api/admin/health");
@@ -5304,7 +5304,7 @@ async function loadAdminHealth() {
     const data = await res.json();
     _renderAdminHealth(data.states || []);
   } catch(e) {
-    document.getElementById("apHealthBody").innerHTML =
+    document.getElementById("htHealthBody").innerHTML =
       `<tr><td colspan="10" class="ap-loading" style="color:#fca5a5">Failed: ${e.message}</td></tr>`;
   }
 }
