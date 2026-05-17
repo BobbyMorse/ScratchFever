@@ -79,11 +79,18 @@ class LouisianaScraper(BaseScraper):
             img = a.find("img")
             image_url = img.get("src") if img else None
 
-            total_rem = sum(t.get("prizes_remaining") or 0 for t in tiers)
-            total_tot = sum(t.get("prizes_total") or 0 for t in tiers)
             all_have_rem = tiers and all(t.get("prizes_remaining") is not None for t in tiers)
-            tickets_remaining = round(overall_odds * total_rem) if overall_odds and all_have_rem else None
-            total_tickets = round(overall_odds * total_tot) if overall_odds and total_tot else None
+
+            # Louisiana's overall_odds includes unlisted low-value prize tiers, so
+            # overall_odds × listed_prizes underestimates total tickets. Use per-tier
+            # original odds × prize counts instead (odds = total_tickets / prizes_in_tier).
+            tier_totals = [round(t["prizes_total"] * t["odds_one_in"])
+                           for t in tiers if t.get("prizes_total") and t.get("odds_one_in")]
+            total_tickets = round(sum(tier_totals) / len(tier_totals)) if tier_totals else None
+
+            tier_remaining = [round(t["prizes_remaining"] * t["odds_one_in"])
+                              for t in tiers if t.get("prizes_remaining") is not None and t.get("odds_one_in")]
+            tickets_remaining = round(sum(tier_remaining) / len(tier_remaining)) if (tier_remaining and all_have_rem) else None
 
             games.append(self.build_game(
                 game_id=game_id,
