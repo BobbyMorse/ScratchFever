@@ -5,10 +5,12 @@ API: https://www.galottery.com/api/v1/instant-games/games?size=1000
           prizeTiers[]: prizeAmount (1/100 cent = divide by 10000 for dollars),
           winningTickets (total printed), paidTickets (claimed)
 
-Overall odds are scraped from each game's detail page:
-  https://www.galottery.com/en-us/games/scratchers/{gameId}.html
-  Pattern: "Overall odds of winning ... are 1 in X.XX."
-  This lets us derive tickets_remaining and compute EV.
+Georgia only publishes top-prize claimed counts reliably. EV is approximated by
+treating the top-prize depletion rate as a proxy for overall ticket depletion:
+  depletion = top_prize_paidTickets / top_prize_winningTickets
+  prizes_remaining_i ≈ winningTickets_i * (1 - depletion)
+  tickets_remaining ≈ total_tickets * (1 - depletion)
+ev_approximate is set True on all GA games so the UI can flag this.
 """
 from __future__ import annotations
 import logging
@@ -107,42 +109,58 @@ class GeorgiaScraper(BaseScraper):
 
         tiers_raw = g.get("prizeTiers") or []
         tiers = []
-        total_prizes_printed = 0
-        total_prizes_remaining = 0
+        top_paid = 0
+        top_total = 0
 
         for t in tiers_raw:
             prize_cents = t.get("prizeAmount") or 0
             prize = prize_cents / 10000.0
             total = int(t.get("winningTickets") or 0)
             paid = int(t.get("paidTickets") or 0)
-            remaining = max(total - paid, 0)
-
             if prize <= 0 or total <= 0:
                 continue
-
-            total_prizes_printed += total
-            total_prizes_remaining += remaining
-
             tiers.append({
                 "prize_amount":     prize,
                 "odds_one_in":      None,
                 "prizes_total":     total,
-                "prizes_remaining": remaining,
+                "prizes_remaining": None,
+                "_paid":            paid,
             })
 
         if not tiers:
             return None
 
-        # Derive tickets_remaining from overall odds + prize claim rate.
-        # total_tickets_printed = prizes_printed * overall_odds
-        # tickets_remaining ≈ total_tickets_printed * (prizes_remaining / prizes_printed)
-        overall_odds = odds_map.get(game_id)
+        # ── Top-prize depletion extrapolation ────────────────────────────────
+        # GA only publishes top-prize claimed counts reliably; use the top
+        # prize depletion rate as a proxy for overall ticket sales.
+        top_tier = max(tiers, key=lambda t: t["prize_amount"])
+        top_total = top_tier["prizes_total"]
+        top_paid = top_tier["_paid"]
+
         tickets_remaining = None
         total_tickets = None
-        if overall_odds and total_prizes_printed > 0:
-            total_tickets = round(total_prizes_printed * overall_odds)
-            remaining_frac = total_prizes_remaining / total_prizes_printed
-            tickets_remaining = round(total_tickets * remaining_frac)
+        ev_approximate = False
+        overall_odds = odds_map.get(game_id)
+
+        if top_total > 0:
+            depletion = max(0.0, min(1.0, top_paid / top_total))
+            for tier in tiers:
+                pt = tier["prizes_total"]
+                tier["prizes_remaining"] = max(0, round(pt * (1.0 - depletion)))
+
+            total_prizes_printed = sum(t["prizes_total"] for t in tiers)
+            if overall_odds and total_prizes_printed > 0:
+                total_tickets = round(total_prizes_printed * overall_odds)
+                tickets_remaining = max(0, round(total_tickets * (1.0 - depletion)))
+
+            ev_approximate = True
+            logger.debug(
+                "GA %s: depletion=%.1f%% top_paid=%d/%d tickets_rem=%s",
+                game_id, depletion * 100, top_paid, top_total, tickets_remaining,
+            )
+
+        for tier in tiers:
+            tier.pop("_paid", None)
 
         end_date = None
         disable_ms = g.get("disableDate")
@@ -160,4 +178,5 @@ class GeorgiaScraper(BaseScraper):
             detail_url=f"{BASE_URL}/en-us/games/scratchers/{game_id}.html",
             image_url=image_url,
             end_date=end_date,
+            ev_approximate=ev_approximate,
         )
