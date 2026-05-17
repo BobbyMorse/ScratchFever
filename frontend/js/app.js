@@ -5353,7 +5353,18 @@ function _renderAdminHealth(states) {
     </tr>`;
   }).join("");
 
-  document.getElementById("apHealthBody").innerHTML = rows ||
+  const noLotteryRows = [
+    { code: "AK", name: "Alaska" },
+    { code: "HI", name: "Hawaii" },
+    { code: "NV", name: "Nevada" },
+    { code: "UT", name: "Utah" },
+  ].map(({ code, name }) => `<tr class="ap-never">
+    <td><div class="ap-state-name">${name}</div><div class="ap-state-code">${code}</div></td>
+    <td><span class="ap-badge none">No Lottery</span></td>
+    <td colspan="8"><span class="ap-muted">No state lottery</span></td>
+  </tr>`).join("");
+
+  document.getElementById("apHealthBody").innerHTML = (rows + noLotteryRows) ||
     `<tr><td colspan="10" class="ap-loading">No data.</td></tr>`;
   document.getElementById("apOkN").textContent = ok;
   document.getElementById("apWarnN").textContent = warn;
