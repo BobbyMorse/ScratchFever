@@ -60,7 +60,8 @@ class NewJerseyScraper(BaseScraper):
         if not price:
             return None
 
-        total_tickets = g.get("totalTicketsPrinted") or None
+        raw_total = g.get("totalTicketsPrinted")
+        total_tickets = int(raw_total) if raw_total else None
 
         # Image URL: check common field names in the NJ API response
         image_url = None
