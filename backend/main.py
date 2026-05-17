@@ -227,6 +227,12 @@ async def admin_create_retailer(body: CreateRetailerBody, user: dict = Depends(r
 
 @app.get("/api/admin/health")
 async def admin_health(user: dict = Depends(require_admin)):
+    from backend.scraper.runner import ALL_SCRAPERS
+    from backend.retailer_scrapers.runner import SCRAPERS as RETAILER_STATES
+
+    all_known = {cls.state_code: cls.state_name for cls in ALL_SCRAPERS}
+    retailer_state_set = set(RETAILER_STATES)
+
     async with get_pool().acquire() as conn:
         game_rows = await conn.fetch("""
             SELECT
@@ -247,40 +253,36 @@ async def admin_health(user: dict = Depends(require_admin)):
             FROM scrape_log
             ORDER BY state_code, ran_at DESC
         """)
+        retailer_rows = await conn.fetch(
+            "SELECT state_code, last_scraped_at, retailers_count FROM retailer_scrape_log"
+        )
+
+    games_by_state = {r["state_code"]: r for r in game_rows}
     log_by_state = {r["state_code"]: r for r in log_rows}
+    retailer_by_state = {r["state_code"]: r for r in retailer_rows}
+
     states = []
-    for r in game_rows:
-        log = log_by_state.get(r["state_code"], {})
+    for state_code, state_name in all_known.items():
+        game = games_by_state.get(state_code)
+        log = log_by_state.get(state_code, {})
+        ret = retailer_by_state.get(state_code)
         states.append({
-            "state_code": r["state_code"],
-            "state_name": r["state_name"],
-            "games_in_db": r["games_in_db"],
-            "last_scraped": r["last_scraped"].isoformat() if r["last_scraped"] else None,
-            "image_pct": float(r["image_pct"] or 0),
-            "ev_pct": float(r["ev_pct"] or 0),
-            "avg_return": float(r["avg_return"] or 0),
+            "state_code": state_code,
+            "state_name": state_name,
+            "games_in_db": game["games_in_db"] if game else 0,
+            "last_scraped": game["last_scraped"].isoformat() if game and game["last_scraped"] else None,
+            "image_pct": float(game["image_pct"] or 0) if game else 0,
+            "ev_pct": float(game["ev_pct"] or 0) if game else 0,
+            "avg_return": float(game["avg_return"] or 0) if game else 0,
             "last_scrape_success": log.get("success"),
             "last_scrape_games": log.get("games_scraped"),
             "last_scrape_error": log.get("error_msg"),
             "last_scrape_at": log["ran_at"].isoformat() if log.get("ran_at") else None,
+            "has_retailer_scraper": state_code in retailer_state_set,
+            "retailer_last_scraped": ret["last_scraped_at"].isoformat() if ret else None,
+            "retailer_count": ret["retailers_count"] if ret else None,
         })
-    # Add states that have scrape logs but no active games (wiped / broken)
-    in_db = {r["state_code"] for r in game_rows}
-    for code, log in log_by_state.items():
-        if code not in in_db:
-            states.append({
-                "state_code": code,
-                "state_name": code,
-                "games_in_db": 0,
-                "last_scraped": None,
-                "image_pct": 0,
-                "ev_pct": 0,
-                "avg_return": 0,
-                "last_scrape_success": log["success"],
-                "last_scrape_games": log["games_scraped"],
-                "last_scrape_error": log["error_msg"],
-                "last_scrape_at": log["ran_at"].isoformat() if log["ran_at"] else None,
-            })
+
     states.sort(key=lambda s: s["state_name"])
     return {"states": states}
 
