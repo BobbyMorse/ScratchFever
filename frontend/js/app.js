@@ -1071,8 +1071,23 @@ function renderTable() {
     return;
   }
 
-  tbody.innerHTML = games.map((g, i) => gameRow(g, i + 1)).join("");
+  const CHUNK = 60;
+  tbody.innerHTML = games.slice(0, CHUNK).map((g, i) => gameRow(g, i + 1)).join("");
   updateStats(games);
+
+  if (games.length > CHUNK) {
+    let offset = CHUNK;
+    function appendChunk() {
+      const end = Math.min(offset + CHUNK, games.length);
+      const html = games.slice(offset, end).map((g, i) => gameRow(g, offset + i + 1)).join("");
+      const tmp = document.createElement("tbody");
+      tmp.innerHTML = html;
+      while (tmp.firstChild) tbody.appendChild(tmp.firstChild);
+      offset = end;
+      if (offset < games.length) requestAnimationFrame(appendChunk);
+    }
+    requestAnimationFrame(appendChunk);
+  }
 }
 
 function gameRow(g, rank) {
