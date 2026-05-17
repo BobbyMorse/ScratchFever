@@ -345,9 +345,8 @@ function syncHeaderHeight() {
     if (sel) { sel.value = _prefs.evDefaultState; loadGames(); }
   }
   await Promise.all([loadCommunityReports(), loadGameCounts(), loadRetailerCounts(), loadRetailerLatest()]);
-  loadStatus();
   loadPrizeClaims();
-  setInterval(() => { loadStatus(); loadPrizeClaims(); }, 30_000);
+  setInterval(() => { loadPrizeClaims(); }, 30_000);
   setInterval(() => { if (_currentUser && currentTab === "ma") loadCommunityReports(); }, 60_000);
 })();
 
