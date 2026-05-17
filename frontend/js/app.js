@@ -1130,10 +1130,13 @@ function switchTab(name) {
   if (name === "settings") {
     populateSettingsTab();
   }
-  if (name === "caller" && !callerLoaded) {
-    callerLoaded = true;
-    loadCallerData();
-    setInterval(() => { if (currentTab === "caller") loadCallerData(); }, 15_000);
+  if (name === "caller") {
+    populateCallerStateSelect();
+    if (!callerLoaded) {
+      callerLoaded = true;
+      loadCallerData();
+      setInterval(() => { if (currentTab === "caller") loadCallerData(); }, 15_000);
+    }
   }
   if (name === "bigwins" && !bigwinsLoaded) {
     bigwinsLoaded = true;
