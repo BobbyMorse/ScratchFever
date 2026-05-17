@@ -75,11 +75,11 @@ class NewJerseyScraper(BaseScraper):
         total_prizes_printed = 0
         total_prizes_remaining = 0
 
-        for t in g.get("prizeTiers", []):
+        for t in (g.get("prizeTiers") or []):
             prize_cents = t.get("prizeAmount") or 0
             prize = prize_cents / 100.0
-            total = t.get("winningTickets") or 0
-            paid = t.get("paidTickets") or 0
+            total = int(t.get("winningTickets") or 0)
+            paid = int(t.get("paidTickets") or 0)
             remaining = max(total - paid, 0)
 
             if prize <= 0 or total <= 0:
