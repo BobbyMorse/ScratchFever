@@ -1033,16 +1033,17 @@ function gameRow(g, rank) {
   const cls = ret >= 100 ? "ev-positive" : ret >= 90 ? "ev-near" : ret >= 70 ? "ev-mid" : "ev-low";
   const barPct = Math.min(100, (ret / 120) * 100).toFixed(1);
 
+  const approxMark = g.ev_approximate ? "~" : "";
   const retCell = ret != null
-    ? `<span class="${cls}">
+    ? `<span class="${cls}" title="${g.ev_approximate ? "Estimated — CO publishes top prizes only; EV approximated via depletion rate" : ""}">
          <div class="return-bar-wrap">
            <div class="return-bar"><div class="return-bar-fill" style="width:${barPct}%"></div></div>
-           ${ret.toFixed(2)}%
+           ${approxMark}${ret.toFixed(2)}%
          </div>
        </span>`
     : "—";
 
-  const ev     = g.ev != null ? `${g.ev >= 0 ? "+" : ""}$${g.ev.toFixed(2)}` : "—";
+  const ev     = g.ev != null ? `${approxMark}${g.ev >= 0 ? "+" : ""}$${g.ev.toFixed(2)}` : "—";
   const jackpotOdds = g.jackpot_odds_one_in != null ? `1 in ${fmtNum(Math.round(g.jackpot_odds_one_in))}` : "—";
   const odds   = g.overall_odds_one_in ? `1 in ${fmtNum(g.overall_odds_one_in)}` : "—";
   const left   = g.tickets_remaining != null ? fmtNum(g.tickets_remaining) : "—";
