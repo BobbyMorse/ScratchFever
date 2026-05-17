@@ -1131,7 +1131,7 @@ function renderModal(g) {
   _openModalGame = g;
   const ret = g.return_pct;
   const cls = ret >= 100 ? "ev-positive" : ret >= 90 ? "ev-near" : ret >= 70 ? "ev-mid" : "ev-low";
-  const ev = g.ev != null ? `${g.ev >= 0 ? "+" : ""}$${g.ev.toFixed(4)}` : "N/A";
+  const ev = g.ev != null ? `${g.ev_approximate ? "~" : ""}${g.ev >= 0 ? "+" : ""}$${g.ev.toFixed(4)}` : "N/A";
 
   const prizePoolRemaining = g.prize_pool_left != null
     ? g.prize_pool_left
