@@ -754,9 +754,9 @@ async function loadStateHealth() {
       </tr>`;
     }).join("");
 
-    tbody.innerHTML = rows || `<tr><td colspan="4" class="ds-loading">No states found.</td></tr>`;
+    tbody.innerHTML = rows || `<tr><td colspan="9" class="ds-loading">No states found.</td></tr>`;
   } catch (e) {
-    tbody.innerHTML = `<tr><td colspan="4" class="ds-loading" style="color:var(--red)">Failed to load: ${e.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="ds-loading" style="color:var(--red)">Failed to load: ${e.message}</td></tr>`;
   }
 }
 
