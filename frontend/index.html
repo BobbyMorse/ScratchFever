@@ -1521,15 +1521,15 @@
             <table class="ds-table">
               <thead>
                 <tr>
-                  <th style="width:1.5rem"></th>
-                  <th>State</th>
-                  <th>Last Scraped</th>
-                  <th title="Active games in DB">Games</th>
-                  <th title="% of games with EV calculated">EV%</th>
-                  <th title="% of games with images">Img%</th>
-                  <th title="Average return across games with EV">Avg Return</th>
-                  <th title="% of games with prize data">Prizes Est.</th>
-                  <th title="Retailer inventory data">Retailers</th>
+                  <th style="width:1.5rem" data-col="status" onclick="dsToggleSort('status')" title="Sort by status"></th>
+                  <th data-col="name" onclick="dsToggleSort('name')">State</th>
+                  <th data-col="scraped" onclick="dsToggleSort('scraped')">Last Scraped</th>
+                  <th data-col="games" onclick="dsToggleSort('games')" title="Active games in DB">Games</th>
+                  <th data-col="ev" onclick="dsToggleSort('ev')" title="% of games with EV calculated">EV%</th>
+                  <th data-col="img" onclick="dsToggleSort('img')" title="% of games with images">Img%</th>
+                  <th data-col="avgret" onclick="dsToggleSort('avgret')" title="Average return across games with EV">Avg Return</th>
+                  <th data-col="prizes" onclick="dsToggleSort('prizes')" title="% of games with prize data">Prizes Est.</th>
+                  <th data-col="retailers" onclick="dsToggleSort('retailers')" title="Retailer inventory data">Retailers</th>
                 </tr>
               </thead>
               <tbody id="dsGrid">
