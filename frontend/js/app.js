@@ -337,6 +337,7 @@ async function loadMaGames() {
     const data = await res.json();
     maGames = data.games || [];
     populateGameFilterSelect();
+    populateCallerGameSelect();
   } catch (_) {}
 }
 
