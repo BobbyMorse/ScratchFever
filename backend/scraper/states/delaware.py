@@ -1,18 +1,26 @@
 """
 Delaware Lottery scratch-off scraper.
-Listing: https://www.delottery.com/Instant-Games
-Game cards display "Name - $X" format.
-Delaware does not publish per-game odds tables publicly,
-so EV will be NULL (games won't appear in the dropdown until odds are available).
+
+Top Prizes page: https://www.delottery.com/Instant-Games/Top-Prizes-Remaining
+  Links to a PDF: "Big Prizes Remaining" with columns:
+    Game # | Game Name | $ AMT | Top Prize | Prizes Remaining | 2nd Top Tier Prize | Prizes Remaining
+
+Delaware does not publish per-game odds tables, so EV remains NULL.
+We populate top_prize and top_prize_remaining from the PDF so those fields
+appear on the site even without EV data.
 """
-import re
+import io
 import logging
+import re
+
+import pdfplumber
+
 from backend.scraper.base import BaseScraper
 from backend.ev_calculator import parse_prize_amount
 
 logger = logging.getLogger(__name__)
 
-GAMES_URL = "https://www.delottery.com/Instant-Games"
+TOP_PRIZES_URL = "https://www.delottery.com/Instant-Games/Top-Prizes-Remaining"
 BASE_URL = "https://www.delottery.com"
 
 
@@ -22,32 +30,146 @@ class DelawareScraper(BaseScraper):
     base_url = BASE_URL
 
     def scrape(self) -> list[dict]:
-        soup = self.soup(GAMES_URL)
+        entries = self._fetch_pdf_entries()
+        if not entries:
+            logger.warning("DE: no entries parsed from PDF")
+            return []
+
         games = []
-        seen = set()
+        seen_ids: set[str] = set()
 
-        # Look for any element whose text matches "Name - $X" pattern
-        for el in soup.find_all(["h3", "h4", "h2", "span", "div", "p", "td"]):
-            text = el.get_text(strip=True)
-            m = re.match(r"^(.*?)\s*[-–]\s*\*{0,2}\$(\d+)\*{0,2}$", text)
-            if not m:
-                continue
-            name = m.group(1).strip()
-            price = float(m.group(2))
-            if not name or not price or name in seen:
-                continue
-            # Skip navigation/filter labels that aren't game names
-            if len(name) < 2 or re.match(r"^\$?\d+$", name):
-                continue
-            seen.add(name)
+        for e in entries:
+            base_id = f"de{e['game_num']}"
+            game_id = base_id
+            suffix = ord('b')
+            while game_id in seen_ids:
+                game_id = base_id + chr(suffix)
+                suffix += 1
+            seen_ids.add(game_id)
 
-            game_id = re.sub(r"[^a-z0-9]", "", name.lower())[:20]
+            tiers = []
+            if e["top_prize"] and e["top_remaining"] is not None:
+                tiers.append({
+                    "prize_amount": e["top_prize"],
+                    "odds_one_in": None,
+                    "prizes_remaining": e["top_remaining"],
+                    "prizes_total": None,
+                })
+            if e["second_prize"] and e["second_remaining"] is not None:
+                tiers.append({
+                    "prize_amount": e["second_prize"],
+                    "odds_one_in": None,
+                    "prizes_remaining": e["second_remaining"],
+                    "prizes_total": None,
+                })
+
             games.append(self.build_game(
                 game_id=game_id,
-                name=name,
-                price=price,
-                tiers=[],
+                name=e["name"],
+                price=e["price"],
+                tiers=tiers,
             ))
 
-        logger.info("DE: %d games scraped", len(games))
+        logger.info("DE: %d games from PDF", len(games))
         return games
+
+    # ── PDF discovery + download ───────────────────────────────────────────────
+
+    def _fetch_pdf_entries(self) -> list[dict]:
+        try:
+            soup = self.soup(TOP_PRIZES_URL)
+        except Exception as exc:
+            logger.warning("DE: failed to fetch top prizes page: %s", exc)
+            return []
+
+        pdf_href = None
+        for a in soup.find_all("a", href=True):
+            h = a["href"]
+            if re.search(r"big.prizes.remaining", h, re.I) or (
+                h.lower().endswith(".pdf") and "instant" in h.lower()
+            ):
+                pdf_href = h
+                break
+
+        if not pdf_href:
+            logger.warning("DE: no Big Prizes Remaining PDF link found")
+            return []
+
+        if pdf_href.startswith("/"):
+            pdf_href = BASE_URL + pdf_href
+
+        try:
+            pdf_bytes = self.get(pdf_href).content
+        except Exception as exc:
+            logger.warning("DE: PDF download failed: %s", exc)
+            return []
+
+        return self._parse_pdf(pdf_bytes)
+
+    # ── PDF parsing ───────────────────────────────────────────────────────────
+
+    def _parse_pdf(self, pdf_bytes: bytes) -> list[dict]:
+        text = ""
+        try:
+            with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+                for page in pdf.pages:
+                    text += (page.extract_text() or "") + "\n"
+        except Exception as exc:
+            logger.warning("DE: pdfplumber error: %s", exc)
+            return []
+
+        entries = []
+        for line in text.splitlines():
+            line = line.strip()
+            entry = self._parse_line(line)
+            if entry:
+                entries.append(entry)
+
+        logger.info("DE: parsed %d entries from PDF", len(entries))
+        return entries
+
+    def _parse_line(self, line: str) -> dict | None:
+        # Format: game_num [NEW] name [NEW] $price $top_prize top_rem $2nd_prize 2nd_rem
+        # The "NEW" labels are marketing tags — strip them before matching.
+        line = re.sub(r"\bNEW\b", "", line).strip()
+
+        # Match: digits  name  $price  $top  int  $2nd  int
+        m = re.match(
+            r"^(\d+)\s+(.+?)\s+\$(\d+)\s+\$([\d,]+)\s+(\d+)\s+\$([\d,]+)\s+(\d+)\s*$",
+            line,
+        )
+        if not m:
+            return None
+
+        game_num = m.group(1)
+        raw_name = m.group(2).strip()
+        price_str = m.group(3)
+        top_prize_str = m.group(4)
+        top_remaining = int(m.group(5))
+        second_prize_str = m.group(6)
+        second_remaining = int(m.group(7))
+
+        # Clean name: remove stray "NEW" fragments and normalize whitespace
+        name = re.sub(r"\s+", " ", raw_name).strip()
+        # Remove surrounding quotes that appear on some game names e.g. '"SCRABBLE"'
+        name = name.strip('"').strip("'").strip()
+        if not name:
+            return None
+
+        price = float(price_str)
+        top_prize = float(top_prize_str.replace(",", ""))
+        second_prize = float(second_prize_str.replace(",", ""))
+
+        # Sanity: price must be a known ticket price; top_prize > 0
+        if price not in {1, 2, 3, 5, 10, 20, 25, 30, 50} or top_prize <= 0:
+            return None
+
+        return {
+            "game_num": game_num,
+            "name": name,
+            "price": price,
+            "top_prize": top_prize,
+            "top_remaining": top_remaining,
+            "second_prize": second_prize,
+            "second_remaining": second_remaining,
+        }
