@@ -1,15 +1,22 @@
 """
 Texas Lottery scratch-off scraper.
-CSV: https://www.texaslottery.com/export/sites/lottery/Games/Scratch_Offs/scratchoff.csv
-  Columns: Game Number, Game Name, Game Close Date, Ticket Price (whole dollars),
-           Prize Level (prize amount in dollars), Total Prizes in Level, Prizes Claimed
-  One row per prize tier per game; "TOTAL" row skipped.
-  TX CSV provides prize tiers with total/claimed counts but no total tickets or per-game odds.
-  EV cannot be computed reliably; games will have ev=NULL and won't appear in rankings.
+Listing: https://www.texaslottery.com/export/sites/lottery/Games/Scratch_Offs/all.html
+Detail:  https://www.texaslottery.com/export/sites/lottery/Games/Scratch_Offs/details.html_{id}.html
+CSV:     https://www.texaslottery.com/export/sites/lottery/Games/Scratch_Offs/scratchoff.csv
+  CSV columns: Game Number, Game Name, Game Close Date, Ticket Price, Prize Level,
+               Total Prizes in Level, Prizes Claimed
+
+Strategy:
+  1. Scrape all.html to build game_num → detail_url mapping.
+  2. Parse CSV for prize tiers (printed / claimed counts).
+  3. Fetch each detail page for total_tickets and overall_odds.
+  4. Estimate tickets_remaining = total_tickets × (prizes_remaining / prizes_printed).
+  5. EV computed via remaining-based formula; ev_approximate=True.
 """
 from __future__ import annotations
 import csv
 import io
+import re
 import logging
 from collections import defaultdict
 from datetime import date, datetime
@@ -18,6 +25,7 @@ from backend.scraper.base import BaseScraper
 logger = logging.getLogger(__name__)
 
 CSV_URL = "https://www.texaslottery.com/export/sites/lottery/Games/Scratch_Offs/scratchoff.csv"
+ALL_URL = "https://www.texaslottery.com/export/sites/lottery/Games/Scratch_Offs/all.html"
 BASE_URL = "https://www.texaslottery.com"
 DETAIL_BASE = f"{BASE_URL}/export/sites/lottery/Games/Scratch_Offs"
 
@@ -28,6 +36,9 @@ class TexasScraper(BaseScraper):
     base_url = BASE_URL
 
     def scrape(self) -> list[dict]:
+        detail_urls = self._get_detail_urls()
+        logger.info("TX: found %d detail URLs from all.html", len(detail_urls))
+
         resp = self.get(CSV_URL)
         lines = resp.text.splitlines()
 
@@ -35,8 +46,7 @@ class TexasScraper(BaseScraper):
         reader = csv.reader(io.StringIO("\n".join(lines[1:])))
         next(reader)  # skip header row
 
-        # Group rows by game number
-        games_raw = defaultdict(list)
+        games_raw: dict[str, list] = defaultdict(list)
         for row in reader:
             if len(row) < 7:
                 continue
@@ -49,14 +59,55 @@ class TexasScraper(BaseScraper):
 
         games = []
         for game_num, rows in games_raw.items():
-            game = self._parse_game(game_num, rows)
+            game = self._parse_game(game_num, rows, detail_urls.get(game_num))
             if game:
                 games.append(game)
 
         logger.info("TX: %d games parsed", len(games))
         return games
 
-    def _parse_game(self, game_num: str, rows: list) -> dict | None:
+    def _get_detail_urls(self) -> dict[str, str]:
+        """Parse all.html table rows to extract game_num → detail page URL."""
+        soup = self.soup(ALL_URL)
+        result: dict[str, str] = {}
+        for row in soup.find_all("tr"):
+            cells = row.find_all(["td", "th"])
+            if len(cells) < 2:
+                continue
+            game_num = cells[0].get_text(strip=True).replace(",", "")
+            if not game_num.isdigit():
+                continue
+            for cell in cells:
+                a = cell.find("a", href=True)
+                if a and "details.html_" in (a.get("href") or ""):
+                    href = a["href"]
+                    full_url = (BASE_URL + href) if href.startswith("/") else href
+                    result[game_num] = full_url
+                    break
+        return result
+
+    def _get_detail_info(self, url: str) -> tuple[int | None, float | None]:
+        """Fetch detail page and return (total_tickets, overall_odds_one_in)."""
+        try:
+            resp = self.get(url)
+            text = resp.text
+
+            total_tickets = None
+            m = re.search(r"approximately\s+([\d,]+)\*?\s+tickets", text, re.IGNORECASE)
+            if m:
+                total_tickets = int(m.group(1).replace(",", ""))
+
+            overall_odds = None
+            m = re.search(r"overall\s+odds[^.]*?1\s+in\s+([\d.]+)", text, re.IGNORECASE)
+            if m:
+                overall_odds = float(m.group(1))
+
+            return total_tickets, overall_odds
+        except Exception as exc:
+            logger.warning("TX: detail fetch failed for %s: %s", url, exc)
+            return None, None
+
+    def _parse_game(self, game_num: str, rows: list, detail_url: str | None) -> dict | None:
         if not rows:
             return None
 
@@ -64,7 +115,7 @@ class TexasScraper(BaseScraper):
         if not name:
             return None
 
-        # Game Close Date — skip expired games
+        # Skip expired games
         end_date = None
         raw_close = rows[0][2].strip() if len(rows[0]) > 2 else ""
         if raw_close:
@@ -86,9 +137,8 @@ class TexasScraper(BaseScraper):
             return None
 
         tiers = []
-        total_prizes_printed = 0
-        total_prizes_remaining = 0
-        total_prize_value = 0.0
+        prizes_printed_sum = 0
+        prizes_remaining_sum = 0
 
         for row in rows:
             level = row[4].strip()
@@ -104,9 +154,8 @@ class TexasScraper(BaseScraper):
                 continue
 
             remaining = max(total - claimed, 0)
-            total_prizes_printed += total
-            total_prizes_remaining += remaining
-            total_prize_value += prize * total
+            prizes_printed_sum += total
+            prizes_remaining_sum += remaining
 
             tiers.append({
                 "prize_amount":     prize,
@@ -118,11 +167,25 @@ class TexasScraper(BaseScraper):
         if not tiers:
             return None
 
+        total_tickets, overall_odds = None, None
+        tickets_remaining = None
+
+        if detail_url:
+            total_tickets, overall_odds = self._get_detail_info(detail_url)
+
+        if total_tickets and prizes_printed_sum > 0:
+            depletion = prizes_remaining_sum / prizes_printed_sum
+            tickets_remaining = round(total_tickets * depletion)
+
         return self.build_game(
             game_id=game_num,
             name=name,
             price=price,
             tiers=tiers,
-            detail_url=DETAIL_BASE,
+            tickets_remaining=tickets_remaining,
+            total_tickets=total_tickets,
+            overall_odds=overall_odds,
+            detail_url=detail_url or DETAIL_BASE,
             end_date=end_date,
+            ev_approximate=bool(total_tickets),
         )
