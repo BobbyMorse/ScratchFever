@@ -150,20 +150,21 @@ body {
   background: var(--yellow); animation: pulse 1s infinite;
   flex-shrink: 0;
 }
-.ds-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: .35rem;
+.ds-table-wrap { overflow-x: auto; }
+.ds-table {
+  width: 100%; border-collapse: collapse;
+  font-size: .82rem;
 }
-.ds-state-row {
-  display: flex; align-items: center; gap: .6rem;
-  padding: .55rem .75rem;
-  background: rgba(255,255,255,.03);
-  border: 1px solid rgba(255,255,255,.06);
-  border-radius: 8px;
-  font-size: .8rem;
+.ds-table thead th {
+  text-align: left; padding: .4rem .75rem;
+  font-size: .68rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--chrome-muted);
+  border-bottom: 1px solid rgba(255,255,255,.08);
 }
-.ds-state-row:hover { background: rgba(255,255,255,.06); }
+.ds-state-row td { padding: .55rem .75rem; border-bottom: 1px solid rgba(255,255,255,.04); }
+.ds-state-row:last-child td { border-bottom: none; }
+.ds-state-row:hover td { background: rgba(255,255,255,.03); }
+.ds-state-active td { background: rgba(251,191,36,.05) !important; }
 .ds-sdot {
   width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
   background: var(--chrome-muted);
