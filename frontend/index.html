@@ -1506,10 +1506,10 @@
               <div class="ds-sub" id="dsLastUpdated">Loading…</div>
             </div>
             <div class="ds-header-right">
-              <span class="ds-chip ds-ok"><span class="ds-dot"></span><span id="dsOkN">—</span> Live</span>
-              <span class="ds-chip ds-warn"><span class="ds-dot"></span><span id="dsWarnN">—</span> Stale</span>
-              <span class="ds-chip ds-err"><span class="ds-dot"></span><span id="dsErrN">—</span> Error</span>
-              <span class="ds-chip ds-never"><span class="ds-dot"></span><span id="dsNeverN">—</span> Pending</span>
+              <span class="ds-chip ds-ok" data-filter="ok" onclick="dsSetFilter('ok')"><span class="ds-dot"></span><span id="dsOkN">—</span> Live</span>
+              <span class="ds-chip ds-warn" data-filter="warn" onclick="dsSetFilter('warn')"><span class="ds-dot"></span><span id="dsWarnN">—</span> Stale</span>
+              <span class="ds-chip ds-err" data-filter="error" onclick="dsSetFilter('error')"><span class="ds-dot"></span><span id="dsErrN">—</span> Error</span>
+              <span class="ds-chip ds-never" data-filter="never" onclick="dsSetFilter('never')"><span class="ds-dot"></span><span id="dsNeverN">—</span> Pending</span>
               <button class="ds-refresh-btn" onclick="loadStateHealth()">↺ Refresh</button>
             </div>
           </div>
