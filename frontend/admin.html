@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — ScratchFever</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #edf0f7;
+      --card:       #ffffff;
+      --border:     #e2e7f0;
+      --text:       #111827;
+      --text-muted: #6b7280;
+      --orange:     #f97316;
+      --green:      #22c55e;
+      --green-dim:  rgba(34,197,94,0.12);
+      --yellow:     #f59e0b;
+      --yellow-dim: rgba(245,158,11,0.12);
+      --red:        #ef4444;
+      --red-dim:    rgba(239,68,68,0.12);
+      --blue:       #3b82f6;
+      --blue-dim:   rgba(59,130,246,0.1);
+      --chrome:     #0d1117;
+      --chrome2:    #141d2c;
+      --radius:     10px;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .admin-header {
+      background: var(--chrome);
+      padding: 0 2rem;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .admin-header-left { display: flex; align-items: center; gap: 1rem; }
+    .admin-header a {
+      color: rgba(255,255,255,0.5);
+      text-decoration: none;
+      font-size: .82rem;
+      font-weight: 500;
+    }
+    .admin-header a:hover { color: var(--orange); }
+    .admin-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -.01em;
+    }
+    .admin-badge {
+      background: var(--orange);
+      color: #fff;
+      font-size: .65rem;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .header-user {
+      color: rgba(255,255,255,0.45);
+      font-size: .8rem;
+    }
+
+    /* ── Login gate ── */
+    #loginGate {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 64px);
+    }
+    .login-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2.5rem;
+      width: 340px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    }
+    .login-card h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: .25rem;
+    }
+    .login-card p {
+      font-size: .85rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+    }
+    .login-card label {
+      display: block;
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: .4rem;
+    }
+    .login-card input {
+      width: 100%;
+      padding: .6rem .85rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: .92rem;
+      margin-bottom: 1rem;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .login-card input:focus { border-color: var(--orange); }
+    .btn-login {
+      width: 100%;
+      background: var(--orange);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: .7rem;
+      font-family: inherit;
+      font-size: .92rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+    .btn-login:hover { opacity: .9; }
+    .login-error {
+      color: var(--red);
+      font-size: .82rem;
+      margin-top: .75rem;
+      text-align: center;
+      display: none;
+    }
+
+    /* ── Main content ── */
+    #mainContent { display: none; }
+
+    .page-wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 2rem 4rem;
+    }
+
+    .page-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.75rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .page-top h1 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -.02em;
+    }
+    .page-top h1 span { color: var(--orange); }
+
+    .summary-chips {
+      display: flex;
+      gap: .6rem;
+      flex-wrap: wrap;
+    }
+    .chip {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .4rem .9rem;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+    }
+    .chip .chip-val {
+      color: var(--text);
+      font-weight: 700;
+    }
+    .chip.ok .chip-dot   { width:8px; height:8px; border-radius:50%; background:var(--green); }
+    .chip.warn .chip-dot { width:8px; height:8px; border-radius:50%; background:var(--yellow); }
+    .chip.err .chip-dot  { width:8px; height:8px; border-radius:50%; background:var(--red); }
+
+    .refresh-btn {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: .45rem 1rem;
+      font-family: inherit;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      transition: border-color .15s, color .15s;
+    }
+    .refresh-btn:hover { border-color: var(--orange); color: var(--orange); }
+
+    /* ── Table ── */
+    .table-wrap {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .85rem;
+    }
+    thead { background: #f8fafc; }
+    thead th {
+      padding: .75rem 1rem;
+      text-align: left;
+      font-size: .7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    tbody tr {
+      border-bottom: 1px solid #f1f5f9;
+      transition: background .1s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f8fafc; }
+    td { padding: .7rem 1rem; vertical-align: middle; }
+
+    .state-name { font-weight: 700; font-size: .9rem; }
+    .state-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .72rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      padding: .25rem .65rem;
+      border-radius: 6px;
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .status-badge.ok     { background: var(--green-dim);  color: #16a34a; }
+    .status-badge.warn   { background: var(--yellow-dim); color: #b45309; }
+    .status-badge.error  { background: var(--red-dim);    color: #dc2626; }
+    .status-badge.no-data { background: #f1f5f9; color: var(--text-muted); }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+    .mono { font-family: 'JetBrains Mono', monospace; font-size: .8rem; }
+
+    .pct-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .pct-bar {
+      flex: 1;
+      height: 5px;
+      border-radius: 3px;
+      background: #e5e7eb;
+      min-width: 40px;
+      overflow: hidden;
+    }
+    .pct-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width .3s;
+    }
+    .pct-text { font-size: .78rem; font-weight: 600; white-space: nowrap; min-width: 34px; text-align: right; }
+
+    .pct-green  .pct-bar-fill { background: var(--green); }
+    .pct-yellow .pct-bar-fill { background: var(--yellow); }
+    .pct-red    .pct-bar-fill { background: var(--red); }
+    .pct-green  .pct-text { color: #16a34a; }
+    .pct-yellow .pct-text { color: #b45309; }
+    .pct-red    .pct-text { color: #dc2626; }
+
+    .games-count {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .88rem;
+      font-weight: 600;
+    }
+    .games-zero { color: var(--red); }
+
+    .time-str { font-size: .78rem; color: var(--text-muted); }
+    .scrape-count { font-size: .78rem; color: var(--text-muted); }
+
+    .error-cell {
+      font-size: .72rem;
+      color: var(--red);
+      max-width: 280px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .error-cell[title] { cursor: help; }
+    .no-error { color: var(--text-muted); font-size: .78rem; }
+
+    .loading-row td {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-muted);
+      font-size: .9rem;
+    }
+  </style>
+</head>
+<body>
+
+<header class="admin-header">
+  <div class="admin-header-left">
+    <a href="/">← Back to ScratchFever</a>
+    <span style="color:rgba(255,255,255,0.15)">|</span>
+    <span class="admin-title">Admin</span>
+    <span class="admin-badge">Internal</span>
+  </div>
+  <div class="header-user" id="headerUser"></div>
+</header>
+
+<!-- Login gate -->
+<div id="loginGate">
+  <div class="login-card">
+    <h2>Admin Login</h2>
+    <p>This page is restricted to administrators.</p>
+    <label>Email</label>
+    <input type="email" id="loginEmail" placeholder="admin@example.com" />
+    <label>Password</label>
+    <input type="password" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
+    <button class="btn-login" onclick="doLogin()">Sign In</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- Main dashboard -->
+<div id="mainContent">
+  <div class="page-wrap">
+
+    <div class="page-top">
+      <div>
+        <h1>Scraper <span>Health</span></h1>
+        <div style="font-size:.82rem;color:var(--text-muted);margin-top:.2rem" id="lastRefreshed"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+        <div class="summary-chips" id="summaryChips"></div>
+        <button class="refresh-btn" onclick="loadHealth()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>State</th>
+            <th>Status</th>
+            <th>Games in DB</th>
+            <th>Last Scrape</th>
+            <th>Scraped</th>
+            <th>EV Data</th>
+            <th>Images</th>
+            <th>Avg Return</th>
+            <th>Last Error</th>
+          </tr>
+        </thead>
+        <tbody id="healthBody">
+          <tr class="loading-row"><td colspan="9">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const TOKEN_KEY = "sf_token";
+  let token = localStorage.getItem(TOKEN_KEY);
+
+  function timeAgo(iso) {
+    if (!iso) return "—";
+    const diff = Date.now() - new Date(iso).getTime();
+    const m = Math.floor(diff / 60000);
+    if (m < 1) return "just now";
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}h ago`;
+    return `${Math.floor(h / 24)}d ago`;
+  }
+
+  function pctBar(val, goodThreshold = 80, warnThreshold = 50) {
+    const cls = val >= goodThreshold ? "pct-green" : val >= warnThreshold ? "pct-yellow" : "pct-red";
+    return `<div class="pct-bar-wrap ${cls}">
+      <div class="pct-bar"><div class="pct-bar-fill" style="width:${Math.min(val,100)}%"></div></div>
+      <span class="pct-text">${val}%</span>
+    </div>`;
+  }
+
+  function statusBadge(state) {
+    if (state.games_in_db === 0) {
+      if (state.last_scrape_success === false)
+        return `<span class="status-badge error"><span class="status-dot"></span>Error</span>`;
+      if (state.last_scrape_at)
+        return `<span class="status-badge warn"><span class="status-dot"></span>No Data</span>`;
+      return `<span class="status-badge no-data">Never Run</span>`;
+    }
+    if (state.last_scrape_success === false)
+      return `<span class="status-badge error"><span class="status-dot"></span>Error</span>`;
+    if (state.ev_pct < 50 || state.image_pct < 50)
+      return `<span class="status-badge warn"><span class="status-dot"></span>Partial</span>`;
+    return `<span class="status-badge ok"><span class="status-dot"></span>OK</span>`;
+  }
+
+  function renderHealth(states) {
+    const tbody = document.getElementById("healthBody");
+    if (!states.length) {
+      tbody.innerHTML = '<tr class="loading-row"><td colspan="9">No data found.</td></tr>';
+      return;
+    }
+
+    let okCount = 0, warnCount = 0, errCount = 0;
+
+    tbody.innerHTML = states.map(s => {
+      const badge = statusBadge(s);
+      if (badge.includes("ok")) okCount++;
+      else if (badge.includes("error") || badge.includes("Error")) errCount++;
+      else warnCount++;
+
+      const gamesHtml = s.games_in_db === 0
+        ? `<span class="games-count games-zero">0</span>`
+        : `<span class="games-count">${s.games_in_db}</span>`;
+
+      const scrapeGames = s.last_scrape_games != null
+        ? `<div class="scrape-count">${s.last_scrape_games} fetched</div>`
+        : "";
+
+      const errCell = s.last_scrape_error
+        ? `<span class="error-cell" title="${s.last_scrape_error.replace(/"/g,"&quot;")}">${s.last_scrape_error}</span>`
+        : `<span class="no-error">—</span>`;
+
+      const avgReturn = s.avg_return
+        ? `<span class="mono" style="color:var(--text)">${s.avg_return}%</span>`
+        : `<span class="no-error">—</span>`;
+
+      return `<tr>
+        <td>
+          <div class="state-name">${s.state_name}</div>
+          <div class="state-code">${s.state_code}</div>
+        </td>
+        <td>${badge}</td>
+        <td>${gamesHtml}</td>
+        <td>
+          <div class="time-str">${timeAgo(s.last_scrape_at)}</div>
+          <div style="font-size:.7rem;color:#c0c8d5">${s.last_scrape_at ? s.last_scrape_at.slice(0,10) : ""}</div>
+        </td>
+        <td>${scrapeGames}</td>
+        <td>${pctBar(s.ev_pct)}</td>
+        <td>${pctBar(s.image_pct)}</td>
+        <td>${avgReturn}</td>
+        <td>${errCell}</td>
+      </tr>`;
+    }).join("");
+
+    const chips = document.getElementById("summaryChips");
+    chips.innerHTML = `
+      <div class="chip ok"><span class="chip-dot"></span><span class="chip-val">${okCount}</span> OK</div>
+      <div class="chip warn"><span class="chip-dot"></span><span class="chip-val">${warnCount}</span> Warn</div>
+      <div class="chip err"><span class="chip-dot"></span><span class="chip-val">${errCount}</span> Error</div>
+    `;
+    document.getElementById("lastRefreshed").textContent = `Last refreshed ${timeAgo(new Date().toISOString())}`;
+  }
+
+  async function loadHealth() {
+    document.getElementById("healthBody").innerHTML =
+      '<tr class="loading-row"><td colspan="9">Loading…</td></tr>';
+    try {
+      const res = await fetch("/api/admin/health", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.status === 401 || res.status === 403) { showLogin(); return; }
+      const data = await res.json();
+      renderHealth(data.states || []);
+    } catch (e) {
+      document.getElementById("healthBody").innerHTML =
+        `<tr class="loading-row"><td colspan="9" style="color:var(--red)">Failed to load: ${e.message}</td></tr>`;
+    }
+  }
+
+  async function doLogin() {
+    const email = document.getElementById("loginEmail").value.trim();
+    const pass  = document.getElementById("loginPass").value;
+    const errEl = document.getElementById("loginError");
+    errEl.style.display = "none";
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password: pass }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.token) {
+        errEl.textContent = data.detail || "Login failed.";
+        errEl.style.display = "block";
+        return;
+      }
+      if (data.role !== "admin") {
+        errEl.textContent = "Admin access required.";
+        errEl.style.display = "block";
+        return;
+      }
+      token = data.token;
+      localStorage.setItem(TOKEN_KEY, token);
+      showDashboard(data.email);
+      loadHealth();
+    } catch (e) {
+      errEl.textContent = "Network error.";
+      errEl.style.display = "block";
+    }
+  }
+
+  function showLogin() {
+    document.getElementById("loginGate").style.display = "flex";
+    document.getElementById("mainContent").style.display = "none";
+  }
+
+  function showDashboard(email) {
+    document.getElementById("loginGate").style.display = "none";
+    document.getElementById("mainContent").style.display = "block";
+    if (email) document.getElementById("headerUser").textContent = email;
+  }
+
+  async function checkAuth() {
+    if (!token) { showLogin(); return; }
+    try {
+      const res = await fetch("/api/admin/health", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.status === 401 || res.status === 403) { showLogin(); return; }
+      const data = await res.json();
+      showDashboard();
+      renderHealth(data.states || []);
+    } catch { showLogin(); }
+  }
+
+  checkAuth();
+</script>
+</body>
+</html>
