@@ -89,12 +89,16 @@ class FloridaScraper(BaseScraper):
         seen: set[tuple] = set()
         total_prizes_printed = 0
         total_prizes_remaining = 0
+        any_remaining_data = False
 
         for t in tiers_raw:
             prize = parse_prize_amount(str(t.get("PrizeAmount") or ""))
             odds = parse_odds(str(t.get("WinningOdds") or ""))
             total = int(t.get("TotalPrizes") or 0)
-            remaining = int(t.get("PrizesRemaining") or 0)
+            raw_remaining = t.get("PrizesRemaining")
+            remaining = int(raw_remaining or 0)
+            if raw_remaining is not None and remaining > 0:
+                any_remaining_data = True
 
             if not prize or prize <= 0 or total <= 0:
                 continue
@@ -125,7 +129,8 @@ class FloridaScraper(BaseScraper):
         tickets_remaining = None
         if overall_odds and overall_odds > 1.5 and total_prizes_printed > 0:
             total_tickets = round(overall_odds * total_prizes_printed)
-            tickets_remaining = round(overall_odds * total_prizes_remaining)
+            if any_remaining_data:
+                tickets_remaining = round(overall_odds * total_prizes_remaining)
 
         detail_url = f"{BASE_URL}/games/scratch-offs/view?id={game_id}"
         return self.build_game(
