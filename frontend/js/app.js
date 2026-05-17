@@ -5449,9 +5449,8 @@ function _renderAdminHealth(states) {
 
   document.getElementById("htHealthBody").innerHTML = (rows + noLotteryRows) ||
     `<tr><td colspan="10" class="ap-loading">No data.</td></tr>`;
-  document.getElementById("htOkN").textContent = ok;
-  document.getElementById("htWarnN").textContent = warn;
-  document.getElementById("htErrN").textContent = err;
+  const setN = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = n; };
+  setN("dsOkN", ok); setN("dsWarnN", warn); setN("dsErrN", err);
   const sub = document.getElementById("dsLastUpdated");
   if (sub) sub.textContent = `${ok + warn + err} states · refreshed just now`;
 }
