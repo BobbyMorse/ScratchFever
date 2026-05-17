@@ -1205,13 +1205,11 @@
             <h2 class="caller-form-title">New Calling Campaign</h2>
             <p class="caller-form-subtitle">Loads every scored MA retailer into a queue and calls them top-down (highest score first) during business hours (9 AM–8 PM ET, Mon–Sat).</p>
             <div class="caller-form-row">
-              <div class="filter-group">
+              <div class="filter-group" style="min-width:220px">
                 <label>Game Name *</label>
-                <input type="text" id="cfGameName" placeholder="e.g. 300X" />
-              </div>
-              <div class="filter-group">
-                <label>Game Number</label>
-                <input type="text" id="cfGameNumber" placeholder="e.g. 1234" />
+                <select id="cfGameSelect" onchange="onCallerGameSelect()">
+                  <option value="">— Select a game —</option>
+                </select>
               </div>
               <div class="filter-group">
                 <label>Ticket Price ($)</label>
