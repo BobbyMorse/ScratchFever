@@ -1594,6 +1594,42 @@
   </div>
 </div>
 
+<!-- ══════════════ ADMIN HEALTH PANEL ══════════════ -->
+<div class="ap-backdrop" id="apBackdrop" onclick="closeAdminPanel()"></div>
+<div class="ap-panel" id="apPanel">
+  <div class="ap-header">
+    <span class="ap-title">Scraper Health</span>
+    <div class="ap-header-right">
+      <span class="ap-chip ok"  id="apChipOk"><span class="ap-dot"></span><span id="apOkN">—</span> OK</span>
+      <span class="ap-chip warn" id="apChipWarn"><span class="ap-dot"></span><span id="apWarnN">—</span> Warn</span>
+      <span class="ap-chip err"  id="apChipErr"><span class="ap-dot"></span><span id="apErrN">—</span> Error</span>
+      <button class="ap-btn" onclick="loadAdminHealth()">↺ Refresh</button>
+      <button class="ap-close" onclick="closeAdminPanel()">✕</button>
+    </div>
+  </div>
+  <div class="ap-body">
+    <table class="ap-table">
+      <thead>
+        <tr>
+          <th>State</th>
+          <th>Status</th>
+          <th>Games</th>
+          <th>Last Scrape</th>
+          <th>Fetched</th>
+          <th>EV</th>
+          <th>Images</th>
+          <th>Avg Return</th>
+          <th>Retailers</th>
+          <th>Last Error</th>
+        </tr>
+      </thead>
+      <tbody id="apHealthBody">
+        <tr><td colspan="10" class="ap-loading">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
 <script src="/static/js/leaflet.js"></script>
 <script src="/static/js/app.js"></script>
 <script>
