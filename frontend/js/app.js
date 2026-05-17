@@ -713,6 +713,20 @@ async function loadStateHealth() {
 
     const activeCode = data.current_state && data.scraper_running ? data.current_state.code : null;
 
+    function _pctBar(pct) {
+      if (!pct && pct !== 0) return `<span class="ds-muted">—</span>`;
+      const cls = pct >= 90 ? "ds-pct-hi" : pct >= 50 ? "ds-pct-mid" : "ds-pct-lo";
+      return `<span class="ds-pct ${cls}">${pct}%</span>`;
+    }
+    function _retCell(s) {
+      if (!s.has_retailer_scraper) return `<span class="ds-muted">—</span>`;
+      if (!s.retailer_last_scraped) return `<span class="ds-pct-lo">Never</span>`;
+      const d = _parseTs(s.retailer_last_scraped);
+      const ageDays = d ? Math.floor((Date.now() - d) / 86400000) : 999;
+      const cls = ageDays > 35 ? "ds-pct-lo" : "ds-pct-hi";
+      return `<span class="${cls}">${timeAgo(d)}</span>`;
+    }
+
     const rows = data.states.map(s => {
       const isActive = s.state_code === activeCode;
       const dotCls = isActive ? "ds-sdot busy"
@@ -721,14 +735,22 @@ async function loadStateHealth() {
                    : s.status === "warn" ? "ds-sdot warn"
                    : "ds-sdot never";
       const d = _parseTs(s.last_scrape_at);
-      const when = isActive ? `<span style="color:var(--yellow)">Scraping now…</span>`
-                 : d ? timeAgo(d) : "—";
-      const games = s.games_in_db > 0 ? s.games_in_db.toLocaleString() : `<span class="ds-muted">no data</span>`;
+      const when = isActive ? `<span style="color:var(--yellow);font-weight:600">Scraping now…</span>`
+                 : d ? timeAgo(d) : `<span class="ds-muted">—</span>`;
+      const games = s.games_in_db > 0 ? s.games_in_db.toLocaleString() : `<span class="ds-muted">—</span>`;
+      const avgRet = s.avg_return
+        ? `<span class="${s.avg_return >= 100 ? 'ds-pct-hi' : s.avg_return >= 80 ? 'ds-pct-mid' : 'ds-pct-lo'}">${s.avg_return}%</span>`
+        : `<span class="ds-muted">—</span>`;
       return `<tr class="ds-state-row${isActive ? " ds-state-active" : ""}">
         <td><span class="${dotCls}"></span></td>
         <td><span class="ds-state-code">${s.state_code}</span> <span class="ds-state-name">${s.state_name}</span></td>
         <td class="ds-state-when">${when}</td>
-        <td class="ds-state-games">${games}</td>
+        <td class="ds-col-num">${games}</td>
+        <td class="ds-col-num">${_pctBar(s.ev_pct)}</td>
+        <td class="ds-col-num">${_pctBar(s.image_pct)}</td>
+        <td class="ds-col-num">${avgRet}</td>
+        <td class="ds-col-num">${_pctBar(s.prizes_pct)}</td>
+        <td class="ds-col-num">${_retCell(s)}</td>
       </tr>`;
     }).join("");
 
