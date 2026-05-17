@@ -651,6 +651,54 @@
     } catch { showLogin(); }
   }
 
+  let activeScrapingState = null;
+  let scrapePoller = null;
+
+  function showToast(msg, duration = 3500) {
+    const el = document.getElementById("scrapeToast");
+    el.textContent = msg;
+    el.classList.add("show");
+    setTimeout(() => el.classList.remove("show"), duration);
+  }
+
+  async function triggerScrape(code) {
+    if (activeScrapingState) {
+      showToast(`Scrape already running for ${activeScrapingState} — please wait.`);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/scrape?state=${code}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.message && data.message.includes("already in progress")) {
+        showToast("A scrape is already in progress — please wait.");
+        return;
+      }
+      activeScrapingState = code;
+      renderHealth(_lastHealthStates);
+      showToast(`Scraping ${code}…`);
+      scrapePoller = setInterval(async () => {
+        try {
+          const sr = await fetch("/api/status");
+          const sd = await sr.json();
+          if (!sd.scraper_running) {
+            clearInterval(scrapePoller);
+            scrapePoller = null;
+            activeScrapingState = null;
+            showToast(`${code} scrape complete — refreshing…`);
+            await loadHealth();
+          }
+        } catch { /* network blip — keep polling */ }
+      }, 2500);
+    } catch (e) {
+      showToast("Failed to start scrape.");
+    }
+  }
+
+  let _lastHealthStates = [];
+
   checkAuth();
 </script>
 </body>
