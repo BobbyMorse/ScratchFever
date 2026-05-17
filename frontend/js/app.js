@@ -5300,7 +5300,7 @@ async function loadAdminHealth() {
   document.getElementById("apHealthBody").innerHTML =
     `<tr><td colspan="10" class="ap-loading">Loading…</td></tr>`;
   try {
-    const res = await apiFetch("/api/admin/health");
+    const res = await protectedFetch("/api/admin/health");
     if (!res.ok) { throw new Error(`${res.status}`); }
     const data = await res.json();
     _renderAdminHealth(data.states || []);
