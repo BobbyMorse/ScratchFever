@@ -45,7 +45,7 @@ class NorthCarolinaScraper(BaseScraper):
             name = slug.replace("-", " ").title()
             detail_url = BASE_URL + href if href.startswith("/") else href
 
-            tiers, tickets_remaining, total_tickets = self._scrape_detail(detail_url)
+            tiers, tickets_remaining, total_tickets, image_url = self._scrape_detail(detail_url)
 
             game = self.build_game(
                 game_id=game_id,
@@ -55,6 +55,7 @@ class NorthCarolinaScraper(BaseScraper):
                 tickets_remaining=tickets_remaining,
                 total_tickets=total_tickets,
                 detail_url=detail_url,
+                image_url=image_url,
             )
             games.append(game)
 
