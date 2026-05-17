@@ -278,6 +278,8 @@ async def admin_health(user: dict = Depends(require_admin)):
             "image_pct": float(game["image_pct"] or 0) if game else 0,
             "ev_pct": float(game["ev_pct"] or 0) if game else 0,
             "avg_return": float(game["avg_return"] or 0) if game else 0,
+            "remaining_pct": float(game["remaining_pct"] or 0) if game else 0,
+            "zero_remaining_count": int(game["zero_remaining_count"] or 0) if game else 0,
             "last_scrape_success": log.get("success"),
             "last_scrape_games": log.get("games_scraped"),
             "last_scrape_error": log.get("error_msg"),
