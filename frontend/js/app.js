@@ -1410,10 +1410,21 @@ function fmtDate(dt) {
 // ── Launch campaign from EV table ─────────────────────────────────────────────
 function launchCampaign(name, price, gameId) {
   switchTab("caller");
-  document.getElementById("cfGameName").value   = name;
-  document.getElementById("cfGamePrice").value  = price;
-  document.getElementById("cfGameNumber").value = gameId;
-  document.getElementById("cfGameName").focus();
+  const sel = document.getElementById("cfGameSelect");
+  if (sel) {
+    sel.value = gameId;
+    if (!sel.value) {
+      // game not in list yet — add a temporary option
+      const opt = document.createElement("option");
+      opt.value = gameId;
+      opt.dataset.name  = name;
+      opt.dataset.price = price ?? "";
+      opt.textContent   = `${name}${price != null ? ` ($${price})` : ""}`;
+      sel.appendChild(opt);
+      sel.value = gameId;
+    }
+  }
+  document.getElementById("cfGamePrice").value = price ?? "";
   document.getElementById("cfCreateBtn").scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
