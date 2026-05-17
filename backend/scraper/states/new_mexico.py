@@ -57,7 +57,8 @@ class NewMexicoScraper(BaseScraper):
                         break
 
                 # Game ID and image URL from img src filename
-                img = container.find("img")
+                # Image is in the parent container (grandparent of h3), not h3.parent
+                img = container.find("img") or container.parent.find("img")
                 game_id = None
                 image_url = None
                 if img:
