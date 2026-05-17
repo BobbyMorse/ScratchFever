@@ -1443,41 +1443,58 @@
       <!-- ══════════════ SETTINGS TAB ══════════════ -->
       <div id="tab-settings" class="tab-content" style="display:none">
         <div class="settings-page">
-          <h2 class="settings-title">Settings</h2>
 
-          <div class="settings-section">
-            <div class="settings-section-header">The Chase</div>
-            <div class="settings-row">
-              <div class="settings-label">
-                <div class="settings-label-name">Default State</div>
-                <div class="settings-label-desc">Which state opens when you click The Chase</div>
-              </div>
-              <select class="settings-select" id="prefDefaultHuntState" onchange="onSettingChange('defaultHuntState', this.value)">
-                <option value="MA">Massachusetts</option>
-                <option value="AZ">Arizona</option>
-                <option value="RI">Rhode Island</option>
-                <option value="FL">Florida</option>
-                <option value="GA">Georgia</option>
-                <option value="NY">New York</option>
-                <option value="VA">Virginia</option>
-                <option value="DC">Washington DC</option>
-                <option value="VT">Vermont</option>
-              </select>
+          <div class="settings-header">
+            <div class="settings-header-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="settings-header-title">Settings</h2>
+              <p class="settings-header-sub">Preferences are saved to this browser</p>
             </div>
           </div>
 
-          <div class="settings-section">
-            <div class="settings-section-header">EV Games</div>
-            <div class="settings-row">
-              <div class="settings-label">
-                <div class="settings-label-name">Default State Filter</div>
-                <div class="settings-label-desc">Pre-filter the EV table to a specific state on load</div>
+          <div class="settings-group">
+            <div class="settings-group-title">🔥 The Chase</div>
+            <div class="settings-card">
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-name">Default State</div>
+                  <div class="settings-row-desc">Which state opens when you click The Chase</div>
+                </div>
+                <select class="settings-select" id="prefDefaultHuntState" onchange="onSettingChange('defaultHuntState', this.value)">
+                  <option value="MA">Massachusetts</option>
+                  <option value="AZ">Arizona</option>
+                  <option value="RI">Rhode Island</option>
+                  <option value="FL">Florida</option>
+                  <option value="GA">Georgia</option>
+                  <option value="NY">New York</option>
+                  <option value="VA">Virginia</option>
+                  <option value="DC">Washington DC</option>
+                  <option value="VT">Vermont</option>
+                </select>
               </div>
-              <select class="settings-select" id="prefEvDefaultState" onchange="onSettingChange('evDefaultState', this.value)">
-                <option value="">All States</option>
-              </select>
             </div>
           </div>
+
+          <div class="settings-group">
+            <div class="settings-group-title">📊 EV Games</div>
+            <div class="settings-card">
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-name">Default State Filter</div>
+                  <div class="settings-row-desc">Pre-filter the EV table to a specific state on load</div>
+                </div>
+                <select class="settings-select" id="prefEvDefaultState" onchange="onSettingChange('evDefaultState', this.value)">
+                  <option value="">All States</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div><!-- /tab-settings -->
 
