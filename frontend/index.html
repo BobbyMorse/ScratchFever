@@ -1440,6 +1440,47 @@
 
       </div><!-- /tab-plays -->
 
+      <!-- ══════════════ SETTINGS TAB ══════════════ -->
+      <div id="tab-settings" class="tab-content" style="display:none">
+        <div class="settings-page">
+          <h2 class="settings-title">Settings</h2>
+
+          <div class="settings-section">
+            <div class="settings-section-header">The Chase</div>
+            <div class="settings-row">
+              <div class="settings-label">
+                <div class="settings-label-name">Default State</div>
+                <div class="settings-label-desc">Which state opens when you click The Chase</div>
+              </div>
+              <select class="settings-select" id="prefDefaultHuntState" onchange="onSettingChange('defaultHuntState', this.value)">
+                <option value="MA">Massachusetts</option>
+                <option value="AZ">Arizona</option>
+                <option value="RI">Rhode Island</option>
+                <option value="FL">Florida</option>
+                <option value="GA">Georgia</option>
+                <option value="NY">New York</option>
+                <option value="VA">Virginia</option>
+                <option value="DC">Washington DC</option>
+                <option value="VT">Vermont</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-header">EV Games</div>
+            <div class="settings-row">
+              <div class="settings-label">
+                <div class="settings-label-name">Default State Filter</div>
+                <div class="settings-label-desc">Pre-filter the EV table to a specific state on load</div>
+              </div>
+              <select class="settings-select" id="prefEvDefaultState" onchange="onSettingChange('evDefaultState', this.value)">
+                <option value="">All States</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div><!-- /tab-settings -->
+
     </main>
 
     <footer>
