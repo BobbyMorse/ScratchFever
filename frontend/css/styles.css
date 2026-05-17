@@ -189,7 +189,8 @@ body {
 .ds-state-name { color: var(--text); flex: 1; }
 .ds-state-when { color: var(--chrome-muted); font-size: .72rem; white-space: nowrap; }
 .ds-state-games { color: var(--chrome-muted); font-size: .72rem; white-space: nowrap; min-width: 4.5rem; text-align: right; }
-.ds-loading { color: var(--chrome-muted); font-size: .85rem; padding: 1rem 0; }
+.ds-loading { color: var(--chrome-muted); font-size: .85rem; padding: 1rem .75rem; }
+.ds-muted { color: var(--chrome-muted); }
 .ds-admin-divider {
   font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
   color: var(--chrome-muted); border-top: 1px solid rgba(255,255,255,.08);
