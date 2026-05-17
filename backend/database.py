@@ -246,7 +246,7 @@ async def upsert_game(conn: asyncpg.Connection, state_code: str, state_name: str
         game_data.get("total_tickets"), game_data.get("tickets_remaining"),
         game_data.get("prize_pool_left"), game_data.get("jackpot_odds_one_in"),
         game_data.get("detail_url"), game_data.get("image_url"),
-        game_data.get("how_to_play"), game_data.get("end_date"),
+        game_data.get("how_to_play"), raw_end,
     )
     return row["id"]
 
