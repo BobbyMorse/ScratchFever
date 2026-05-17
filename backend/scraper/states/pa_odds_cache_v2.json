@@ -1,4 +1,232 @@
 {
+  "1492": {
+    "overall_odds": 3.58,
+    "tiers": [
+      {
+        "odds_one_in": 1800000.0,
+        "prize_amount": 500000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 600000.0,
+        "prize_amount": 50000.0,
+        "prizes_total": 30
+      },
+      {
+        "odds_one_in": 900000.0,
+        "prize_amount": 10000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 450000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 40
+      },
+      {
+        "odds_one_in": 4800.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 3750
+      },
+      {
+        "odds_one_in": 2400.0,
+        "prize_amount": 500.0,
+        "prizes_total": 7500
+      },
+      {
+        "odds_one_in": 2000.0,
+        "prize_amount": 400.0,
+        "prizes_total": 9000
+      },
+      {
+        "odds_one_in": 648.65,
+        "prize_amount": 200.0,
+        "prizes_total": 27750
+      },
+      {
+        "odds_one_in": 100.0,
+        "prize_amount": 100.0,
+        "prizes_total": 180000
+      },
+      {
+        "odds_one_in": 50.0,
+        "prize_amount": 50.0,
+        "prizes_total": 360000
+      },
+      {
+        "odds_one_in": 50.0,
+        "prize_amount": 40.0,
+        "prizes_total": 360000
+      },
+      {
+        "odds_one_in": 10.71,
+        "prize_amount": 20.0,
+        "prizes_total": 1680000
+      },
+      {
+        "odds_one_in": 7.5,
+        "prize_amount": 10.0,
+        "prizes_total": 2400000
+      }
+    ],
+    "total_tickets": 18000000
+  },
+  "1493": {
+    "overall_odds": 4.58,
+    "tiers": [
+      {
+        "odds_one_in": 1920000.0,
+        "prize_amount": 250000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 960000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 358.21,
+        "prize_amount": 500.0,
+        "prizes_total": 53600
+      },
+      {
+        "odds_one_in": 3000.0,
+        "prize_amount": 100.0,
+        "prizes_total": 6400
+      },
+      {
+        "odds_one_in": 120.0,
+        "prize_amount": 50.0,
+        "prizes_total": 160000
+      },
+      {
+        "odds_one_in": 66.67,
+        "prize_amount": 20.0,
+        "prizes_total": 288000
+      },
+      {
+        "odds_one_in": 15.38,
+        "prize_amount": 10.0,
+        "prizes_total": 1248000
+      },
+      {
+        "odds_one_in": 7.89,
+        "prize_amount": 5.0,
+        "prizes_total": 2432000
+      }
+    ],
+    "total_tickets": 19200000
+  },
+  "1498": {
+    "overall_odds": 4.11,
+    "tiers": [
+      {
+        "odds_one_in": 960000.0,
+        "prize_amount": 50000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 480000.0,
+        "prize_amount": 10000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 480000.0,
+        "prize_amount": 3000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 40000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 240
+      },
+      {
+        "odds_one_in": 10000.0,
+        "prize_amount": 300.0,
+        "prizes_total": 960
+      },
+      {
+        "odds_one_in": 2000.0,
+        "prize_amount": 100.0,
+        "prizes_total": 4800
+      },
+      {
+        "odds_one_in": 1500.0,
+        "prize_amount": 90.0,
+        "prizes_total": 6400
+      },
+      {
+        "odds_one_in": 857.14,
+        "prize_amount": 60.0,
+        "prizes_total": 11200
+      },
+      {
+        "odds_one_in": 155.84,
+        "prize_amount": 30.0,
+        "prizes_total": 61600
+      },
+      {
+        "odds_one_in": 375.0,
+        "prize_amount": 24.0,
+        "prizes_total": 25600
+      },
+      {
+        "odds_one_in": 250.0,
+        "prize_amount": 20.0,
+        "prizes_total": 38400
+      },
+      {
+        "odds_one_in": 166.67,
+        "prize_amount": 18.0,
+        "prizes_total": 57600
+      },
+      {
+        "odds_one_in": 83.33,
+        "prize_amount": 15.0,
+        "prizes_total": 115200
+      },
+      {
+        "odds_one_in": 166.67,
+        "prize_amount": 12.0,
+        "prizes_total": 57600
+      },
+      {
+        "odds_one_in": 71.43,
+        "prize_amount": 10.0,
+        "prizes_total": 134400
+      },
+      {
+        "odds_one_in": 100.0,
+        "prize_amount": 9.0,
+        "prizes_total": 96000
+      },
+      {
+        "odds_one_in": 100.0,
+        "prize_amount": 8.0,
+        "prizes_total": 96000
+      },
+      {
+        "odds_one_in": 50.0,
+        "prize_amount": 6.0,
+        "prizes_total": 192000
+      },
+      {
+        "odds_one_in": 25.0,
+        "prize_amount": 5.0,
+        "prizes_total": 384000
+      },
+      {
+        "odds_one_in": 100.0,
+        "prize_amount": 4.0,
+        "prizes_total": 96000
+      },
+      {
+        "odds_one_in": 10.0,
+        "prize_amount": 3.0,
+        "prizes_total": 960000
+      }
+    ],
+    "total_tickets": 9600000
+  },
   "1507": {
     "overall_odds": 4.21,
     "tiers": [
@@ -54,6 +282,62 @@
       }
     ],
     "total_tickets": 9600000
+  },
+  "1514": {
+    "overall_odds": 4.42,
+    "tiers": [
+      {
+        "odds_one_in": 1080000.0,
+        "prize_amount": 20000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 540000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 5454.55,
+        "prize_amount": 200.0,
+        "prizes_total": 1980
+      },
+      {
+        "odds_one_in": 1500.0,
+        "prize_amount": 100.0,
+        "prizes_total": 7200
+      },
+      {
+        "odds_one_in": 352.94,
+        "prize_amount": 40.0,
+        "prizes_total": 30600
+      },
+      {
+        "odds_one_in": 65.22,
+        "prize_amount": 20.0,
+        "prizes_total": 165600
+      },
+      {
+        "odds_one_in": 48.39,
+        "prize_amount": 10.0,
+        "prizes_total": 223200
+      },
+      {
+        "odds_one_in": 30.0,
+        "prize_amount": 5.0,
+        "prizes_total": 360000
+      },
+      {
+        "odds_one_in": 21.43,
+        "prize_amount": 4.0,
+        "prizes_total": 504000
+      },
+      {
+        "odds_one_in": 9.38,
+        "prize_amount": 2.0,
+        "prizes_total": 1152000
+      }
+    ],
+    "total_tickets": 10800000
   },
   "1515": {
     "overall_odds": 3.22,
@@ -116,6 +400,199 @@
     ],
     "total_tickets": 9000000
   },
+  "1516": {
+    "overall_odds": 4.12,
+    "tiers": [
+      {
+        "odds_one_in": 1200000.0,
+        "prize_amount": 250000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 600000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 300000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 40
+      },
+      {
+        "odds_one_in": 12000.0,
+        "prize_amount": 500.0,
+        "prizes_total": 1000
+      },
+      {
+        "odds_one_in": 1846.15,
+        "prize_amount": 200.0,
+        "prizes_total": 6500
+      },
+      {
+        "odds_one_in": 521.74,
+        "prize_amount": 100.0,
+        "prizes_total": 23000
+      },
+      {
+        "odds_one_in": 85.71,
+        "prize_amount": 50.0,
+        "prizes_total": 140000
+      },
+      {
+        "odds_one_in": 100.0,
+        "prize_amount": 40.0,
+        "prizes_total": 120000
+      },
+      {
+        "odds_one_in": 26.09,
+        "prize_amount": 20.0,
+        "prizes_total": 460000
+      },
+      {
+        "odds_one_in": 14.29,
+        "prize_amount": 10.0,
+        "prizes_total": 840000
+      },
+      {
+        "odds_one_in": 9.09,
+        "prize_amount": 5.0,
+        "prizes_total": 1320000
+      }
+    ],
+    "total_tickets": 12000000
+  },
+  "1517": {
+    "overall_odds": 4.54,
+    "tiers": [
+      {
+        "odds_one_in": 1080000.0,
+        "prize_amount": 50000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 1080000.0,
+        "prize_amount": 3000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 180000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 60
+      },
+      {
+        "odds_one_in": 10000.0,
+        "prize_amount": 300.0,
+        "prizes_total": 1080
+      },
+      {
+        "odds_one_in": 2400.0,
+        "prize_amount": 150.0,
+        "prizes_total": 4500
+      },
+      {
+        "odds_one_in": 648.65,
+        "prize_amount": 100.0,
+        "prizes_total": 16650
+      },
+      {
+        "odds_one_in": 250.0,
+        "prize_amount": 50.0,
+        "prizes_total": 43200
+      },
+      {
+        "odds_one_in": 83.33,
+        "prize_amount": 30.0,
+        "prizes_total": 129600
+      },
+      {
+        "odds_one_in": 66.67,
+        "prize_amount": 15.0,
+        "prizes_total": 162000
+      },
+      {
+        "odds_one_in": 31.25,
+        "prize_amount": 10.0,
+        "prizes_total": 345600
+      },
+      {
+        "odds_one_in": 18.18,
+        "prize_amount": 5.0,
+        "prizes_total": 594000
+      },
+      {
+        "odds_one_in": 10.0,
+        "prize_amount": 3.0,
+        "prizes_total": 1080000
+      }
+    ],
+    "total_tickets": 10800000
+  },
+  "1518": {
+    "overall_odds": 4.44,
+    "tiers": [
+      {
+        "odds_one_in": 840000.0,
+        "prize_amount": 20000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 210000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 40
+      },
+      {
+        "odds_one_in": 168000.0,
+        "prize_amount": 500.0,
+        "prizes_total": 50
+      },
+      {
+        "odds_one_in": 30000.0,
+        "prize_amount": 200.0,
+        "prizes_total": 280
+      },
+      {
+        "odds_one_in": 4000.0,
+        "prize_amount": 100.0,
+        "prizes_total": 2100
+      },
+      {
+        "odds_one_in": 428.57,
+        "prize_amount": 50.0,
+        "prizes_total": 19600
+      },
+      {
+        "odds_one_in": 413.79,
+        "prize_amount": 30.0,
+        "prizes_total": 20300
+      },
+      {
+        "odds_one_in": 88.24,
+        "prize_amount": 20.0,
+        "prizes_total": 95200
+      },
+      {
+        "odds_one_in": 34.88,
+        "prize_amount": 10.0,
+        "prizes_total": 240800
+      },
+      {
+        "odds_one_in": 30.0,
+        "prize_amount": 5.0,
+        "prizes_total": 280000
+      },
+      {
+        "odds_one_in": 21.43,
+        "prize_amount": 4.0,
+        "prizes_total": 392000
+      },
+      {
+        "odds_one_in": 10.0,
+        "prize_amount": 2.0,
+        "prizes_total": 840000
+      }
+    ],
+    "total_tickets": 8400000
+  },
   "1519": {
     "overall_odds": 4.68,
     "tiers": [
@@ -171,6 +648,214 @@
       }
     ],
     "total_tickets": 8400000
+  },
+  "1521": {
+    "overall_odds": 4.03,
+    "tiers": [
+      {
+        "odds_one_in": 1680000.0,
+        "prize_amount": 250000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 840000.0,
+        "prize_amount": 10000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 420000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 40
+      },
+      {
+        "odds_one_in": 20000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 840
+      },
+      {
+        "odds_one_in": 13333.33,
+        "prize_amount": 500.0,
+        "prizes_total": 1260
+      },
+      {
+        "odds_one_in": 10000.0,
+        "prize_amount": 250.0,
+        "prizes_total": 1680
+      },
+      {
+        "odds_one_in": 2400.0,
+        "prize_amount": 150.0,
+        "prizes_total": 7000
+      },
+      {
+        "odds_one_in": 705.88,
+        "prize_amount": 100.0,
+        "prizes_total": 23800
+      },
+      {
+        "odds_one_in": 1090.91,
+        "prize_amount": 60.0,
+        "prizes_total": 15400
+      },
+      {
+        "odds_one_in": 144.58,
+        "prize_amount": 50.0,
+        "prizes_total": 116200
+      },
+      {
+        "odds_one_in": 66.67,
+        "prize_amount": 30.0,
+        "prizes_total": 252000
+      },
+      {
+        "odds_one_in": 66.67,
+        "prize_amount": 25.0,
+        "prizes_total": 252000
+      },
+      {
+        "odds_one_in": 42.86,
+        "prize_amount": 20.0,
+        "prizes_total": 392000
+      },
+      {
+        "odds_one_in": 66.67,
+        "prize_amount": 15.0,
+        "prizes_total": 252000
+      },
+      {
+        "odds_one_in": 16.67,
+        "prize_amount": 10.0,
+        "prizes_total": 1008000
+      },
+      {
+        "odds_one_in": 9.09,
+        "prize_amount": 5.0,
+        "prizes_total": 1848000
+      }
+    ],
+    "total_tickets": 16800000
+  },
+  "1522": {
+    "overall_odds": 4.15,
+    "tiers": [
+      {
+        "odds_one_in": 1200000.0,
+        "prize_amount": 250000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 600000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 200000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 60
+      },
+      {
+        "odds_one_in": 9230.77,
+        "prize_amount": 500.0,
+        "prizes_total": 1300
+      },
+      {
+        "odds_one_in": 2448.98,
+        "prize_amount": 200.0,
+        "prizes_total": 4900
+      },
+      {
+        "odds_one_in": 500.0,
+        "prize_amount": 100.0,
+        "prizes_total": 24000
+      },
+      {
+        "odds_one_in": 100.0,
+        "prize_amount": 50.0,
+        "prizes_total": 120000
+      },
+      {
+        "odds_one_in": 50.0,
+        "prize_amount": 30.0,
+        "prizes_total": 240000
+      },
+      {
+        "odds_one_in": 31.58,
+        "prize_amount": 20.0,
+        "prizes_total": 380000
+      },
+      {
+        "odds_one_in": 13.04,
+        "prize_amount": 10.0,
+        "prizes_total": 920000
+      },
+      {
+        "odds_one_in": 10.0,
+        "prize_amount": 5.0,
+        "prizes_total": 1200000
+      }
+    ],
+    "total_tickets": 12000000
+  },
+  "1523": {
+    "overall_odds": 4.58,
+    "tiers": [
+      {
+        "odds_one_in": 960000.0,
+        "prize_amount": 21000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 320000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 30
+      },
+      {
+        "odds_one_in": 24000.0,
+        "prize_amount": 500.0,
+        "prizes_total": 400
+      },
+      {
+        "odds_one_in": 2857.14,
+        "prize_amount": 100.0,
+        "prizes_total": 3360
+      },
+      {
+        "odds_one_in": 500.0,
+        "prize_amount": 50.0,
+        "prizes_total": 19200
+      },
+      {
+        "odds_one_in": 375.0,
+        "prize_amount": 30.0,
+        "prizes_total": 25600
+      },
+      {
+        "odds_one_in": 75.0,
+        "prize_amount": 20.0,
+        "prizes_total": 128000
+      },
+      {
+        "odds_one_in": 37.5,
+        "prize_amount": 10.0,
+        "prizes_total": 256000
+      },
+      {
+        "odds_one_in": 37.5,
+        "prize_amount": 5.0,
+        "prizes_total": 256000
+      },
+      {
+        "odds_one_in": 25.0,
+        "prize_amount": 4.0,
+        "prizes_total": 384000
+      },
+      {
+        "odds_one_in": 9.38,
+        "prize_amount": 2.0,
+        "prizes_total": 1024000
+      }
+    ],
+    "total_tickets": 9600000
   },
   "1524": {
     "overall_odds": 4.6,
@@ -284,6 +969,67 @@
     ],
     "total_tickets": 9000000
   },
+  "1526": {
+    "overall_odds": 4.08,
+    "tiers": [
+      {
+        "odds_one_in": 1200000.0,
+        "prize_amount": 250000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 600000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 171428.57,
+        "prize_amount": 1000.0,
+        "prizes_total": 70
+      },
+      {
+        "odds_one_in": 9230.77,
+        "prize_amount": 500.0,
+        "prizes_total": 1300
+      },
+      {
+        "odds_one_in": 1875.0,
+        "prize_amount": 200.0,
+        "prizes_total": 6400
+      },
+      {
+        "odds_one_in": 380.95,
+        "prize_amount": 100.0,
+        "prizes_total": 31500
+      },
+      {
+        "odds_one_in": 85.71,
+        "prize_amount": 50.0,
+        "prizes_total": 140000
+      },
+      {
+        "odds_one_in": 54.55,
+        "prize_amount": 25.0,
+        "prizes_total": 220000
+      },
+      {
+        "odds_one_in": 35.29,
+        "prize_amount": 20.0,
+        "prizes_total": 340000
+      },
+      {
+        "odds_one_in": 14.63,
+        "prize_amount": 10.0,
+        "prizes_total": 820000
+      },
+      {
+        "odds_one_in": 8.96,
+        "prize_amount": 5.0,
+        "prizes_total": 1340000
+      }
+    ],
+    "total_tickets": 12000000
+  },
   "1527": {
     "overall_odds": 4.34,
     "tiers": [
@@ -360,6 +1106,118 @@
     ],
     "total_tickets": 9600000
   },
+  "1528": {
+    "overall_odds": 4.44,
+    "tiers": [
+      {
+        "odds_one_in": 840000.0,
+        "prize_amount": 20000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 420000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 210000.0,
+        "prize_amount": 500.0,
+        "prizes_total": 40
+      },
+      {
+        "odds_one_in": 9230.77,
+        "prize_amount": 200.0,
+        "prizes_total": 910
+      },
+      {
+        "odds_one_in": 2000.0,
+        "prize_amount": 100.0,
+        "prizes_total": 4200
+      },
+      {
+        "odds_one_in": 774.19,
+        "prize_amount": 50.0,
+        "prizes_total": 10850
+      },
+      {
+        "odds_one_in": 400.0,
+        "prize_amount": 30.0,
+        "prizes_total": 21000
+      },
+      {
+        "odds_one_in": 78.95,
+        "prize_amount": 20.0,
+        "prizes_total": 106400
+      },
+      {
+        "odds_one_in": 37.5,
+        "prize_amount": 10.0,
+        "prizes_total": 224000
+      },
+      {
+        "odds_one_in": 20.83,
+        "prize_amount": 5.0,
+        "prizes_total": 403200
+      },
+      {
+        "odds_one_in": 37.5,
+        "prize_amount": 4.0,
+        "prizes_total": 224000
+      },
+      {
+        "odds_one_in": 9.38,
+        "prize_amount": 2.0,
+        "prizes_total": 896000
+      }
+    ],
+    "total_tickets": 8400000
+  },
+  "1529": {
+    "overall_odds": 4.54,
+    "tiers": [
+      {
+        "odds_one_in": 840000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 420000.0,
+        "prize_amount": 500.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 8000.0,
+        "prize_amount": 100.0,
+        "prizes_total": 1050
+      },
+      {
+        "odds_one_in": 1714.29,
+        "prize_amount": 50.0,
+        "prizes_total": 4900
+      },
+      {
+        "odds_one_in": 585.37,
+        "prize_amount": 25.0,
+        "prizes_total": 14350
+      },
+      {
+        "odds_one_in": 71.43,
+        "prize_amount": 10.0,
+        "prizes_total": 117600
+      },
+      {
+        "odds_one_in": 25.64,
+        "prize_amount": 5.0,
+        "prizes_total": 327600
+      },
+      {
+        "odds_one_in": 16.67,
+        "prize_amount": 2.0,
+        "prizes_total": 504000
+      }
+    ],
+    "total_tickets": 8400000
+  },
   "1530": {
     "overall_odds": 2.85,
     "tiers": [
@@ -425,6 +1283,62 @@
       }
     ],
     "total_tickets": 7800000
+  },
+  "1531": {
+    "overall_odds": 3.74,
+    "tiers": [
+      {
+        "odds_one_in": 1320000.0,
+        "prize_amount": 500000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 660000.0,
+        "prize_amount": 10000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 8571.43,
+        "prize_amount": 1000.0,
+        "prizes_total": 1540
+      },
+      {
+        "odds_one_in": 2222.22,
+        "prize_amount": 500.0,
+        "prizes_total": 5940
+      },
+      {
+        "odds_one_in": 480.0,
+        "prize_amount": 200.0,
+        "prizes_total": 27500
+      },
+      {
+        "odds_one_in": 100.0,
+        "prize_amount": 100.0,
+        "prizes_total": 132000
+      },
+      {
+        "odds_one_in": 35.29,
+        "prize_amount": 50.0,
+        "prizes_total": 374000
+      },
+      {
+        "odds_one_in": 26.09,
+        "prize_amount": 30.0,
+        "prizes_total": 506000
+      },
+      {
+        "odds_one_in": 13.95,
+        "prize_amount": 20.0,
+        "prizes_total": 946000
+      },
+      {
+        "odds_one_in": 8.57,
+        "prize_amount": 10.0,
+        "prizes_total": 1540000
+      }
+    ],
+    "total_tickets": 13200000
   },
   "1532": {
     "overall_odds": 4.02,
@@ -548,6 +1462,57 @@
     ],
     "total_tickets": 8400000
   },
+  "1534": {
+    "overall_odds": 4.58,
+    "tiers": [
+      {
+        "odds_one_in": 840000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 420000.0,
+        "prize_amount": 500.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 17142.86,
+        "prize_amount": 100.0,
+        "prizes_total": 490
+      },
+      {
+        "odds_one_in": 5000.0,
+        "prize_amount": 40.0,
+        "prizes_total": 1680
+      },
+      {
+        "odds_one_in": 1090.91,
+        "prize_amount": 20.0,
+        "prizes_total": 7700
+      },
+      {
+        "odds_one_in": 142.86,
+        "prize_amount": 15.0,
+        "prizes_total": 58800
+      },
+      {
+        "odds_one_in": 76.92,
+        "prize_amount": 10.0,
+        "prizes_total": 109200
+      },
+      {
+        "odds_one_in": 37.04,
+        "prize_amount": 5.0,
+        "prizes_total": 226800
+      },
+      {
+        "odds_one_in": 14.29,
+        "prize_amount": 2.0,
+        "prizes_total": 588000
+      }
+    ],
+    "total_tickets": 8400000
+  },
   "1535": {
     "overall_odds": 3.11,
     "tiers": [
@@ -608,6 +1573,321 @@
       }
     ],
     "total_tickets": 9000000
+  },
+  "1536": {
+    "overall_odds": 4.07,
+    "tiers": [
+      {
+        "odds_one_in": 1200000.0,
+        "prize_amount": 250000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 600000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 133333.33,
+        "prize_amount": 1000.0,
+        "prizes_total": 90
+      },
+      {
+        "odds_one_in": 10000.0,
+        "prize_amount": 500.0,
+        "prizes_total": 1200
+      },
+      {
+        "odds_one_in": 2727.27,
+        "prize_amount": 200.0,
+        "prizes_total": 4400
+      },
+      {
+        "odds_one_in": 470.59,
+        "prize_amount": 100.0,
+        "prizes_total": 25500
+      },
+      {
+        "odds_one_in": 120.0,
+        "prize_amount": 50.0,
+        "prizes_total": 100000
+      },
+      {
+        "odds_one_in": 50.0,
+        "prize_amount": 30.0,
+        "prizes_total": 240000
+      },
+      {
+        "odds_one_in": 28.57,
+        "prize_amount": 20.0,
+        "prizes_total": 420000
+      },
+      {
+        "odds_one_in": 13.04,
+        "prize_amount": 10.0,
+        "prizes_total": 920000
+      },
+      {
+        "odds_one_in": 9.68,
+        "prize_amount": 5.0,
+        "prizes_total": 1240000
+      }
+    ],
+    "total_tickets": 12000000
+  },
+  "1539": {
+    "overall_odds": 4.44,
+    "tiers": [
+      {
+        "odds_one_in": 840000.0,
+        "prize_amount": 20000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 420000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 5000.0,
+        "prize_amount": 200.0,
+        "prizes_total": 1680
+      },
+      {
+        "odds_one_in": 1846.15,
+        "prize_amount": 100.0,
+        "prizes_total": 4550
+      },
+      {
+        "odds_one_in": 857.14,
+        "prize_amount": 50.0,
+        "prizes_total": 9800
+      },
+      {
+        "odds_one_in": 400.0,
+        "prize_amount": 30.0,
+        "prizes_total": 21000
+      },
+      {
+        "odds_one_in": 75.0,
+        "prize_amount": 20.0,
+        "prizes_total": 112000
+      },
+      {
+        "odds_one_in": 41.67,
+        "prize_amount": 10.0,
+        "prizes_total": 201600
+      },
+      {
+        "odds_one_in": 30.0,
+        "prize_amount": 5.0,
+        "prizes_total": 280000
+      },
+      {
+        "odds_one_in": 21.43,
+        "prize_amount": 4.0,
+        "prizes_total": 392000
+      },
+      {
+        "odds_one_in": 9.68,
+        "prize_amount": 2.0,
+        "prizes_total": 868000
+      }
+    ],
+    "total_tickets": 8400000
+  },
+  "1540": {
+    "overall_odds": 3.68,
+    "tiers": [
+      {
+        "odds_one_in": 1620000.0,
+        "prize_amount": 500000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 810000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 15000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 1080
+      },
+      {
+        "odds_one_in": 1463.41,
+        "prize_amount": 500.0,
+        "prizes_total": 11070
+      },
+      {
+        "odds_one_in": 358.21,
+        "prize_amount": 200.0,
+        "prizes_total": 45225
+      },
+      {
+        "odds_one_in": 192.0,
+        "prize_amount": 100.0,
+        "prizes_total": 84375
+      },
+      {
+        "odds_one_in": 28.57,
+        "prize_amount": 50.0,
+        "prizes_total": 567000
+      },
+      {
+        "odds_one_in": 24.0,
+        "prize_amount": 30.0,
+        "prizes_total": 675000
+      },
+      {
+        "odds_one_in": 15.79,
+        "prize_amount": 20.0,
+        "prizes_total": 1026000
+      },
+      {
+        "odds_one_in": 8.11,
+        "prize_amount": 10.0,
+        "prizes_total": 1998000
+      }
+    ],
+    "total_tickets": 16200000
+  },
+  "1543": {
+    "overall_odds": 4.41,
+    "tiers": [
+      {
+        "odds_one_in": 540000.0,
+        "prize_amount": 13000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 270000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 135000.0,
+        "prize_amount": 500.0,
+        "prizes_total": 40
+      },
+      {
+        "odds_one_in": 9230.77,
+        "prize_amount": 200.0,
+        "prizes_total": 585
+      },
+      {
+        "odds_one_in": 2500.0,
+        "prize_amount": 100.0,
+        "prizes_total": 2160
+      },
+      {
+        "odds_one_in": 705.88,
+        "prize_amount": 50.0,
+        "prizes_total": 7650
+      },
+      {
+        "odds_one_in": 375.0,
+        "prize_amount": 30.0,
+        "prizes_total": 14400
+      },
+      {
+        "odds_one_in": 115.38,
+        "prize_amount": 20.0,
+        "prizes_total": 46800
+      },
+      {
+        "odds_one_in": 125.0,
+        "prize_amount": 15.0,
+        "prizes_total": 43200
+      },
+      {
+        "odds_one_in": 50.0,
+        "prize_amount": 10.0,
+        "prizes_total": 108000
+      },
+      {
+        "odds_one_in": 18.75,
+        "prize_amount": 5.0,
+        "prizes_total": 288000
+      },
+      {
+        "odds_one_in": 46.88,
+        "prize_amount": 4.0,
+        "prizes_total": 115200
+      },
+      {
+        "odds_one_in": 9.04,
+        "prize_amount": 2.0,
+        "prizes_total": 597600
+      }
+    ],
+    "total_tickets": 5400000
+  },
+  "1544": {
+    "overall_odds": 4.64,
+    "tiers": [
+      {
+        "odds_one_in": 540000.0,
+        "prize_amount": 2500.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 540000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 24000.0,
+        "prize_amount": 400.0,
+        "prizes_total": 225
+      },
+      {
+        "odds_one_in": 24000.0,
+        "prize_amount": 200.0,
+        "prizes_total": 225
+      },
+      {
+        "odds_one_in": 12000.0,
+        "prize_amount": 100.0,
+        "prizes_total": 450
+      },
+      {
+        "odds_one_in": 1200.0,
+        "prize_amount": 40.0,
+        "prizes_total": 4500
+      },
+      {
+        "odds_one_in": 750.0,
+        "prize_amount": 20.0,
+        "prizes_total": 7200
+      },
+      {
+        "odds_one_in": 62.5,
+        "prize_amount": 10.0,
+        "prizes_total": 86400
+      },
+      {
+        "odds_one_in": 52.63,
+        "prize_amount": 5.0,
+        "prizes_total": 102600
+      },
+      {
+        "odds_one_in": 40.0,
+        "prize_amount": 4.0,
+        "prizes_total": 135000
+      },
+      {
+        "odds_one_in": 31.25,
+        "prize_amount": 2.0,
+        "prizes_total": 172800
+      },
+      {
+        "odds_one_in": 47.62,
+        "prize_amount": 1.0,
+        "prizes_total": 113400
+      }
+    ],
+    "total_tickets": 5400000
   },
   "1545": {
     "overall_odds": 2.86,
@@ -670,6 +1950,123 @@
     ],
     "total_tickets": 4320000
   },
+  "1546": {
+    "overall_odds": 3.85,
+    "tiers": [
+      {
+        "odds_one_in": 1200000.0,
+        "prize_amount": 500000.0,
+        "prizes_total": 5
+      },
+      {
+        "odds_one_in": 600000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 10000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 600
+      },
+      {
+        "odds_one_in": 495.87,
+        "prize_amount": 500.0,
+        "prizes_total": 12100
+      },
+      {
+        "odds_one_in": 4000.0,
+        "prize_amount": 200.0,
+        "prizes_total": 1500
+      },
+      {
+        "odds_one_in": 444.44,
+        "prize_amount": 100.0,
+        "prizes_total": 13500
+      },
+      {
+        "odds_one_in": 50.0,
+        "prize_amount": 50.0,
+        "prizes_total": 120000
+      },
+      {
+        "odds_one_in": 18.75,
+        "prize_amount": 40.0,
+        "prizes_total": 320000
+      },
+      {
+        "odds_one_in": 18.18,
+        "prize_amount": 20.0,
+        "prizes_total": 330000
+      },
+      {
+        "odds_one_in": 7.89,
+        "prize_amount": 10.0,
+        "prizes_total": 760000
+      }
+    ],
+    "total_tickets": 6000000
+  },
+  "1547": {
+    "overall_odds": 3.98,
+    "tiers": [
+      {
+        "odds_one_in": 1320000.0,
+        "prize_amount": 250000.0,
+        "prizes_total": 5
+      },
+      {
+        "odds_one_in": 660000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 40000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 165
+      },
+      {
+        "odds_one_in": 15000.0,
+        "prize_amount": 400.0,
+        "prizes_total": 440
+      },
+      {
+        "odds_one_in": 1200.0,
+        "prize_amount": 200.0,
+        "prizes_total": 5500
+      },
+      {
+        "odds_one_in": 449.44,
+        "prize_amount": 100.0,
+        "prizes_total": 14685
+      },
+      {
+        "odds_one_in": 100.0,
+        "prize_amount": 50.0,
+        "prizes_total": 66000
+      },
+      {
+        "odds_one_in": 100.0,
+        "prize_amount": 40.0,
+        "prizes_total": 66000
+      },
+      {
+        "odds_one_in": 40.0,
+        "prize_amount": 20.0,
+        "prizes_total": 165000
+      },
+      {
+        "odds_one_in": 10.0,
+        "prize_amount": 10.0,
+        "prizes_total": 660000
+      },
+      {
+        "odds_one_in": 9.68,
+        "prize_amount": 5.0,
+        "prizes_total": 682000
+      }
+    ],
+    "total_tickets": 6600000
+  },
   "1549": {
     "overall_odds": 3.22,
     "tiers": [
@@ -731,6 +2128,67 @@
     ],
     "total_tickets": 6600000
   },
+  "1550": {
+    "overall_odds": 3.63,
+    "tiers": [
+      {
+        "odds_one_in": 900000.0,
+        "prize_amount": 500000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 450000.0,
+        "prize_amount": 10000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 24000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 375
+      },
+      {
+        "odds_one_in": 4285.71,
+        "prize_amount": 500.0,
+        "prizes_total": 2100
+      },
+      {
+        "odds_one_in": 3000.0,
+        "prize_amount": 400.0,
+        "prizes_total": 3000
+      },
+      {
+        "odds_one_in": 727.27,
+        "prize_amount": 200.0,
+        "prizes_total": 12375
+      },
+      {
+        "odds_one_in": 100.0,
+        "prize_amount": 100.0,
+        "prizes_total": 90000
+      },
+      {
+        "odds_one_in": 35.29,
+        "prize_amount": 50.0,
+        "prizes_total": 255000
+      },
+      {
+        "odds_one_in": 28.57,
+        "prize_amount": 30.0,
+        "prizes_total": 315000
+      },
+      {
+        "odds_one_in": 14.29,
+        "prize_amount": 20.0,
+        "prizes_total": 630000
+      },
+      {
+        "odds_one_in": 7.69,
+        "prize_amount": 10.0,
+        "prizes_total": 1170000
+      }
+    ],
+    "total_tickets": 9000000
+  },
   "1551": {
     "overall_odds": 4.09,
     "tiers": [
@@ -783,6 +2241,250 @@
         "odds_one_in": 7.14,
         "prize_amount": 5.0,
         "prizes_total": 1848000
+      }
+    ],
+    "total_tickets": 13200000
+  },
+  "1553": {
+    "overall_odds": 4.32,
+    "tiers": [
+      {
+        "odds_one_in": 960000.0,
+        "prize_amount": 20000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 192000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 50
+      },
+      {
+        "odds_one_in": 20000.0,
+        "prize_amount": 500.0,
+        "prizes_total": 480
+      },
+      {
+        "odds_one_in": 3333.33,
+        "prize_amount": 200.0,
+        "prizes_total": 2880
+      },
+      {
+        "odds_one_in": 1263.16,
+        "prize_amount": 100.0,
+        "prizes_total": 7600
+      },
+      {
+        "odds_one_in": 480.0,
+        "prize_amount": 40.0,
+        "prizes_total": 20000
+      },
+      {
+        "odds_one_in": 65.22,
+        "prize_amount": 20.0,
+        "prizes_total": 147200
+      },
+      {
+        "odds_one_in": 75.0,
+        "prize_amount": 10.0,
+        "prizes_total": 128000
+      },
+      {
+        "odds_one_in": 23.44,
+        "prize_amount": 5.0,
+        "prizes_total": 409600
+      },
+      {
+        "odds_one_in": 27.27,
+        "prize_amount": 4.0,
+        "prizes_total": 352000
+      },
+      {
+        "odds_one_in": 8.33,
+        "prize_amount": 2.0,
+        "prizes_total": 1152000
+      }
+    ],
+    "total_tickets": 9600000
+  },
+  "1554": {
+    "overall_odds": 4.57,
+    "tiers": [
+      {
+        "odds_one_in": 1260000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 420000.0,
+        "prize_amount": 400.0,
+        "prizes_total": 30
+      },
+      {
+        "odds_one_in": 210000.0,
+        "prize_amount": 100.0,
+        "prizes_total": 60
+      },
+      {
+        "odds_one_in": 2181.82,
+        "prize_amount": 40.0,
+        "prizes_total": 5775
+      },
+      {
+        "odds_one_in": 800.0,
+        "prize_amount": 20.0,
+        "prizes_total": 15750
+      },
+      {
+        "odds_one_in": 200.0,
+        "prize_amount": 15.0,
+        "prizes_total": 63000
+      },
+      {
+        "odds_one_in": 76.92,
+        "prize_amount": 10.0,
+        "prizes_total": 163800
+      },
+      {
+        "odds_one_in": 47.62,
+        "prize_amount": 5.0,
+        "prizes_total": 264600
+      },
+      {
+        "odds_one_in": 41.67,
+        "prize_amount": 4.0,
+        "prizes_total": 302400
+      },
+      {
+        "odds_one_in": 25.0,
+        "prize_amount": 2.0,
+        "prizes_total": 504000
+      }
+    ],
+    "total_tickets": 12600000
+  },
+  "1556": {
+    "overall_odds": 3.66,
+    "tiers": [
+      {
+        "odds_one_in": 2160000.0,
+        "prize_amount": 500000.0,
+        "prizes_total": 5
+      },
+      {
+        "odds_one_in": 2160000.0,
+        "prize_amount": 50000.0,
+        "prizes_total": 5
+      },
+      {
+        "odds_one_in": 540000.0,
+        "prize_amount": 10000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 540000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 4444.44,
+        "prize_amount": 1000.0,
+        "prizes_total": 2430
+      },
+      {
+        "odds_one_in": 2181.82,
+        "prize_amount": 500.0,
+        "prizes_total": 4950
+      },
+      {
+        "odds_one_in": 1714.29,
+        "prize_amount": 400.0,
+        "prizes_total": 6300
+      },
+      {
+        "odds_one_in": 571.43,
+        "prize_amount": 200.0,
+        "prizes_total": 18900
+      },
+      {
+        "odds_one_in": 85.71,
+        "prize_amount": 100.0,
+        "prizes_total": 126000
+      },
+      {
+        "odds_one_in": 40.0,
+        "prize_amount": 50.0,
+        "prizes_total": 270000
+      },
+      {
+        "odds_one_in": 54.55,
+        "prize_amount": 30.0,
+        "prizes_total": 198000
+      },
+      {
+        "odds_one_in": 11.32,
+        "prize_amount": 20.0,
+        "prizes_total": 954000
+      },
+      {
+        "odds_one_in": 7.89,
+        "prize_amount": 10.0,
+        "prizes_total": 1368000
+      }
+    ],
+    "total_tickets": 10800000
+  },
+  "1557": {
+    "overall_odds": 4.16,
+    "tiers": [
+      {
+        "odds_one_in": 1320000.0,
+        "prize_amount": 250000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 660000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 330000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 40
+      },
+      {
+        "odds_one_in": 9230.77,
+        "prize_amount": 500.0,
+        "prizes_total": 1430
+      },
+      {
+        "odds_one_in": 3243.24,
+        "prize_amount": 200.0,
+        "prizes_total": 4070
+      },
+      {
+        "odds_one_in": 120.6,
+        "prize_amount": 100.0,
+        "prizes_total": 109450
+      },
+      {
+        "odds_one_in": 150.0,
+        "prize_amount": 50.0,
+        "prizes_total": 88000
+      },
+      {
+        "odds_one_in": 24.0,
+        "prize_amount": 20.0,
+        "prizes_total": 550000
+      },
+      {
+        "odds_one_in": 15.0,
+        "prize_amount": 10.0,
+        "prizes_total": 880000
+      },
+      {
+        "odds_one_in": 8.57,
+        "prize_amount": 5.0,
+        "prizes_total": 1540000
       }
     ],
     "total_tickets": 13200000
@@ -869,6 +2571,123 @@
     ],
     "total_tickets": 7200000
   },
+  "1560": {
+    "overall_odds": 3.46,
+    "tiers": [
+      {
+        "odds_one_in": 1800000.0,
+        "prize_amount": 1000000.0,
+        "prizes_total": 5
+      },
+      {
+        "odds_one_in": 1800000.0,
+        "prize_amount": 100000.0,
+        "prizes_total": 5
+      },
+      {
+        "odds_one_in": 225000.0,
+        "prize_amount": 10000.0,
+        "prizes_total": 40
+      },
+      {
+        "odds_one_in": 1200.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 7500
+      },
+      {
+        "odds_one_in": 500.0,
+        "prize_amount": 500.0,
+        "prizes_total": 18000
+      },
+      {
+        "odds_one_in": 162.16,
+        "prize_amount": 200.0,
+        "prizes_total": 55500
+      },
+      {
+        "odds_one_in": 25.0,
+        "prize_amount": 100.0,
+        "prizes_total": 360000
+      },
+      {
+        "odds_one_in": 15.0,
+        "prize_amount": 50.0,
+        "prizes_total": 600000
+      },
+      {
+        "odds_one_in": 18.75,
+        "prize_amount": 30.0,
+        "prizes_total": 480000
+      },
+      {
+        "odds_one_in": 8.33,
+        "prize_amount": 20.0,
+        "prizes_total": 1080000
+      }
+    ],
+    "total_tickets": 9000000
+  },
+  "1561": {
+    "overall_odds": 3.97,
+    "tiers": [
+      {
+        "odds_one_in": 600000.0,
+        "prize_amount": 100000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 300000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 171428.57,
+        "prize_amount": 1000.0,
+        "prizes_total": 35
+      },
+      {
+        "odds_one_in": 7500.0,
+        "prize_amount": 400.0,
+        "prizes_total": 800
+      },
+      {
+        "odds_one_in": 2926.83,
+        "prize_amount": 200.0,
+        "prizes_total": 2050
+      },
+      {
+        "odds_one_in": 315.79,
+        "prize_amount": 100.0,
+        "prizes_total": 19000
+      },
+      {
+        "odds_one_in": 66.67,
+        "prize_amount": 50.0,
+        "prizes_total": 90000
+      },
+      {
+        "odds_one_in": 100.0,
+        "prize_amount": 30.0,
+        "prizes_total": 60000
+      },
+      {
+        "odds_one_in": 40.0,
+        "prize_amount": 20.0,
+        "prizes_total": 150000
+      },
+      {
+        "odds_one_in": 13.33,
+        "prize_amount": 10.0,
+        "prizes_total": 450000
+      },
+      {
+        "odds_one_in": 8.11,
+        "prize_amount": 5.0,
+        "prizes_total": 740000
+      }
+    ],
+    "total_tickets": 6000000
+  },
   "1565": {
     "overall_odds": 3.74,
     "tiers": [
@@ -924,6 +2743,240 @@
       }
     ],
     "total_tickets": 12000000
+  },
+  "1566": {
+    "overall_odds": 4.12,
+    "tiers": [
+      {
+        "odds_one_in": 960000.0,
+        "prize_amount": 250000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 320000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 30
+      },
+      {
+        "odds_one_in": 320000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 30
+      },
+      {
+        "odds_one_in": 13333.33,
+        "prize_amount": 500.0,
+        "prizes_total": 720
+      },
+      {
+        "odds_one_in": 2068.97,
+        "prize_amount": 250.0,
+        "prizes_total": 4640
+      },
+      {
+        "odds_one_in": 480.0,
+        "prize_amount": 100.0,
+        "prizes_total": 20000
+      },
+      {
+        "odds_one_in": 75.0,
+        "prize_amount": 50.0,
+        "prizes_total": 128000
+      },
+      {
+        "odds_one_in": 35.29,
+        "prize_amount": 25.0,
+        "prizes_total": 272000
+      },
+      {
+        "odds_one_in": 75.0,
+        "prize_amount": 20.0,
+        "prizes_total": 128000
+      },
+      {
+        "odds_one_in": 14.29,
+        "prize_amount": 10.0,
+        "prizes_total": 672000
+      },
+      {
+        "odds_one_in": 8.7,
+        "prize_amount": 5.0,
+        "prizes_total": 1104000
+      }
+    ],
+    "total_tickets": 9600000
+  },
+  "1567": {
+    "overall_odds": 4.05,
+    "tiers": [
+      {
+        "odds_one_in": 600000.0,
+        "prize_amount": 100000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 150000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 40
+      },
+      {
+        "odds_one_in": 8000.0,
+        "prize_amount": 500.0,
+        "prizes_total": 750
+      },
+      {
+        "odds_one_in": 3000.0,
+        "prize_amount": 200.0,
+        "prizes_total": 2000
+      },
+      {
+        "odds_one_in": 307.69,
+        "prize_amount": 100.0,
+        "prizes_total": 19500
+      },
+      {
+        "odds_one_in": 85.71,
+        "prize_amount": 50.0,
+        "prizes_total": 70000
+      },
+      {
+        "odds_one_in": 120.0,
+        "prize_amount": 30.0,
+        "prizes_total": 50000
+      },
+      {
+        "odds_one_in": 25.0,
+        "prize_amount": 20.0,
+        "prizes_total": 240000
+      },
+      {
+        "odds_one_in": 13.64,
+        "prize_amount": 10.0,
+        "prizes_total": 440000
+      },
+      {
+        "odds_one_in": 9.09,
+        "prize_amount": 5.0,
+        "prizes_total": 660000
+      }
+    ],
+    "total_tickets": 6000000
+  },
+  "1568": {
+    "overall_odds": 4.26,
+    "tiers": [
+      {
+        "odds_one_in": 540000.0,
+        "prize_amount": 10000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 270000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 9230.77,
+        "prize_amount": 200.0,
+        "prizes_total": 585
+      },
+      {
+        "odds_one_in": 2500.0,
+        "prize_amount": 100.0,
+        "prizes_total": 2160
+      },
+      {
+        "odds_one_in": 750.0,
+        "prize_amount": 50.0,
+        "prizes_total": 7200
+      },
+      {
+        "odds_one_in": 375.0,
+        "prize_amount": 30.0,
+        "prizes_total": 14400
+      },
+      {
+        "odds_one_in": 107.14,
+        "prize_amount": 20.0,
+        "prizes_total": 50400
+      },
+      {
+        "odds_one_in": 166.67,
+        "prize_amount": 15.0,
+        "prizes_total": 32400
+      },
+      {
+        "odds_one_in": 48.39,
+        "prize_amount": 10.0,
+        "prizes_total": 111600
+      },
+      {
+        "odds_one_in": 21.13,
+        "prize_amount": 5.0,
+        "prizes_total": 255600
+      },
+      {
+        "odds_one_in": 30.0,
+        "prize_amount": 4.0,
+        "prizes_total": 180000
+      },
+      {
+        "odds_one_in": 8.82,
+        "prize_amount": 2.0,
+        "prizes_total": 612000
+      }
+    ],
+    "total_tickets": 5400000
+  },
+  "1569": {
+    "overall_odds": 4.67,
+    "tiers": [
+      {
+        "odds_one_in": 540000.0,
+        "prize_amount": 2500.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 270000.0,
+        "prize_amount": 400.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 10000.0,
+        "prize_amount": 100.0,
+        "prizes_total": 540
+      },
+      {
+        "odds_one_in": 3636.36,
+        "prize_amount": 40.0,
+        "prizes_total": 1485
+      },
+      {
+        "odds_one_in": 1263.16,
+        "prize_amount": 30.0,
+        "prizes_total": 4275
+      },
+      {
+        "odds_one_in": 111.11,
+        "prize_amount": 17.0,
+        "prizes_total": 48600
+      },
+      {
+        "odds_one_in": 100.0,
+        "prize_amount": 10.0,
+        "prizes_total": 54000
+      },
+      {
+        "odds_one_in": 40.0,
+        "prize_amount": 5.0,
+        "prizes_total": 135000
+      },
+      {
+        "odds_one_in": 18.87,
+        "prize_amount": 2.0,
+        "prizes_total": 286200
+      }
+    ],
+    "total_tickets": 5400000
   },
   "1571": {
     "overall_odds": 4.19,
@@ -985,6 +3038,728 @@
       }
     ],
     "total_tickets": 13200000
+  },
+  "1572": {
+    "overall_odds": 4.16,
+    "tiers": [
+      {
+        "odds_one_in": 840000.0,
+        "prize_amount": 50000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 120000.0,
+        "prize_amount": 3000.0,
+        "prizes_total": 70
+      },
+      {
+        "odds_one_in": 24000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 350
+      },
+      {
+        "odds_one_in": 12000.0,
+        "prize_amount": 300.0,
+        "prizes_total": 700
+      },
+      {
+        "odds_one_in": 827.59,
+        "prize_amount": 100.0,
+        "prizes_total": 10150
+      },
+      {
+        "odds_one_in": 240.0,
+        "prize_amount": 50.0,
+        "prizes_total": 35000
+      },
+      {
+        "odds_one_in": 142.86,
+        "prize_amount": 30.0,
+        "prizes_total": 58800
+      },
+      {
+        "odds_one_in": 52.63,
+        "prize_amount": 15.0,
+        "prizes_total": 159600
+      },
+      {
+        "odds_one_in": 29.41,
+        "prize_amount": 10.0,
+        "prizes_total": 285600
+      },
+      {
+        "odds_one_in": 14.29,
+        "prize_amount": 5.0,
+        "prizes_total": 588000
+      },
+      {
+        "odds_one_in": 9.52,
+        "prize_amount": 3.0,
+        "prizes_total": 882000
+      }
+    ],
+    "total_tickets": 8400000
+  },
+  "1573": {
+    "overall_odds": 4.43,
+    "tiers": [
+      {
+        "odds_one_in": 840000.0,
+        "prize_amount": 20000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 280000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 30
+      },
+      {
+        "odds_one_in": 20000.0,
+        "prize_amount": 333.0,
+        "prizes_total": 420
+      },
+      {
+        "odds_one_in": 6000.0,
+        "prize_amount": 100.0,
+        "prizes_total": 1400
+      },
+      {
+        "odds_one_in": 1000.0,
+        "prize_amount": 90.0,
+        "prizes_total": 8400
+      },
+      {
+        "odds_one_in": 585.37,
+        "prize_amount": 60.0,
+        "prizes_total": 14350
+      },
+      {
+        "odds_one_in": 100.0,
+        "prize_amount": 30.0,
+        "prizes_total": 84000
+      },
+      {
+        "odds_one_in": 150.0,
+        "prize_amount": 15.0,
+        "prizes_total": 56000
+      },
+      {
+        "odds_one_in": 78.95,
+        "prize_amount": 10.0,
+        "prizes_total": 106400
+      },
+      {
+        "odds_one_in": 30.0,
+        "prize_amount": 5.0,
+        "prizes_total": 280000
+      },
+      {
+        "odds_one_in": 18.75,
+        "prize_amount": 3.0,
+        "prizes_total": 448000
+      },
+      {
+        "odds_one_in": 9.38,
+        "prize_amount": 2.0,
+        "prizes_total": 896000
+      }
+    ],
+    "total_tickets": 8400000
+  },
+  "1577": {
+    "overall_odds": 4.03,
+    "tiers": [
+      {
+        "odds_one_in": 600000.0,
+        "prize_amount": 100000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 300000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 150000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 40
+      },
+      {
+        "odds_one_in": 20000.0,
+        "prize_amount": 400.0,
+        "prizes_total": 300
+      },
+      {
+        "odds_one_in": 1600.0,
+        "prize_amount": 200.0,
+        "prizes_total": 3750
+      },
+      {
+        "odds_one_in": 444.44,
+        "prize_amount": 100.0,
+        "prizes_total": 13500
+      },
+      {
+        "odds_one_in": 75.0,
+        "prize_amount": 50.0,
+        "prizes_total": 80000
+      },
+      {
+        "odds_one_in": 60.0,
+        "prize_amount": 30.0,
+        "prizes_total": 100000
+      },
+      {
+        "odds_one_in": 37.5,
+        "prize_amount": 20.0,
+        "prizes_total": 160000
+      },
+      {
+        "odds_one_in": 13.95,
+        "prize_amount": 10.0,
+        "prizes_total": 430000
+      },
+      {
+        "odds_one_in": 8.57,
+        "prize_amount": 5.0,
+        "prizes_total": 700000
+      }
+    ],
+    "total_tickets": 6000000
+  },
+  "1578": {
+    "overall_odds": 4.12,
+    "tiers": [
+      {
+        "odds_one_in": 1140000.0,
+        "prize_amount": 250000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 380000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 30
+      },
+      {
+        "odds_one_in": 380000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 30
+      },
+      {
+        "odds_one_in": 13333.33,
+        "prize_amount": 500.0,
+        "prizes_total": 855
+      },
+      {
+        "odds_one_in": 1200.0,
+        "prize_amount": 200.0,
+        "prizes_total": 9500
+      },
+      {
+        "odds_one_in": 485.83,
+        "prize_amount": 100.0,
+        "prizes_total": 23465
+      },
+      {
+        "odds_one_in": 100.0,
+        "prize_amount": 50.0,
+        "prizes_total": 114000
+      },
+      {
+        "odds_one_in": 85.71,
+        "prize_amount": 40.0,
+        "prizes_total": 133000
+      },
+      {
+        "odds_one_in": 30.0,
+        "prize_amount": 20.0,
+        "prizes_total": 380000
+      },
+      {
+        "odds_one_in": 13.95,
+        "prize_amount": 10.0,
+        "prizes_total": 817000
+      },
+      {
+        "odds_one_in": 8.82,
+        "prize_amount": 5.0,
+        "prizes_total": 1292000
+      }
+    ],
+    "total_tickets": 11400000
+  },
+  "1579": {
+    "overall_odds": 4.38,
+    "tiers": [
+      {
+        "odds_one_in": 840000.0,
+        "prize_amount": 20000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 280000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 30
+      },
+      {
+        "odds_one_in": 210000.0,
+        "prize_amount": 500.0,
+        "prizes_total": 40
+      },
+      {
+        "odds_one_in": 30000.0,
+        "prize_amount": 200.0,
+        "prizes_total": 280
+      },
+      {
+        "odds_one_in": 3000.0,
+        "prize_amount": 100.0,
+        "prizes_total": 2800
+      },
+      {
+        "odds_one_in": 480.0,
+        "prize_amount": 50.0,
+        "prizes_total": 17500
+      },
+      {
+        "odds_one_in": 62.5,
+        "prize_amount": 20.0,
+        "prizes_total": 134400
+      },
+      {
+        "odds_one_in": 37.5,
+        "prize_amount": 10.0,
+        "prizes_total": 224000
+      },
+      {
+        "odds_one_in": 25.0,
+        "prize_amount": 5.0,
+        "prizes_total": 336000
+      },
+      {
+        "odds_one_in": 27.27,
+        "prize_amount": 4.0,
+        "prizes_total": 308000
+      },
+      {
+        "odds_one_in": 9.38,
+        "prize_amount": 2.0,
+        "prizes_total": 896000
+      }
+    ],
+    "total_tickets": 8400000
+  },
+  "1582": {
+    "overall_odds": 4.03,
+    "tiers": [
+      {
+        "odds_one_in": 600000.0,
+        "prize_amount": 100000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 300000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 150000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 40
+      },
+      {
+        "odds_one_in": 20000.0,
+        "prize_amount": 400.0,
+        "prizes_total": 300
+      },
+      {
+        "odds_one_in": 1600.0,
+        "prize_amount": 200.0,
+        "prizes_total": 3750
+      },
+      {
+        "odds_one_in": 444.44,
+        "prize_amount": 100.0,
+        "prizes_total": 13500
+      },
+      {
+        "odds_one_in": 75.0,
+        "prize_amount": 50.0,
+        "prizes_total": 80000
+      },
+      {
+        "odds_one_in": 60.0,
+        "prize_amount": 30.0,
+        "prizes_total": 100000
+      },
+      {
+        "odds_one_in": 37.5,
+        "prize_amount": 20.0,
+        "prizes_total": 160000
+      },
+      {
+        "odds_one_in": 13.95,
+        "prize_amount": 10.0,
+        "prizes_total": 430000
+      },
+      {
+        "odds_one_in": 8.57,
+        "prize_amount": 5.0,
+        "prizes_total": 700000
+      }
+    ],
+    "total_tickets": 6000000
+  },
+  "1584": {
+    "overall_odds": 4.3,
+    "tiers": [
+      {
+        "odds_one_in": 840000.0,
+        "prize_amount": 20000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 210000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 40
+      },
+      {
+        "odds_one_in": 3000.0,
+        "prize_amount": 200.0,
+        "prizes_total": 2800
+      },
+      {
+        "odds_one_in": 1846.15,
+        "prize_amount": 100.0,
+        "prizes_total": 4550
+      },
+      {
+        "odds_one_in": 1333.33,
+        "prize_amount": 50.0,
+        "prizes_total": 6300
+      },
+      {
+        "odds_one_in": 500.0,
+        "prize_amount": 40.0,
+        "prizes_total": 16800
+      },
+      {
+        "odds_one_in": 88.24,
+        "prize_amount": 20.0,
+        "prizes_total": 95200
+      },
+      {
+        "odds_one_in": 48.39,
+        "prize_amount": 10.0,
+        "prizes_total": 173600
+      },
+      {
+        "odds_one_in": 25.0,
+        "prize_amount": 5.0,
+        "prizes_total": 336000
+      },
+      {
+        "odds_one_in": 18.75,
+        "prize_amount": 4.0,
+        "prizes_total": 448000
+      },
+      {
+        "odds_one_in": 9.68,
+        "prize_amount": 2.0,
+        "prizes_total": 868000
+      }
+    ],
+    "total_tickets": 8400000
+  },
+  "1592": {
+    "overall_odds": 4.3,
+    "tiers": [
+      {
+        "odds_one_in": 1200000.0,
+        "prize_amount": 200000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 800000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 15
+      },
+      {
+        "odds_one_in": 480000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 25
+      },
+      {
+        "odds_one_in": 6666.67,
+        "prize_amount": 400.0,
+        "prizes_total": 1800
+      },
+      {
+        "odds_one_in": 1333.33,
+        "prize_amount": 200.0,
+        "prizes_total": 9000
+      },
+      {
+        "odds_one_in": 292.68,
+        "prize_amount": 100.0,
+        "prizes_total": 41000
+      },
+      {
+        "odds_one_in": 75.0,
+        "prize_amount": 50.0,
+        "prizes_total": 160000
+      },
+      {
+        "odds_one_in": 50.0,
+        "prize_amount": 25.0,
+        "prizes_total": 240000
+      },
+      {
+        "odds_one_in": 40.0,
+        "prize_amount": 20.0,
+        "prizes_total": 300000
+      },
+      {
+        "odds_one_in": 15.79,
+        "prize_amount": 10.0,
+        "prizes_total": 760000
+      },
+      {
+        "odds_one_in": 9.38,
+        "prize_amount": 5.0,
+        "prizes_total": 1280000
+      }
+    ],
+    "total_tickets": 12000000
+  },
+  "1596": {
+    "overall_odds": 4.25,
+    "tiers": [
+      {
+        "odds_one_in": 1140000.0,
+        "prize_amount": 200000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 570000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 114000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 100
+      },
+      {
+        "odds_one_in": 4137.93,
+        "prize_amount": 500.0,
+        "prizes_total": 2755
+      },
+      {
+        "odds_one_in": 1875.0,
+        "prize_amount": 200.0,
+        "prizes_total": 6080
+      },
+      {
+        "odds_one_in": 324.32,
+        "prize_amount": 100.0,
+        "prizes_total": 35150
+      },
+      {
+        "odds_one_in": 54.55,
+        "prize_amount": 50.0,
+        "prizes_total": 209000
+      },
+      {
+        "odds_one_in": 30.0,
+        "prize_amount": 20.0,
+        "prizes_total": 380000
+      },
+      {
+        "odds_one_in": 14.29,
+        "prize_amount": 10.0,
+        "prizes_total": 798000
+      },
+      {
+        "odds_one_in": 9.09,
+        "prize_amount": 5.0,
+        "prizes_total": 1254000
+      }
+    ],
+    "total_tickets": 11400000
+  },
+  "1605": {
+    "overall_odds": 4.61,
+    "tiers": [
+      {
+        "odds_one_in": 540000.0,
+        "prize_amount": 2500.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 540000.0,
+        "prize_amount": 500.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 6666.67,
+        "prize_amount": 100.0,
+        "prizes_total": 810
+      },
+      {
+        "odds_one_in": 2181.82,
+        "prize_amount": 40.0,
+        "prizes_total": 2475
+      },
+      {
+        "odds_one_in": 461.54,
+        "prize_amount": 20.0,
+        "prizes_total": 11700
+      },
+      {
+        "odds_one_in": 55.56,
+        "prize_amount": 10.0,
+        "prizes_total": 97200
+      },
+      {
+        "odds_one_in": 32.26,
+        "prize_amount": 5.0,
+        "prizes_total": 167400
+      },
+      {
+        "odds_one_in": 16.67,
+        "prize_amount": 2.0,
+        "prizes_total": 324000
+      }
+    ],
+    "total_tickets": 5400000
+  },
+  "1610": {
+    "overall_odds": 4.3,
+    "tiers": [
+      {
+        "odds_one_in": 600000.0,
+        "prize_amount": 50000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 600000.0,
+        "prize_amount": 3000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 120000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 50
+      },
+      {
+        "odds_one_in": 6000.0,
+        "prize_amount": 300.0,
+        "prizes_total": 1000
+      },
+      {
+        "odds_one_in": 750.0,
+        "prize_amount": 100.0,
+        "prizes_total": 8000
+      },
+      {
+        "odds_one_in": 255.32,
+        "prize_amount": 50.0,
+        "prizes_total": 23500
+      },
+      {
+        "odds_one_in": 142.86,
+        "prize_amount": 30.0,
+        "prizes_total": 42000
+      },
+      {
+        "odds_one_in": 250.0,
+        "prize_amount": 20.0,
+        "prizes_total": 24000
+      },
+      {
+        "odds_one_in": 41.67,
+        "prize_amount": 15.0,
+        "prizes_total": 144000
+      },
+      {
+        "odds_one_in": 45.45,
+        "prize_amount": 10.0,
+        "prizes_total": 132000
+      },
+      {
+        "odds_one_in": 16.67,
+        "prize_amount": 5.0,
+        "prizes_total": 360000
+      },
+      {
+        "odds_one_in": 9.09,
+        "prize_amount": 3.0,
+        "prizes_total": 660000
+      }
+    ],
+    "total_tickets": 6000000
+  },
+  "1627": {
+    "overall_odds": 4.37,
+    "tiers": [
+      {
+        "odds_one_in": 1140000.0,
+        "prize_amount": 200000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 570000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 380000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 30
+      },
+      {
+        "odds_one_in": 15000.0,
+        "prize_amount": 400.0,
+        "prizes_total": 760
+      },
+      {
+        "odds_one_in": 1237.11,
+        "prize_amount": 200.0,
+        "prizes_total": 9215
+      },
+      {
+        "odds_one_in": 222.22,
+        "prize_amount": 100.0,
+        "prizes_total": 51300
+      },
+      {
+        "odds_one_in": 120.0,
+        "prize_amount": 50.0,
+        "prizes_total": 95000
+      },
+      {
+        "odds_one_in": 120.0,
+        "prize_amount": 40.0,
+        "prizes_total": 95000
+      },
+      {
+        "odds_one_in": 23.08,
+        "prize_amount": 20.0,
+        "prizes_total": 494000
+      },
+      {
+        "odds_one_in": 15.79,
+        "prize_amount": 10.0,
+        "prizes_total": 722000
+      },
+      {
+        "odds_one_in": 10.0,
+        "prize_amount": 5.0,
+        "prizes_total": 1140000
+      }
+    ],
+    "total_tickets": 11400000
   },
   "1652": {
     "overall_odds": 4.45,
@@ -1051,6 +3826,234 @@
       }
     ],
     "total_tickets": 9600000
+  },
+  "1668": {
+    "overall_odds": 3.93,
+    "tiers": [
+      {
+        "odds_one_in": 1680000.0,
+        "prize_amount": 5000000.0,
+        "prizes_total": 5
+      },
+      {
+        "odds_one_in": 560000.0,
+        "prize_amount": 500000.0,
+        "prizes_total": 15
+      },
+      {
+        "odds_one_in": 840000.0,
+        "prize_amount": 250000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 420000.0,
+        "prize_amount": 50000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 10909.09,
+        "prize_amount": 10000.0,
+        "prizes_total": 770
+      },
+      {
+        "odds_one_in": 2857.14,
+        "prize_amount": 5000.0,
+        "prizes_total": 2940
+      },
+      {
+        "odds_one_in": 186.05,
+        "prize_amount": 1000.0,
+        "prizes_total": 45150
+      },
+      {
+        "odds_one_in": 162.16,
+        "prize_amount": 500.0,
+        "prizes_total": 51800
+      },
+      {
+        "odds_one_in": 154.84,
+        "prize_amount": 400.0,
+        "prizes_total": 54250
+      },
+      {
+        "odds_one_in": 100.0,
+        "prize_amount": 300.0,
+        "prizes_total": 84000
+      },
+      {
+        "odds_one_in": 100.0,
+        "prize_amount": 200.0,
+        "prizes_total": 84000
+      },
+      {
+        "odds_one_in": 31.25,
+        "prize_amount": 100.0,
+        "prizes_total": 268800
+      },
+      {
+        "odds_one_in": 5.43,
+        "prize_amount": 75.0,
+        "prizes_total": 1545600
+      }
+    ],
+    "total_tickets": 8400000
+  },
+  "1669": {
+    "overall_odds": 3.47,
+    "tiers": [
+      {
+        "odds_one_in": 1920000.0,
+        "prize_amount": 1000000.0,
+        "prizes_total": 5
+      },
+      {
+        "odds_one_in": 480000.0,
+        "prize_amount": 100000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 240000.0,
+        "prize_amount": 10000.0,
+        "prizes_total": 40
+      },
+      {
+        "odds_one_in": 240000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 40
+      },
+      {
+        "odds_one_in": 727.27,
+        "prize_amount": 1000.0,
+        "prizes_total": 13200
+      },
+      {
+        "odds_one_in": 923.08,
+        "prize_amount": 500.0,
+        "prizes_total": 10400
+      },
+      {
+        "odds_one_in": 315.79,
+        "prize_amount": 400.0,
+        "prizes_total": 30400
+      },
+      {
+        "odds_one_in": 428.57,
+        "prize_amount": 200.0,
+        "prizes_total": 22400
+      },
+      {
+        "odds_one_in": 37.5,
+        "prize_amount": 100.0,
+        "prizes_total": 256000
+      },
+      {
+        "odds_one_in": 21.43,
+        "prize_amount": 50.0,
+        "prizes_total": 448000
+      },
+      {
+        "odds_one_in": 23.08,
+        "prize_amount": 40.0,
+        "prizes_total": 416000
+      },
+      {
+        "odds_one_in": 15.0,
+        "prize_amount": 30.0,
+        "prizes_total": 640000
+      },
+      {
+        "odds_one_in": 10.34,
+        "prize_amount": 20.0,
+        "prizes_total": 928000
+      }
+    ],
+    "total_tickets": 9600000
+  },
+  "1671": {
+    "overall_odds": 4.42,
+    "tiers": [
+      {
+        "odds_one_in": 840000.0,
+        "prize_amount": 50000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 420000.0,
+        "prize_amount": 3000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 120000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 70
+      },
+      {
+        "odds_one_in": 20000.0,
+        "prize_amount": 300.0,
+        "prizes_total": 420
+      },
+      {
+        "odds_one_in": 6000.0,
+        "prize_amount": 150.0,
+        "prizes_total": 1400
+      },
+      {
+        "odds_one_in": 1153.85,
+        "prize_amount": 100.0,
+        "prizes_total": 7280
+      },
+      {
+        "odds_one_in": 1333.33,
+        "prize_amount": 90.0,
+        "prizes_total": 6300
+      },
+      {
+        "odds_one_in": 1500.0,
+        "prize_amount": 60.0,
+        "prizes_total": 5600
+      },
+      {
+        "odds_one_in": 800.0,
+        "prize_amount": 50.0,
+        "prizes_total": 10500
+      },
+      {
+        "odds_one_in": 714.29,
+        "prize_amount": 40.0,
+        "prizes_total": 11760
+      },
+      {
+        "odds_one_in": 200.0,
+        "prize_amount": 30.0,
+        "prizes_total": 42000
+      },
+      {
+        "odds_one_in": 83.33,
+        "prize_amount": 20.0,
+        "prizes_total": 100800
+      },
+      {
+        "odds_one_in": 58.82,
+        "prize_amount": 15.0,
+        "prizes_total": 142800
+      },
+      {
+        "odds_one_in": 29.41,
+        "prize_amount": 10.0,
+        "prizes_total": 285600
+      },
+      {
+        "odds_one_in": 17.24,
+        "prize_amount": 5.0,
+        "prizes_total": 487200
+      },
+      {
+        "odds_one_in": 10.53,
+        "prize_amount": 3.0,
+        "prizes_total": 798000
+      }
+    ],
+    "total_tickets": 8400000
   },
   "1674": {
     "overall_odds": 6.98,
@@ -1383,6 +4386,72 @@
     ],
     "total_tickets": 10800000
   },
+  "1692": {
+    "overall_odds": 3.73,
+    "tiers": [
+      {
+        "odds_one_in": 1080000.0,
+        "prize_amount": 500000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 216000.0,
+        "prize_amount": 10000.0,
+        "prizes_total": 50
+      },
+      {
+        "odds_one_in": 216000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 50
+      },
+      {
+        "odds_one_in": 1100.92,
+        "prize_amount": 1000.0,
+        "prizes_total": 9810
+      },
+      {
+        "odds_one_in": 2553.19,
+        "prize_amount": 500.0,
+        "prizes_total": 4230
+      },
+      {
+        "odds_one_in": 521.74,
+        "prize_amount": 200.0,
+        "prizes_total": 20700
+      },
+      {
+        "odds_one_in": 100.0,
+        "prize_amount": 100.0,
+        "prizes_total": 108000
+      },
+      {
+        "odds_one_in": 66.67,
+        "prize_amount": 50.0,
+        "prizes_total": 162000
+      },
+      {
+        "odds_one_in": 42.86,
+        "prize_amount": 30.0,
+        "prizes_total": 252000
+      },
+      {
+        "odds_one_in": 23.08,
+        "prize_amount": 20.0,
+        "prizes_total": 468000
+      },
+      {
+        "odds_one_in": 17.65,
+        "prize_amount": 15.0,
+        "prizes_total": 612000
+      },
+      {
+        "odds_one_in": 8.57,
+        "prize_amount": 10.0,
+        "prizes_total": 1260000
+      }
+    ],
+    "total_tickets": 10800000
+  },
   "1693": {
     "overall_odds": 4.42,
     "tiers": [
@@ -1443,6 +4512,143 @@
       }
     ],
     "total_tickets": 10800000
+  },
+  "1694": {
+    "overall_odds": 4.35,
+    "tiers": [
+      {
+        "odds_one_in": 1320000.0,
+        "prize_amount": 200000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 1320000.0,
+        "prize_amount": 10000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 120000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 110
+      },
+      {
+        "odds_one_in": 12000.0,
+        "prize_amount": 500.0,
+        "prizes_total": 1100
+      },
+      {
+        "odds_one_in": 2181.82,
+        "prize_amount": 200.0,
+        "prizes_total": 6050
+      },
+      {
+        "odds_one_in": 2105.26,
+        "prize_amount": 150.0,
+        "prizes_total": 6270
+      },
+      {
+        "odds_one_in": 1200.0,
+        "prize_amount": 100.0,
+        "prizes_total": 11000
+      },
+      {
+        "odds_one_in": 500.0,
+        "prize_amount": 60.0,
+        "prizes_total": 26400
+      },
+      {
+        "odds_one_in": 150.0,
+        "prize_amount": 50.0,
+        "prizes_total": 88000
+      },
+      {
+        "odds_one_in": 100.0,
+        "prize_amount": 40.0,
+        "prizes_total": 132000
+      },
+      {
+        "odds_one_in": 150.0,
+        "prize_amount": 30.0,
+        "prizes_total": 88000
+      },
+      {
+        "odds_one_in": 42.86,
+        "prize_amount": 25.0,
+        "prizes_total": 308000
+      },
+      {
+        "odds_one_in": 85.71,
+        "prize_amount": 20.0,
+        "prizes_total": 154000
+      },
+      {
+        "odds_one_in": 42.86,
+        "prize_amount": 15.0,
+        "prizes_total": 308000
+      },
+      {
+        "odds_one_in": 25.0,
+        "prize_amount": 10.0,
+        "prizes_total": 528000
+      },
+      {
+        "odds_one_in": 10.0,
+        "prize_amount": 5.0,
+        "prizes_total": 1320000
+      }
+    ],
+    "total_tickets": 13200000
+  },
+  "1695": {
+    "overall_odds": 4.68,
+    "tiers": [
+      {
+        "odds_one_in": 840000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 280000.0,
+        "prize_amount": 400.0,
+        "prizes_total": 30
+      },
+      {
+        "odds_one_in": 5454.55,
+        "prize_amount": 100.0,
+        "prizes_total": 1540
+      },
+      {
+        "odds_one_in": 2790.7,
+        "prize_amount": 50.0,
+        "prizes_total": 3010
+      },
+      {
+        "odds_one_in": 827.59,
+        "prize_amount": 40.0,
+        "prizes_total": 10150
+      },
+      {
+        "odds_one_in": 480.0,
+        "prize_amount": 20.0,
+        "prizes_total": 17500
+      },
+      {
+        "odds_one_in": 55.56,
+        "prize_amount": 10.0,
+        "prizes_total": 151200
+      },
+      {
+        "odds_one_in": 32.26,
+        "prize_amount": 4.0,
+        "prizes_total": 260400
+      },
+      {
+        "odds_one_in": 18.18,
+        "prize_amount": 2.0,
+        "prizes_total": 462000
+      }
+    ],
+    "total_tickets": 8400000
   },
   "1696": {
     "overall_odds": 3.12,
@@ -1861,6 +5067,62 @@
     ],
     "total_tickets": 9000000
   },
+  "1704": {
+    "overall_odds": 4.63,
+    "tiers": [
+      {
+        "odds_one_in": 1920000.0,
+        "prize_amount": 10000.0,
+        "prizes_total": 5
+      },
+      {
+        "odds_one_in": 320000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 30
+      },
+      {
+        "odds_one_in": 320000.0,
+        "prize_amount": 400.0,
+        "prizes_total": 30
+      },
+      {
+        "odds_one_in": 5454.55,
+        "prize_amount": 100.0,
+        "prizes_total": 1760
+      },
+      {
+        "odds_one_in": 481.93,
+        "prize_amount": 40.0,
+        "prizes_total": 19920
+      },
+      {
+        "odds_one_in": 600.0,
+        "prize_amount": 20.0,
+        "prizes_total": 16000
+      },
+      {
+        "odds_one_in": 250.0,
+        "prize_amount": 10.0,
+        "prizes_total": 38400
+      },
+      {
+        "odds_one_in": 66.67,
+        "prize_amount": 8.0,
+        "prizes_total": 144000
+      },
+      {
+        "odds_one_in": 28.57,
+        "prize_amount": 4.0,
+        "prizes_total": 336000
+      },
+      {
+        "odds_one_in": 19.23,
+        "prize_amount": 2.0,
+        "prizes_total": 499200
+      }
+    ],
+    "total_tickets": 9600000
+  },
   "1705": {
     "overall_odds": 3.17,
     "tiers": [
@@ -1921,6 +5183,72 @@
       }
     ],
     "total_tickets": 5400000
+  },
+  "1706": {
+    "overall_odds": 3.68,
+    "tiers": [
+      {
+        "odds_one_in": 1440000.0,
+        "prize_amount": 500000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 960000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 15
+      },
+      {
+        "odds_one_in": 8571.43,
+        "prize_amount": 1000.0,
+        "prizes_total": 1680
+      },
+      {
+        "odds_one_in": 1875.0,
+        "prize_amount": 500.0,
+        "prizes_total": 7680
+      },
+      {
+        "odds_one_in": 2181.82,
+        "prize_amount": 300.0,
+        "prizes_total": 6600
+      },
+      {
+        "odds_one_in": 173.91,
+        "prize_amount": 200.0,
+        "prizes_total": 82800
+      },
+      {
+        "odds_one_in": 120.0,
+        "prize_amount": 100.0,
+        "prizes_total": 120000
+      },
+      {
+        "odds_one_in": 60.0,
+        "prize_amount": 50.0,
+        "prizes_total": 240000
+      },
+      {
+        "odds_one_in": 26.09,
+        "prize_amount": 30.0,
+        "prizes_total": 552000
+      },
+      {
+        "odds_one_in": 37.5,
+        "prize_amount": 20.0,
+        "prizes_total": 384000
+      },
+      {
+        "odds_one_in": 21.43,
+        "prize_amount": 15.0,
+        "prizes_total": 672000
+      },
+      {
+        "odds_one_in": 7.79,
+        "prize_amount": 10.0,
+        "prizes_total": 1848000
+      }
+    ],
+    "total_tickets": 14400000
   },
   "1707": {
     "overall_odds": 4.51,
@@ -2049,6 +5377,123 @@
     ],
     "total_tickets": 4800000
   },
+  "1709": {
+    "overall_odds": 4.6,
+    "tiers": [
+      {
+        "odds_one_in": 480000.0,
+        "prize_amount": 13000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 240000.0,
+        "prize_amount": 800.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 20000.0,
+        "prize_amount": 400.0,
+        "prizes_total": 240
+      },
+      {
+        "odds_one_in": 2553.19,
+        "prize_amount": 100.0,
+        "prizes_total": 1880
+      },
+      {
+        "odds_one_in": 1111.11,
+        "prize_amount": 80.0,
+        "prizes_total": 4320
+      },
+      {
+        "odds_one_in": 193.55,
+        "prize_amount": 40.0,
+        "prizes_total": 24800
+      },
+      {
+        "odds_one_in": 93.75,
+        "prize_amount": 20.0,
+        "prizes_total": 51200
+      },
+      {
+        "odds_one_in": 71.43,
+        "prize_amount": 10.0,
+        "prizes_total": 67200
+      },
+      {
+        "odds_one_in": 27.78,
+        "prize_amount": 5.0,
+        "prizes_total": 172800
+      },
+      {
+        "odds_one_in": 17.65,
+        "prize_amount": 4.0,
+        "prizes_total": 272000
+      },
+      {
+        "odds_one_in": 10.71,
+        "prize_amount": 2.0,
+        "prizes_total": 448000
+      }
+    ],
+    "total_tickets": 4800000
+  },
+  "1711": {
+    "overall_odds": null,
+    "tiers": [
+      {
+        "odds_one_in": 1080000.0,
+        "prize_amount": 1000000.0,
+        "prizes_total": 5
+      },
+      {
+        "odds_one_in": 216000.0,
+        "prize_amount": 25000.0,
+        "prizes_total": 25
+      },
+      {
+        "odds_one_in": 90000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 60
+      },
+      {
+        "odds_one_in": 1739.13,
+        "prize_amount": 1000.0,
+        "prizes_total": 3105
+      },
+      {
+        "odds_one_in": 485.83,
+        "prize_amount": 400.0,
+        "prizes_total": 11115
+      },
+      {
+        "odds_one_in": 96.77,
+        "prize_amount": 250.0,
+        "prizes_total": 55800
+      },
+      {
+        "odds_one_in": 42.86,
+        "prize_amount": 100.0,
+        "prizes_total": 126000
+      },
+      {
+        "odds_one_in": 30.0,
+        "prize_amount": 50.0,
+        "prizes_total": 180000
+      },
+      {
+        "odds_one_in": 12.0,
+        "prize_amount": 40.0,
+        "prizes_total": 450000
+      },
+      {
+        "odds_one_in": 7.5,
+        "prize_amount": 20.0,
+        "prizes_total": 720000
+      }
+    ],
+    "total_tickets": 5400000
+  },
   "1713": {
     "overall_odds": 4.52,
     "tiers": [
@@ -2110,6 +5555,67 @@
     ],
     "total_tickets": 9000000
   },
+  "1714": {
+    "overall_odds": 4.59,
+    "tiers": [
+      {
+        "odds_one_in": 540000.0,
+        "prize_amount": 50000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 180000.0,
+        "prize_amount": 3000.0,
+        "prizes_total": 30
+      },
+      {
+        "odds_one_in": 24000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 225
+      },
+      {
+        "odds_one_in": 6000.0,
+        "prize_amount": 300.0,
+        "prizes_total": 900
+      },
+      {
+        "odds_one_in": 2000.0,
+        "prize_amount": 100.0,
+        "prizes_total": 2700
+      },
+      {
+        "odds_one_in": 160.0,
+        "prize_amount": 50.0,
+        "prizes_total": 33750
+      },
+      {
+        "odds_one_in": 76.92,
+        "prize_amount": 30.0,
+        "prizes_total": 70200
+      },
+      {
+        "odds_one_in": 90.91,
+        "prize_amount": 20.0,
+        "prizes_total": 59400
+      },
+      {
+        "odds_one_in": 43.48,
+        "prize_amount": 10.0,
+        "prizes_total": 124200
+      },
+      {
+        "odds_one_in": 25.64,
+        "prize_amount": 5.0,
+        "prizes_total": 210600
+      },
+      {
+        "odds_one_in": 8.0,
+        "prize_amount": 3.0,
+        "prizes_total": 675000
+      }
+    ],
+    "total_tickets": 5400000
+  },
   "1716": {
     "overall_odds": 4.7,
     "tiers": [
@@ -2165,6 +5671,67 @@
       }
     ],
     "total_tickets": 8400000
+  },
+  "1717": {
+    "overall_odds": 4.16,
+    "tiers": [
+      {
+        "odds_one_in": 1320000.0,
+        "prize_amount": 5000000.0,
+        "prizes_total": 5
+      },
+      {
+        "odds_one_in": 440000.0,
+        "prize_amount": 500000.0,
+        "prizes_total": 15
+      },
+      {
+        "odds_one_in": 440000.0,
+        "prize_amount": 250000.0,
+        "prizes_total": 15
+      },
+      {
+        "odds_one_in": 440000.0,
+        "prize_amount": 75000.0,
+        "prizes_total": 15
+      },
+      {
+        "odds_one_in": 220000.0,
+        "prize_amount": 25000.0,
+        "prizes_total": 30
+      },
+      {
+        "odds_one_in": 3076.92,
+        "prize_amount": 5000.0,
+        "prizes_total": 2145
+      },
+      {
+        "odds_one_in": 2068.97,
+        "prize_amount": 1000.0,
+        "prizes_total": 3190
+      },
+      {
+        "odds_one_in": 73.17,
+        "prize_amount": 450.0,
+        "prizes_total": 90200
+      },
+      {
+        "odds_one_in": 29.41,
+        "prize_amount": 250.0,
+        "prizes_total": 224400
+      },
+      {
+        "odds_one_in": 16.13,
+        "prize_amount": 125.0,
+        "prizes_total": 409200
+      },
+      {
+        "odds_one_in": 7.69,
+        "prize_amount": 75.0,
+        "prizes_total": 858000
+      }
+    ],
+    "total_tickets": 6600000
   },
   "1718": {
     "overall_odds": 3.62,
@@ -2330,6 +5897,67 @@
         "odds_one_in": 9.43,
         "prize_amount": 2.0,
         "prizes_total": 508800
+      }
+    ],
+    "total_tickets": 4800000
+  },
+  "1723": {
+    "overall_odds": 3.32,
+    "tiers": [
+      {
+        "odds_one_in": 960000.0,
+        "prize_amount": 3000000.0,
+        "prizes_total": 5
+      },
+      {
+        "odds_one_in": 480000.0,
+        "prize_amount": 300000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 192000.0,
+        "prize_amount": 15000.0,
+        "prizes_total": 25
+      },
+      {
+        "odds_one_in": 9230.77,
+        "prize_amount": 5000.0,
+        "prizes_total": 520
+      },
+      {
+        "odds_one_in": 4800.0,
+        "prize_amount": 1500.0,
+        "prizes_total": 1000
+      },
+      {
+        "odds_one_in": 193.55,
+        "prize_amount": 750.0,
+        "prizes_total": 24800
+      },
+      {
+        "odds_one_in": 428.57,
+        "prize_amount": 300.0,
+        "prizes_total": 11200
+      },
+      {
+        "odds_one_in": 42.86,
+        "prize_amount": 150.0,
+        "prizes_total": 112000
+      },
+      {
+        "odds_one_in": 12.0,
+        "prize_amount": 50.0,
+        "prizes_total": 400000
+      },
+      {
+        "odds_one_in": 13.64,
+        "prize_amount": 40.0,
+        "prizes_total": 352000
+      },
+      {
+        "odds_one_in": 8.82,
+        "prize_amount": 30.0,
+        "prizes_total": 544000
       }
     ],
     "total_tickets": 4800000
@@ -2513,6 +6141,128 @@
         "odds_one_in": 8.7,
         "prize_amount": 5.0,
         "prizes_total": 552000
+      }
+    ],
+    "total_tickets": 4800000
+  },
+  "1727": {
+    "overall_odds": 4.64,
+    "tiers": [
+      {
+        "odds_one_in": 480000.0,
+        "prize_amount": 17000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 240000.0,
+        "prize_amount": 4000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 30000.0,
+        "prize_amount": 400.0,
+        "prizes_total": 160
+      },
+      {
+        "odds_one_in": 3750.0,
+        "prize_amount": 100.0,
+        "prizes_total": 1280
+      },
+      {
+        "odds_one_in": 392.16,
+        "prize_amount": 80.0,
+        "prizes_total": 12240
+      },
+      {
+        "odds_one_in": 845.07,
+        "prize_amount": 40.0,
+        "prizes_total": 5680
+      },
+      {
+        "odds_one_in": 100.0,
+        "prize_amount": 20.0,
+        "prizes_total": 48000
+      },
+      {
+        "odds_one_in": 125.0,
+        "prize_amount": 10.0,
+        "prizes_total": 38400
+      },
+      {
+        "odds_one_in": 38.46,
+        "prize_amount": 8.0,
+        "prizes_total": 124800
+      },
+      {
+        "odds_one_in": 62.5,
+        "prize_amount": 5.0,
+        "prizes_total": 76800
+      },
+      {
+        "odds_one_in": 19.48,
+        "prize_amount": 4.0,
+        "prizes_total": 246400
+      },
+      {
+        "odds_one_in": 10.0,
+        "prize_amount": 2.0,
+        "prizes_total": 480000
+      }
+    ],
+    "total_tickets": 4800000
+  },
+  "1728": {
+    "overall_odds": 4.69,
+    "tiers": [
+      {
+        "odds_one_in": 480000.0,
+        "prize_amount": 1700.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 160000.0,
+        "prize_amount": 300.0,
+        "prizes_total": 30
+      },
+      {
+        "odds_one_in": 8000.0,
+        "prize_amount": 100.0,
+        "prizes_total": 600
+      },
+      {
+        "odds_one_in": 1200.0,
+        "prize_amount": 30.0,
+        "prizes_total": 4000
+      },
+      {
+        "odds_one_in": 1714.29,
+        "prize_amount": 20.0,
+        "prizes_total": 2800
+      },
+      {
+        "odds_one_in": 133.33,
+        "prize_amount": 17.0,
+        "prizes_total": 36000
+      },
+      {
+        "odds_one_in": 111.11,
+        "prize_amount": 10.0,
+        "prizes_total": 43200
+      },
+      {
+        "odds_one_in": 66.67,
+        "prize_amount": 7.0,
+        "prizes_total": 72000
+      },
+      {
+        "odds_one_in": 35.71,
+        "prize_amount": 3.0,
+        "prizes_total": 134400
+      },
+      {
+        "odds_one_in": 25.64,
+        "prize_amount": 2.0,
+        "prizes_total": 187200
       }
     ],
     "total_tickets": 4800000
@@ -2761,6 +6511,57 @@
     ],
     "total_tickets": 8400000
   },
+  "1733": {
+    "overall_odds": 4.66,
+    "tiers": [
+      {
+        "odds_one_in": 960000.0,
+        "prize_amount": 2000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 640000.0,
+        "prize_amount": 400.0,
+        "prizes_total": 15
+      },
+      {
+        "odds_one_in": 30000.0,
+        "prize_amount": 200.0,
+        "prizes_total": 320
+      },
+      {
+        "odds_one_in": 5217.39,
+        "prize_amount": 100.0,
+        "prizes_total": 1840
+      },
+      {
+        "odds_one_in": 480.0,
+        "prize_amount": 40.0,
+        "prizes_total": 20000
+      },
+      {
+        "odds_one_in": 162.16,
+        "prize_amount": 20.0,
+        "prizes_total": 59200
+      },
+      {
+        "odds_one_in": 100.0,
+        "prize_amount": 10.0,
+        "prizes_total": 96000
+      },
+      {
+        "odds_one_in": 62.5,
+        "prize_amount": 5.0,
+        "prizes_total": 153600
+      },
+      {
+        "odds_one_in": 16.67,
+        "prize_amount": 2.0,
+        "prizes_total": 576000
+      }
+    ],
+    "total_tickets": 9600000
+  },
   "1734": {
     "overall_odds": 3.44,
     "tiers": [
@@ -2949,6 +6750,67 @@
     ],
     "total_tickets": 12000000
   },
+  "1737": {
+    "overall_odds": 4.56,
+    "tiers": [
+      {
+        "odds_one_in": 378947.37,
+        "prize_amount": 9000.0,
+        "prizes_total": 19
+      },
+      {
+        "odds_one_in": 266666.67,
+        "prize_amount": 900.0,
+        "prizes_total": 27
+      },
+      {
+        "odds_one_in": 15000.0,
+        "prize_amount": 300.0,
+        "prizes_total": 480
+      },
+      {
+        "odds_one_in": 402.68,
+        "prize_amount": 90.0,
+        "prizes_total": 17880
+      },
+      {
+        "odds_one_in": 1142.86,
+        "prize_amount": 50.0,
+        "prizes_total": 6300
+      },
+      {
+        "odds_one_in": 387.1,
+        "prize_amount": 30.0,
+        "prizes_total": 18600
+      },
+      {
+        "odds_one_in": 115.38,
+        "prize_amount": 20.0,
+        "prizes_total": 62400
+      },
+      {
+        "odds_one_in": 32.61,
+        "prize_amount": 9.0,
+        "prizes_total": 220800
+      },
+      {
+        "odds_one_in": 31.25,
+        "prize_amount": 5.0,
+        "prizes_total": 230400
+      },
+      {
+        "odds_one_in": 25.0,
+        "prize_amount": 3.0,
+        "prizes_total": 288000
+      },
+      {
+        "odds_one_in": 9.8,
+        "prize_amount": 2.0,
+        "prizes_total": 734400
+      }
+    ],
+    "total_tickets": 7200000
+  },
   "1738": {
     "overall_odds": 3.67,
     "tiers": [
@@ -3066,6 +6928,138 @@
     ],
     "total_tickets": 14400000
   },
+  "1740": {
+    "overall_odds": 4.38,
+    "tiers": [
+      {
+        "odds_one_in": 840000.0,
+        "prize_amount": 50000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 280000.0,
+        "prize_amount": 3000.0,
+        "prizes_total": 30
+      },
+      {
+        "odds_one_in": 120000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 70
+      },
+      {
+        "odds_one_in": 8000.0,
+        "prize_amount": 300.0,
+        "prizes_total": 1050
+      },
+      {
+        "odds_one_in": 4000.0,
+        "prize_amount": 150.0,
+        "prizes_total": 2100
+      },
+      {
+        "odds_one_in": 800.0,
+        "prize_amount": 100.0,
+        "prizes_total": 10500
+      },
+      {
+        "odds_one_in": 400.0,
+        "prize_amount": 60.0,
+        "prizes_total": 21000
+      },
+      {
+        "odds_one_in": 250.0,
+        "prize_amount": 50.0,
+        "prizes_total": 33600
+      },
+      {
+        "odds_one_in": 250.0,
+        "prize_amount": 30.0,
+        "prizes_total": 33600
+      },
+      {
+        "odds_one_in": 71.43,
+        "prize_amount": 20.0,
+        "prizes_total": 117600
+      },
+      {
+        "odds_one_in": 31.25,
+        "prize_amount": 10.0,
+        "prizes_total": 268800
+      },
+      {
+        "odds_one_in": 15.38,
+        "prize_amount": 5.0,
+        "prizes_total": 546000
+      },
+      {
+        "odds_one_in": 9.52,
+        "prize_amount": 3.0,
+        "prizes_total": 882000
+      }
+    ],
+    "total_tickets": 8400000
+  },
+  "1741": {
+    "overall_odds": 4.59,
+    "tiers": [
+      {
+        "odds_one_in": 720000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 360000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 240000.0,
+        "prize_amount": 250.0,
+        "prizes_total": 30
+      },
+      {
+        "odds_one_in": 5217.39,
+        "prize_amount": 100.0,
+        "prizes_total": 1380
+      },
+      {
+        "odds_one_in": 5000.0,
+        "prize_amount": 50.0,
+        "prizes_total": 1440
+      },
+      {
+        "odds_one_in": 297.03,
+        "prize_amount": 25.0,
+        "prizes_total": 24240
+      },
+      {
+        "odds_one_in": 500.0,
+        "prize_amount": 15.0,
+        "prizes_total": 14400
+      },
+      {
+        "odds_one_in": 111.11,
+        "prize_amount": 10.0,
+        "prizes_total": 64800
+      },
+      {
+        "odds_one_in": 50.0,
+        "prize_amount": 5.0,
+        "prizes_total": 144000
+      },
+      {
+        "odds_one_in": 40.0,
+        "prize_amount": 4.0,
+        "prizes_total": 180000
+      },
+      {
+        "odds_one_in": 19.23,
+        "prize_amount": 2.0,
+        "prizes_total": 374400
+      }
+    ],
+    "total_tickets": 7200000
+  },
   "1742": {
     "overall_odds": 3.49,
     "tiers": [
@@ -3131,6 +7125,27 @@
       }
     ],
     "total_tickets": 4800000
+  },
+  "1743": {
+    "overall_odds": 9.12,
+    "tiers": [
+      {
+        "odds_one_in": 731.71,
+        "prize_amount": 500.0,
+        "prizes_total": 14760
+      },
+      {
+        "odds_one_in": 40.0,
+        "prize_amount": 100.0,
+        "prizes_total": 270000
+      },
+      {
+        "odds_one_in": 12.0,
+        "prize_amount": 50.0,
+        "prizes_total": 900000
+      }
+    ],
+    "total_tickets": 10800000
   },
   "1744": {
     "overall_odds": 4.44,
@@ -3442,6 +7457,169 @@
     ],
     "total_tickets": 12000000
   },
+  "1749": {
+    "overall_odds": 4.66,
+    "tiers": [
+      {
+        "odds_one_in": 84000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 100
+      },
+      {
+        "odds_one_in": 84000.0,
+        "prize_amount": 500.0,
+        "prizes_total": 100
+      },
+      {
+        "odds_one_in": 15000.0,
+        "prize_amount": 100.0,
+        "prizes_total": 560
+      },
+      {
+        "odds_one_in": 600.0,
+        "prize_amount": 50.0,
+        "prizes_total": 14000
+      },
+      {
+        "odds_one_in": 360.36,
+        "prize_amount": 20.0,
+        "prizes_total": 23310
+      },
+      {
+        "odds_one_in": 90.91,
+        "prize_amount": 10.0,
+        "prizes_total": 92400
+      },
+      {
+        "odds_one_in": 34.48,
+        "prize_amount": 5.0,
+        "prizes_total": 243600
+      },
+      {
+        "odds_one_in": 15.38,
+        "prize_amount": 2.0,
+        "prizes_total": 546000
+      }
+    ],
+    "total_tickets": 8400000
+  },
+  "1750": {
+    "overall_odds": 3.57,
+    "tiers": [
+      {
+        "odds_one_in": 480000.0,
+        "prize_amount": 1500000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 960000.0,
+        "prize_amount": 150000.0,
+        "prizes_total": 5
+      },
+      {
+        "odds_one_in": 320000.0,
+        "prize_amount": 30000.0,
+        "prizes_total": 15
+      },
+      {
+        "odds_one_in": 137142.86,
+        "prize_amount": 5000.0,
+        "prizes_total": 35
+      },
+      {
+        "odds_one_in": 1250.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 3840
+      },
+      {
+        "odds_one_in": 923.08,
+        "prize_amount": 500.0,
+        "prizes_total": 5200
+      },
+      {
+        "odds_one_in": 120.0,
+        "prize_amount": 300.0,
+        "prizes_total": 40000
+      },
+      {
+        "odds_one_in": 60.0,
+        "prize_amount": 200.0,
+        "prizes_total": 80000
+      },
+      {
+        "odds_one_in": 30.0,
+        "prize_amount": 100.0,
+        "prizes_total": 160000
+      },
+      {
+        "odds_one_in": 18.75,
+        "prize_amount": 50.0,
+        "prizes_total": 256000
+      },
+      {
+        "odds_one_in": 6.0,
+        "prize_amount": 40.0,
+        "prizes_total": 800000
+      }
+    ],
+    "total_tickets": 4800000
+  },
+  "1751": {
+    "overall_odds": 3.49,
+    "tiers": [
+      {
+        "odds_one_in": 900000.0,
+        "prize_amount": 500000.0,
+        "prizes_total": 12
+      },
+      {
+        "odds_one_in": 216000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 50
+      },
+      {
+        "odds_one_in": 1111.11,
+        "prize_amount": 500.0,
+        "prizes_total": 9720
+      },
+      {
+        "odds_one_in": 1016.95,
+        "prize_amount": 200.0,
+        "prizes_total": 10620
+      },
+      {
+        "odds_one_in": 800.0,
+        "prize_amount": 100.0,
+        "prizes_total": 13500
+      },
+      {
+        "odds_one_in": 30.0,
+        "prize_amount": 50.0,
+        "prizes_total": 360000
+      },
+      {
+        "odds_one_in": 30.0,
+        "prize_amount": 40.0,
+        "prizes_total": 360000
+      },
+      {
+        "odds_one_in": 20.0,
+        "prize_amount": 20.0,
+        "prizes_total": 540000
+      },
+      {
+        "odds_one_in": 15.0,
+        "prize_amount": 15.0,
+        "prizes_total": 720000
+      },
+      {
+        "odds_one_in": 10.0,
+        "prize_amount": 10.0,
+        "prizes_total": 1080000
+      }
+    ],
+    "total_tickets": 10800000
+  },
   "1752": {
     "overall_odds": 4.94,
     "tiers": [
@@ -3691,6 +7869,88 @@
     ],
     "total_tickets": 3600000
   },
+  "1756": {
+    "overall_odds": 3.42,
+    "tiers": [
+      {
+        "odds_one_in": 480000.0,
+        "prize_amount": 500000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 240000.0,
+        "prize_amount": 10000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 9600.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 500
+      },
+      {
+        "odds_one_in": 134.08,
+        "prize_amount": 500.0,
+        "prizes_total": 35800
+      },
+      {
+        "odds_one_in": 54.05,
+        "prize_amount": 100.0,
+        "prizes_total": 88800
+      },
+      {
+        "odds_one_in": 15.0,
+        "prize_amount": 50.0,
+        "prizes_total": 320000
+      },
+      {
+        "odds_one_in": 5.0,
+        "prize_amount": 30.0,
+        "prizes_total": 960000
+      }
+    ],
+    "total_tickets": 4800000
+  },
+  "1757": {
+    "overall_odds": 3.32,
+    "tiers": [
+      {
+        "odds_one_in": 3127.96,
+        "prize_amount": 2500.0,
+        "prizes_total": 2110
+      },
+      {
+        "odds_one_in": 923.08,
+        "prize_amount": 500.0,
+        "prizes_total": 7150
+      },
+      {
+        "odds_one_in": 370.37,
+        "prize_amount": 250.0,
+        "prizes_total": 17820
+      },
+      {
+        "odds_one_in": 100.0,
+        "prize_amount": 100.0,
+        "prizes_total": 66000
+      },
+      {
+        "odds_one_in": 50.0,
+        "prize_amount": 50.0,
+        "prizes_total": 132000
+      },
+      {
+        "odds_one_in": 8.57,
+        "prize_amount": 20.0,
+        "prizes_total": 770000
+      },
+      {
+        "odds_one_in": 6.67,
+        "prize_amount": 10.0,
+        "prizes_total": 990000
+      }
+    ],
+    "total_tickets": 6600000
+  },
   "1758": {
     "overall_odds": 3.52,
     "tiers": [
@@ -3817,6 +8077,154 @@
       }
     ],
     "total_tickets": 4800000
+  },
+  "1760": {
+    "overall_odds": 4.05,
+    "tiers": [
+      {
+        "odds_one_in": 240000.0,
+        "prize_amount": 10000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 96000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 50
+      },
+      {
+        "odds_one_in": 24000.0,
+        "prize_amount": 500.0,
+        "prizes_total": 200
+      },
+      {
+        "odds_one_in": 1333.33,
+        "prize_amount": 100.0,
+        "prizes_total": 3600
+      },
+      {
+        "odds_one_in": 705.88,
+        "prize_amount": 50.0,
+        "prizes_total": 6800
+      },
+      {
+        "odds_one_in": 240.96,
+        "prize_amount": 30.0,
+        "prizes_total": 19920
+      },
+      {
+        "odds_one_in": 125.0,
+        "prize_amount": 20.0,
+        "prizes_total": 38400
+      },
+      {
+        "odds_one_in": 55.56,
+        "prize_amount": 10.0,
+        "prizes_total": 86400
+      },
+      {
+        "odds_one_in": 24.19,
+        "prize_amount": 5.0,
+        "prizes_total": 198400
+      },
+      {
+        "odds_one_in": 15.0,
+        "prize_amount": 4.0,
+        "prizes_total": 320000
+      },
+      {
+        "odds_one_in": 9.38,
+        "prize_amount": 2.0,
+        "prizes_total": 512000
+      }
+    ],
+    "total_tickets": 4800000
+  },
+  "1761": {
+    "overall_odds": 4.15,
+    "tiers": [
+      {
+        "odds_one_in": 12000.0,
+        "prize_amount": 500.0,
+        "prizes_total": 650
+      },
+      {
+        "odds_one_in": 4000.0,
+        "prize_amount": 50.0,
+        "prizes_total": 1950
+      },
+      {
+        "odds_one_in": 1200.0,
+        "prize_amount": 25.0,
+        "prizes_total": 6500
+      },
+      {
+        "odds_one_in": 100.0,
+        "prize_amount": 10.0,
+        "prizes_total": 78000
+      },
+      {
+        "odds_one_in": 50.0,
+        "prize_amount": 5.0,
+        "prizes_total": 156000
+      },
+      {
+        "odds_one_in": 33.33,
+        "prize_amount": 4.0,
+        "prizes_total": 234000
+      },
+      {
+        "odds_one_in": 11.11,
+        "prize_amount": 2.0,
+        "prizes_total": 702000
+      },
+      {
+        "odds_one_in": 11.11,
+        "prize_amount": 1.0,
+        "prizes_total": 702000
+      }
+    ],
+    "total_tickets": 7800000
+  },
+  "1762": {
+    "overall_odds": 3.74,
+    "tiers": [
+      {
+        "odds_one_in": 660000.0,
+        "prize_amount": 100000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 146666.67,
+        "prize_amount": 10000.0,
+        "prizes_total": 45
+      },
+      {
+        "odds_one_in": 24000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 275
+      },
+      {
+        "odds_one_in": 474.31,
+        "prize_amount": 1000.0,
+        "prizes_total": 13915
+      },
+      {
+        "odds_one_in": 66.67,
+        "prize_amount": 500.0,
+        "prizes_total": 99000
+      },
+      {
+        "odds_one_in": 20.0,
+        "prize_amount": 100.0,
+        "prizes_total": 330000
+      },
+      {
+        "odds_one_in": 5.0,
+        "prize_amount": 75.0,
+        "prizes_total": 1320000
+      }
+    ],
+    "total_tickets": 6600000
   },
   "1763": {
     "overall_odds": 3.46,
@@ -4129,6 +8537,148 @@
     ],
     "total_tickets": 5400000
   },
+  "1769": {
+    "overall_odds": 3.62,
+    "tiers": [
+      {
+        "odds_one_in": 1080000.0,
+        "prize_amount": 500000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 540000.0,
+        "prize_amount": 50000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 360000.0,
+        "prize_amount": 10000.0,
+        "prizes_total": 30
+      },
+      {
+        "odds_one_in": 360000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 30
+      },
+      {
+        "odds_one_in": 360000.0,
+        "prize_amount": 2500.0,
+        "prizes_total": 30
+      },
+      {
+        "odds_one_in": 6000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 1800
+      },
+      {
+        "odds_one_in": 2000.0,
+        "prize_amount": 400.0,
+        "prizes_total": 5400
+      },
+      {
+        "odds_one_in": 1142.86,
+        "prize_amount": 250.0,
+        "prizes_total": 9450
+      },
+      {
+        "odds_one_in": 200.0,
+        "prize_amount": 150.0,
+        "prizes_total": 54000
+      },
+      {
+        "odds_one_in": 46.15,
+        "prize_amount": 60.0,
+        "prizes_total": 234000
+      },
+      {
+        "odds_one_in": 85.71,
+        "prize_amount": 50.0,
+        "prizes_total": 126000
+      },
+      {
+        "odds_one_in": 42.86,
+        "prize_amount": 40.0,
+        "prizes_total": 252000
+      },
+      {
+        "odds_one_in": 12.5,
+        "prize_amount": 20.0,
+        "prizes_total": 864000
+      },
+      {
+        "odds_one_in": 7.5,
+        "prize_amount": 10.0,
+        "prizes_total": 1440000
+      }
+    ],
+    "total_tickets": 10800000
+  },
+  "1770": {
+    "overall_odds": 3.79,
+    "tiers": [
+      {
+        "odds_one_in": 1680000.0,
+        "prize_amount": 250000.0,
+        "prizes_total": 5
+      },
+      {
+        "odds_one_in": 560000.0,
+        "prize_amount": 25000.0,
+        "prizes_total": 15
+      },
+      {
+        "odds_one_in": 560000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 15
+      },
+      {
+        "odds_one_in": 24000.0,
+        "prize_amount": 1776.0,
+        "prizes_total": 350
+      },
+      {
+        "odds_one_in": 12000.0,
+        "prize_amount": 500.0,
+        "prizes_total": 700
+      },
+      {
+        "odds_one_in": 2666.67,
+        "prize_amount": 100.0,
+        "prizes_total": 3150
+      },
+      {
+        "odds_one_in": 241.94,
+        "prize_amount": 76.0,
+        "prizes_total": 34720
+      },
+      {
+        "odds_one_in": 106.19,
+        "prize_amount": 50.0,
+        "prizes_total": 79100
+      },
+      {
+        "odds_one_in": 46.15,
+        "prize_amount": 30.0,
+        "prizes_total": 182000
+      },
+      {
+        "odds_one_in": 31.58,
+        "prize_amount": 20.0,
+        "prizes_total": 266000
+      },
+      {
+        "odds_one_in": 15.79,
+        "prize_amount": 10.0,
+        "prizes_total": 532000
+      },
+      {
+        "odds_one_in": 7.5,
+        "prize_amount": 5.0,
+        "prizes_total": 1120000
+      }
+    ],
+    "total_tickets": 8400000
+  },
   "1771": {
     "overall_odds": 3.77,
     "tiers": [
@@ -4245,6 +8795,62 @@
       }
     ],
     "total_tickets": 4800000
+  },
+  "1773": {
+    "overall_odds": 4.21,
+    "tiers": [
+      {
+        "odds_one_in": 840000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 10
+      },
+      {
+        "odds_one_in": 420000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 20
+      },
+      {
+        "odds_one_in": 12000.0,
+        "prize_amount": 100.0,
+        "prizes_total": 700
+      },
+      {
+        "odds_one_in": 10000.0,
+        "prize_amount": 50.0,
+        "prizes_total": 840
+      },
+      {
+        "odds_one_in": 458.02,
+        "prize_amount": 25.0,
+        "prizes_total": 18340
+      },
+      {
+        "odds_one_in": 100.0,
+        "prize_amount": 10.0,
+        "prizes_total": 84000
+      },
+      {
+        "odds_one_in": 29.41,
+        "prize_amount": 5.0,
+        "prizes_total": 285600
+      },
+      {
+        "odds_one_in": 45.45,
+        "prize_amount": 4.0,
+        "prizes_total": 184800
+      },
+      {
+        "odds_one_in": 18.87,
+        "prize_amount": 2.0,
+        "prizes_total": 445200
+      },
+      {
+        "odds_one_in": 8.62,
+        "prize_amount": 1.0,
+        "prizes_total": 974400
+      }
+    ],
+    "total_tickets": 8400000
   },
   "1774": {
     "overall_odds": 2.72,
@@ -4404,6 +9010,67 @@
       }
     ],
     "total_tickets": 8400000
+  },
+  "1778": {
+    "overall_odds": 3.54,
+    "tiers": [
+      {
+        "odds_one_in": 180000.0,
+        "prize_amount": 5000.0,
+        "prizes_total": 40
+      },
+      {
+        "odds_one_in": 180000.0,
+        "prize_amount": 1000.0,
+        "prizes_total": 40
+      },
+      {
+        "odds_one_in": 90000.0,
+        "prize_amount": 500.0,
+        "prizes_total": 80
+      },
+      {
+        "odds_one_in": 2000.0,
+        "prize_amount": 100.0,
+        "prizes_total": 3600
+      },
+      {
+        "odds_one_in": 1333.33,
+        "prize_amount": 50.0,
+        "prizes_total": 5400
+      },
+      {
+        "odds_one_in": 480.0,
+        "prize_amount": 30.0,
+        "prizes_total": 15000
+      },
+      {
+        "odds_one_in": 71.43,
+        "prize_amount": 20.0,
+        "prizes_total": 100800
+      },
+      {
+        "odds_one_in": 40.0,
+        "prize_amount": 10.0,
+        "prizes_total": 180000
+      },
+      {
+        "odds_one_in": 33.33,
+        "prize_amount": 5.0,
+        "prizes_total": 216000
+      },
+      {
+        "odds_one_in": 16.67,
+        "prize_amount": 4.0,
+        "prizes_total": 432000
+      },
+      {
+        "odds_one_in": 6.67,
+        "prize_amount": 2.0,
+        "prizes_total": 1080000
+      }
+    ],
+    "total_tickets": 7200000
   },
   "1779": {
     "overall_odds": 4.25,
