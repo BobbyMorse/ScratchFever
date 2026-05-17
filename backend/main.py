@@ -57,12 +57,14 @@ async def scheduled_scrape():
         scrape_status["last_run"] = datetime.datetime.utcnow().isoformat()
         clear_games_cache()
         logger.info("Scrape complete — next cycle in %ds", SCRAPE_COOLDOWN_SEC)
+    except Exception as e:
+        logger.error("Scrape cycle failed: %s", e, exc_info=True)
     finally:
         scrape_status["running"] = False
-    # Re-schedule immediately after finishing so the crawl runs continuously
-    scheduler.add_job(scheduled_scrape, "date",
-                      run_date=datetime.datetime.utcnow() + datetime.timedelta(seconds=SCRAPE_COOLDOWN_SEC),
-                      id="scrape_next", replace_existing=True)
+        # Always re-schedule — even if the cycle crashed — so the scraper never dies
+        scheduler.add_job(scheduled_scrape, "date",
+                          run_date=datetime.datetime.utcnow() + datetime.timedelta(seconds=SCRAPE_COOLDOWN_SEC),
+                          id="scrape_next", replace_existing=True)
 
 
 async def check_and_run_stale_retailers():
