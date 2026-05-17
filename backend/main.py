@@ -38,7 +38,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 logger = logging.getLogger(__name__)
 
 scheduler = AsyncIOScheduler()
-scrape_status = {"running": False, "last_run": None, "last_results": []}
+scrape_status = {"running": False, "last_run": None, "last_results": [], "current_state": None}
 
 
 SCRAPE_COOLDOWN_SEC = 300  # 5-min pause between full crawl cycles
