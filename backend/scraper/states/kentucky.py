@@ -65,6 +65,9 @@ class KentuckyScraper(BaseScraper):
 
             tiers, overall_odds, tickets_remaining = self._scrape_detail(detail_url)
 
+            img_path = fields.get("SOG-IMG-ICON", "").strip()
+            image_url = (BASE_URL + img_path) if img_path.startswith("/") else (img_path or None)
+
             games.append(self.build_game(
                 game_id=game_id,
                 name=name,
@@ -73,6 +76,7 @@ class KentuckyScraper(BaseScraper):
                 overall_odds=overall_odds,
                 tickets_remaining=tickets_remaining,
                 detail_url=detail_url,
+                image_url=image_url,
             ))
 
         logger.info("KY: %d games scraped", len(games))
