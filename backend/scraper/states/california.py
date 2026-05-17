@@ -59,9 +59,9 @@ class CaliforniaScraper(BaseScraper):
         product_page = g.get("productPage") or ""
         detail_url = (BASE_URL + product_page) if product_page.startswith("/") else (product_page or BASE_URL)
 
-        # Image URL: try explicit field first, then construct from game number
         image_url = None
         raw_img = (
+            g.get("cardImage") or g.get("unScratchedImage") or
             g.get("imageUrl") or g.get("thumbnailUrl") or g.get("image") or
             g.get("img") or g.get("gameImage") or g.get("ticketImage") or ""
         )
@@ -69,6 +69,8 @@ class CaliforniaScraper(BaseScraper):
             image_url = (BASE_URL + raw_img) if raw_img.startswith("/") else raw_img
         elif game_id:
             image_url = f"https://www.calottery.com/api/games/scratchers/{game_id}/image"
+
+        how_to_play = g.get("howToPlay") or None
 
         tiers_raw = g.get("prizeTiers") or []
         tiers = []
@@ -82,22 +84,25 @@ class CaliforniaScraper(BaseScraper):
                 continue
             odds = float(t.get("odds") or 0) or None
             total = int(t.get("totalNumberOfPrizes") or 0)
-            raw_remaining = t.get("number")
-            remaining = int(raw_remaining or 0)
-            if raw_remaining is not None and remaining > 0:
+            cashed = int(t.get("numberOfPrizesCashed") or 0)
+            pending = int(t.get("numberOfPrizesPending") or 0)
+            # `number` is a tier identifier, not prize count — compute real remaining
+            remaining = max(0, total - cashed - pending)
+
+            if remaining > 0:
                 any_remaining_data = True
+                total_prizes_remaining += remaining
 
             if total <= 0:
                 continue
 
             total_prizes_printed += total
-            total_prizes_remaining += remaining
 
             tiers.append({
                 "prize_amount":     prize,
                 "odds_one_in":      odds,
                 "prizes_total":     total,
-                "prizes_remaining": remaining,
+                "prizes_remaining": remaining if remaining > 0 else None,
             })
 
         if not tiers:
