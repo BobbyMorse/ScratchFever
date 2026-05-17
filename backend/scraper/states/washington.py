@@ -2,8 +2,9 @@
 Washington's Lottery scratch-off scraper.
 
 Prize tier data:  https://walottery.com/Scratch/TopPrizesRemaining.aspx?price=X
-  Server-rendered per price point. Per-game tables: Prize Amount, Total Prizes,
-  Prizes Paid, Prizes Remaining. Game ID comes from the Explorer.aspx link href.
+  Server-rendered per price point. Each game is a <div class="prizes-remaining-item">.
+  The child <header> contains: "GAME NAME $PRICE | GAME_ID [Last Day To Redeem: DATE]".
+  A nested <table> has columns: Prize Amount, Total Prizes, Prizes Paid, Prizes Remaining.
 
 Overall odds:     https://walottery.com/Scratch/Explorer.aspx?id=GAME_ID (JS-rendered)
   Fields: Overall Odds (1 in X.XX), Tickets Printed.
@@ -33,7 +34,7 @@ def _int(text: str) -> int | None:
 
 
 def _parse_date(text: str) -> str | None:
-    """Return ISO date string, or None if expired or unparseable."""
+    """Return ISO date string or None if expired / unparseable."""
     for fmt in ("%m/%d/%y", "%m/%d/%Y", "%Y-%m-%d"):
         try:
             d = datetime.strptime(text.strip(), fmt).date()
@@ -44,7 +45,7 @@ def _parse_date(text: str) -> str | None:
 
 
 def _parse_prize_text(text: str) -> float | None:
-    """Handle all WA prize description formats in addition to plain dollar amounts."""
+    """Handle WA prize description formats beyond plain dollar amounts."""
     t = text.strip()
     if not t:
         return None
@@ -75,10 +76,10 @@ class WashingtonScraper(PlaywrightScraper):
     state_code = "WA"
     state_name = "Washington"
     base_url = BASE_URL
-    scraper_timeout = 900  # ~60 games × ~10s Playwright each + overhead
+    scraper_timeout = 900  # ~60 games × ~10 s Playwright each + overhead
 
     def scrape(self) -> list[dict]:
-        # ── Phase 1: collect tier data via HTTP (7 price-point pages) ──────────
+        # ── Phase 1: tier data via HTTP (7 price-point pages) ──────────────────
         games_by_id: dict[str, dict] = {}
         for price in PRICES:
             url = f"{TOP_PRIZES_URL}?price={price}"
@@ -90,7 +91,7 @@ class WashingtonScraper(PlaywrightScraper):
 
         logger.info("WA: %d games found in TopPrizesRemaining pages", len(games_by_id))
 
-        # ── Phase 2: overall odds + total tickets via Playwright per game ───────
+        # ── Phase 2: overall odds via Playwright (one call per game) ───────────
         games: list[dict] = []
         for game_id, gd in games_by_id.items():
             overall_odds, total_tickets = None, None
@@ -140,7 +141,11 @@ class WashingtonScraper(PlaywrightScraper):
 
     def _parse_top_prizes(self, soup: BeautifulSoup, price: float,
                           games_by_id: dict):
-        """Find Explorer.aspx anchor → walk DOM for prize table + game name."""
+        """
+        Each game sits in <div class="prizes-remaining-item">.
+        Its child <header> text: "GAME NAME $PRICE | GAME_ID [Last Day To Redeem: DATE]".
+        The Explorer link lives inside that header.
+        """
         links = soup.find_all("a", href=re.compile(r"Explorer\.aspx\?id=\d+", re.I))
         for link in links:
             m = re.search(r"[?&]id=(\d+)", link["href"], re.I)
@@ -150,47 +155,31 @@ class WashingtonScraper(PlaywrightScraper):
             if game_id in games_by_id:
                 continue
 
-            name, end_date, prize_table = self._find_game_container(link)
-            if end_date == "_expired_":
-                continue
+            # Header element is the direct parent of the link
+            header = link.parent
+            header_text = header.get_text(" ", strip=True) if header else ""
 
-            tiers = self._parse_tier_table(prize_table) if prize_table else []
-            games_by_id[game_id] = {
-                "name": name or f"WA Game {game_id}",
-                "price": price,
-                "end_date": end_date,
-                "tiers": tiers,
-            }
+            # Name: everything before " $PRICE | GAME_ID"
+            name_m = re.match(r"^(.*?)\s+\$[\d.]+\s*\|", header_text)
+            name = name_m.group(1).strip() if name_m else f"WA Game {game_id}"
 
-    def _find_game_container(self, link: Tag):
-        """Walk up the DOM to find game name, optional end date, and prize table."""
-        name: str | None = None
-        end_date: str | None = None
-        prize_table: Tag | None = None
+            # End date from header text
+            end_date = None
+            date_m = re.search(
+                r"Last Day To Redeem:\s*(\d{1,2}/\d{1,2}/\d{2,4})",
+                header_text, re.I,
+            )
+            if date_m:
+                parsed = _parse_date(date_m.group(1))
+                if parsed is None:
+                    continue  # expired — skip
+                end_date = parsed
 
-        node = link
-        for _ in range(9):
-            node = node.parent
-            if not node or node.name in ("html", "[document]"):
-                break
-
-            # Game name — first short heading not matching navigation text
-            if name is None:
-                for tag in ("h1", "h2", "h3", "h4", "h5", "caption", "strong", "b"):
-                    el = node.find(tag)
-                    if not el:
-                        continue
-                    t = el.get_text(strip=True)
-                    if t and 4 < len(t) < 70 and not re.search(
-                        r"^(washington|lottery|prize|filter|previous|next|view|top prizes)\b",
-                        t, re.I,
-                    ):
-                        name = t
-                        break
-
-            # Prize table — has "total" and "remaining" in column headers
-            if prize_table is None:
-                for tbl in node.find_all("table"):
+            # Prize table: walk up to prizes-remaining-item div
+            item_div = self._find_item_div(link)
+            prize_table = None
+            if item_div:
+                for tbl in item_div.find_all("table"):
                     hdrs = " ".join(
                         th.get_text(strip=True).lower() for th in tbl.find_all("th")
                     )
@@ -198,23 +187,27 @@ class WashingtonScraper(PlaywrightScraper):
                         prize_table = tbl
                         break
 
-            # End date
-            if end_date is None:
-                txt = node.get_text(" ", strip=True)
-                dm = re.search(
-                    r"(?:last\s+day|redeem)[^0-9]*(\d{1,2}/\d{1,2}/\d{2,4})", txt, re.I
-                )
-                if dm:
-                    parsed = _parse_date(dm.group(1))
-                    end_date = parsed if parsed else "_expired_"
+            tiers = self._parse_tier_table(prize_table) if prize_table else []
+            games_by_id[game_id] = {
+                "name": name,
+                "price": price,
+                "end_date": end_date,
+                "tiers": tiers,
+            }
 
-            if name and prize_table:
-                break
-
-        return name, end_date, prize_table
+    def _find_item_div(self, link: Tag) -> Tag | None:
+        """Walk up the DOM to find the prizes-remaining-item container."""
+        node = link
+        for _ in range(6):
+            node = node.parent
+            if not node:
+                return None
+            if "prizes-remaining-item" in (node.get("class") or []):
+                return node
+        return None
 
     def _parse_tier_table(self, table: Tag) -> list[dict]:
-        """Parse Prize Amount / Total / Paid / Remaining columns."""
+        """Parse Prize Amount / Total Prizes / Prizes Paid / Prizes Remaining."""
         ths = table.find_all("th")
         headers = [th.get_text(strip=True).lower() for th in ths]
 
