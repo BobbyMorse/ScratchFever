@@ -1144,6 +1144,9 @@ function switchTab(name) {
     bigwinsLoaded = true;
     loadBigWins();
   }
+  if (name === "health") {
+    loadAdminHealth();
+  }
   if (name === "plays") {
     if (_currentUser) loadPlays();
     else document.getElementById("playsLoginNudge").style.display = "";
