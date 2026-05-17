@@ -336,9 +336,14 @@ function syncHeaderHeight() {
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 (async function init() {
+  loadPrefs();
   syncHeaderHeight();
   window.addEventListener("resize", syncHeaderHeight);
   await Promise.all([loadStates(), loadAllGamesUnfiltered(), restoreSession()]);
+  if (_prefs.evDefaultState) {
+    const sel = document.getElementById("filterState");
+    if (sel) { sel.value = _prefs.evDefaultState; loadGames(); }
+  }
   await Promise.all([loadCommunityReports(), loadGameCounts(), loadRetailerCounts(), loadRetailerLatest()]);
   loadStatus();
   loadPrizeClaims();
