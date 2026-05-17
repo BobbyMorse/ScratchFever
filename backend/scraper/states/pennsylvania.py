@@ -362,12 +362,13 @@ class PennsylvaniaScraper(BaseScraper):
                     for g in need_fetch
                 }
                 for future in as_completed(futures):
-                    gid, tiers, overall_odds, total_tickets = future.result()
+                    gid, tiers, overall_odds, total_tickets, image_url = future.result()
                     if tiers:
                         cache[gid] = {
                             "tiers":         tiers,
                             "overall_odds":  overall_odds,
                             "total_tickets": total_tickets,
+                            "image_url":     image_url,
                         }
                         cache_updated = True
                     if overall_odds is not None:
@@ -385,12 +386,13 @@ class PennsylvaniaScraper(BaseScraper):
                 time.sleep(75)
                 for g in still_missing:
                     time.sleep(0.3)
-                    gid, tiers, overall_odds, total_tickets = _fetch_game_odds(g)
+                    gid, tiers, overall_odds, total_tickets, image_url = _fetch_game_odds(g)
                     if tiers:
                         cache[gid] = {
                             "tiers":         tiers,
                             "overall_odds":  overall_odds,
                             "total_tickets": total_tickets,
+                            "image_url":     image_url,
                         }
                         cache_updated = True
                     if overall_odds is not None:
