@@ -175,6 +175,8 @@ class IowaScraper(BaseScraper):
 
             self._add_tier(result[gid]["tiers"], texts[3], texts[4], texts[5])
 
+        return result
+
     def _add_tier(self, tiers: list, prize_text: str, claimed_text: str, unclaimed_text: str):
         try:
             prize_amt = parse_prize_amount(prize_text)
