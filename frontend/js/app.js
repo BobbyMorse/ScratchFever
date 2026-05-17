@@ -1249,7 +1249,7 @@ function renderMapLayers(retailers) {
 // ── MA Hunt data loading ──────────────────────────────────────────────────────
 async function loadMaRetailers() {
   try {
-    const res = await fetch("/api/ma/retailers?limit=7000");
+    const res = await fetch("/api/ma/retailers?limit=30000");
     const data = await res.json();
     allRetailers = data.retailers || [];
     maLoaded = true;
@@ -2928,7 +2928,7 @@ function updateInventoryMapLayer(visibleRetailers) {
 
 async function loadRiRetailers() {
   try {
-    const res = await fetch("/api/ri/retailers?limit=7000");
+    const res = await fetch("/api/ri/retailers?limit=30000");
     const data = await res.json();
     allRiRetailers = data.retailers || [];
     riLoaded = true;
@@ -3303,7 +3303,7 @@ function applyAzGameFilter() {
 
 async function loadAzRetailers() {
   try {
-    const res = await fetch("/api/az/retailers?limit=7000");
+    const res = await fetch("/api/az/retailers?limit=30000");
     const data = await res.json();
     allAzRetailers = data.retailers || [];
     azLoaded = true;
@@ -3540,7 +3540,7 @@ function updateAzInventoryMapLayer(visibleRetailers) {
 
 async function loadFlRetailers() {
   try {
-    const res = await fetch("/api/fl/retailers?limit=7000");
+    const res = await fetch("/api/fl/retailers?limit=30000");
     const data = await res.json();
     allFlRetailers = data.retailers || [];
     flLoaded = true;
@@ -3755,7 +3755,7 @@ function applyFlGameFilter() {
 
 async function loadGaRetailers() {
   try {
-    const res = await fetch("/api/ga/retailers?limit=7000");
+    const res = await fetch("/api/ga/retailers?limit=30000");
     const data = await res.json();
     allGaRetailers = data.retailers || [];
     gaLoaded = true;
@@ -3970,7 +3970,7 @@ function applyGaGameFilter() {
 
 async function loadNyRetailers() {
   try {
-    const res = await fetch("/api/ny/retailers?limit=7000");
+    const res = await fetch("/api/ny/retailers?limit=30000");
     const data = await res.json();
     allNyRetailers = data.retailers || [];
     nyLoaded = true;
@@ -4185,7 +4185,7 @@ function applyNyGameFilter() {
 
 async function loadVaRetailers() {
   try {
-    const res = await fetch("/api/va/retailers?limit=7000");
+    const res = await fetch("/api/va/retailers?limit=30000");
     const data = await res.json();
     allVaRetailers = data.retailers || [];
     vaLoaded = true;
@@ -4400,7 +4400,7 @@ function applyVaGameFilter() {
 
 async function loadDcRetailers() {
   try {
-    const res = await fetch("/api/dc/retailers?limit=7000");
+    const res = await fetch("/api/dc/retailers?limit=30000");
     const data = await res.json();
     allDcRetailers = data.retailers || [];
     dcLoaded = true;
@@ -4615,7 +4615,7 @@ function applyDcGameFilter() {
 
 async function loadVtRetailers() {
   try {
-    const res = await fetch("/api/vt/retailers?limit=7000");
+    const res = await fetch("/api/vt/retailers?limit=30000");
     const data = await res.json();
     allVtRetailers = data.retailers || [];
     vtLoaded = true;

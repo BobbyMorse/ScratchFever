@@ -460,7 +460,7 @@ async def api_prize_claims(days: int = Query(7, le=30), min_prize: float = Query
 @app.get("/api/az/retailers")
 async def api_az_retailers(
     search: Optional[str] = Query(None, description="Name / city search"),
-    limit:  int           = Query(500, le=7000),
+    limit:  int           = Query(500, le=30000),
 ):
     from backend.az_scorer import load_and_score_async
     async with get_pool().acquire() as conn:
@@ -474,7 +474,7 @@ async def api_az_retailers(
 @app.get("/api/ma/retailers")
 async def api_ma_retailers(
     search: Optional[str] = Query(None, description="Name / city search"),
-    limit:  int           = Query(500, le=7000),
+    limit:  int           = Query(500, le=30000),
 ):
     from backend.ma_scorer import load_and_score_async
     async with get_pool().acquire() as conn:
@@ -488,7 +488,7 @@ async def api_ma_retailers(
 @app.get("/api/ri/retailers")
 async def api_ri_retailers(
     search: Optional[str] = Query(None, description="Name / city search"),
-    limit:  int           = Query(500, le=7000),
+    limit:  int           = Query(500, le=30000),
 ):
     from backend.ri_scorer import load_and_score_async
     async with get_pool().acquire() as conn:
@@ -502,7 +502,7 @@ async def api_ri_retailers(
 @app.get("/api/ga/retailers")
 async def api_ga_retailers(
     search: Optional[str] = Query(None, description="Name / city search"),
-    limit:  int           = Query(500, le=7000),
+    limit:  int           = Query(500, le=30000),
 ):
     from backend.ga_scorer import load_and_score_async
     async with get_pool().acquire() as conn:
@@ -516,7 +516,7 @@ async def api_ga_retailers(
 @app.get("/api/fl/retailers")
 async def api_fl_retailers(
     search: Optional[str] = Query(None, description="Name / city search"),
-    limit:  int           = Query(500, le=7000),
+    limit:  int           = Query(500, le=30000),
 ):
     from backend.fl_scorer import load_and_score_async
     async with get_pool().acquire() as conn:
@@ -530,7 +530,7 @@ async def api_fl_retailers(
 @app.get("/api/ny/retailers")
 async def api_ny_retailers(
     search: Optional[str] = Query(None, description="Name / city search"),
-    limit:  int           = Query(500, le=7000),
+    limit:  int           = Query(500, le=30000),
 ):
     from backend.ny_scorer import load_and_score_async
     async with get_pool().acquire() as conn:
