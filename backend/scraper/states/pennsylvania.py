@@ -4,24 +4,30 @@ Source: https://www.palottery.pa.gov/Scratch-Offs/Prizes-Remaining.aspx
   Single page: Game# | Name | Price | Top Six Prizes | Wins Remaining
 
 EV calculation strategy:
-  - Per-game "Chances of Winning" PDFs contain a "CONSOLIDATED CHANCES ARE 1 IN" column
-    with entries like "$1 = 10.10" and "$2,500 = 420,000" — one row per distinct prize level.
-  - We extract these via regex on the raw PDF text (pdfplumber extract_text).
-  - Odds are cached in pa_odds_cache.json; new games fetch on first appearance.
-  - tickets_remaining = median(prizes_remaining_i * original_odds_i) across top-6 tiers.
-  - Hybrid EV: prize * (prizes_remaining / tickets_remaining) for top-6 tiers;
-    prize / original_odds for all other (smaller) tiers.
+  - Per-game "Chances of Winning" PDFs contain a prize-level odds column.
+  - Detail pages also expose overall odds (e.g. "1:4.32").
+  - Detail pages + PDFs are fetched concurrently (10 workers); PDFs only for
+    games not already in cache so repeat runs are fast.
+  - Cache stores {game_id: {"tiers": [...], "overall_odds": float}} in
+    pa_odds_cache_v2.json (old list-format entries still readable).
+  - tickets_remaining = median(prizes_remaining_i * original_odds_i) across
+    top-6 tiers with both data points.
+  - Hybrid EV: prize*(prizes_remaining/tickets_remaining) for tiers with
+    live remaining data; prize/original_odds for smaller tiers.
 """
 import io
 import json
 import logging
 import re
 import statistics
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import pdfplumber
+import requests
+from bs4 import BeautifulSoup
 
-from backend.scraper.base import BaseScraper
+from backend.scraper.base import BaseScraper, HEADERS
 from backend.ev_calculator import (
     parse_prize_amount,
     calculate_ev,
@@ -34,6 +40,9 @@ logger = logging.getLogger(__name__)
 LIST_URL = "https://www.palottery.pa.gov/Scratch-Offs/Prizes-Remaining.aspx"
 BASE_URL = "https://www.palottery.pa.gov"
 CACHE_FILE = Path(__file__).parent / "pa_odds_cache_v2.json"
+
+_CONCURRENCY = 10
+_DETAIL_TIMEOUT = 25
 
 
 # ── cache helpers ─────────────────────────────────────────────────────────────
@@ -56,6 +65,16 @@ def _save_cache(cache: dict) -> None:
         logger.warning("PA: could not save odds cache: %s", e)
 
 
+def _cache_get(cache: dict, gid: str) -> tuple[list[dict], float | None]:
+    """Return (tiers, overall_odds) from cache entry. Handles both old list format and new dict format."""
+    entry = cache.get(gid)
+    if entry is None:
+        return [], None
+    if isinstance(entry, list):
+        return entry, None
+    return entry.get("tiers", []), entry.get("overall_odds")
+
+
 # ── PDF parsing ───────────────────────────────────────────────────────────────
 
 def _parse_pdf_odds(pdf_bytes: bytes) -> list[dict]:
@@ -63,7 +82,6 @@ def _parse_pdf_odds(pdf_bytes: bytes) -> list[dict]:
 
     The rightmost column has entries like:
         $1 = 10.10
-        $2 = 13.89
         $2,500 = 420,000
     We find these with a regex on the full extracted text.
     Returns [{prize_amount, odds_one_in}] sorted descending by prize.
@@ -77,11 +95,8 @@ def _parse_pdf_odds(pdf_bytes: bytes) -> list[dict]:
         logger.warning("PA: pdfplumber error: %s", e)
         return []
 
-    # Match consolidated odds: "$PRIZE= ODDS" or "$PRIZE: ODDS"
     # pdfplumber injects spaces inside large numbers due to PDF kerning, e.g.:
-    #   "$5,000= 6 00,000" → real odds are 600,000 (not 6)
-    #   "$1,000= 1 33,333" → real odds are 133,333 (not 1)
-    # Also some PDFs render "=" as ":" for mid-range prizes.
+    #   "$5,000= 6 00,000" → real odds are 600,000
     pattern = r"\$([\d,]+(?:\.\d+)?)\s*[=:]\s*([\d][\d,\. ]*)"
     seen: set[float] = set()
     tiers: list[dict] = []
@@ -97,6 +112,65 @@ def _parse_pdf_odds(pdf_bytes: bytes) -> list[dict]:
             tiers.append({"prize_amount": prize, "odds_one_in": odds})
 
     return sorted(tiers, key=lambda t: t["prize_amount"], reverse=True)
+
+
+# ── parallel detail-page + PDF fetcher ───────────────────────────────────────
+
+def _fetch_game_odds(game_info: dict) -> tuple[str, list[dict], float | None]:
+    """Fetch detail page then PDF for one game. Thread-safe (own requests calls).
+
+    Returns (game_id, tiers_from_pdf, overall_odds_from_page).
+    """
+    gid = game_info["game_id"]
+    detail_url = game_info["detail_url"]
+
+    if not detail_url:
+        return gid, [], None
+
+    try:
+        resp = requests.get(detail_url, headers=HEADERS, timeout=_DETAIL_TIMEOUT)
+        resp.raise_for_status()
+        dsoup = BeautifulSoup(resp.text, "lxml")
+
+        # Overall odds from page (e.g. "1:4.32" in <p class="table-disclaimer">)
+        overall_odds = None
+        for p in dsoup.find_all("p", class_="table-disclaimer"):
+            m = re.search(r"1\s*[:/]\s*(\d+(?:\.\d+)?)", p.get_text())
+            if m:
+                try:
+                    overall_odds = float(m.group(1))
+                except ValueError:
+                    pass
+                break
+
+        # PDF link
+        pdf_href = None
+        for atag in dsoup.find_all("a", href=True):
+            h = atag["href"]
+            if "_DATA.pdf" in h and "uploadedfiles" in h.lower():
+                pdf_href = h
+                break
+        if not pdf_href:
+            for atag in dsoup.find_all("a", href=True):
+                if atag["href"].lower().endswith(".pdf"):
+                    pdf_href = atag["href"]
+                    break
+
+        if not pdf_href:
+            logger.debug("PA %s: no PDF link on detail page", gid)
+            return gid, [], overall_odds
+
+        pdf_url = (BASE_URL + pdf_href) if pdf_href.startswith("/") else pdf_href
+        pdf_resp = requests.get(pdf_url, headers=HEADERS, timeout=_DETAIL_TIMEOUT)
+        pdf_resp.raise_for_status()
+
+        tiers = _parse_pdf_odds(pdf_resp.content)
+        logger.debug("PA %s: %d PDF tiers, overall_odds=%s", gid, len(tiers), overall_odds)
+        return gid, tiers, overall_odds
+
+    except Exception as e:
+        logger.warning("PA %s: detail/PDF fetch error: %s", gid, e)
+        return gid, [], None
 
 
 # ── hybrid EV ─────────────────────────────────────────────────────────────────
@@ -129,23 +203,23 @@ class PennsylvaniaScraper(BaseScraper):
     state_code = "PA"
     state_name = "Pennsylvania"
     base_url = BASE_URL
-    # First run fetches ~184 detail pages + PDFs; cached runs are fast.
     scraper_timeout = 900
 
     def scrape(self) -> list[dict]:
         soup = self.soup(LIST_URL)
 
-        table = None
-        for t in soup.find_all("table"):
-            txt = t.get_text().lower()
-            if "game" in txt and "prize" in txt and "remaining" in txt:
-                table = t
-                break
+        table = soup.find("table", id="remaining-prizes") or None
+        if not table:
+            for t in soup.find_all("table"):
+                txt = t.get_text().lower()
+                if "game" in txt and "prize" in txt and "remaining" in txt:
+                    table = t
+                    break
         if not table:
             logger.warning("PA: prizes remaining table not found")
             return []
 
-        # ── pass 1: collect game rows from prizes-remaining page ─────────────
+        # ── pass 1: parse game rows ─────────────────────────────────────────
         raw: list[dict] = []
         seen: set[str] = set()
 
@@ -154,12 +228,17 @@ class PennsylvaniaScraper(BaseScraper):
             if len(cells) < 5:
                 continue
 
-            game_id_raw = cells[0].get("data-order") or cells[0].get_text(strip=True)
+            # Game number from data-order or span.new-game
+            game_id_raw = cells[0].get("data-order")
+            if not game_id_raw:
+                span = cells[0].find("span", class_="new-game")
+                game_id_raw = span.get_text(strip=True) if span else cells[0].get_text(strip=True)
             game_id = re.sub(r"[^\d]", "", str(game_id_raw))
             if not game_id or game_id in seen:
                 continue
             seen.add(game_id)
 
+            # Game name link — first <a> only (second may be second-chance icon)
             a = cells[1].find("a")
             name = a.get_text(strip=True) if a else cells[1].get_text(strip=True)
             name = re.sub(r"\s*\(PA[–\-‑]\d+\)\s*$", "", name).strip()
@@ -195,45 +274,28 @@ class PennsylvaniaScraper(BaseScraper):
         if not raw:
             return []
 
-        # ── pass 2: fetch PDFs for games not yet in cache ────────────────────
+        # ── pass 2: parallel fetch for uncached games ────────────────────────
         cache = _load_cache()
         cache_updated = False
+        overall_odds_map: dict[str, float] = {}
 
-        for g in raw:
-            gid = g["game_id"]
-            if gid in cache:
-                continue
-            if not g["detail_url"]:
-                continue
-            try:
-                dsoup = self.soup(g["detail_url"])
-                pdf_href = None
-                for atag in dsoup.find_all("a", href=True):
-                    h = atag["href"]
-                    if "_DATA.pdf" in h and "uploadedfiles" in h.lower():
-                        pdf_href = h
-                        break
-                if not pdf_href:
-                    # fallback: any PDF link
-                    for atag in dsoup.find_all("a", href=True):
-                        h = atag["href"]
-                        if h.lower().endswith(".pdf"):
-                            pdf_href = h
-                            break
-                if not pdf_href:
-                    logger.debug("PA %s: no PDF link found", gid)
-                    continue
+        need_fetch = [g for g in raw if g["game_id"] not in cache and g["detail_url"]]
+        logger.info("PA: %d games need detail/PDF fetch (%d already cached)",
+                    len(need_fetch), len(raw) - len(need_fetch))
 
-                pdf_url = (BASE_URL + pdf_href) if pdf_href.startswith("/") else pdf_href
-                tiers = _parse_pdf_odds(self.get(pdf_url).content)
-                if tiers:
-                    cache[gid] = tiers
-                    cache_updated = True
-                    logger.debug("PA %s: cached %d tiers", gid, len(tiers))
-                else:
-                    logger.debug("PA %s: PDF yielded 0 tiers", gid)
-            except Exception as e:
-                logger.warning("PA %s: PDF fetch/parse error: %s", gid, e)
+        if need_fetch:
+            with ThreadPoolExecutor(max_workers=_CONCURRENCY) as executor:
+                future_to_gid = {
+                    executor.submit(_fetch_game_odds, g): g["game_id"]
+                    for g in need_fetch
+                }
+                for future in as_completed(future_to_gid):
+                    gid, tiers, overall_odds = future.result()
+                    if tiers:
+                        cache[gid] = {"tiers": tiers, "overall_odds": overall_odds}
+                        cache_updated = True
+                    if overall_odds is not None:
+                        overall_odds_map[gid] = overall_odds
 
         if cache_updated:
             _save_cache(cache)
@@ -243,11 +305,12 @@ class PennsylvaniaScraper(BaseScraper):
         for g in raw:
             gid   = g["game_id"]
             price = g["price"]
-            top6  = g["top6"]  # {prize_amount: prizes_remaining}
+            top6  = g["top6"]
 
-            pdf_tiers: list[dict] = cache.get(gid, [])
+            pdf_tiers, overall_odds = _cache_get(cache, gid)
+            if overall_odds is None:
+                overall_odds = overall_odds_map.get(gid)
 
-            # Merge PDF odds with current prizes_remaining from HTML
             if pdf_tiers:
                 all_tiers = [
                     {
@@ -269,9 +332,8 @@ class PennsylvaniaScraper(BaseScraper):
                     for pa, rem in top6.items()
                 ]
 
-            # Estimate tickets_remaining from tiers that have both data points.
-            # Only use tiers with prizes_remaining > 0; depleted tiers (0) would
-            # drive the median toward zero and produce astronomical EV values.
+            # Estimate tickets_remaining via median(prizes_remaining * odds) across
+            # tiers with both values; skip depleted (0) tiers to avoid skewing low.
             estimates = [
                 t["prizes_remaining"] * t["odds_one_in"]
                 for t in all_tiers
@@ -295,7 +357,7 @@ class PennsylvaniaScraper(BaseScraper):
                 "price":               price,
                 "ev":                  ev_data["ev"],
                 "return_pct":          ev_data["return_pct"],
-                "overall_odds_one_in": None,
+                "overall_odds_one_in": overall_odds,
                 "top_prize":           top_prize,
                 "top_prize_remaining": top_prize_remaining,
                 "jackpot_odds_one_in": jackpot_odds,
