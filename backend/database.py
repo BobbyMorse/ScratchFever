@@ -225,8 +225,8 @@ async def upsert_game(conn: asyncpg.Connection, state_code: str, state_name: str
         INSERT INTO games (state_code, state_name, game_id, name, price, ev, return_pct,
             overall_odds_one_in, top_prize, top_prize_remaining,
             total_tickets, tickets_remaining, prize_pool_left, jackpot_odds_one_in,
-            detail_url, image_url, how_to_play, end_date, scraped_at, is_active)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW(), TRUE)
+            detail_url, image_url, how_to_play, end_date, ev_approximate, scraped_at, is_active)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW(), TRUE)
         ON CONFLICT(state_code, game_id) DO UPDATE SET
             name=EXCLUDED.name, price=EXCLUDED.price,
             ev=EXCLUDED.ev,
@@ -238,6 +238,7 @@ async def upsert_game(conn: asyncpg.Connection, state_code: str, state_name: str
             detail_url=EXCLUDED.detail_url, image_url=EXCLUDED.image_url,
             how_to_play=COALESCE(EXCLUDED.how_to_play, games.how_to_play),
             end_date=EXCLUDED.end_date,
+            ev_approximate=EXCLUDED.ev_approximate,
             scraped_at=NOW(), is_active=TRUE
         RETURNING id
     """,
@@ -248,6 +249,7 @@ async def upsert_game(conn: asyncpg.Connection, state_code: str, state_name: str
         game_data.get("prize_pool_left"), game_data.get("jackpot_odds_one_in"),
         game_data.get("detail_url"), game_data.get("image_url"),
         game_data.get("how_to_play"), raw_end,
+        bool(game_data.get("ev_approximate", False)),
     )
     return row["id"]
 
