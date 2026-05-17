@@ -56,6 +56,7 @@ class NewJerseyScraper(BaseScraper):
         if not name:
             return None
 
+        game_id_padded = str(g.get("gameId", "")).zfill(5)
         game_id = str(g.get("gameId", ""))
         price_cents = g.get("ticketPrice") or 0
         price = price_cents / 100.0
@@ -64,8 +65,6 @@ class NewJerseyScraper(BaseScraper):
 
         raw_total = g.get("totalTicketsPrinted")
         total_tickets = int(raw_total) if raw_total else None
-
-        game_id_padded = str(g.get("gameId", "")).zfill(5)
         image_url = f"{BASE_URL}/content/dam/portal/images/instant-games/{game_id_padded}/ticket.png"
 
         tiers = []
