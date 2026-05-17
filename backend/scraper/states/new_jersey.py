@@ -64,14 +64,8 @@ class NewJerseyScraper(BaseScraper):
         raw_total = g.get("totalTicketsPrinted")
         total_tickets = int(raw_total) if raw_total else None
 
-        # Image URL: check common field names in the NJ API response
-        image_url = None
-        raw_img = (
-            g.get("imageUrl") or g.get("image") or g.get("thumbnailUrl") or
-            g.get("gameImage") or g.get("ticketImage") or g.get("img") or ""
-        )
-        if raw_img:
-            image_url = (BASE_URL + raw_img) if raw_img.startswith("/") else raw_img
+        game_id_padded = str(g.get("gameId", "")).zfill(5)
+        image_url = f"{BASE_URL}/content/dam/portal/images/instant-games/{game_id_padded}/ticket.png"
 
         tiers = []
         total_prizes_printed = 0
