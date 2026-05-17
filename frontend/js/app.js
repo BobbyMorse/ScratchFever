@@ -642,7 +642,9 @@ async function loadAllGamesUnfiltered() {
 
 function loadGames() {
   allGames = applyClientFilters(allGamesUnfiltered);
-  renderTable();
+  const tbody = document.getElementById("gamesBody");
+  if (tbody) tbody.innerHTML = `<tr><td colspan="15" class="loading-cell">Loading…</td></tr>`;
+  requestAnimationFrame(renderTable);
 }
 
 function applyClientFilters(games) {
