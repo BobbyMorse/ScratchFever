@@ -24,6 +24,7 @@ class MontanaScraper(BaseScraper):
     base_url = BASE_URL
 
     def scrape(self) -> list[dict]:
+        return []  # site only publishes starting odds, no remaining counts — EV would be static face-value, not depletion-adjusted
         games = []
         seen = set()
 
