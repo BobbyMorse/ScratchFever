@@ -87,9 +87,10 @@ class TexasScraper(BaseScraper):
                     break
         return result
 
-    def _get_detail_info(self, url: str) -> tuple[int | None, float | None]:
-        """Fetch detail page and return (total_tickets, overall_odds_one_in)."""
+    def _get_detail_info(self, url: str) -> tuple[int | None, float | None, str | None]:
+        """Fetch detail page and return (total_tickets, overall_odds_one_in, image_url)."""
         try:
+            from bs4 import BeautifulSoup
             resp = self.get(url)
             text = resp.text
 
@@ -103,10 +104,18 @@ class TexasScraper(BaseScraper):
             if m:
                 overall_odds = float(m.group(1))
 
-            return total_tickets, overall_odds
+            image_url = None
+            soup = BeautifulSoup(text, "lxml")
+            for img in soup.find_all("img"):
+                src = img.get("src") or img.get("data-src", "")
+                if src and re.search(r"\.(jpg|jpeg|png|webp)", src, re.I):
+                    image_url = (BASE_URL + src) if src.startswith("/") else src
+                    break
+
+            return total_tickets, overall_odds, image_url
         except Exception as exc:
             logger.warning("TX: detail fetch failed for %s: %s", url, exc)
-            return None, None
+            return None, None, None
 
     def _parse_game(self, game_num: str, rows: list, detail_url: str | None) -> dict | None:
         if not rows:
