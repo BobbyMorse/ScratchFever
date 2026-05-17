@@ -629,18 +629,49 @@ async function loadStates() {
   } catch (_) {}
 }
 
+function _parseTs(ts) {
+  if (!ts) return null;
+  return new Date(/Z$|[+-]\d{2}:\d{2}$/.test(ts) ? ts : ts + "Z");
+}
+
 async function loadStateHealth() {
-  const grid = document.getElementById("dsGrid");
+  const tbody = document.getElementById("dsGrid");
   const banner = document.getElementById("dsScraperStatus");
-  if (!grid) return;
-  grid.innerHTML = `<div class="ds-loading">Loading…</div>`;
+  if (!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="4" class="ds-loading">Loading…</td></tr>`;
   try {
     const res = await fetch("/api/status/states");
     if (!res.ok) throw new Error(res.status);
     const data = await res.json();
 
     // scraper running banner
-    if (banner) banner.style.display = data.scraper_running ? "" : "none";
+    if (banner) {
+      banner.style.display = data.scraper_running ? "" : "none";
+      const cur = document.getElementById("dsCurrentState");
+      if (cur) {
+        cur.textContent = data.current_state
+          ? `Scraping ${data.current_state.name} (${data.current_state.code})…`
+          : "Scraper running…";
+      }
+    }
+
+    // update header status bar too
+    const dot = document.getElementById("statusDot");
+    const txt = document.getElementById("statusText");
+    if (dot && txt) {
+      if (data.scraper_running) {
+        dot.className = "status-dot busy";
+        txt.textContent = data.current_state
+          ? `Scraping ${data.current_state.code}…`
+          : "Scraping…";
+      } else if (data.last_run) {
+        dot.className = "status-dot ok";
+        txt.textContent = `Updated ${timeAgo(_parseTs(data.last_run))}`;
+      } else {
+        dot.className = "status-dot";
+        txt.textContent = "No data yet";
+      }
+    }
 
     // summary chips
     let ok = 0, warn = 0, err = 0, never = 0;
@@ -653,30 +684,33 @@ async function loadStateHealth() {
     const setN = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = n; };
     setN("dsOkN", ok); setN("dsWarnN", warn); setN("dsErrN", err); setN("dsNeverN", never);
 
-    document.getElementById("dsLastUpdated").textContent =
-      `${data.states.length} states · refreshed just now`;
+    const sub = document.getElementById("dsLastUpdated");
+    if (sub) sub.textContent = `${data.states.length} states · refreshed just now`;
+
+    const activeCode = data.current_state && data.scraper_running ? data.current_state.code : null;
 
     const rows = data.states.map(s => {
-      const dotCls = s.status === "ok" ? "ds-sdot ok"
+      const isActive = s.state_code === activeCode;
+      const dotCls = isActive ? "ds-sdot busy"
+                   : s.status === "ok" ? "ds-sdot ok"
                    : s.status === "error" ? "ds-sdot err"
                    : s.status === "warn" ? "ds-sdot warn"
                    : "ds-sdot never";
-      const when = s.last_scrape_at
-        ? timeAgo(new Date(s.last_scrape_at.endsWith("Z") ? s.last_scrape_at : s.last_scrape_at + "Z"))
-        : "—";
-      const games = s.games_in_db > 0 ? `${s.games_in_db} games` : "no data";
-      return `<div class="ds-state-row">
-        <span class="${dotCls}"></span>
-        <span class="ds-state-code">${s.state_code}</span>
-        <span class="ds-state-name">${s.state_name}</span>
-        <span class="ds-state-when">${when}</span>
-        <span class="ds-state-games">${games}</span>
-      </div>`;
+      const d = _parseTs(s.last_scrape_at);
+      const when = isActive ? `<span style="color:var(--yellow)">Scraping now…</span>`
+                 : d ? timeAgo(d) : "—";
+      const games = s.games_in_db > 0 ? s.games_in_db.toLocaleString() : `<span class="ds-muted">no data</span>`;
+      return `<tr class="ds-state-row${isActive ? " ds-state-active" : ""}">
+        <td><span class="${dotCls}"></span></td>
+        <td><span class="ds-state-code">${s.state_code}</span> <span class="ds-state-name">${s.state_name}</span></td>
+        <td class="ds-state-when">${when}</td>
+        <td class="ds-state-games">${games}</td>
+      </tr>`;
     }).join("");
 
-    grid.innerHTML = rows || `<div class="ds-loading">No states found.</div>`;
+    tbody.innerHTML = rows || `<tr><td colspan="4" class="ds-loading">No states found.</td></tr>`;
   } catch (e) {
-    grid.innerHTML = `<div class="ds-loading" style="color:var(--red)">Failed to load: ${e.message}</div>`;
+    tbody.innerHTML = `<tr><td colspan="4" class="ds-loading" style="color:var(--red)">Failed to load: ${e.message}</td></tr>`;
   }
 }
 
