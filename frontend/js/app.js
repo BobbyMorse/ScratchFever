@@ -1085,6 +1085,9 @@ function selectHuntState(code) {
   document.getElementById("huntConsoleFL").style.display   = "none";
   document.getElementById("huntConsoleGA").style.display   = "none";
   document.getElementById("huntConsoleNY").style.display   = "none";
+  document.getElementById("huntConsoleVA").style.display   = "none";
+  document.getElementById("huntConsoleDC").style.display   = "none";
+  document.getElementById("huntConsoleVT").style.display   = "none";
   document.getElementById("huntConsoleSoon").style.display = "none";
 
   if (code === "MA") {
@@ -1110,6 +1113,18 @@ function selectHuntState(code) {
   } else if (code === "NY") {
     document.getElementById("huntConsoleNY").style.display = "";
     if (!nyLoaded) loadNyRetailers();
+    if (_currentUser && Date.now() - communityReportsLastFetch > 30_000) loadCommunityReports();
+  } else if (code === "VA") {
+    document.getElementById("huntConsoleVA").style.display = "";
+    if (!vaLoaded) loadVaRetailers();
+    if (_currentUser && Date.now() - communityReportsLastFetch > 30_000) loadCommunityReports();
+  } else if (code === "DC") {
+    document.getElementById("huntConsoleDC").style.display = "";
+    if (!dcLoaded) loadDcRetailers();
+    if (_currentUser && Date.now() - communityReportsLastFetch > 30_000) loadCommunityReports();
+  } else if (code === "VT") {
+    document.getElementById("huntConsoleVT").style.display = "";
+    if (!vtLoaded) loadVtRetailers();
     if (_currentUser && Date.now() - communityReportsLastFetch > 30_000) loadCommunityReports();
   } else {
     document.getElementById("huntConsoleSoon").style.display = "";
