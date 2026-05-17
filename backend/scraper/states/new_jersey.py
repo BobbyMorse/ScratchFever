@@ -101,7 +101,7 @@ class NewJerseyScraper(BaseScraper):
             tickets_remaining = round(total_tickets * fraction_rem)
 
         end_date = None
-        end_ms = g.get("endDistributionDate")
+        end_ms = g.get("disableDate")
         if end_ms:
             end_date = datetime.fromtimestamp(end_ms / 1000, tz=timezone.utc).date().isoformat()
 
