@@ -82,7 +82,7 @@ class OklahomaScraper(PlaywrightScraper):
 
             # First try: extract from rendered <a href="/scratchers/DIGITS"> links
             html = page.content()
-            for href in re.findall(r'href=["\'']/scratchers/(\d+)["\']', html):
+            for href in re.findall(r"""href=["']/scratchers/(\d+)["']""", html):
                 if href not in game_ids:
                     game_ids.append(href)
 
