@@ -1201,6 +1201,7 @@ async function pollScrapeStatus() {
     btn.disabled = false;
     document.getElementById("cancelScrapeBtn").style.display = "none";
     await loadAllGamesUnfiltered();
+    await loadStatus();
     await loadStates();
   }
 }
