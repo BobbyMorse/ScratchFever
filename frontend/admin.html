@@ -543,6 +543,11 @@
 
       const remainingCell = remainingPctCell(s);
 
+      const isRunning = activeScrapingState === s.state_code;
+      const btnClass = isRunning ? "scrape-btn running" : "scrape-btn";
+      const btnLabel = isRunning ? "Running…" : "Scrape";
+      const btnDisabled = isRunning ? "disabled" : "";
+
       return `<tr${neverScraped ? ' class="never-scraped"' : ''}>
         <td>
           <div class="state-name">${s.state_name}</div>
@@ -561,6 +566,7 @@
         <td>${avgReturn}</td>
         <td>${retailerCell(s)}</td>
         <td>${errCell}</td>
+        <td><button class="${btnClass}" onclick="triggerScrape('${s.state_code}')" ${btnDisabled}>${btnLabel}</button></td>
       </tr>`;
     }).join("");
 
