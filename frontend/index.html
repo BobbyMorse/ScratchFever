@@ -895,6 +895,276 @@
             </section>
           </div><!-- /huntConsoleNY -->
 
+          <!-- VA console -->
+          <div id="huntConsoleVA" style="display:none">
+            <section class="stats-row" id="vaStatsRow">
+              <div class="stat-card">
+                <div class="stat-value" id="vaStatTotal">—</div>
+                <div class="stat-label">Total Retailers</div>
+              </div>
+              <div class="stat-card highlight-green" id="vaStatInStockCard" style="display:none">
+                <div class="stat-value" id="vaStatInStock">—</div>
+                <div class="stat-label">In Stock</div>
+              </div>
+              <div class="stat-card highlight-red" id="vaStatOutCard" style="display:none">
+                <div class="stat-value" id="vaStatOut">—</div>
+                <div class="stat-label">Out of Stock</div>
+              </div>
+            </section>
+
+            <section class="filters-bar" role="search" aria-label="Filter Virginia retailers">
+              <div class="filter-group" style="min-width:200px;position:relative">
+                <label for="vaGameFilterInput">Chasing</label>
+                <div class="game-filter-combo">
+                  <input type="text" id="vaGameFilterInput" placeholder="Any game…" oninput="searchVaGameFilter()" onfocus="searchVaGameFilter()" autocomplete="off" />
+                  <button class="game-filter-clear" id="vaGameFilterClear" onclick="clearVaGameFilter()" style="display:none">✕</button>
+                </div>
+                <div id="vaGameFilterDropdown" class="store-dropdown" style="display:none"></div>
+              </div>
+              <div class="filter-group">
+                <label for="vaSearchInput">Store Name</label>
+                <input type="text" id="vaSearchInput" placeholder="Store name…" oninput="renderVaTable()" />
+              </div>
+              <div class="filter-group">
+                <label for="vaCityInput">City</label>
+                <input type="text" id="vaCityInput" placeholder="e.g. Richmond…" oninput="renderVaTable()" />
+              </div>
+              <div class="filter-group">
+                <label for="vaInvFilter">Inventory</label>
+                <select id="vaInvFilter" onchange="renderVaTable()">
+                  <option value="">Any</option>
+                  <option value="in">✅ In Stock</option>
+                  <option value="out">❌ Out of Stock</option>
+                  <option value="checked">Checked</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label for="vaDateFilter">Last Checked</label>
+                <select id="vaDateFilter" onchange="renderVaTable()">
+                  <option value="">Any</option>
+                  <option value="today">Today</option>
+                  <option value="7d">Last 7 Days</option>
+                  <option value="30d">Last 30 Days</option>
+                </select>
+              </div>
+              <div class="filter-group" style="justify-content:flex-end">
+                <label>&nbsp;</label>
+                <label class="toggle-pill">
+                  <input type="checkbox" id="vaShowUnchecked" checked onchange="renderVaTable()" />
+                  <span>Show Unchecked</span>
+                </label>
+              </div>
+              <div class="filter-actions">
+                <button class="btn btn-report" id="vaReportInvBtn" onclick="openReportModal()">📍 Report</button>
+                <button class="btn btn-csv" onclick="downloadVaCsv()">⬇ CSV</button>
+                <button class="btn btn-heatmap" onclick="toggleVaMap()">🗺 Map</button>
+              </div>
+            </section>
+
+            <section class="ma-map-section" id="vaMapSection" style="display:none">
+              <div id="vaMap"></div>
+            </section>
+
+            <section class="table-section">
+              <div class="table-meta">
+                <span id="vaResultCount" aria-live="polite">Loading…</span>
+              </div>
+              <div class="table-scroll">
+                <table id="vaTable">
+                  <thead>
+                    <tr>
+                      <th>#</th><th>Store Name</th><th>City</th><th>ZIP</th>
+                      <th id="vaLastReportTh">Last Report</th><th>Links</th>
+                    </tr>
+                  </thead>
+                  <tbody id="vaTableBody">
+                    <tr><td colspan="6" class="loading-cell">Loading retailers…</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div><!-- /huntConsoleVA -->
+
+          <!-- DC console -->
+          <div id="huntConsoleDC" style="display:none">
+            <section class="stats-row" id="dcStatsRow">
+              <div class="stat-card">
+                <div class="stat-value" id="dcStatTotal">—</div>
+                <div class="stat-label">Total Retailers</div>
+              </div>
+              <div class="stat-card highlight-green" id="dcStatInStockCard" style="display:none">
+                <div class="stat-value" id="dcStatInStock">—</div>
+                <div class="stat-label">In Stock</div>
+              </div>
+              <div class="stat-card highlight-red" id="dcStatOutCard" style="display:none">
+                <div class="stat-value" id="dcStatOut">—</div>
+                <div class="stat-label">Out of Stock</div>
+              </div>
+            </section>
+
+            <section class="filters-bar" role="search" aria-label="Filter Washington DC retailers">
+              <div class="filter-group" style="min-width:200px;position:relative">
+                <label for="dcGameFilterInput">Chasing</label>
+                <div class="game-filter-combo">
+                  <input type="text" id="dcGameFilterInput" placeholder="Any game…" oninput="searchDcGameFilter()" onfocus="searchDcGameFilter()" autocomplete="off" />
+                  <button class="game-filter-clear" id="dcGameFilterClear" onclick="clearDcGameFilter()" style="display:none">✕</button>
+                </div>
+                <div id="dcGameFilterDropdown" class="store-dropdown" style="display:none"></div>
+              </div>
+              <div class="filter-group">
+                <label for="dcSearchInput">Store Name</label>
+                <input type="text" id="dcSearchInput" placeholder="Store name…" oninput="renderDcTable()" />
+              </div>
+              <div class="filter-group">
+                <label for="dcCityInput">City</label>
+                <input type="text" id="dcCityInput" placeholder="e.g. Washington…" oninput="renderDcTable()" />
+              </div>
+              <div class="filter-group">
+                <label for="dcInvFilter">Inventory</label>
+                <select id="dcInvFilter" onchange="renderDcTable()">
+                  <option value="">Any</option>
+                  <option value="in">✅ In Stock</option>
+                  <option value="out">❌ Out of Stock</option>
+                  <option value="checked">Checked</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label for="dcDateFilter">Last Checked</label>
+                <select id="dcDateFilter" onchange="renderDcTable()">
+                  <option value="">Any</option>
+                  <option value="today">Today</option>
+                  <option value="7d">Last 7 Days</option>
+                  <option value="30d">Last 30 Days</option>
+                </select>
+              </div>
+              <div class="filter-group" style="justify-content:flex-end">
+                <label>&nbsp;</label>
+                <label class="toggle-pill">
+                  <input type="checkbox" id="dcShowUnchecked" checked onchange="renderDcTable()" />
+                  <span>Show Unchecked</span>
+                </label>
+              </div>
+              <div class="filter-actions">
+                <button class="btn btn-report" id="dcReportInvBtn" onclick="openReportModal()">📍 Report</button>
+                <button class="btn btn-csv" onclick="downloadDcCsv()">⬇ CSV</button>
+                <button class="btn btn-heatmap" onclick="toggleDcMap()">🗺 Map</button>
+              </div>
+            </section>
+
+            <section class="ma-map-section" id="dcMapSection" style="display:none">
+              <div id="dcMap"></div>
+            </section>
+
+            <section class="table-section">
+              <div class="table-meta">
+                <span id="dcResultCount" aria-live="polite">Loading…</span>
+              </div>
+              <div class="table-scroll">
+                <table id="dcTable">
+                  <thead>
+                    <tr>
+                      <th>#</th><th>Store Name</th><th>City</th><th>ZIP</th>
+                      <th id="dcLastReportTh">Last Report</th><th>Links</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dcTableBody">
+                    <tr><td colspan="6" class="loading-cell">Loading retailers…</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div><!-- /huntConsoleDC -->
+
+          <!-- VT console -->
+          <div id="huntConsoleVT" style="display:none">
+            <section class="stats-row" id="vtStatsRow">
+              <div class="stat-card">
+                <div class="stat-value" id="vtStatTotal">—</div>
+                <div class="stat-label">Total Retailers</div>
+              </div>
+              <div class="stat-card highlight-green" id="vtStatInStockCard" style="display:none">
+                <div class="stat-value" id="vtStatInStock">—</div>
+                <div class="stat-label">In Stock</div>
+              </div>
+              <div class="stat-card highlight-red" id="vtStatOutCard" style="display:none">
+                <div class="stat-value" id="vtStatOut">—</div>
+                <div class="stat-label">Out of Stock</div>
+              </div>
+            </section>
+
+            <section class="filters-bar" role="search" aria-label="Filter Vermont retailers">
+              <div class="filter-group" style="min-width:200px;position:relative">
+                <label for="vtGameFilterInput">Chasing</label>
+                <div class="game-filter-combo">
+                  <input type="text" id="vtGameFilterInput" placeholder="Any game…" oninput="searchVtGameFilter()" onfocus="searchVtGameFilter()" autocomplete="off" />
+                  <button class="game-filter-clear" id="vtGameFilterClear" onclick="clearVtGameFilter()" style="display:none">✕</button>
+                </div>
+                <div id="vtGameFilterDropdown" class="store-dropdown" style="display:none"></div>
+              </div>
+              <div class="filter-group">
+                <label for="vtSearchInput">Store Name</label>
+                <input type="text" id="vtSearchInput" placeholder="Store name…" oninput="renderVtTable()" />
+              </div>
+              <div class="filter-group">
+                <label for="vtCityInput">City</label>
+                <input type="text" id="vtCityInput" placeholder="e.g. Burlington…" oninput="renderVtTable()" />
+              </div>
+              <div class="filter-group">
+                <label for="vtInvFilter">Inventory</label>
+                <select id="vtInvFilter" onchange="renderVtTable()">
+                  <option value="">Any</option>
+                  <option value="in">✅ In Stock</option>
+                  <option value="out">❌ Out of Stock</option>
+                  <option value="checked">Checked</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label for="vtDateFilter">Last Checked</label>
+                <select id="vtDateFilter" onchange="renderVtTable()">
+                  <option value="">Any</option>
+                  <option value="today">Today</option>
+                  <option value="7d">Last 7 Days</option>
+                  <option value="30d">Last 30 Days</option>
+                </select>
+              </div>
+              <div class="filter-group" style="justify-content:flex-end">
+                <label>&nbsp;</label>
+                <label class="toggle-pill">
+                  <input type="checkbox" id="vtShowUnchecked" checked onchange="renderVtTable()" />
+                  <span>Show Unchecked</span>
+                </label>
+              </div>
+              <div class="filter-actions">
+                <button class="btn btn-report" id="vtReportInvBtn" onclick="openReportModal()">📍 Report</button>
+                <button class="btn btn-csv" onclick="downloadVtCsv()">⬇ CSV</button>
+                <button class="btn btn-heatmap" onclick="toggleVtMap()">🗺 Map</button>
+              </div>
+            </section>
+
+            <section class="ma-map-section" id="vtMapSection" style="display:none">
+              <div id="vtMap"></div>
+            </section>
+
+            <section class="table-section">
+              <div class="table-meta">
+                <span id="vtResultCount" aria-live="polite">Loading…</span>
+              </div>
+              <div class="table-scroll">
+                <table id="vtTable">
+                  <thead>
+                    <tr>
+                      <th>#</th><th>Store Name</th><th>City</th><th>ZIP</th>
+                      <th id="vtLastReportTh">Last Report</th><th>Links</th>
+                    </tr>
+                  </thead>
+                  <tbody id="vtTableBody">
+                    <tr><td colspan="6" class="loading-cell">Loading retailers…</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div><!-- /huntConsoleVT -->
+
         </div><!-- /hunt-main -->
       </div><!-- /hunt-layout -->
       </div><!-- /tab-ma -->
