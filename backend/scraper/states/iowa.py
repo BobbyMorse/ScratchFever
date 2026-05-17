@@ -94,7 +94,11 @@ class IowaScraper(BaseScraper):
     # ── Listing page ───────────────────────────────────────────────────────────
 
     def _scrape_listing(self) -> dict[str, dict]:
-        """Returns {game_id: {name, image_url}}."""
+        """Returns {game_id: {name, price, image_url}}.
+
+        Anchor text format: '$50500X' (price immediately followed by name),
+        so the first $N captures the ticket price.
+        """
         soup = self.soup(_LISTING_URL)
         result: dict[str, dict] = {}
 
@@ -111,24 +115,34 @@ class IowaScraper(BaseScraper):
                 src = img.get("src", "")
                 filename = src.rsplit("/", 1)[-1]
                 img_url = _IMG_BASE + filename
-                name = img.get("alt", "").strip()
+                # Alt text format: "GAME NAME scratch ticket"
+                name = re.sub(r"\s+scratch ticket\s*$", "", img.get("alt", ""), flags=re.IGNORECASE).strip()
             else:
                 img_url = None
                 name = ""
 
+            # Price is the first $N in the anchor text (e.g. "$30Ruby Red Crossword")
+            anchor_text = a.get_text(strip=True)
+            pm = re.match(r"\$(\d+)", anchor_text)
+            price = float(pm.group(1)) if pm else 1.0
+
             if not name:
-                name = a.get_text(strip=True)
-            # Strip "(NEW!)" suffix
+                name = re.sub(r"^\$\d+", "", anchor_text).strip()
+            # Strip "(NEW!)" if present
             name = re.sub(r"\s*\(NEW!\)\s*", "", name, flags=re.IGNORECASE).strip()
 
-            result[gid] = {"name": name, "image_url": img_url}
+            result[gid] = {"name": name, "price": price, "image_url": img_url}
 
         return result
 
     # ── Remaining prizes page ──────────────────────────────────────────────────
 
     def _scrape_remaining(self) -> dict[str, dict]:
-        """Returns {game_id: {price, tiers: [{prize_amount, prizes_remaining, prizes_total}]}}."""
+        """Returns {game_id: {price, tiers: [{prize_amount, prizes_remaining, prizes_total}]}}.
+
+        Every row has 6 cells (game name/type/cost repeated per tier — no rowspan):
+          [0] GameName (ID)  [1] Type  [2] Cost  [3] Prize  [4] Claimed  [5] Unclaimed
+        """
         soup = self.soup(_REMAINING_URL)
         table = soup.find("table")
         if not table:
@@ -136,38 +150,30 @@ class IowaScraper(BaseScraper):
             return {}
 
         result: dict[str, dict] = {}
-        current_id: str | None = None
-        current_is_scratch = False
 
         for row in table.find_all("tr"):
             cells = row.find_all(["td", "th"])
-            if not cells:
+            if len(cells) < 6:
                 continue
             texts = [c.get_text(strip=True) for c in cells]
 
-            # Game header row: first cell contains "(NNN)" game number
-            gm = re.search(r"\((\d+)\)", texts[0])
-            if gm:
-                current_id = gm.group(1)
-                game_type = texts[1] if len(texts) > 1 else ""
-                current_is_scratch = "Scratch" in game_type
-                if current_is_scratch:
-                    price = self._parse_price(texts[2] if len(texts) > 2 else "")
-                    result[current_id] = {"price": price, "tiers": []}
-                    # First prize tier may be on this same row (cols 3/4/5)
-                    if len(texts) >= 6:
-                        self._add_tier(result[current_id]["tiers"], texts[3], texts[4], texts[5])
+            # Filter to Scratch only
+            if texts[1] != "Scratch":
                 continue
 
-            # Continuation rows: prize | claimed | unclaimed (rowspan hides game cols)
-            if current_id and current_is_scratch and len(texts) >= 3:
-                self._add_tier(result[current_id]["tiers"], texts[0], texts[1], texts[2])
+            gm = re.search(r"\((\d+)\)", texts[0])
+            if not gm:
+                continue
+            gid = gm.group(1)
 
-        return result
+            if gid not in result:
+                try:
+                    price = float(texts[2])
+                except ValueError:
+                    price = 1.0
+                result[gid] = {"price": price, "tiers": []}
 
-    def _parse_price(self, text: str) -> float:
-        m = re.search(r"\$(\d+)", text)
-        return float(m.group(1)) if m else 1.0
+            self._add_tier(result[gid]["tiers"], texts[3], texts[4], texts[5])
 
     def _add_tier(self, tiers: list, prize_text: str, claimed_text: str, unclaimed_text: str):
         try:
