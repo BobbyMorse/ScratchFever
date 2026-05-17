@@ -679,14 +679,12 @@ async function loadStateHealth() {
     const dot = document.getElementById("statusDot");
     const txt = document.getElementById("statusText");
     if (dot && txt) {
-      if (data.scraper_running) {
-        dot.className = "status-dot busy";
-        txt.textContent = data.current_state
-          ? `Scraping ${data.current_state.code}…`
-          : "Scraping…";
-      } else if (data.last_run) {
+      if (data.last_run) {
         dot.className = "status-dot ok";
         txt.textContent = `Updated ${timeAgo(_parseTs(data.last_run))}`;
+      } else if (data.scraper_running) {
+        dot.className = "status-dot ok";
+        txt.textContent = "Fetching data…";
       } else {
         dot.className = "status-dot";
         txt.textContent = "No data yet";
