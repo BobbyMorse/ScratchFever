@@ -218,6 +218,66 @@ async def admin_create_retailer(body: CreateRetailerBody, user: dict = Depends(r
     return {"message": "Retailer account created", "user_id": new_user["id"], "email": body.email}
 
 
+@app.get("/api/admin/health")
+async def admin_health(user: dict = Depends(require_admin)):
+    async with get_pool().acquire() as conn:
+        game_rows = await conn.fetch("""
+            SELECT
+                state_code, state_name,
+                COUNT(*) AS games_in_db,
+                MAX(scraped_at) AS last_scraped,
+                ROUND(100.0 * COUNT(image_url) / COUNT(*), 1) AS image_pct,
+                ROUND(100.0 * COUNT(ev) / COUNT(*), 1) AS ev_pct,
+                ROUND(AVG(CASE WHEN ev IS NOT NULL THEN return_pct END)::numeric, 1) AS avg_return
+            FROM games
+            WHERE is_active = TRUE
+            GROUP BY state_code, state_name
+            ORDER BY state_name
+        """)
+        log_rows = await conn.fetch("""
+            SELECT DISTINCT ON (state_code)
+                state_code, success, games_scraped, error_msg, ran_at
+            FROM scrape_log
+            ORDER BY state_code, ran_at DESC
+        """)
+    log_by_state = {r["state_code"]: r for r in log_rows}
+    states = []
+    for r in game_rows:
+        log = log_by_state.get(r["state_code"], {})
+        states.append({
+            "state_code": r["state_code"],
+            "state_name": r["state_name"],
+            "games_in_db": r["games_in_db"],
+            "last_scraped": r["last_scraped"].isoformat() if r["last_scraped"] else None,
+            "image_pct": float(r["image_pct"] or 0),
+            "ev_pct": float(r["ev_pct"] or 0),
+            "avg_return": float(r["avg_return"] or 0),
+            "last_scrape_success": log.get("success"),
+            "last_scrape_games": log.get("games_scraped"),
+            "last_scrape_error": log.get("error_msg"),
+            "last_scrape_at": log["ran_at"].isoformat() if log.get("ran_at") else None,
+        })
+    # Add states that have scrape logs but no active games (wiped / broken)
+    in_db = {r["state_code"] for r in game_rows}
+    for code, log in log_by_state.items():
+        if code not in in_db:
+            states.append({
+                "state_code": code,
+                "state_name": code,
+                "games_in_db": 0,
+                "last_scraped": None,
+                "image_pct": 0,
+                "ev_pct": 0,
+                "avg_return": 0,
+                "last_scrape_success": log["success"],
+                "last_scrape_games": log["games_scraped"],
+                "last_scrape_error": log["error_msg"],
+                "last_scrape_at": log["ran_at"].isoformat() if log["ran_at"] else None,
+            })
+    states.sort(key=lambda s: s["state_name"])
+    return {"states": states}
+
+
 @app.get("/api/admin/retailers")
 async def admin_list_retailers(user: dict = Depends(require_admin)):
     async with get_pool().acquire() as conn:
