@@ -127,6 +127,12 @@ async def init_db():
         await conn.execute(
             "UPDATE games SET end_date = NULL WHERE is_active = TRUE AND end_date < CURRENT_DATE"
         )
+        # CA API returns number=0 for all prize tiers when remaining counts are unavailable,
+        # causing tickets_remaining to be stored as 0 instead of NULL. The UltraRare filter
+        # then removes all CA games (0 < 30000, not null). Clear the bogus zeros.
+        await conn.execute(
+            "UPDATE games SET tickets_remaining = NULL WHERE state_code = 'CA' AND tickets_remaining = 0"
+        )
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS state_retailers (
                 id SERIAL PRIMARY KEY,
