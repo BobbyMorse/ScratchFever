@@ -1621,8 +1621,10 @@ async function createCallerCampaign() {
 
 async function sendTestCall() {
   const phone  = document.getElementById("cfTestPhone").value.trim();
-  const name   = document.getElementById("cfGameName").value.trim() || "Test Game";
-  const number = document.getElementById("cfGameNumber").value.trim();
+  const sel    = document.getElementById("cfGameSelect");
+  const opt    = sel.options[sel.selectedIndex];
+  const name   = opt?.dataset.name || "Test Game";
+  const number = opt?.value        || "";
   const price  = parseFloat(document.getElementById("cfGamePrice").value) || 0;
   const btn    = document.getElementById("cfTestBtn");
 
