@@ -510,9 +510,10 @@
   }
 
   function renderHealth(states) {
+    _lastHealthStates = states;
     const tbody = document.getElementById("healthBody");
     if (!states.length) {
-      tbody.innerHTML = '<tr class="loading-row"><td colspan="11">No data found.</td></tr>';
+      tbody.innerHTML = '<tr class="loading-row"><td colspan="12">No data found.</td></tr>';
       return;
     }
 
