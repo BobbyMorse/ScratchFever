@@ -94,7 +94,8 @@ class MichiganScraper(BaseScraper):
                 total_prizes_remaining = sum(t["prizes_remaining"] or 0 for t in tiers)
                 if total_prizes_printed > 0:
                     total_tickets = round(overall_odds * total_prizes_printed)
-                    tickets_remaining = round(overall_odds * total_prizes_remaining)
+                    if total_prizes_remaining > 0:
+                        tickets_remaining = round(overall_odds * total_prizes_remaining)
                     for t in tiers:
                         if t["prizes_total"]:
                             t["odds_one_in"] = round(total_tickets / t["prizes_total"], 2)
