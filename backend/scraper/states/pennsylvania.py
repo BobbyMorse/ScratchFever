@@ -189,7 +189,7 @@ def _fetch_game_odds(
     detail_url = game_info["detail_url"]
 
     if not detail_url:
-        return gid, [], None, None
+        return gid, [], None, None, None
 
     try:
         resp = requests.get(detail_url, headers=HEADERS, timeout=_DETAIL_TIMEOUT)
@@ -207,6 +207,14 @@ def _fetch_game_odds(
                     pass
                 break
 
+        # Image URL from detail page
+        image_url = None
+        for img in dsoup.find_all("img"):
+            src = img.get("src") or img.get("data-src", "")
+            if src and re.search(r"\.(jpg|jpeg|png|webp)", src, re.I):
+                image_url = (BASE_URL + src) if src.startswith("/") else src
+                break
+
         # PA Bulletin link ("Complete Game Rules")
         bulletin_url = None
         for atag in dsoup.find_all("a", href=True):
@@ -216,7 +224,7 @@ def _fetch_game_odds(
 
         if not bulletin_url:
             logger.debug("PA %s: no PA Bulletin link on detail page", gid)
-            return gid, [], overall_odds, None
+            return gid, [], overall_odds, None, image_url
 
         time.sleep(0.15)  # brief pause between requests to the two servers
         bull_resp = requests.get(bulletin_url, headers=HEADERS, timeout=_DETAIL_TIMEOUT)
@@ -227,11 +235,11 @@ def _fetch_game_odds(
             "PA %s: %d bulletin tiers, total_tickets=%s, overall_odds=%s",
             gid, len(tiers), total_tickets, overall_odds,
         )
-        return gid, tiers, overall_odds, total_tickets
+        return gid, tiers, overall_odds, total_tickets, image_url
 
     except Exception as e:
         logger.warning("PA %s: fetch error: %s", gid, e)
-        return gid, [], None, None
+        return gid, [], None, None, None
 
 
 # ── hybrid EV ─────────────────────────────────────────────────────────────────
