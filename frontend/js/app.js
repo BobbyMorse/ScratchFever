@@ -1661,7 +1661,9 @@ async function createCallerCampaign() {
       `Campaign #${data.campaign.id} created — ${data.queue_loaded} stores queued. Hit Start to begin calling.`,
       "ok"
     );
+    document.getElementById("cfStateSelect").value = "";
     sel.value = "";
+    populateCallerGameSelect("");
     document.getElementById("cfGamePrice").value = "";
     await loadCallerData();
   } catch (e) {
