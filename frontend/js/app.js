@@ -1029,7 +1029,7 @@ function renderModal(g) {
         <div class="modal-stat-lbl">Total Tickets</div>
       </div>
       <div class="modal-stat">
-        <div class="modal-stat-val">${ticketsSold != null ? fmtNum(ticketsSold) : "—"}</div>
+        <div class="modal-stat-val">${ticketsSold != null && ticketsSold > 0 ? fmtNum(ticketsSold) : "—"}</div>
         <div class="modal-stat-lbl">Tickets Sold</div>
         <div class="modal-stat-note">total − est. remaining</div>
       </div>
