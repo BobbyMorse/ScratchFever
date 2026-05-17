@@ -423,6 +423,7 @@ async def api_status_states():
             "last_scrape_at": log["ran_at"].isoformat() if log else None,
             "status": status,
             "ev_pct": int(g["ev_pct"] or 0) if g else 0,
+            "image_pct": int(g["image_pct"] or 0) if g else 0,
             "avg_return": float(g["avg_return"] or 0) if g else 0,
             "prizes_pct": int(g["prizes_pct"] or 0) if g else 0,
             "has_retailer_scraper": state_code in retailer_state_set,
