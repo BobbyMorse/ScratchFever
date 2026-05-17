@@ -197,10 +197,6 @@ function _setUser(user) {
       myStoreLink.style.display = "none";
     }
     document.getElementById("scrapeBtn").style.display = isAdmin ? "" : "none";
-    if (isAdmin) {
-      const sec = document.getElementById("dsAdminSection");
-      if (sec) sec.style.display = "";
-    }
   } else {
     chip.style.display  = "none";
     btn.style.display   = "";
