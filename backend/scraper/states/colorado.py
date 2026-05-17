@@ -262,6 +262,13 @@ class ColoradoScraper(BaseScraper):
                     slug, depletion * 100, top_remaining, top_total_prize, tickets_remaining,
                 )
 
+        image_url = None
+        for img in soup.find_all("img"):
+            src = img.get("src") or img.get("data-src", "")
+            if src and re.search(r"\.(jpg|jpeg|png|webp)", src, re.I):
+                image_url = (BASE_URL + src) if src.startswith("/") else src
+                break
+
         return self.build_game(
             game_id=slug,
             name=name,
@@ -272,4 +279,5 @@ class ColoradoScraper(BaseScraper):
             total_tickets=total_tickets,
             detail_url=url,
             ev_approximate=ev_approximate,
+            image_url=image_url,
         )
