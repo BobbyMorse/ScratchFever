@@ -105,15 +105,16 @@ def _parse_bulletin(html: str) -> tuple[list[dict], int | None]:
     if not rows:
         return [], None
 
-    # Parse total_tickets from header: "Per N Tickets" (space optional between Per and N)
+    # Parse total_tickets from any header row (some bulletins have 2 <th> header rows)
     total_tickets = None
-    header_text = rows[0].get_text()
-    m = re.search(r"Per\s*([\d,]+)\s*[Tt]ickets", header_text)
-    if m:
-        try:
-            total_tickets = int(m.group(1).replace(",", ""))
-        except ValueError:
-            pass
+    for row in rows:
+        m = re.search(r"Per\s*([\d,]+)\s*[Tt]ickets", row.get_text())
+        if m:
+            try:
+                total_tickets = int(m.group(1).replace(",", ""))
+                break
+            except ValueError:
+                pass
 
     # Group winners by prize amount (multiple combos → same prize)
     winners_by_prize: dict[float, int] = {}
@@ -134,14 +135,22 @@ def _parse_bulletin(html: str) -> tuple[list[dict], int | None]:
         if winners <= 0:
             continue
 
-        # Prize = rightmost dollar-parseable value in cols [0 .. n-3]
-        # (excludes last two cols: odds column and winners column)
+        # Prize = rightmost dollar-parseable value in cols [0 .. n-3].
+        # Handles plain amounts ("$2,500") and descriptions ("FREE $1 TICKET" → $1).
         prize = None
         for i in range(n - 3, -1, -1):
-            p = parse_prize_amount(cell_texts[i])
+            text = cell_texts[i]
+            p = parse_prize_amount(text)
             if p and p > 0:
                 prize = p
                 break
+            # Extract dollar amount from descriptions like "FREE $1 TICKET"
+            dm = re.search(r"\$\s*([\d,]+(?:\.\d+)?)", text)
+            if dm:
+                p = parse_prize_amount("$" + dm.group(1).replace(",", ""))
+                if p and p > 0:
+                    prize = p
+                    break
 
         if not prize:
             continue
