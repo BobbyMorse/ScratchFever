@@ -170,4 +170,4 @@ class MississippiScraper(BaseScraper):
             if remaining_prizes > 0:
                 tickets_remaining = round(total_tickets * remaining_prizes / total_prizes)
 
-        return name, price, tiers, overall_odds, tickets_remaining, total_tickets
+        return name, price, tiers, overall_odds, tickets_remaining, total_tickets, image_url
