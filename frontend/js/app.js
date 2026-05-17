@@ -2375,6 +2375,9 @@ async function loadCommunityReports() {
       : currentHuntState === 'FL' ? selectedFlGame
       : currentHuntState === 'GA' ? selectedGaGame
       : currentHuntState === 'NY' ? selectedNyGame
+      : currentHuntState === 'VA' ? selectedVaGame
+      : currentHuntState === 'DC' ? selectedDcGame
+      : currentHuntState === 'VT' ? selectedVtGame
       : selectedGame;
     loadRetailerLatest(activeGame?.name);
     updateReportBadges();
@@ -2384,6 +2387,9 @@ async function loadCommunityReports() {
     renderFlTable();
     renderGaTable();
     renderNyTable();
+    renderVaTable();
+    renderDcTable();
+    renderVtTable();
     refreshOpenProfile();
     refreshOpenModalCommunity();
     if (currentHuntState === 'AZ') updateAzInventoryMapLayer();
@@ -2391,6 +2397,9 @@ async function loadCommunityReports() {
     else if (currentHuntState === 'FL') updateFlInventoryMapLayer();
     else if (currentHuntState === 'GA') updateGaInventoryMapLayer();
     else if (currentHuntState === 'NY') updateNyInventoryMapLayer();
+    else if (currentHuntState === 'VA') updateVaInventoryMapLayer();
+    else if (currentHuntState === 'DC') updateDcInventoryMapLayer();
+    else if (currentHuntState === 'VT') updateVtInventoryMapLayer();
     else updateInventoryMapLayer();
   } catch (_) {}
 }
