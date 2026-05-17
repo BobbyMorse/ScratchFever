@@ -46,7 +46,11 @@ class NebraskaScraper(BaseScraper):
 
                 # name is text content after stripping the img element
                 img = tag.find("img")
+                image_url = None
                 if img:
+                    src = img.get("src") or img.get("data-src", "")
+                    if src:
+                        image_url = (BASE_URL + src) if src.startswith("/") else src
                     img.extract()
                 name = tag.get_text(strip=True)
                 if not name:
@@ -66,6 +70,7 @@ class NebraskaScraper(BaseScraper):
                     tiers=tiers,
                     overall_odds=overall_odds,
                     detail_url=detail_url,
+                    image_url=image_url,
                 ))
 
         logger.info("NE: %d games scraped", len(games))
