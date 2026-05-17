@@ -654,11 +654,128 @@ function _parseTs(ts) {
   return new Date(/Z$|[+-]\d{2}:\d{2}$/.test(ts) ? ts : ts + "Z");
 }
 
+let _dsStates = null;
+let _dsSortCol = null;
+let _dsSortDir = 1;
+let _dsFilterStatus = null;
+let _dsActiveCode = null;
+
+function dsToggleSort(col) {
+  if (_dsSortCol === col) {
+    _dsSortDir = -_dsSortDir;
+  } else {
+    _dsSortCol = col;
+    _dsSortDir = 1;
+  }
+  _renderDsGrid();
+}
+
+function dsSetFilter(status) {
+  _dsFilterStatus = _dsFilterStatus === status ? null : status;
+  _renderDsGrid();
+}
+
+function _dsSortValue(s, col) {
+  const STATUS_ORDER = {ok: 0, warn: 1, error: 2, never: 3};
+  switch (col) {
+    case 'status':    return STATUS_ORDER[s.status] ?? 4;
+    case 'name':      return (s.state_name || '').toLowerCase();
+    case 'scraped':   return s.last_scrape_at ? new Date(s.last_scrape_at).getTime() : 0;
+    case 'games':     return s.games_in_db ?? 0;
+    case 'ev':        return s.ev_pct ?? -1;
+    case 'img':       return s.image_pct ?? -1;
+    case 'avgret':    return s.avg_return ?? 0;
+    case 'prizes':    return s.prizes_pct ?? -1;
+    case 'retailers': return s.retailer_last_scraped ? new Date(s.retailer_last_scraped).getTime() : 0;
+    default:          return 0;
+  }
+}
+
+function _renderDsGrid() {
+  const tbody = document.getElementById("dsGrid");
+  if (!tbody || !_dsStates) return;
+
+  let rows = [..._dsStates];
+
+  if (_dsFilterStatus) {
+    rows = rows.filter(s =>
+      _dsFilterStatus === 'never'
+        ? (s.status !== 'ok' && s.status !== 'warn' && s.status !== 'error')
+        : s.status === _dsFilterStatus
+    );
+  }
+
+  if (_dsSortCol) {
+    rows.sort((a, b) => {
+      const av = _dsSortValue(a, _dsSortCol);
+      const bv = _dsSortValue(b, _dsSortCol);
+      if (av < bv) return -_dsSortDir;
+      if (av > bv) return _dsSortDir;
+      return 0;
+    });
+  }
+
+  document.querySelectorAll('.ds-table thead th[data-col]').forEach(th => {
+    th.classList.remove('ds-th-asc', 'ds-th-desc');
+    if (th.dataset.col === _dsSortCol) {
+      th.classList.add(_dsSortDir === 1 ? 'ds-th-asc' : 'ds-th-desc');
+    }
+  });
+
+  document.querySelectorAll('.ds-chip[data-filter]').forEach(chip => {
+    chip.classList.toggle('ds-chip-active', chip.dataset.filter === _dsFilterStatus);
+  });
+
+  function _pctBar(pct) {
+    if (!pct && pct !== 0) return `<span class="ds-muted">—</span>`;
+    const cls = pct >= 90 ? "ds-pct-hi" : pct >= 50 ? "ds-pct-mid" : "ds-pct-lo";
+    return `<span class="ds-pct ${cls}">${pct}%</span>`;
+  }
+  function _retCell(s) {
+    if (!s.has_retailer_scraper) return `<span class="ds-muted">—</span>`;
+    if (!s.retailer_last_scraped) return `<span class="ds-pct-lo">Never</span>`;
+    const d = _parseTs(s.retailer_last_scraped);
+    const ageDays = d ? Math.floor((Date.now() - d) / 86400000) : 999;
+    const cls = ageDays > 35 ? "ds-pct-lo" : "ds-pct-hi";
+    return `<span class="${cls}">${timeAgo(d)}</span>`;
+  }
+
+  const activeCode = _dsActiveCode;
+  const html = rows.map(s => {
+    const isActive = s.state_code === activeCode;
+    const dotCls = isActive ? "ds-sdot busy"
+                 : s.status === "ok" ? "ds-sdot ok"
+                 : s.status === "error" ? "ds-sdot err"
+                 : s.status === "warn" ? "ds-sdot warn"
+                 : "ds-sdot never";
+    const d = _parseTs(s.last_scrape_at);
+    const when = isActive ? `<span style="color:var(--yellow);font-weight:600">Scraping now…</span>`
+               : d ? timeAgo(d) : `<span class="ds-muted">—</span>`;
+    const games = s.games_in_db > 0 ? s.games_in_db.toLocaleString() : `<span class="ds-muted">—</span>`;
+    const avgRet = s.avg_return
+      ? `<span class="${s.avg_return >= 100 ? 'ds-pct-hi' : s.avg_return >= 80 ? 'ds-pct-mid' : 'ds-pct-lo'}">${s.avg_return}%</span>`
+      : `<span class="ds-muted">—</span>`;
+    return `<tr class="ds-state-row${isActive ? " ds-state-active" : ""}">
+      <td><span class="${dotCls}"></span></td>
+      <td><span class="ds-state-code">${s.state_code}</span> <span class="ds-state-name">${s.state_name}</span></td>
+      <td class="ds-state-when">${when}</td>
+      <td class="ds-col-num">${games}</td>
+      <td class="ds-col-num">${_pctBar(s.ev_pct)}</td>
+      <td class="ds-col-num">${_pctBar(s.image_pct)}</td>
+      <td class="ds-col-num">${avgRet}</td>
+      <td class="ds-col-num">${_pctBar(s.prizes_pct)}</td>
+      <td class="ds-col-num">${_retCell(s)}</td>
+    </tr>`;
+  }).join("");
+
+  tbody.innerHTML = html || `<tr><td colspan="9" class="ds-loading ds-muted">No states match filter.</td></tr>`;
+}
+
 async function loadStateHealth() {
   const tbody = document.getElementById("dsGrid");
   const banner = document.getElementById("dsScraperStatus");
   if (!tbody) return;
-  tbody.innerHTML = `<tr><td colspan="4" class="ds-loading">Loading…</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="9" class="ds-loading">Loading…</td></tr>`;
   try {
     const res = await fetch("/api/status/states");
     if (!res.ok) throw new Error(res.status);
@@ -705,50 +822,9 @@ async function loadStateHealth() {
     const sub = document.getElementById("dsLastUpdated");
     if (sub) sub.textContent = `${data.states.length} states · refreshed just now`;
 
-    const activeCode = data.current_state && data.scraper_running ? data.current_state.code : null;
-
-    function _pctBar(pct) {
-      if (!pct && pct !== 0) return `<span class="ds-muted">—</span>`;
-      const cls = pct >= 90 ? "ds-pct-hi" : pct >= 50 ? "ds-pct-mid" : "ds-pct-lo";
-      return `<span class="ds-pct ${cls}">${pct}%</span>`;
-    }
-    function _retCell(s) {
-      if (!s.has_retailer_scraper) return `<span class="ds-muted">—</span>`;
-      if (!s.retailer_last_scraped) return `<span class="ds-pct-lo">Never</span>`;
-      const d = _parseTs(s.retailer_last_scraped);
-      const ageDays = d ? Math.floor((Date.now() - d) / 86400000) : 999;
-      const cls = ageDays > 35 ? "ds-pct-lo" : "ds-pct-hi";
-      return `<span class="${cls}">${timeAgo(d)}</span>`;
-    }
-
-    const rows = data.states.map(s => {
-      const isActive = s.state_code === activeCode;
-      const dotCls = isActive ? "ds-sdot busy"
-                   : s.status === "ok" ? "ds-sdot ok"
-                   : s.status === "error" ? "ds-sdot err"
-                   : s.status === "warn" ? "ds-sdot warn"
-                   : "ds-sdot never";
-      const d = _parseTs(s.last_scrape_at);
-      const when = isActive ? `<span style="color:var(--yellow);font-weight:600">Scraping now…</span>`
-                 : d ? timeAgo(d) : `<span class="ds-muted">—</span>`;
-      const games = s.games_in_db > 0 ? s.games_in_db.toLocaleString() : `<span class="ds-muted">—</span>`;
-      const avgRet = s.avg_return
-        ? `<span class="${s.avg_return >= 100 ? 'ds-pct-hi' : s.avg_return >= 80 ? 'ds-pct-mid' : 'ds-pct-lo'}">${s.avg_return}%</span>`
-        : `<span class="ds-muted">—</span>`;
-      return `<tr class="ds-state-row${isActive ? " ds-state-active" : ""}">
-        <td><span class="${dotCls}"></span></td>
-        <td><span class="ds-state-code">${s.state_code}</span> <span class="ds-state-name">${s.state_name}</span></td>
-        <td class="ds-state-when">${when}</td>
-        <td class="ds-col-num">${games}</td>
-        <td class="ds-col-num">${_pctBar(s.ev_pct)}</td>
-        <td class="ds-col-num">${_pctBar(s.image_pct)}</td>
-        <td class="ds-col-num">${avgRet}</td>
-        <td class="ds-col-num">${_pctBar(s.prizes_pct)}</td>
-        <td class="ds-col-num">${_retCell(s)}</td>
-      </tr>`;
-    }).join("");
-
-    tbody.innerHTML = rows || `<tr><td colspan="9" class="ds-loading">No states found.</td></tr>`;
+    _dsStates = data.states;
+    _dsActiveCode = data.current_state && data.scraper_running ? data.current_state.code : null;
+    _renderDsGrid();
   } catch (e) {
     tbody.innerHTML = `<tr><td colspan="9" class="ds-loading" style="color:var(--red)">Failed to load: ${e.message}</td></tr>`;
   }
