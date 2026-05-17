@@ -1444,13 +1444,19 @@ function fmtDate(dt) {
 }
 
 // ── Launch campaign from EV table ─────────────────────────────────────────────
-function launchCampaign(name, price, gameId) {
+function launchCampaign(name, price, gameId, stateCode) {
   switchTab("caller");
+  if (stateCode) {
+    const stateSel = document.getElementById("cfStateSelect");
+    if (stateSel) {
+      stateSel.value = stateCode;
+      populateCallerGameSelect(stateCode);
+    }
+  }
   const sel = document.getElementById("cfGameSelect");
   if (sel) {
     sel.value = gameId;
     if (!sel.value) {
-      // game not in list yet — add a temporary option
       const opt = document.createElement("option");
       opt.value = gameId;
       opt.dataset.name  = name;
