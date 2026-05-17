@@ -456,7 +456,7 @@ function updateLastReportCells() {
 // ── Data loading ──────────────────────────────────────────────────────────────
 async function loadAllGamesUnfiltered() {
   try {
-    const res = await fetch("/api/games?sort_by=return_pct&limit=1000");
+    const res = await fetch("/api/games?sort_by=return_pct&limit=5000");
     if (!res.ok) return;
     const data = await res.json();
     const raw = data.games || [];
