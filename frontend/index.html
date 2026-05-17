@@ -1495,39 +1495,43 @@
 
       <!-- ══════════════ SCRAPER HEALTH TAB (admin only) ══════════════ -->
       <div id="tab-health" class="tab-content" style="display:none">
-        <div class="health-tab-wrap">
-          <div class="health-tab-top">
+        <div class="ds-wrap">
+          <div class="ds-header">
             <div>
-              <div class="health-tab-title">Scraper Health</div>
-              <div class="health-tab-sub" id="healthTabSub"></div>
+              <div class="ds-title">Data Status</div>
+              <div class="ds-sub" id="dsLastUpdated">Loading…</div>
             </div>
-            <div class="health-tab-chips">
-              <span class="ap-chip ok"><span class="ap-dot"></span><span id="htOkN">—</span> OK</span>
-              <span class="ap-chip warn"><span class="ap-dot"></span><span id="htWarnN">—</span> Warn</span>
-              <span class="ap-chip err"><span class="ap-dot"></span><span id="htErrN">—</span> Error</span>
-              <button class="ap-btn" onclick="loadAdminHealth()">↺ Refresh</button>
+            <div class="ds-header-right">
+              <span class="ds-chip ds-ok"><span class="ds-dot"></span><span id="dsOkN">—</span> Live</span>
+              <span class="ds-chip ds-warn"><span class="ds-dot"></span><span id="dsWarnN">—</span> Stale</span>
+              <span class="ds-chip ds-err"><span class="ds-dot"></span><span id="dsErrN">—</span> Error</span>
+              <span class="ds-chip ds-never"><span class="ds-dot"></span><span id="dsNeverN">—</span> Pending</span>
+              <button class="ds-refresh-btn" onclick="loadStateHealth()">↺ Refresh</button>
             </div>
           </div>
-          <div class="health-tab-body">
-            <table class="ap-table">
-              <thead>
-                <tr>
-                  <th>State</th>
-                  <th>Status</th>
-                  <th>Games</th>
-                  <th>Last Scrape</th>
-                  <th>Fetched</th>
-                  <th>EV</th>
-                  <th>Images</th>
-                  <th>Avg Return</th>
-                  <th>Retailers</th>
-                  <th>Last Error</th>
-                </tr>
-              </thead>
-              <tbody id="htHealthBody">
-                <tr><td colspan="10" class="ap-loading">Loading…</td></tr>
-              </tbody>
-            </table>
+          <div class="ds-scraper-status" id="dsScraperStatus" style="display:none">
+            <span class="ds-running-dot"></span> Scraper is currently running
+          </div>
+          <div class="ds-grid" id="dsGrid">
+            <div class="ds-loading">Loading state data…</div>
+          </div>
+          <!-- Admin-only detailed table -->
+          <div id="dsAdminSection" style="display:none">
+            <div class="ds-admin-divider">Admin Detail</div>
+            <div class="health-tab-body">
+              <table class="ap-table">
+                <thead>
+                  <tr>
+                    <th>State</th><th>Status</th><th>Games</th><th>Last Scrape</th>
+                    <th>Fetched</th><th>EV</th><th>Images</th><th>Avg Return</th>
+                    <th>Retailers</th><th>Last Error</th>
+                  </tr>
+                </thead>
+                <tbody id="htHealthBody">
+                  <tr><td colspan="10" class="ap-loading">Loading…</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div><!-- /tab-health -->
