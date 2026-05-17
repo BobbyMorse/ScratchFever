@@ -128,6 +128,30 @@ function authHeaders() {
   return t ? { "Authorization": `Bearer ${t}` } : {};
 }
 
+// ── User preferences ──────────────────────────────────────────────────────────
+const _PREFS_KEY = "sf_prefs";
+const _prefsDefaults = { defaultHuntState: "MA", evDefaultState: "" };
+let _prefs = { ..._prefsDefaults };
+
+function loadPrefs() {
+  try {
+    const raw = localStorage.getItem(_PREFS_KEY);
+    if (raw) _prefs = { ..._prefsDefaults, ...JSON.parse(raw) };
+  } catch (_) {}
+  currentHuntState = _prefs.defaultHuntState || "MA";
+}
+
+function onSettingChange(key, value) {
+  _prefs[key] = value;
+  localStorage.setItem(_PREFS_KEY, JSON.stringify(_prefs));
+  if (key === "defaultHuntState") {
+    currentHuntState = value;
+  } else if (key === "evDefaultState") {
+    const sel = document.getElementById("filterState");
+    if (sel) { sel.value = value; loadGames(); }
+  }
+}
+
 function callerFetch(url, opts = {}) {
   opts.headers = { ...(opts.headers || {}), ...authHeaders() };
   return fetch(url, opts);
