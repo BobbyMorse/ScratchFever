@@ -144,4 +144,4 @@ class NorthCarolinaScraper(BaseScraper):
                 if sum_total > 0:
                     tickets_remaining = round(total_tickets * sum_remaining / sum_total)
 
-        return tiers, tickets_remaining, total_tickets
+        return tiers, tickets_remaining, total_tickets, image_url
