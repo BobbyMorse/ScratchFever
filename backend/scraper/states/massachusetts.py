@@ -156,13 +156,15 @@ class MassachusettsScraper(BaseScraper):
         if not tiers or not official_odds or official_odds <= 0:
             return None
 
-        total_tickets     = round(official_odds * total_prizes_printed)
-        tickets_remaining = round(official_odds * total_prizes_remaining)
+        total_tickets = round(official_odds * total_prizes_printed)
+        # Only store tickets_remaining when the API provides real remaining counts.
+        # prizesRemaining=0 for all tiers means data is unavailable, not genuinely sold out.
+        tickets_remaining = round(official_odds * total_prizes_remaining) if total_prizes_remaining > 0 else None
 
         for t in tiers:
             t["odds_one_in"] = round(total_tickets / t["prizes_total"], 2) if t["prizes_total"] else None
 
-        if tickets_remaining > 0:
+        if tickets_remaining and tickets_remaining > 0:
             prize_pool_remaining = sum(t["prize_amount"] * t["prizes_remaining"] for t in tiers)
             ev         = round(prize_pool_remaining / tickets_remaining - price, 4)
             return_pct = round(prize_pool_remaining / tickets_remaining / price * 100, 2)
