@@ -92,7 +92,20 @@ class LouisianaScraper(BaseScraper):
                               for t in tiers if t.get("prizes_remaining") is not None and t.get("odds_one_in")]
             tickets_remaining = round(sum(tier_remaining) / len(tier_remaining)) if (tier_remaining and all_have_rem) else None
 
-            games.append(self.build_game(
+            # When no prizes have been claimed yet, remaining == total — both values
+            # are derived from the same original odds, so they carry no current signal.
+            # Null them out so the game falls back to odds-only EV (which we also clear)
+            # and the frontend shows the "Limited data" banner instead of fake ticket counts.
+            no_claims = (
+                all_have_rem
+                and tiers
+                and all(t.get("prizes_remaining") == t.get("prizes_total") for t in tiers)
+            )
+            if no_claims:
+                tickets_remaining = None
+                total_tickets = None
+
+            game = self.build_game(
                 game_id=game_id,
                 name=name,
                 price=price,
@@ -102,7 +115,11 @@ class LouisianaScraper(BaseScraper):
                 total_tickets=total_tickets,
                 detail_url=detail_url,
                 image_url=image_url,
-            ))
+            )
+            if no_claims:
+                game["ev"] = None
+                game["return_pct"] = None
+            games.append(game)
 
         logger.info("LA: %d games scraped", len(games))
         return games
