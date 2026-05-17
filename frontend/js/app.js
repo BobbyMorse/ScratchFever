@@ -1153,7 +1153,7 @@ document.addEventListener("DOMContentLoaded", () => {
       th.classList.add("active");
       th.textContent = th.textContent.replace(/[▲▼]/, "").trim() +
         (currentSort.asc ? " ▲" : " ▼");
-      renderTable();
+      requestAnimationFrame(renderTable);
     });
   });
 });
