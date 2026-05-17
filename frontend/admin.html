@@ -486,6 +486,8 @@
         ? `<span class="mono" style="color:var(--text)">${s.avg_return}%</span>`
         : `<span class="no-error">—</span>`;
 
+      const remainingCell = remainingPctCell(s);
+
       return `<tr${neverScraped ? ' class="never-scraped"' : ''}>
         <td>
           <div class="state-name">${s.state_name}</div>
@@ -499,6 +501,7 @@
         </td>
         <td>${scrapeGames}</td>
         <td>${pctBar(s.ev_pct)}</td>
+        <td>${remainingCell}</td>
         <td>${pctBar(s.image_pct)}</td>
         <td>${avgReturn}</td>
         <td>${retailerCell(s)}</td>
