@@ -180,10 +180,10 @@ def _parse_bulletin(html: str) -> tuple[list[dict], int | None]:
 
 def _fetch_game_odds(
     game_info: dict,
-) -> tuple[str, list[dict], float | None, int | None]:
+) -> tuple[str, list[dict], float | None, int | None, str | None]:
     """Fetch detail page then PA Bulletin for one game. Thread-safe.
 
-    Returns (game_id, tiers, overall_odds, total_tickets).
+    Returns (game_id, tiers, overall_odds, total_tickets, image_url).
     """
     gid = game_info["game_id"]
     detail_url = game_info["detail_url"]
