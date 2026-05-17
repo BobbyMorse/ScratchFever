@@ -398,26 +398,34 @@ async def api_status_states():
             "SELECT state_code, last_scraped_at FROM retailer_scrape_log"
         )
 
-    games_by_state = {r["state_code"]: r["games_in_db"] for r in game_rows}
+    games_by_state = {r["state_code"]: r for r in game_rows}
     log_by_state = {r["state_code"]: r for r in log_rows}
+    retailer_by_state = {r["state_code"]: r for r in retailer_rows}
 
     states = []
     for state_code in sorted(all_known, key=lambda c: all_known[c]):
         state_name = all_known[state_code]
         log = log_by_state.get(state_code)
-        games = games_by_state.get(state_code, 0)
+        g = games_by_state.get(state_code)
+        games = int(g["games_in_db"]) if g else 0
         if log:
             status = "ok" if log["success"] else "error"
         elif games:
             status = "warn"
         else:
             status = "never"
+        ret = retailer_by_state.get(state_code)
         states.append({
             "state_code": state_code,
             "state_name": state_name,
             "games_in_db": games,
             "last_scrape_at": log["ran_at"].isoformat() if log else None,
             "status": status,
+            "ev_pct": int(g["ev_pct"] or 0) if g else 0,
+            "avg_return": float(g["avg_return"] or 0) if g else 0,
+            "prizes_pct": int(g["prizes_pct"] or 0) if g else 0,
+            "has_retailer_scraper": state_code in retailer_state_set,
+            "retailer_last_scraped": ret["last_scraped_at"].isoformat() if ret else None,
         })
 
     return {
