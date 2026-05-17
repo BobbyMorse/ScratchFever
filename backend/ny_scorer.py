@@ -52,7 +52,8 @@ async def load_and_score_async(conn) -> list[dict]:
     if _cache is not None:
         return _cache
     rows = await conn.fetch(
-        "SELECT id, name, address, city, zip_code, phone, latitude, longitude FROM ny_retailers ORDER BY name"
+        "SELECT external_id AS id, name, address, city, zip_code, phone, latitude, longitude "
+        "FROM state_retailers WHERE state_code = 'NY' ORDER BY name"
     )
     retailers = [_row_to_retailer(dict(r)) for r in rows]
     _cache = retailers
