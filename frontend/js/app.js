@@ -863,7 +863,7 @@ function gameRow(g, rank) {
     <td>${pool}</td>
     <td style="color:var(--text-muted);font-size:.8rem" title="${updatedFull}">${updated}</td>
     <td onclick="event.stopPropagation()">
-      <button class="btn-campaign-launch" onclick="launchCampaign('${nameEsc}', ${g.price}, '${escHtml(g.game_id)}')" title="Create calling campaign for this game">📞</button>
+      <button class="btn-campaign-launch" onclick="launchCampaign('${nameEsc}', ${g.price}, '${escHtml(g.game_id)}', '${escHtml(g.state_code || "")}')" title="Create calling campaign for this game">📞</button>
     </td>
   </tr>`;
 }
