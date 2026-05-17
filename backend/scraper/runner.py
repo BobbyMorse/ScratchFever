@@ -74,7 +74,7 @@ ALL_SCRAPERS = [
     MinnesotaScraper, IowaScraper, WisconsinScraper, IndianaScraper, MissouriScraper,
     KentuckyScraper, TennesseeScraper, WestVirginiaScraper, SouthCarolinaScraper,
     ArkansasScraper, LouisianaScraper, OklahomaScraper, NewMexicoScraper,
-    DelawareScraper, DCScraper, MississippiScraper,
+    DelawareScraper, DCScraper, MississippiScraper, MaineScraper,
 ]
 
 DEFAULT_TIMEOUT = 120   # seconds for HTTP-based scrapers
