@@ -51,6 +51,7 @@ class MarylandScraper(PlaywrightScraper):
                 tiers = []
                 total_prizes_printed = 0
                 total_prizes_remaining = 0
+                any_remaining_data = False
 
                 if prize_div:
                     table = prize_div.find("table")
@@ -66,6 +67,8 @@ class MarylandScraper(PlaywrightScraper):
                             except (ValueError, IndexError):
                                 continue
                             if prize and prize > 0 and total > 0:
+                                if remaining > 0:
+                                    any_remaining_data = True
                                 total_prizes_printed += total
                                 total_prizes_remaining += remaining
                                 tiers.append({
@@ -79,7 +82,8 @@ class MarylandScraper(PlaywrightScraper):
                 tickets_remaining = None
                 if overall_odds and overall_odds > 0 and total_prizes_printed > 0:
                     total_tickets = round(overall_odds * total_prizes_printed)
-                    tickets_remaining = round(overall_odds * total_prizes_remaining)
+                    if any_remaining_data:
+                        tickets_remaining = round(overall_odds * total_prizes_remaining)
                     for t in tiers:
                         if t["prizes_total"] and total_tickets:
                             t["odds_one_in"] = round(total_tickets / t["prizes_total"], 2)
