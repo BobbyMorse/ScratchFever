@@ -213,6 +213,13 @@ def get_pool() -> asyncpg.Pool:
 
 
 async def upsert_game(conn: asyncpg.Connection, state_code: str, state_name: str, game_id: str, game_data: dict) -> int:
+    import datetime
+    raw_end = game_data.get("end_date")
+    if isinstance(raw_end, str):
+        try:
+            raw_end = datetime.date.fromisoformat(raw_end)
+        except ValueError:
+            raw_end = None
     row = await conn.fetchrow("""
         INSERT INTO games (state_code, state_name, game_id, name, price, ev, return_pct,
             overall_odds_one_in, top_prize, top_prize_remaining,
