@@ -369,6 +369,52 @@ async def api_states():
     return {"states": [dict(zip(cols, r)) for r in rows]}
 
 
+@app.get("/api/status/states")
+async def api_status_states():
+    from backend.scraper.runner import ALL_SCRAPERS
+    all_known = {cls.state_code: cls.state_name for cls in ALL_SCRAPERS}
+
+    async with get_pool().acquire() as conn:
+        game_rows = await conn.fetch("""
+            SELECT state_code, COUNT(*) AS games_in_db
+            FROM games WHERE is_active=TRUE
+            GROUP BY state_code
+        """)
+        log_rows = await conn.fetch("""
+            SELECT DISTINCT ON (state_code)
+                state_code, success, ran_at
+            FROM scrape_log
+            ORDER BY state_code, ran_at DESC
+        """)
+
+    games_by_state = {r["state_code"]: r["games_in_db"] for r in game_rows}
+    log_by_state = {r["state_code"]: r for r in log_rows}
+
+    states = []
+    for state_code in sorted(all_known, key=lambda c: all_known[c]):
+        state_name = all_known[state_code]
+        log = log_by_state.get(state_code)
+        games = games_by_state.get(state_code, 0)
+        if log:
+            status = "ok" if log["success"] else "error"
+        elif games:
+            status = "warn"
+        else:
+            status = "never"
+        states.append({
+            "state_code": state_code,
+            "state_name": state_name,
+            "games_in_db": games,
+            "last_scrape_at": log["ran_at"].isoformat() if log else None,
+            "status": status,
+        })
+
+    return {
+        "states": states,
+        "scraper_running": scrape_status["running"],
+    }
+
+
 @app.get("/api/status")
 async def api_status():
     async with get_pool().acquire() as conn:
