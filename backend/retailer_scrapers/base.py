@@ -30,6 +30,11 @@ def safe_get(url: str, delay: float = 0.3, retries: int = 3, **kwargs) -> reques
     for attempt in range(retries):
         try:
             resp = SESSION.get(url, timeout=30, **kwargs)
+            if resp.status_code == 429:
+                wait = int(resp.headers.get("Retry-After", 60))
+                logger.warning("GET %s rate-limited (429); backing off %ds", url, wait)
+                time.sleep(wait)
+                continue
             resp.raise_for_status()
             time.sleep(delay)
             return resp
