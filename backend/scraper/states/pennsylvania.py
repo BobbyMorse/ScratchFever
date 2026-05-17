@@ -339,12 +339,18 @@ class PennsylvaniaScraper(BaseScraper):
                     if overall_odds is not None:
                         overall_odds_map[gid] = overall_odds
 
-            # Wave 2: sequential retry for games that 500'd in wave 1
+            # Wave 2: sequential retry for games that 500'd in wave 1.
+            # PA lottery server temporarily rate-limits with 500 (not 429) after
+            # burst requests; wait 75s for it to recover before retrying.
             still_missing = [g for g in need_fetch if g["game_id"] not in cache]
             if still_missing:
-                logger.info("PA: retrying %d games sequentially after parallel 500s", len(still_missing))
+                logger.info(
+                    "PA: waiting 75s for server to recover, then retrying %d games",
+                    len(still_missing),
+                )
+                time.sleep(75)
                 for g in still_missing:
-                    time.sleep(0.4)
+                    time.sleep(0.3)
                     gid, tiers, overall_odds, total_tickets = _fetch_game_odds(g)
                     if tiers:
                         cache[gid] = {
