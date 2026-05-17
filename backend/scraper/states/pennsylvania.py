@@ -409,7 +409,7 @@ class PennsylvaniaScraper(BaseScraper):
             price = g["price"]
             top6  = g["top6"]
 
-            pdf_tiers, overall_odds, total_tickets = _cache_get(cache, gid)
+            pdf_tiers, overall_odds, total_tickets, image_url = _cache_get(cache, gid)
             if overall_odds is None:
                 overall_odds = overall_odds_map.get(gid)
 
