@@ -428,12 +428,12 @@
   }
 
   function statusBadge(state) {
+    if (!state.last_scrape_at && state.games_in_db === 0)
+      return `<span class="status-badge no-data">Never Run</span>`;
     if (state.games_in_db === 0) {
       if (state.last_scrape_success === false)
         return `<span class="status-badge error"><span class="status-dot"></span>Error</span>`;
-      if (state.last_scrape_at)
-        return `<span class="status-badge warn"><span class="status-dot"></span>No Data</span>`;
-      return `<span class="status-badge no-data">Never Run</span>`;
+      return `<span class="status-badge warn"><span class="status-dot"></span>No Data</span>`;
     }
     if (state.last_scrape_success === false)
       return `<span class="status-badge error"><span class="status-dot"></span>Error</span>`;
@@ -442,10 +442,21 @@
     return `<span class="status-badge ok"><span class="status-dot"></span>OK</span>`;
   }
 
+  function retailerCell(s) {
+    if (!s.has_retailer_scraper)
+      return `<span class="retailer-none">—</span>`;
+    if (!s.retailer_last_scraped)
+      return `<span class="retailer-stale">Never</span>`;
+    const ageDays = Math.floor((Date.now() - new Date(s.retailer_last_scraped).getTime()) / 86400000);
+    const cls = ageDays > 35 ? "retailer-stale" : "retailer-ok";
+    const count = s.retailer_count != null ? ` <span style="color:var(--text-muted);font-weight:400">(${s.retailer_count.toLocaleString()})</span>` : "";
+    return `<div class="retailer-cell"><span class="${cls}">${timeAgo(s.retailer_last_scraped)}</span>${count}</div>`;
+  }
+
   function renderHealth(states) {
     const tbody = document.getElementById("healthBody");
     if (!states.length) {
-      tbody.innerHTML = '<tr class="loading-row"><td colspan="9">No data found.</td></tr>';
+      tbody.innerHTML = '<tr class="loading-row"><td colspan="10">No data found.</td></tr>';
       return;
     }
 
@@ -453,8 +464,9 @@
 
     tbody.innerHTML = states.map(s => {
       const badge = statusBadge(s);
-      if (badge.includes("ok")) okCount++;
-      else if (badge.includes("error") || badge.includes("Error")) errCount++;
+      const neverScraped = !s.last_scrape_at && s.games_in_db === 0;
+      if (badge.includes('"ok"')) okCount++;
+      else if (badge.includes('"error"')) errCount++;
       else warnCount++;
 
       const gamesHtml = s.games_in_db === 0
@@ -473,7 +485,7 @@
         ? `<span class="mono" style="color:var(--text)">${s.avg_return}%</span>`
         : `<span class="no-error">—</span>`;
 
-      return `<tr>
+      return `<tr${neverScraped ? ' class="never-scraped"' : ''}>
         <td>
           <div class="state-name">${s.state_name}</div>
           <div class="state-code">${s.state_code}</div>
@@ -488,6 +500,7 @@
         <td>${pctBar(s.ev_pct)}</td>
         <td>${pctBar(s.image_pct)}</td>
         <td>${avgReturn}</td>
+        <td>${retailerCell(s)}</td>
         <td>${errCell}</td>
       </tr>`;
     }).join("");
