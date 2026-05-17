@@ -85,15 +85,16 @@ def _cache_get(cache: dict, gid: str) -> tuple[list[dict], float | None, int | N
 def _parse_bulletin(html: str) -> tuple[list[dict], int | None]:
     """Parse PA Bulletin page (pacodeandbulletin.gov) prize table.
 
-    Table class is 'miscr'. Columns:
-      0: Win With (combo description)
-      1: BUBBLE BONUS (alternate win condition)
-      2: Prize amount  ← used
-      3: Approximate Odds Are 1 In
-      4: Approx. No. of Winners Per N Tickets  ← used for prizes_total
+    Table class is 'miscr'. PA Lottery uses different column layouts per game type:
+      4-col: [win_condition, prize_amount, odds, winners_per_run]
+      5-col: [win_condition, bonus_condition, prize_amount, odds, winners_per_run]
+      6-col: [win_cond, prize_set1, win_cond2, prize_set2, odds, winners_per_run]
 
-    Multiple rows can share the same prize amount (different combos). We group
-    by prize amount and sum winners, then derive odds = total_tickets / total_winners.
+    In every format: winners = last column, prize = rightmost parseable dollar
+    amount before the last two columns. We derive odds from total_tickets / winners.
+
+    Multiple rows share the same prize amount (different combos); we sum winners
+    across combos and derive combined odds = total_tickets / total_winners.
     """
     soup = BeautifulSoup(html, "lxml")
     table = soup.find("table", class_="miscr")
@@ -104,10 +105,10 @@ def _parse_bulletin(html: str) -> tuple[list[dict], int | None]:
     if not rows:
         return [], None
 
-    # Parse total_tickets from last column header: "Per N Tickets"
+    # Parse total_tickets from header: "Per N Tickets" (space optional between Per and N)
     total_tickets = None
     header_text = rows[0].get_text()
-    m = re.search(r"Per\s+([\d,]+)\s+Tickets", header_text, re.I)
+    m = re.search(r"Per\s*([\d,]+)\s*[Tt]ickets", header_text)
     if m:
         try:
             total_tickets = int(m.group(1).replace(",", ""))
@@ -118,21 +119,33 @@ def _parse_bulletin(html: str) -> tuple[list[dict], int | None]:
     winners_by_prize: dict[float, int] = {}
     for row in rows[1:]:
         cells = row.find_all("td")
-        if len(cells) < 4:
+        n = len(cells)
+        if n < 3:
             continue
-        prize = parse_prize_amount(cells[2].get_text(strip=True))
-        if not prize or prize <= 0:
-            continue
-        if len(cells) > 4:
-            winners_text = cells[4].get_text(strip=True).replace(",", "")
-        else:
-            continue
+
+        cell_texts = [c.get_text(strip=True) for c in cells]
+
+        # Winners = last column (always positive integer, comma-formatted)
+        winners_text = cell_texts[-1].replace(",", "")
         try:
             winners = int(float(winners_text))
         except (ValueError, TypeError):
             continue
         if winners <= 0:
             continue
+
+        # Prize = rightmost dollar-parseable value in cols [0 .. n-3]
+        # (excludes last two cols: odds column and winners column)
+        prize = None
+        for i in range(n - 3, -1, -1):
+            p = parse_prize_amount(cell_texts[i])
+            if p and p > 0:
+                prize = p
+                break
+
+        if not prize:
+            continue
+
         winners_by_prize[prize] = winners_by_prize.get(prize, 0) + winners
 
     if not winners_by_prize or not total_tickets:
