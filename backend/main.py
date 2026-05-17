@@ -445,15 +445,19 @@ async def api_trigger_scrape(
 
     async def _run():
         scrape_status["running"] = True
+        scrape_status["current_state"] = None
         try:
             from backend.scraper.runner import run_all
-            results = await run_all(state_filter=state)
+            def _on_state(code, name):
+                scrape_status["current_state"] = {"code": code, "name": name}
+            results = await run_all(state_filter=state, on_state=_on_state)
             scrape_status["last_results"] = results
             import datetime
             scrape_status["last_run"] = datetime.datetime.utcnow().isoformat()
             clear_games_cache()
         finally:
             scrape_status["running"] = False
+            scrape_status["current_state"] = None
 
     background_tasks.add_task(_run)
     return {"message": f"Scrape started for {'all states' if not state else state}", "running": True}
