@@ -1166,3 +1166,47 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 
 /* Sidebar admin button */
 #adminHealthBtn.sidebar-item { margin-top: .25rem; }
+
+/* ── Settings page ─────────────────────────────────────────────────────────── */
+.settings-page { max-width: 580px; padding: 2rem 1.5rem; }
+.settings-title { font-size: 1.3rem; font-weight: 700; color: var(--text); margin: 0 0 1.6rem; }
+.settings-section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 1.1rem;
+}
+.settings-section-header {
+  padding: .55rem 1rem;
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: #f4f6fb;
+  border-bottom: 1px solid var(--border);
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: .85rem 1rem;
+}
+.settings-row + .settings-row { border-top: 1px solid var(--border); }
+.settings-label-name { font-size: .88rem; font-weight: 500; color: var(--text); }
+.settings-label-desc { font-size: .78rem; color: var(--text-muted); margin-top: .12rem; }
+.settings-select {
+  flex-shrink: 0;
+  min-width: 170px;
+  padding: .38rem .6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: .85rem;
+  font-family: inherit;
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+}
+.settings-select:focus { outline: 2px solid var(--orange); outline-offset: 1px; }
