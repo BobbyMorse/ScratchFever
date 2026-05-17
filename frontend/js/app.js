@@ -1127,6 +1127,9 @@ function switchTab(name) {
   if (name === "ma") {
     selectHuntState(currentHuntState);
   }
+  if (name === "settings") {
+    populateSettingsTab();
+  }
   if (name === "caller" && !callerLoaded) {
     callerLoaded = true;
     loadCallerData();
