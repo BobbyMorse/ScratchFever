@@ -185,6 +185,7 @@ body {
 .ds-sdot.warn  { background: var(--yellow); }
 .ds-sdot.err   { background: var(--red); box-shadow: 0 0 5px rgba(248,113,113,.4); }
 .ds-sdot.never { background: rgba(255,255,255,.2); }
+.ds-sdot.busy  { background: var(--orange); box-shadow: 0 0 6px var(--orange); animation: pulse 1s infinite; }
 .ds-state-code { font-weight: 700; color: var(--orange); min-width: 2.2rem; font-size: .75rem; }
 .ds-state-name { color: var(--text); flex: 1; }
 .ds-state-when { color: var(--chrome-muted); font-size: .72rem; white-space: nowrap; }
