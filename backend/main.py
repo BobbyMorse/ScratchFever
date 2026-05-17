@@ -374,9 +374,17 @@ async def api_status_states():
     from backend.scraper.runner import ALL_SCRAPERS
     all_known = {cls.state_code: cls.state_name for cls in ALL_SCRAPERS}
 
+    from backend.retailer_scrapers.runner import SCRAPERS as RETAILER_STATES
+    retailer_state_set = set(RETAILER_STATES)
+
     async with get_pool().acquire() as conn:
         game_rows = await conn.fetch("""
-            SELECT state_code, COUNT(*) AS games_in_db
+            SELECT
+                state_code,
+                COUNT(*) AS games_in_db,
+                ROUND(100.0 * COUNT(ev) / COUNT(*), 0) AS ev_pct,
+                ROUND(AVG(CASE WHEN ev IS NOT NULL THEN return_pct END)::numeric, 1) AS avg_return,
+                ROUND(100.0 * COUNT(CASE WHEN tickets_remaining > 0 THEN 1 END) / NULLIF(COUNT(tickets_remaining),0), 0) AS prizes_pct
             FROM games WHERE is_active=TRUE
             GROUP BY state_code
         """)
@@ -386,6 +394,9 @@ async def api_status_states():
             FROM scrape_log
             ORDER BY state_code, ran_at DESC
         """)
+        retailer_rows = await conn.fetch(
+            "SELECT state_code, last_scraped_at FROM retailer_scrape_log"
+        )
 
     games_by_state = {r["state_code"]: r["games_in_db"] for r in game_rows}
     log_by_state = {r["state_code"]: r for r in log_rows}
