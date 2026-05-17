@@ -518,6 +518,7 @@ async function loadAllGamesUnfiltered() {
     const raw = data.games || [];
     allGamesUnfiltered = raw;
     maGames = raw.filter(g => g.state_code === "MA");
+    populateCallerGameSelect();
     azGames = raw.filter(g => g.state_code === "AZ");
     riGames = raw.filter(g => g.state_code === "RI");
     flGames = raw.filter(g => g.state_code === "FL");
