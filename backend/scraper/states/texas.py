@@ -177,11 +177,11 @@ class TexasScraper(BaseScraper):
         if not tiers:
             return None
 
-        total_tickets, overall_odds = None, None
+        total_tickets, overall_odds, image_url = None, None, None
         tickets_remaining = None
 
         if detail_url:
-            total_tickets, overall_odds = self._get_detail_info(detail_url)
+            total_tickets, overall_odds, image_url = self._get_detail_info(detail_url)
 
         if total_tickets and prizes_printed_sum > 0:
             depletion = prizes_remaining_sum / prizes_printed_sum
