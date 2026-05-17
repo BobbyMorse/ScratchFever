@@ -321,6 +321,7 @@ class PennsylvaniaScraper(BaseScraper):
         )
 
         if need_fetch:
+            # Wave 1: parallel fetch (fast, but PA lottery server sometimes 500s under load)
             with ThreadPoolExecutor(max_workers=_CONCURRENCY) as executor:
                 futures = {
                     executor.submit(_fetch_game_odds, g): g["game_id"]
@@ -330,8 +331,25 @@ class PennsylvaniaScraper(BaseScraper):
                     gid, tiers, overall_odds, total_tickets = future.result()
                     if tiers:
                         cache[gid] = {
-                            "tiers":        tiers,
-                            "overall_odds": overall_odds,
+                            "tiers":         tiers,
+                            "overall_odds":  overall_odds,
+                            "total_tickets": total_tickets,
+                        }
+                        cache_updated = True
+                    if overall_odds is not None:
+                        overall_odds_map[gid] = overall_odds
+
+            # Wave 2: sequential retry for games that 500'd in wave 1
+            still_missing = [g for g in need_fetch if g["game_id"] not in cache]
+            if still_missing:
+                logger.info("PA: retrying %d games sequentially after parallel 500s", len(still_missing))
+                for g in still_missing:
+                    time.sleep(0.4)
+                    gid, tiers, overall_odds, total_tickets = _fetch_game_odds(g)
+                    if tiers:
+                        cache[gid] = {
+                            "tiers":         tiers,
+                            "overall_odds":  overall_odds,
                             "total_tickets": total_tickets,
                         }
                         cache_updated = True
