@@ -221,8 +221,8 @@ async def upsert_game(conn: asyncpg.Connection, state_code: str, state_name: str
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW(), TRUE)
         ON CONFLICT(state_code, game_id) DO UPDATE SET
             name=EXCLUDED.name, price=EXCLUDED.price,
-            ev=COALESCE(EXCLUDED.ev, games.ev),
-            return_pct=COALESCE(EXCLUDED.return_pct, games.return_pct),
+            ev=EXCLUDED.ev,
+            return_pct=EXCLUDED.return_pct,
             overall_odds_one_in=EXCLUDED.overall_odds_one_in,
             top_prize=EXCLUDED.top_prize, top_prize_remaining=EXCLUDED.top_prize_remaining,
             total_tickets=EXCLUDED.total_tickets, tickets_remaining=EXCLUDED.tickets_remaining,
