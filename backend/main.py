@@ -352,7 +352,7 @@ async def api_game_detail(game_id: int):
         "top_prize", "top_prize_remaining",
         "total_tickets", "tickets_remaining",
         "prize_pool_left", "is_active", "detail_url", "image_url", "scraped_at",
-        "how_to_play",
+        "how_to_play", "ev_approximate",
     ]
     tier_cols = ["prize_amount", "odds_one_in", "prizes_total", "prizes_remaining"]
     all_cols = game_cols + tier_cols
