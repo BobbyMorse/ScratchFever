@@ -582,7 +582,7 @@
 
   async function loadHealth() {
     document.getElementById("healthBody").innerHTML =
-      '<tr class="loading-row"><td colspan="11">Loading…</td></tr>';
+      '<tr class="loading-row"><td colspan="12">Loading…</td></tr>';
     try {
       const res = await fetch("/api/admin/health", {
         headers: { Authorization: `Bearer ${token}` }
@@ -592,7 +592,7 @@
       renderHealth(data.states || []);
     } catch (e) {
       document.getElementById("healthBody").innerHTML =
-        `<tr class="loading-row"><td colspan="11" style="color:var(--red)">Failed to load: ${e.message}</td></tr>`;
+        `<tr class="loading-row"><td colspan="12" style="color:var(--red)">Failed to load: ${e.message}</td></tr>`;
     }
   }
 
