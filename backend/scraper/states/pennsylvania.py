@@ -40,7 +40,7 @@ LIST_URL = "https://www.palottery.pa.gov/Scratch-Offs/Prizes-Remaining.aspx"
 BASE_URL = "https://www.palottery.pa.gov"
 CACHE_FILE = Path(__file__).parent / "pa_odds_cache_v2.json"
 
-_CONCURRENCY = 10
+_CONCURRENCY = 5
 _DETAIL_TIMEOUT = 25
 
 
