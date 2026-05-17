@@ -246,7 +246,7 @@ async def api_games(
     max_price: Optional[float] = Query(None),
     min_return: Optional[float] = Query(None, description="Minimum return % (e.g. 60)"),
     sort_by: str = Query("return_pct", description="Sort field"),
-    limit: int = Query(500, le=1000),
+    limit: int = Query(500, le=5000),
 ):
     async with get_pool().acquire() as conn:
         rows = await get_all_games(

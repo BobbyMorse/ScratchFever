@@ -103,12 +103,20 @@ class NewMexicoScraper(BaseScraper):
                 if not tiers and not overall_odds:
                     continue
 
+                total_rem = sum(t.get("prizes_remaining") or 0 for t in tiers)
+                total_tot = sum(t.get("prizes_total") or 0 for t in tiers)
+                all_have_rem = tiers and all(t.get("prizes_remaining") is not None for t in tiers)
+                tickets_remaining = round(overall_odds * total_rem) if overall_odds and all_have_rem else None
+                total_tickets = round(overall_odds * total_tot) if overall_odds and total_tot else None
+
                 games.append(self.build_game(
                     game_id=str(game_id),
                     name=name,
                     price=price,
                     tiers=tiers,
                     overall_odds=overall_odds,
+                    tickets_remaining=tickets_remaining,
+                    total_tickets=total_tickets,
                     image_url=image_url,
                 ))
             except Exception as e:
