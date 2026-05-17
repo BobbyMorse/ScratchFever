@@ -78,27 +78,8 @@ async def check_and_run_stale_retailers():
         logger.error("Retailer staleness check failed: %s", e)
 
 
-def _ensure_playwright_chromium():
-    """Install Chromium if not present — self-heals stale Railway build cache."""
-    import subprocess, sys
-    browsers_path = os.environ.get("PLAYWRIGHT_BROWSERS_PATH") or "/app/.playwright"
-    os.environ["PLAYWRIGHT_BROWSERS_PATH"] = browsers_path
-    try:
-        result = subprocess.run(
-            [sys.executable, "-m", "playwright", "install", "--with-deps", "chromium"],
-            capture_output=True, text=True, timeout=120,
-        )
-        if result.returncode == 0:
-            logger.info("Playwright Chromium ready at %s", browsers_path)
-        else:
-            logger.warning("playwright install chromium exited %d: %s", result.returncode, result.stderr[:200])
-    except Exception as e:
-        logger.warning("playwright install chromium failed: %s", e)
-
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    asyncio.create_task(asyncio.to_thread(_ensure_playwright_chromium))
     await init_db()
     await init_caller_db()
     await init_users_db()
@@ -115,8 +96,11 @@ async def lifespan(app: FastAPI):
 
     scheduler.start()
 
-    # Warm retailer caches then check if any state's retailers are stale
-    async def _startup_retailer_tasks():
+    # Delay heavy startup work so Railway health checks pass before scraping begins
+    STARTUP_DELAY = 90  # seconds after boot before first scrape/cache-warm
+
+    async def _delayed_startup():
+        await asyncio.sleep(STARTUP_DELAY)
         try:
             from backend.ma_scorer import load_and_score_async as warm_ma
             from backend.az_scorer import load_and_score_async as warm_az
@@ -129,9 +113,9 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logger.warning("Cache warm failed: %s", e)
         await check_and_run_stale_retailers()
-    asyncio.create_task(_startup_retailer_tasks())
-    # Scrape games immediately on startup so a restart never leaves data stale
-    asyncio.create_task(scheduled_scrape())
+        await scheduled_scrape()
+
+    asyncio.create_task(_delayed_startup())
 
     yield
     scheduler.shutdown()
