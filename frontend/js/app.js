@@ -1145,7 +1145,9 @@ function switchTab(name) {
     loadBigWins();
   }
   if (name === "health") {
-    loadAdminHealth();
+    loadStateHealth();
+    const isAdmin = _currentUser && _currentUser.role === "admin";
+    if (isAdmin) loadAdminHealth();
   }
   if (name === "plays") {
     if (_currentUser) loadPlays();
