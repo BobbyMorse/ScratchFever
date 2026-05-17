@@ -5,6 +5,52 @@
 // TX: CSV has tier counts but no total tickets or per-game odds.
 const EV_EXCLUDED_STATES = new Set(["IL", "TX"]);
 
+const STATE_LOTTERY_URLS = {
+  AR: "https://www.myarkansaslottery.com/games/instant-games",
+  AZ: "https://www.arizonalottery.com/scratchers/",
+  CA: "https://www.calottery.com/scratch",
+  CO: "https://coloradolottery.com/en/games/scratch/",
+  CT: "https://www.ctlottery.org/instant-games",
+  DC: "https://dclottery.com/games/scratchoffs",
+  DE: "https://www.delottery.com/Instant-Games",
+  FL: "https://www.flalottery.com/scratch-off-games",
+  GA: "https://www.galottery.com/en-us/games/scratchers.html",
+  IA: "https://www.ialottery.com/Games/ScratchGames.aspx",
+  ID: "https://www.idaholottery.com/games/scratch/",
+  IL: "https://www.illinoislottery.com/illinois-lottery/scratch-offs.html",
+  IN: "https://www.hoosierlottery.com/games/scratch-offs",
+  KS: "https://www.kslottery.com/games/instants",
+  KY: "https://www.kylottery.com/apps/game_pages/scratch_offs.html",
+  LA: "https://louisianalottery.com/scratch-offs",
+  MA: "https://www.masslottery.com/games/instant-tickets",
+  MD: "https://www.mdlottery.com/games/scratch-offs/",
+  ME: "https://www.mainelottery.com/games/instant.html",
+  MI: "https://www.michiganlottery.com/games/instant-games",
+  MN: "https://www.mnlottery.com/games/scratch_games/",
+  MO: "https://www.molottery.com/s/scratchers-list.do",
+  MS: "https://www.mslottery.com/scratchoffs.html",
+  MT: "https://montanalottery.com/scratch-games/",
+  NC: "https://www.nclottery.com/scratch",
+  NE: "https://www.nelottery.com/lotteryApp/scratch-off",
+  NH: "https://www.nhlottery.com/games/scratch-tickets",
+  NJ: "https://www.njlottery.com/en-us/games/scratchoffs.html",
+  NM: "https://www.nmlottery.com/games/scratch/",
+  NY: "https://nylottery.ny.gov/scratch-off-games",
+  OH: "https://www.ohiolottery.com/games/scratch-offs",
+  OR: "https://www.oregonlottery.org/games/scratch-its/",
+  PA: "https://www.palottery.pa.gov/Scratch-Offs/Currently-On-Sale.aspx",
+  RI: "https://www.rilot.com/en-us/scratch/games.html",
+  SC: "https://www.sceducationlottery.com/games/scratch-offs.aspx",
+  SD: "https://www.sdlottery.org/games/scratch-tickets/",
+  TN: "https://www.tnlottery.com/scratch-offs",
+  TX: "https://www.txlottery.org/export/sites/lottery/Games/Scratch_Offs/",
+  VA: "https://www.valottery.com/games/scratch",
+  VT: "https://www.vtlottery.com/games/instant-games/",
+  WA: "https://www.walottery.com/Scratch/",
+  WI: "https://www.wilottery.com/games/scratch/",
+  WV: "https://www.wvlottery.com/games/scratch-offs/",
+};
+
 let allGames = [];
 let allGamesUnfiltered = [];
 let states = [];
