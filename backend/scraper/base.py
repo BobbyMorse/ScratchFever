@@ -45,7 +45,8 @@ class BaseScraper(ABC):
     def build_game(self, game_id: str, name: str, price: float, tiers: list[dict],
                    tickets_remaining: int = None, total_tickets: int = None,
                    detail_url: str = None, overall_odds: float = None,
-                   image_url: str = None, end_date: str = None) -> dict:
+                   image_url: str = None, end_date: str = None,
+                   ev_approximate: bool = False) -> dict:
         ev_data = calculate_ev(price, tiers, tickets_remaining)
         top_prize, top_prize_remaining = find_top_prize(tiers)
         jackpot_odds = calculate_jackpot_odds(tiers, tickets_remaining)
@@ -64,6 +65,7 @@ class BaseScraper(ABC):
             "detail_url": detail_url,
             "image_url": image_url,
             "end_date": end_date,
+            "ev_approximate": ev_approximate,
             "tiers": tiers,
         }
 
