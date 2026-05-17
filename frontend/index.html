@@ -1514,10 +1514,23 @@
             </div>
           </div>
           <div class="ds-scraper-status" id="dsScraperStatus" style="display:none">
-            <span class="ds-running-dot"></span> Scraper is currently running
+            <span class="ds-running-dot"></span>
+            <span id="dsCurrentState">Scraper running…</span>
           </div>
-          <div class="ds-grid" id="dsGrid">
-            <div class="ds-loading">Loading state data…</div>
+          <div class="ds-table-wrap">
+            <table class="ds-table">
+              <thead>
+                <tr>
+                  <th style="width:2rem"></th>
+                  <th>State</th>
+                  <th>Last Scraped</th>
+                  <th>Games</th>
+                </tr>
+              </thead>
+              <tbody id="dsGrid">
+                <tr><td colspan="4" class="ds-loading">Loading…</td></tr>
+              </tbody>
+            </table>
           </div>
           <!-- Admin-only detailed table -->
           <div id="dsAdminSection" style="display:none">
