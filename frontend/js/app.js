@@ -5164,3 +5164,119 @@ document.addEventListener("click", function(e) {
     return orig(name);
   };
 })();
+
+// ── Admin Health Panel ──────────────────────────────────────────────────────
+
+function openAdminPanel() {
+  document.getElementById("apPanel").classList.add("open");
+  document.getElementById("apBackdrop").style.display = "";
+  loadAdminHealth();
+}
+
+function closeAdminPanel() {
+  document.getElementById("apPanel").classList.remove("open");
+  document.getElementById("apBackdrop").style.display = "none";
+}
+
+function _apTimeAgo(iso) {
+  if (!iso) return "—";
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
+function _apPctBar(val) {
+  const cls = val >= 80 ? "g" : val >= 50 ? "y" : "r";
+  return `<div class="ap-bar-wrap ${cls}">
+    <div class="ap-bar"><div class="ap-bar-fill" style="width:${Math.min(val,100)}%"></div></div>
+    <span class="ap-pct">${val}%</span>
+  </div>`;
+}
+
+function _apBadge(s) {
+  if (!s.last_scrape_at && s.games_in_db === 0)
+    return `<span class="ap-badge none">Never Run</span>`;
+  if (s.games_in_db === 0) {
+    if (s.last_scrape_success === false)
+      return `<span class="ap-badge error"><span class="ap-badge-dot"></span>Error</span>`;
+    return `<span class="ap-badge warn"><span class="ap-badge-dot"></span>No Data</span>`;
+  }
+  if (s.last_scrape_success === false)
+    return `<span class="ap-badge error"><span class="ap-badge-dot"></span>Error</span>`;
+  if (s.ev_pct < 50 || s.image_pct < 50)
+    return `<span class="ap-badge warn"><span class="ap-badge-dot"></span>Partial</span>`;
+  return `<span class="ap-badge ok"><span class="ap-badge-dot"></span>OK</span>`;
+}
+
+function _apRetailerCell(s) {
+  if (!s.has_retailer_scraper) return `<span class="ap-ret-none">—</span>`;
+  if (!s.retailer_last_scraped) return `<span class="ap-ret-stale">Never</span>`;
+  const ageDays = Math.floor((Date.now() - new Date(s.retailer_last_scraped).getTime()) / 86400000);
+  const cls = ageDays > 35 ? "ap-ret-stale" : "ap-ret-ok";
+  const count = s.retailer_count != null
+    ? ` <span class="ap-ret-count">(${s.retailer_count.toLocaleString()})</span>` : "";
+  return `<span class="${cls}">${_apTimeAgo(s.retailer_last_scraped)}</span>${count}`;
+}
+
+async function loadAdminHealth() {
+  document.getElementById("apHealthBody").innerHTML =
+    `<tr><td colspan="10" class="ap-loading">Loading…</td></tr>`;
+  try {
+    const res = await apiFetch("/api/admin/health");
+    if (!res.ok) { throw new Error(`${res.status}`); }
+    const data = await res.json();
+    _renderAdminHealth(data.states || []);
+  } catch(e) {
+    document.getElementById("apHealthBody").innerHTML =
+      `<tr><td colspan="10" class="ap-loading" style="color:#fca5a5">Failed: ${e.message}</td></tr>`;
+  }
+}
+
+function _renderAdminHealth(states) {
+  let ok = 0, warn = 0, err = 0;
+  const rows = states.map(s => {
+    const badge = _apBadge(s);
+    if (badge.includes('"ok"')) ok++;
+    else if (badge.includes('"error"')) err++;
+    else warn++;
+
+    const neverScraped = !s.last_scrape_at && s.games_in_db === 0;
+    const gamesHtml = s.games_in_db === 0
+      ? `<span class="ap-games zero">0</span>`
+      : `<span class="ap-games">${s.games_in_db}</span>`;
+    const fetched = s.last_scrape_games != null
+      ? `<div class="ap-fetched">${s.last_scrape_games} fetched</div>` : "";
+    const errCell = s.last_scrape_error
+      ? `<span class="ap-err" title="${s.last_scrape_error.replace(/"/g,'&quot;')}">${s.last_scrape_error}</span>`
+      : `<span class="ap-muted">—</span>`;
+    const avgRet = s.avg_return
+      ? `<span class="ap-ret-ok">${s.avg_return}%</span>`
+      : `<span class="ap-muted">—</span>`;
+
+    return `<tr${neverScraped ? ' class="ap-never"' : ''}>
+      <td><div class="ap-state-name">${s.state_name}</div><div class="ap-state-code">${s.state_code}</div></td>
+      <td>${badge}</td>
+      <td>${gamesHtml}</td>
+      <td>
+        <div class="ap-time">${_apTimeAgo(s.last_scrape_at)}</div>
+        <div class="ap-date">${s.last_scrape_at ? s.last_scrape_at.slice(0,10) : ""}</div>
+      </td>
+      <td>${fetched}</td>
+      <td>${_apPctBar(s.ev_pct)}</td>
+      <td>${_apPctBar(s.image_pct)}</td>
+      <td>${avgRet}</td>
+      <td>${_apRetailerCell(s)}</td>
+      <td>${errCell}</td>
+    </tr>`;
+  }).join("");
+
+  document.getElementById("apHealthBody").innerHTML = rows ||
+    `<tr><td colspan="10" class="ap-loading">No data.</td></tr>`;
+  document.getElementById("apOkN").textContent = ok;
+  document.getElementById("apWarnN").textContent = warn;
+  document.getElementById("apErrN").textContent = err;
+}
