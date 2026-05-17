@@ -49,10 +49,13 @@ async def scheduled_scrape():
         logger.info("Scrape already running, skipping")
         return
     scrape_status["running"] = True
+    scrape_status["current_state"] = None
     try:
         logger.info("Starting scrape of all states")
         from backend.scraper.runner import run_all
-        results = await run_all()
+        def _on_state(code, name):
+            scrape_status["current_state"] = {"code": code, "name": name}
+        results = await run_all(on_state=_on_state)
         scrape_status["last_results"] = results
         scrape_status["last_run"] = datetime.datetime.utcnow().isoformat()
         clear_games_cache()
