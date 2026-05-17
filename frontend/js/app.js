@@ -1252,7 +1252,6 @@ function switchTab(name) {
   if (name === "health") {
     loadStateHealth();
     const isAdmin = _currentUser && _currentUser.role === "admin";
-    if (isAdmin) loadAdminHealth();
   }
   if (name === "plays") {
     if (_currentUser) loadPlays();
