@@ -72,6 +72,7 @@ class CaliforniaScraper(BaseScraper):
         tiers = []
         total_prizes_printed = 0
         total_prizes_remaining = 0
+        any_remaining_data = False
 
         for t in tiers_raw:
             prize = float(t.get("value") or 0)
@@ -79,7 +80,10 @@ class CaliforniaScraper(BaseScraper):
                 continue
             odds = float(t.get("odds") or 0) or None
             total = int(t.get("totalNumberOfPrizes") or 0)
-            remaining = int(t.get("number") or 0)
+            raw_remaining = t.get("number")
+            remaining = int(raw_remaining or 0)
+            if raw_remaining is not None and remaining > 0:
+                any_remaining_data = True
 
             if total <= 0:
                 continue
@@ -101,7 +105,10 @@ class CaliforniaScraper(BaseScraper):
         tickets_remaining = None
         if overall_odds and overall_odds > 0 and total_prizes_printed > 0:
             total_tickets = round(overall_odds * total_prizes_printed)
-            tickets_remaining = round(overall_odds * total_prizes_remaining)
+            # Only store tickets_remaining when the API provides real remaining data.
+            # CA returns number=0 for all tiers when remaining counts are unavailable.
+            if any_remaining_data:
+                tickets_remaining = round(overall_odds * total_prizes_remaining)
 
         return self.build_game(
             game_id=game_id or name,
