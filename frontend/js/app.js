@@ -5451,8 +5451,8 @@ function _renderAdminHealth(states) {
   document.getElementById("htOkN").textContent = ok;
   document.getElementById("htWarnN").textContent = warn;
   document.getElementById("htErrN").textContent = err;
-  document.getElementById("healthTabSub").textContent =
-    `Last refreshed ${_apTimeAgo(new Date().toISOString())}`;
+  const sub = document.getElementById("dsLastUpdated");
+  if (sub) sub.textContent = `${ok + warn + err} states · refreshed just now`;
 }
 
 // ── Settings tab ──────────────────────────────────────────────────────────────
