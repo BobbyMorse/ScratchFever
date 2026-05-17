@@ -61,9 +61,16 @@ class NorthCarolinaScraper(BaseScraper):
 
         return games
 
-    def _scrape_detail(self, url: str) -> tuple[list, int | None, int | None]:
+    def _scrape_detail(self, url: str) -> tuple[list, int | None, int | None, str | None]:
         soup = self.soup(url)
         tiers = []
+
+        image_url = None
+        for img in soup.find_all("img"):
+            src = img.get("src") or img.get("data-src", "")
+            if src and re.search(r"\.(jpg|jpeg|png|webp)", src, re.I):
+                image_url = (BASE_URL + src) if src.startswith("/") else src
+                break
 
         for table in soup.find_all("table"):
             headers = [th.get_text(strip=True).lower() for th in table.find_all("th")]
