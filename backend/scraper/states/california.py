@@ -112,8 +112,7 @@ class CaliforniaScraper(BaseScraper):
         tickets_remaining = None
         if overall_odds and overall_odds > 0 and total_prizes_printed > 0:
             total_tickets = round(overall_odds * total_prizes_printed)
-            # Only store tickets_remaining when the API provides real remaining data.
-            # CA returns number=0 for all tiers when remaining counts are unavailable.
+            # Only store tickets_remaining when at least one tier has prizes still in the field.
             if any_remaining_data:
                 tickets_remaining = round(overall_odds * total_prizes_remaining)
 
