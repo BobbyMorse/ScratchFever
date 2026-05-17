@@ -112,7 +112,7 @@ class NewJerseyScraper(BaseScraper):
             tiers=tiers,
             total_tickets=total_tickets,
             tickets_remaining=tickets_remaining,
-            detail_url=f"{BASE_URL}/en-us/games/scratchers.html",
+            detail_url=f"{BASE_URL}/en-us/scratch-offs/{game_id_padded}.html",
             image_url=image_url,
             end_date=end_date,
         )
