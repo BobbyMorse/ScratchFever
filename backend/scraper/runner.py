@@ -50,6 +50,7 @@ from backend.scraper.states.new_mexico import NewMexicoScraper
 from backend.scraper.states.delaware import DelawareScraper
 from backend.scraper.states.dc import DCScraper
 from backend.scraper.states.mississippi import MississippiScraper
+from backend.scraper.states.maine import MaineScraper
 
 logger = logging.getLogger(__name__)
 
