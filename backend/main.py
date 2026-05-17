@@ -146,6 +146,11 @@ if os.path.isdir(FRONTEND_DIR):
     app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
 
 
+@app.get("/health", include_in_schema=False)
+async def health():
+    return {"status": "ok"}
+
+
 @app.get("/", include_in_schema=False)
 async def index():
     return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
