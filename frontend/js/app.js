@@ -1034,7 +1034,7 @@ function gameRow(g, rank) {
 
   const approxMark = g.ev_approximate ? "~" : "";
   const retCell = ret != null
-    ? `<span class="${cls}" title="${g.ev_approximate ? "Estimated — CO publishes top prizes only; EV approximated via depletion rate" : ""}">
+    ? `<span class="${cls}" title="${g.ev_approximate ? "Estimated — top prize depletion rate used as proxy for overall ticket sales" : ""}">
          <div class="return-bar-wrap">
            <div class="return-bar"><div class="return-bar-fill" style="width:${barPct}%"></div></div>
            ${approxMark}${ret.toFixed(2)}%
