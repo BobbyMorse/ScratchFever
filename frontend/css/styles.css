@@ -1037,7 +1037,7 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
 .link-btn:hover { color: var(--orange-dark); }
 
 .ma-map-section { margin-bottom: 1rem; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-#maMap, #azMap, #flMap { height: 400px; }
+#maMap, #azMap, #flMap, #riMap, #gaMap, #nyMap, #vaMap, #dcMap, #vtMap { height: 400px; }
 
 /* ── My Plays ─────────────────────────────────────── */
 .plays-log-section { margin: 0 1.5rem 1.25rem; }
