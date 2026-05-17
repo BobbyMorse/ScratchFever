@@ -1168,48 +1168,73 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 #adminHealthBtn.sidebar-item { margin-top: .25rem; }
 
 /* ── Settings page ─────────────────────────────────────────────────────────── */
-.settings-page { max-width: 580px; padding: 2rem 1.5rem; }
-.settings-title { font-size: 1.3rem; font-weight: 700; color: var(--text); margin: 0 0 1.6rem; }
-.settings-section {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  overflow: hidden;
-  margin-bottom: 1.1rem;
+.settings-page { max-width: 620px; padding: 2.5rem 2rem; }
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  margin-bottom: 2.2rem;
+  padding-bottom: 1.6rem;
+  border-bottom: 1px solid var(--border);
 }
-.settings-section-header {
-  padding: .55rem 1rem;
-  font-size: .7rem;
+.settings-header-icon {
+  width: 48px; height: 48px;
+  background: var(--orange-dim);
+  border: 1.5px solid rgba(249,115,22,0.22);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.settings-header-icon svg { width: 20px; height: 20px; stroke: var(--orange); }
+.settings-header-title { font-size: 1.45rem; font-weight: 700; color: var(--text); margin: 0 0 .15rem; }
+.settings-header-sub { font-size: .8rem; color: var(--text-muted); margin: 0; }
+
+.settings-group { margin-bottom: 1.6rem; }
+.settings-group-title {
+  font-size: .72rem;
   font-weight: 700;
   letter-spacing: .07em;
   text-transform: uppercase;
-  color: var(--text-muted);
-  background: #f4f6fb;
-  border-bottom: 1px solid var(--border);
+  color: var(--orange);
+  margin-bottom: .55rem;
+  padding-left: .1rem;
+}
+.settings-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  overflow: hidden;
 }
 .settings-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
-  padding: .85rem 1rem;
+  gap: 2rem;
+  padding: 1.1rem 1.25rem;
 }
 .settings-row + .settings-row { border-top: 1px solid var(--border); }
-.settings-label-name { font-size: .88rem; font-weight: 500; color: var(--text); }
-.settings-label-desc { font-size: .78rem; color: var(--text-muted); margin-top: .12rem; }
+.settings-row-name { font-size: .9rem; font-weight: 600; color: var(--text); margin-bottom: .18rem; }
+.settings-row-desc { font-size: .78rem; color: var(--text-muted); line-height: 1.4; }
 .settings-select {
   flex-shrink: 0;
-  min-width: 170px;
-  padding: .38rem .6rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  min-width: 185px;
+  padding: .45rem 2.2rem .45rem .75rem;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
   font-size: .85rem;
   font-family: inherit;
-  background: #fff;
+  font-weight: 500;
+  background: #f8f9fb url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='7' viewBox='0 0 11 7'%3E%3Cpath d='M1 1l4.5 4.5L10 1' stroke='%236b7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E") no-repeat right .75rem center;
+  -webkit-appearance: none;
+  appearance: none;
   color: var(--text);
   cursor: pointer;
+  transition: border-color .15s, box-shadow .15s;
 }
-.settings-select:focus { outline: 2px solid var(--orange); outline-offset: 1px; }
+.settings-select:hover { border-color: var(--orange); }
+.settings-select:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 3px var(--orange-dim); }
 
 /* ── Admin Health Panel ────────────────────────────── */
 .ap-backdrop {
