@@ -2455,6 +2455,9 @@ function getGamesForRetailer(retailerId) {
   if (state === 'FL') return flGames;
   if (state === 'GA') return gaGames;
   if (state === 'NY') return nyGames;
+  if (state === 'VA') return vaGames;
+  if (state === 'DC') return dcGames;
+  if (state === 'VT') return vtGames;
   return [];
 }
 
