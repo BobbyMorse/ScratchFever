@@ -121,6 +121,7 @@ async def init_db():
         await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS jackpot_odds_one_in REAL")
         await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS how_to_play TEXT")
         await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS end_date DATE")
+        await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS ev_approximate BOOLEAN DEFAULT FALSE")
         # Clear stale past end_dates for states whose scrapers no longer set end_date (e.g. CA).
         # Active games with a past end_date were set by an older scraper version and should not
         # suppress display.
