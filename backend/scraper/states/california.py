@@ -1,11 +1,12 @@
 """
 California Lottery scratch-off scraper.
 API: https://www.calottery.com/api/games/scratchers
-  Fields: gameNumber, name, price (int), cashOdds (overall odds denominator),
-          prizeTiers[]: value (dollars), odds (denominator), totalNumberOfPrizes,
+  Fields: gameNumber, name, price (int), cashOdds (cash-prize odds denominator),
+          prizeTiers[]: value (dollars), odds (per-tier denominator), totalNumberOfPrizes,
                         numberOfPrizesCashed, numberOfPrizesPending
-  NOTE: The `number` field is a tier identifier, NOT prizes remaining.
-        Prizes remaining = totalNumberOfPrizes - numberOfPrizesCashed - numberOfPrizesPending.
+  NOTE: numberOfPrizesPending = prizes still in the field (not yet claimed).
+        prizes_remaining = totalNumberOfPrizes - numberOfPrizesCashed (= numberOfPrizesPending).
+        tickets_remaining is estimated via median(prizes_remaining_i * odds_i) across tiers.
 """
 from __future__ import annotations
 import logging
