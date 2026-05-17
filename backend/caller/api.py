@@ -52,23 +52,29 @@ class TestCallBody(BaseModel):
 
 @router.post("/api/caller/campaigns")
 async def create_campaign_endpoint(body: CampaignCreate):
-    tiers = [t.strip().upper() for t in body.target_tiers.split(",")]
-    max_stores = body.max_stores if body.max_stores > 0 else 9999
-    campaign_id = await create_campaign(
-        game_name=body.game_name,
-        game_number=body.game_number,
-        game_price=body.game_price,
-        target_tiers=",".join(tiers),
-        max_stores=max_stores,
-        call_backend=body.call_backend,
-    )
-    inserted = await populate_queue(campaign_id, tiers, max_stores)
-    campaign = await get_campaign(campaign_id)
-    return {
-        "campaign": campaign,
-        "queue_loaded": inserted,
-        "message": f"Campaign #{campaign_id} created with {inserted} stores queued.",
-    }
+    try:
+        tiers = [t.strip().upper() for t in body.target_tiers.split(",")]
+        max_stores = body.max_stores if body.max_stores > 0 else 9999
+        campaign_id = await create_campaign(
+            game_name=body.game_name,
+            game_number=body.game_number,
+            game_price=body.game_price,
+            target_tiers=",".join(tiers),
+            max_stores=max_stores,
+            call_backend=body.call_backend,
+        )
+        inserted = await populate_queue(campaign_id, tiers, max_stores)
+        campaign = await get_campaign(campaign_id)
+        return {
+            "campaign": campaign,
+            "queue_loaded": inserted,
+            "message": f"Campaign #{campaign_id} created with {inserted} stores queued.",
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("Error creating campaign")
+        raise HTTPException(status_code=500, detail=str(exc))
 
 
 @router.get("/api/caller/campaigns")
