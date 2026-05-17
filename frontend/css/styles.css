@@ -197,6 +197,19 @@ body {
 .ds-pct-hi  { color: var(--green); }
 .ds-pct-mid { color: var(--yellow); }
 .ds-pct-lo  { color: var(--red); }
+.ds-table thead th[data-col] {
+  cursor: pointer; user-select: none;
+  position: relative; padding-right: 1.5rem;
+}
+.ds-table thead th[data-col]:hover { color: var(--text); background: rgba(255,255,255,.05); }
+.ds-table thead th[data-col]::after {
+  content: '⇅'; position: absolute; right: .4rem;
+  opacity: .25; font-size: .65rem; font-weight: 400;
+}
+.ds-table thead th.ds-th-asc::after  { content: '▲'; opacity: 1; color: var(--orange); }
+.ds-table thead th.ds-th-desc::after { content: '▼'; opacity: 1; color: var(--orange); }
+.ds-chip[data-filter] { cursor: pointer; transition: outline .1s; }
+.ds-chip-active { outline: 1px solid currentColor; background: rgba(255,255,255,.07); }
 .ds-admin-divider {
   font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
   color: var(--chrome-muted); border-top: 1px solid rgba(255,255,255,.08);
