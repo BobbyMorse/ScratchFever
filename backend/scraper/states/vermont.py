@@ -194,7 +194,7 @@ class VermontScraper(BaseScraper):
         return_pct = None
         # Suppress EV for games that are 99%+ sold — so few tickets remain that
         # they're effectively unavailable at retail and skew the state average.
-        nearly_sold_out = (pct_sold is not None and pct_sold >= 99)
+        nearly_sold_out = (pct_sold is not None and pct_sold >= 95)
         if total_unclaimed and tickets_remaining and tickets_remaining > 0 and not nearly_sold_out:
             ev = round(total_unclaimed / tickets_remaining - price, 4)
             return_pct = round(total_unclaimed / tickets_remaining / price * 100, 2)
