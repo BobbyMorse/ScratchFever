@@ -191,6 +191,11 @@ body {
 .ds-state-games { color: var(--chrome-muted); font-size: .72rem; white-space: nowrap; min-width: 4.5rem; text-align: right; }
 .ds-loading { color: var(--chrome-muted); font-size: .85rem; padding: 1rem .75rem; }
 .ds-muted { color: var(--chrome-muted); }
+.ds-col-num { text-align: right; white-space: nowrap; }
+.ds-pct { font-size: .78rem; font-weight: 600; }
+.ds-pct-hi  { color: var(--green); }
+.ds-pct-mid { color: var(--yellow); }
+.ds-pct-lo  { color: var(--red); }
 .ds-admin-divider {
   font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
   color: var(--chrome-muted); border-top: 1px solid rgba(255,255,255,.08);
