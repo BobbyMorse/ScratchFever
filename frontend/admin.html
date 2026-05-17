@@ -454,6 +454,21 @@
     return `<div class="retailer-cell"><span class="${cls}">${timeAgo(s.retailer_last_scraped)}</span>${count}</div>`;
   }
 
+  function remainingPctCell(s) {
+    if (s.zero_remaining_count > 0) {
+      return `<span class="status-badge error" title="${s.zero_remaining_count} game(s) have tickets_remaining=0 (scraper bug — stores 0 instead of NULL)">
+        <span class="status-dot"></span>Zero Bug (${s.zero_remaining_count})
+      </span>`;
+    }
+    if (s.games_in_db === 0 || s.remaining_pct == null) {
+      return `<span class="no-error">—</span>`;
+    }
+    if (s.remaining_pct === 0) {
+      return `<span class="status-badge no-data" title="Scraper cannot retrieve prizes-remaining data for this state">No Data</span>`;
+    }
+    return pctBar(s.remaining_pct);
+  }
+
   function renderHealth(states) {
     const tbody = document.getElementById("healthBody");
     if (!states.length) {
