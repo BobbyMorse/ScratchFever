@@ -55,6 +55,15 @@ class MaineScraper(BaseScraper):
                     continue
                 seen.add(href)
 
+                # Image may be in a sibling/parent container on the listing page
+                image_url = None
+                parent = a.find_parent(["li", "div", "td", "article"])
+                img_el = a.find("img") or (parent.find("img") if parent else None)
+                if img_el:
+                    src = img_el.get("src") or img_el.get("data-src", "")
+                    if src:
+                        image_url = (BASE_URL + src) if src.startswith("/") else src
+
                 name = a.get_text(strip=True)
                 if not name or len(name) < 2:
                     continue
@@ -78,6 +87,7 @@ class MaineScraper(BaseScraper):
                     total_tickets=total_tickets,
                     overall_odds=overall_odds,
                     detail_url=href,
+                    image_url=image_url,
                 )
                 games.append(game)
 
