@@ -4179,6 +4179,651 @@ function applyNyGameFilter() {
   if (nyMapVisible) renderNyMapLayers(getNyFilteredRows());
 }
 
+// ══════════════════════════════════════════════════════════════════════════════
+// VA HUNT
+// ══════════════════════════════════════════════════════════════════════════════
+
+async function loadVaRetailers() {
+  try {
+    const res = await fetch("/api/va/retailers?limit=7000");
+    const data = await res.json();
+    allVaRetailers = data.retailers || [];
+    vaLoaded = true;
+    const el = document.getElementById("vaStatTotal");
+    if (el) el.textContent = allVaRetailers.length.toLocaleString();
+    renderVaTable();
+  } catch (e) {
+    const tbody = document.getElementById("vaTableBody");
+    if (tbody) tbody.innerHTML =
+      `<tr><td colspan="6" class="loading-cell">Failed to load VA retailers.</td></tr>`;
+  }
+}
+
+function getVaFilteredRows() {
+  const q             = (document.getElementById("vaSearchInput")?.value || "").toLowerCase().trim();
+  const city          = (document.getElementById("vaCityInput")?.value   || "").toLowerCase().trim();
+  const invFilter     = document.getElementById("vaInvFilter")?.value  || "";
+  const dateFilter    = document.getElementById("vaDateFilter")?.value || "";
+  const showUnchecked = document.getElementById("vaShowUnchecked")?.checked ?? true;
+
+  vaMapReportFilter = (invFilter === "in" || invFilter === "out") ? invFilter : "all";
+
+  let rows = allVaRetailers;
+  if (q)    rows = rows.filter(r => r.name.toLowerCase().includes(q));
+  if (city) rows = rows.filter(r => r.city.toLowerCase().includes(city));
+  if (!showUnchecked) rows = rows.filter(r => !!retailerLatestStatus[r.id]);
+  if (invFilter) {
+    rows = rows.filter(r => {
+      const s = retailerLatestStatus[r.id];
+      if (invFilter === "in")      return s && s.has_stock;
+      if (invFilter === "out")     return s && !s.has_stock;
+      if (invFilter === "checked") return !!s;
+      return true;
+    });
+  }
+  if (dateFilter) {
+    const now = Date.now();
+    const cutoffs = { today: 86400000, "7d": 7 * 86400000, "30d": 30 * 86400000 };
+    const cutoff  = cutoffs[dateFilter];
+    rows = rows.filter(r => {
+      const s = retailerLatestStatus[r.id];
+      if (!s) return false;
+      return (now - parseReportedAt(s.reported_at).getTime()) <= cutoff;
+    });
+  }
+  return rows;
+}
+
+function renderVaTable() {
+  if (!vaLoaded) return;
+  const myGen = ++vaRenderGen;
+  _openProfileId = null;
+  const rows = getVaFilteredRows();
+  const checkedCount = selectedVaGame ? Object.keys(retailerLatestStatus).length : null;
+  const countSuffix = checkedCount != null
+    ? ` · <strong style="color:var(--grape)">${checkedCount} checked for ${escHtml(selectedVaGame.name)}</strong>`
+    : "";
+  const countEl = document.getElementById("vaResultCount");
+  if (countEl) countEl.innerHTML = `${rows.length.toLocaleString()} retailers${countSuffix}`;
+  const tbody = document.getElementById("vaTableBody");
+  if (!tbody) return;
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="loading-cell">No retailers match.</td></tr>`;
+    return;
+  }
+  const CHUNK = 100;
+  tbody.innerHTML = rows.slice(0, CHUNK).map((r, i) => _stateRow(r, i + 1, "VA")).join("");
+  updateReportBadges();
+  if (vaMapVisible) renderVaMapLayers(rows);
+  if (rows.length > CHUNK) {
+    let offset = CHUNK;
+    const appendNext = () => {
+      if (myGen !== vaRenderGen) return;
+      if (offset >= rows.length) return;
+      const end = Math.min(offset + CHUNK, rows.length);
+      const tmp = document.createElement("tbody");
+      tmp.innerHTML = rows.slice(offset, end).map((r, i) => _stateRow(r, offset + i + 1, "VA")).join("");
+      while (tmp.firstChild) tbody.appendChild(tmp.firstChild);
+      offset = end;
+      requestAnimationFrame(appendNext);
+    };
+    requestAnimationFrame(appendNext);
+  }
+}
+
+function downloadVaCsv() {
+  const rows = getVaFilteredRows();
+  const cols = ["name","address","city","zipCode","phone","latitude","longitude"];
+  const blob = new Blob([cols.join(",") + "\n" + rows.map(r =>
+    cols.map(c => { const v = String(r[c] ?? ""); return v.includes(",") || v.includes('"') ? `"${v.replace(/"/g,'""')}"` : v; }).join(",")
+  ).join("\n")], { type: "text/csv" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = "va_retailers.csv"; a.click(); URL.revokeObjectURL(a.href);
+}
+
+function toggleVaMap() {
+  const sec = document.getElementById("vaMapSection");
+  vaMapVisible = !vaMapVisible;
+  sec.style.display = vaMapVisible ? "" : "none";
+  if (vaMapVisible) {
+    if (!vaMap) initVaMap();
+    else vaMap.invalidateSize();
+    renderVaMapLayers(getVaFilteredRows());
+  }
+}
+
+function initVaMap() {
+  vaMap = L.map("vaMap").setView([37.5, -79.5], 7);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors", maxZoom: 19,
+  }).addTo(vaMap);
+}
+
+function renderVaMapLayers(retailers) {
+  if (!vaMap) return;
+  vaMap.eachLayer(layer => { if (!(layer instanceof L.TileLayer)) vaMap.removeLayer(layer); });
+  window._vaInventoryLayer = null;
+  updateVaInventoryMapLayer(retailers);
+}
+
+function updateVaInventoryMapLayer(visibleRetailers) {
+  if (!vaMap) return;
+  if (window._vaInventoryLayer) { vaMap.removeLayer(window._vaInventoryLayer); window._vaInventoryLayer = null; }
+  const retailers = visibleRetailers || getVaFilteredRows();
+  const retailerMarkers = retailers.filter(r => r.latitude && r.longitude).map(r => {
+    const status = retailerLatestStatus[r.id];
+    const color = status ? (status.has_stock ? "#00cc44" : "#cc2200") : "#4a9eff";
+    const icon = L.divIcon({ className: "", html: `<div style="width:8px;height:8px;border-radius:50%;background:${color};border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>`, iconSize: [8,8], iconAnchor: [4,4] });
+    const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
+    return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon }).bindPopup(
+      `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+    );
+  });
+  const vaIds = new Set(allVaRetailers.map(r => String(r.id)));
+  let reports = communityReports.filter(r => r.lat && r.lng && vaIds.has(String(r.retailer_id)));
+  if (selectedVaGame) reports = reports.filter(r => r.game_name?.toLowerCase() === selectedVaGame.name.toLowerCase());
+  if (vaMapReportFilter === "in")  reports = reports.filter(r =>  r.has_stock);
+  if (vaMapReportFilter === "out") reports = reports.filter(r => !r.has_stock);
+  const reportMarkers = reports.map(r => {
+    const color = r.has_stock ? "#00cc44" : "#cc2200";
+    const icon = L.divIcon({ className: "", html: `<div style="width:10px;height:10px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>`, iconSize: [10,10], iconAnchor: [5,5] });
+    const time = r.reported_at ? timeAgo(parseReportedAt(r.reported_at)) : "";
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}`;
+    return L.marker([r.lat, r.lng], { icon }).bindPopup(
+      `<b>${escHtml(r.retailer_name || "")}</b><br>${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br><span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+    );
+  });
+  const allMarkers = [...retailerMarkers, ...reportMarkers];
+  if (allMarkers.length) window._vaInventoryLayer = L.layerGroup(allMarkers).addTo(vaMap);
+}
+
+function searchVaGameFilter() {
+  const input = document.getElementById("vaGameFilterInput");
+  const dd    = document.getElementById("vaGameFilterDropdown");
+  const clear = document.getElementById("vaGameFilterClear");
+  if (!input) return;
+  const q = input.value.trim().toLowerCase();
+  clear.style.display = q ? "" : "none";
+  const matches = q ? vaGames.filter(g => g.name.toLowerCase().includes(q)) : vaGames.slice(0, 50);
+  if (!matches.length) { dd.style.display = "none"; return; }
+  dd.innerHTML = matches.map(g => {
+    const meta = [g.price != null ? `$${g.price}` : null, g.return_pct != null ? `${g.return_pct.toFixed(1)}%` : null].filter(Boolean).join(" · ");
+    const sub = meta ? `<span style="color:var(--text-muted);font-size:.78rem">${escHtml(meta)}</span>` : "";
+    return `<div class="store-option" onmousedown="selectVaGameFilter(${JSON.stringify(g.name).replace(/"/g, '&quot;')})">${escHtml(g.name)} ${sub}</div>`;
+  }).join("");
+  dd.style.display = "";
+}
+
+function selectVaGameFilter(name) {
+  const input = document.getElementById("vaGameFilterInput");
+  const dd    = document.getElementById("vaGameFilterDropdown");
+  const clear = document.getElementById("vaGameFilterClear");
+  input.value = name; dd.style.display = "none"; clear.style.display = "";
+  const g = vaGames.find(g => g.name === name) || { name, price: null };
+  selectedVaGame = { name: g.name, price: g.price ?? null };
+  applyVaGameFilter();
+}
+
+function clearVaGameFilter() {
+  document.getElementById("vaGameFilterInput").value = "";
+  document.getElementById("vaGameFilterDropdown").style.display = "none";
+  document.getElementById("vaGameFilterClear").style.display = "none";
+  selectedVaGame = null;
+  applyVaGameFilter();
+}
+
+function applyVaGameFilter() {
+  const th = document.getElementById("vaLastReportTh");
+  if (th) th.textContent = selectedVaGame ? selectedVaGame.name : "Last Report";
+  buildLatestStatusFromReports();
+  if (selectedVaGame) {
+    let inCount = 0, outCount = 0;
+    for (const s of Object.values(retailerLatestStatus)) { s.has_stock ? inCount++ : outCount++; }
+    document.getElementById("vaStatInStockCard").style.display = "";
+    document.getElementById("vaStatOutCard").style.display = "";
+    document.getElementById("vaStatInStock").textContent = inCount.toLocaleString();
+    document.getElementById("vaStatOut").textContent = outCount.toLocaleString();
+    loadRetailerLatest(selectedVaGame.name);
+  } else {
+    document.getElementById("vaStatInStockCard").style.display = "none";
+    document.getElementById("vaStatOutCard").style.display = "none";
+    loadRetailerLatest();
+  }
+  renderVaTable();
+  if (vaMapVisible) renderVaMapLayers(getVaFilteredRows());
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// DC HUNT
+// ══════════════════════════════════════════════════════════════════════════════
+
+async function loadDcRetailers() {
+  try {
+    const res = await fetch("/api/dc/retailers?limit=7000");
+    const data = await res.json();
+    allDcRetailers = data.retailers || [];
+    dcLoaded = true;
+    const el = document.getElementById("dcStatTotal");
+    if (el) el.textContent = allDcRetailers.length.toLocaleString();
+    renderDcTable();
+  } catch (e) {
+    const tbody = document.getElementById("dcTableBody");
+    if (tbody) tbody.innerHTML =
+      `<tr><td colspan="6" class="loading-cell">Failed to load DC retailers.</td></tr>`;
+  }
+}
+
+function getDcFilteredRows() {
+  const q             = (document.getElementById("dcSearchInput")?.value || "").toLowerCase().trim();
+  const city          = (document.getElementById("dcCityInput")?.value   || "").toLowerCase().trim();
+  const invFilter     = document.getElementById("dcInvFilter")?.value  || "";
+  const dateFilter    = document.getElementById("dcDateFilter")?.value || "";
+  const showUnchecked = document.getElementById("dcShowUnchecked")?.checked ?? true;
+
+  dcMapReportFilter = (invFilter === "in" || invFilter === "out") ? invFilter : "all";
+
+  let rows = allDcRetailers;
+  if (q)    rows = rows.filter(r => r.name.toLowerCase().includes(q));
+  if (city) rows = rows.filter(r => r.city.toLowerCase().includes(city));
+  if (!showUnchecked) rows = rows.filter(r => !!retailerLatestStatus[r.id]);
+  if (invFilter) {
+    rows = rows.filter(r => {
+      const s = retailerLatestStatus[r.id];
+      if (invFilter === "in")      return s && s.has_stock;
+      if (invFilter === "out")     return s && !s.has_stock;
+      if (invFilter === "checked") return !!s;
+      return true;
+    });
+  }
+  if (dateFilter) {
+    const now = Date.now();
+    const cutoffs = { today: 86400000, "7d": 7 * 86400000, "30d": 30 * 86400000 };
+    const cutoff  = cutoffs[dateFilter];
+    rows = rows.filter(r => {
+      const s = retailerLatestStatus[r.id];
+      if (!s) return false;
+      return (now - parseReportedAt(s.reported_at).getTime()) <= cutoff;
+    });
+  }
+  return rows;
+}
+
+function renderDcTable() {
+  if (!dcLoaded) return;
+  const myGen = ++dcRenderGen;
+  _openProfileId = null;
+  const rows = getDcFilteredRows();
+  const checkedCount = selectedDcGame ? Object.keys(retailerLatestStatus).length : null;
+  const countSuffix = checkedCount != null
+    ? ` · <strong style="color:var(--grape)">${checkedCount} checked for ${escHtml(selectedDcGame.name)}</strong>`
+    : "";
+  const countEl = document.getElementById("dcResultCount");
+  if (countEl) countEl.innerHTML = `${rows.length.toLocaleString()} retailers${countSuffix}`;
+  const tbody = document.getElementById("dcTableBody");
+  if (!tbody) return;
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="loading-cell">No retailers match.</td></tr>`;
+    return;
+  }
+  const CHUNK = 100;
+  tbody.innerHTML = rows.slice(0, CHUNK).map((r, i) => _stateRow(r, i + 1, "DC")).join("");
+  updateReportBadges();
+  if (dcMapVisible) renderDcMapLayers(rows);
+  if (rows.length > CHUNK) {
+    let offset = CHUNK;
+    const appendNext = () => {
+      if (myGen !== dcRenderGen) return;
+      if (offset >= rows.length) return;
+      const end = Math.min(offset + CHUNK, rows.length);
+      const tmp = document.createElement("tbody");
+      tmp.innerHTML = rows.slice(offset, end).map((r, i) => _stateRow(r, offset + i + 1, "DC")).join("");
+      while (tmp.firstChild) tbody.appendChild(tmp.firstChild);
+      offset = end;
+      requestAnimationFrame(appendNext);
+    };
+    requestAnimationFrame(appendNext);
+  }
+}
+
+function downloadDcCsv() {
+  const rows = getDcFilteredRows();
+  const cols = ["name","address","city","zipCode","phone","latitude","longitude"];
+  const blob = new Blob([cols.join(",") + "\n" + rows.map(r =>
+    cols.map(c => { const v = String(r[c] ?? ""); return v.includes(",") || v.includes('"') ? `"${v.replace(/"/g,'""')}"` : v; }).join(",")
+  ).join("\n")], { type: "text/csv" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = "dc_retailers.csv"; a.click(); URL.revokeObjectURL(a.href);
+}
+
+function toggleDcMap() {
+  const sec = document.getElementById("dcMapSection");
+  dcMapVisible = !dcMapVisible;
+  sec.style.display = dcMapVisible ? "" : "none";
+  if (dcMapVisible) {
+    if (!dcMap) initDcMap();
+    else dcMap.invalidateSize();
+    renderDcMapLayers(getDcFilteredRows());
+  }
+}
+
+function initDcMap() {
+  dcMap = L.map("dcMap").setView([38.9, -77.03], 12);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors", maxZoom: 19,
+  }).addTo(dcMap);
+}
+
+function renderDcMapLayers(retailers) {
+  if (!dcMap) return;
+  dcMap.eachLayer(layer => { if (!(layer instanceof L.TileLayer)) dcMap.removeLayer(layer); });
+  window._dcInventoryLayer = null;
+  updateDcInventoryMapLayer(retailers);
+}
+
+function updateDcInventoryMapLayer(visibleRetailers) {
+  if (!dcMap) return;
+  if (window._dcInventoryLayer) { dcMap.removeLayer(window._dcInventoryLayer); window._dcInventoryLayer = null; }
+  const retailers = visibleRetailers || getDcFilteredRows();
+  const retailerMarkers = retailers.filter(r => r.latitude && r.longitude).map(r => {
+    const status = retailerLatestStatus[r.id];
+    const color = status ? (status.has_stock ? "#00cc44" : "#cc2200") : "#4a9eff";
+    const icon = L.divIcon({ className: "", html: `<div style="width:8px;height:8px;border-radius:50%;background:${color};border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>`, iconSize: [8,8], iconAnchor: [4,4] });
+    const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
+    return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon }).bindPopup(
+      `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+    );
+  });
+  const dcIds = new Set(allDcRetailers.map(r => String(r.id)));
+  let reports = communityReports.filter(r => r.lat && r.lng && dcIds.has(String(r.retailer_id)));
+  if (selectedDcGame) reports = reports.filter(r => r.game_name?.toLowerCase() === selectedDcGame.name.toLowerCase());
+  if (dcMapReportFilter === "in")  reports = reports.filter(r =>  r.has_stock);
+  if (dcMapReportFilter === "out") reports = reports.filter(r => !r.has_stock);
+  const reportMarkers = reports.map(r => {
+    const color = r.has_stock ? "#00cc44" : "#cc2200";
+    const icon = L.divIcon({ className: "", html: `<div style="width:10px;height:10px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>`, iconSize: [10,10], iconAnchor: [5,5] });
+    const time = r.reported_at ? timeAgo(parseReportedAt(r.reported_at)) : "";
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}`;
+    return L.marker([r.lat, r.lng], { icon }).bindPopup(
+      `<b>${escHtml(r.retailer_name || "")}</b><br>${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br><span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+    );
+  });
+  const allMarkers = [...retailerMarkers, ...reportMarkers];
+  if (allMarkers.length) window._dcInventoryLayer = L.layerGroup(allMarkers).addTo(dcMap);
+}
+
+function searchDcGameFilter() {
+  const input = document.getElementById("dcGameFilterInput");
+  const dd    = document.getElementById("dcGameFilterDropdown");
+  const clear = document.getElementById("dcGameFilterClear");
+  if (!input) return;
+  const q = input.value.trim().toLowerCase();
+  clear.style.display = q ? "" : "none";
+  const matches = q ? dcGames.filter(g => g.name.toLowerCase().includes(q)) : dcGames.slice(0, 50);
+  if (!matches.length) { dd.style.display = "none"; return; }
+  dd.innerHTML = matches.map(g => {
+    const meta = [g.price != null ? `$${g.price}` : null, g.return_pct != null ? `${g.return_pct.toFixed(1)}%` : null].filter(Boolean).join(" · ");
+    const sub = meta ? `<span style="color:var(--text-muted);font-size:.78rem">${escHtml(meta)}</span>` : "";
+    return `<div class="store-option" onmousedown="selectDcGameFilter(${JSON.stringify(g.name).replace(/"/g, '&quot;')})">${escHtml(g.name)} ${sub}</div>`;
+  }).join("");
+  dd.style.display = "";
+}
+
+function selectDcGameFilter(name) {
+  const input = document.getElementById("dcGameFilterInput");
+  const dd    = document.getElementById("dcGameFilterDropdown");
+  const clear = document.getElementById("dcGameFilterClear");
+  input.value = name; dd.style.display = "none"; clear.style.display = "";
+  const g = dcGames.find(g => g.name === name) || { name, price: null };
+  selectedDcGame = { name: g.name, price: g.price ?? null };
+  applyDcGameFilter();
+}
+
+function clearDcGameFilter() {
+  document.getElementById("dcGameFilterInput").value = "";
+  document.getElementById("dcGameFilterDropdown").style.display = "none";
+  document.getElementById("dcGameFilterClear").style.display = "none";
+  selectedDcGame = null;
+  applyDcGameFilter();
+}
+
+function applyDcGameFilter() {
+  const th = document.getElementById("dcLastReportTh");
+  if (th) th.textContent = selectedDcGame ? selectedDcGame.name : "Last Report";
+  buildLatestStatusFromReports();
+  if (selectedDcGame) {
+    let inCount = 0, outCount = 0;
+    for (const s of Object.values(retailerLatestStatus)) { s.has_stock ? inCount++ : outCount++; }
+    document.getElementById("dcStatInStockCard").style.display = "";
+    document.getElementById("dcStatOutCard").style.display = "";
+    document.getElementById("dcStatInStock").textContent = inCount.toLocaleString();
+    document.getElementById("dcStatOut").textContent = outCount.toLocaleString();
+    loadRetailerLatest(selectedDcGame.name);
+  } else {
+    document.getElementById("dcStatInStockCard").style.display = "none";
+    document.getElementById("dcStatOutCard").style.display = "none";
+    loadRetailerLatest();
+  }
+  renderDcTable();
+  if (dcMapVisible) renderDcMapLayers(getDcFilteredRows());
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// VT HUNT
+// ══════════════════════════════════════════════════════════════════════════════
+
+async function loadVtRetailers() {
+  try {
+    const res = await fetch("/api/vt/retailers?limit=7000");
+    const data = await res.json();
+    allVtRetailers = data.retailers || [];
+    vtLoaded = true;
+    const el = document.getElementById("vtStatTotal");
+    if (el) el.textContent = allVtRetailers.length.toLocaleString();
+    renderVtTable();
+  } catch (e) {
+    const tbody = document.getElementById("vtTableBody");
+    if (tbody) tbody.innerHTML =
+      `<tr><td colspan="6" class="loading-cell">Failed to load VT retailers.</td></tr>`;
+  }
+}
+
+function getVtFilteredRows() {
+  const q             = (document.getElementById("vtSearchInput")?.value || "").toLowerCase().trim();
+  const city          = (document.getElementById("vtCityInput")?.value   || "").toLowerCase().trim();
+  const invFilter     = document.getElementById("vtInvFilter")?.value  || "";
+  const dateFilter    = document.getElementById("vtDateFilter")?.value || "";
+  const showUnchecked = document.getElementById("vtShowUnchecked")?.checked ?? true;
+
+  vtMapReportFilter = (invFilter === "in" || invFilter === "out") ? invFilter : "all";
+
+  let rows = allVtRetailers;
+  if (q)    rows = rows.filter(r => r.name.toLowerCase().includes(q));
+  if (city) rows = rows.filter(r => r.city.toLowerCase().includes(city));
+  if (!showUnchecked) rows = rows.filter(r => !!retailerLatestStatus[r.id]);
+  if (invFilter) {
+    rows = rows.filter(r => {
+      const s = retailerLatestStatus[r.id];
+      if (invFilter === "in")      return s && s.has_stock;
+      if (invFilter === "out")     return s && !s.has_stock;
+      if (invFilter === "checked") return !!s;
+      return true;
+    });
+  }
+  if (dateFilter) {
+    const now = Date.now();
+    const cutoffs = { today: 86400000, "7d": 7 * 86400000, "30d": 30 * 86400000 };
+    const cutoff  = cutoffs[dateFilter];
+    rows = rows.filter(r => {
+      const s = retailerLatestStatus[r.id];
+      if (!s) return false;
+      return (now - parseReportedAt(s.reported_at).getTime()) <= cutoff;
+    });
+  }
+  return rows;
+}
+
+function renderVtTable() {
+  if (!vtLoaded) return;
+  const myGen = ++vtRenderGen;
+  _openProfileId = null;
+  const rows = getVtFilteredRows();
+  const checkedCount = selectedVtGame ? Object.keys(retailerLatestStatus).length : null;
+  const countSuffix = checkedCount != null
+    ? ` · <strong style="color:var(--grape)">${checkedCount} checked for ${escHtml(selectedVtGame.name)}</strong>`
+    : "";
+  const countEl = document.getElementById("vtResultCount");
+  if (countEl) countEl.innerHTML = `${rows.length.toLocaleString()} retailers${countSuffix}`;
+  const tbody = document.getElementById("vtTableBody");
+  if (!tbody) return;
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="loading-cell">No retailers match.</td></tr>`;
+    return;
+  }
+  const CHUNK = 100;
+  tbody.innerHTML = rows.slice(0, CHUNK).map((r, i) => _stateRow(r, i + 1, "VT")).join("");
+  updateReportBadges();
+  if (vtMapVisible) renderVtMapLayers(rows);
+  if (rows.length > CHUNK) {
+    let offset = CHUNK;
+    const appendNext = () => {
+      if (myGen !== vtRenderGen) return;
+      if (offset >= rows.length) return;
+      const end = Math.min(offset + CHUNK, rows.length);
+      const tmp = document.createElement("tbody");
+      tmp.innerHTML = rows.slice(offset, end).map((r, i) => _stateRow(r, offset + i + 1, "VT")).join("");
+      while (tmp.firstChild) tbody.appendChild(tmp.firstChild);
+      offset = end;
+      requestAnimationFrame(appendNext);
+    };
+    requestAnimationFrame(appendNext);
+  }
+}
+
+function downloadVtCsv() {
+  const rows = getVtFilteredRows();
+  const cols = ["name","address","city","zipCode","phone","latitude","longitude"];
+  const blob = new Blob([cols.join(",") + "\n" + rows.map(r =>
+    cols.map(c => { const v = String(r[c] ?? ""); return v.includes(",") || v.includes('"') ? `"${v.replace(/"/g,'""')}"` : v; }).join(",")
+  ).join("\n")], { type: "text/csv" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = "vt_retailers.csv"; a.click(); URL.revokeObjectURL(a.href);
+}
+
+function toggleVtMap() {
+  const sec = document.getElementById("vtMapSection");
+  vtMapVisible = !vtMapVisible;
+  sec.style.display = vtMapVisible ? "" : "none";
+  if (vtMapVisible) {
+    if (!vtMap) initVtMap();
+    else vtMap.invalidateSize();
+    renderVtMapLayers(getVtFilteredRows());
+  }
+}
+
+function initVtMap() {
+  vtMap = L.map("vtMap").setView([44.0, -72.7], 8);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors", maxZoom: 19,
+  }).addTo(vtMap);
+}
+
+function renderVtMapLayers(retailers) {
+  if (!vtMap) return;
+  vtMap.eachLayer(layer => { if (!(layer instanceof L.TileLayer)) vtMap.removeLayer(layer); });
+  window._vtInventoryLayer = null;
+  updateVtInventoryMapLayer(retailers);
+}
+
+function updateVtInventoryMapLayer(visibleRetailers) {
+  if (!vtMap) return;
+  if (window._vtInventoryLayer) { vtMap.removeLayer(window._vtInventoryLayer); window._vtInventoryLayer = null; }
+  const retailers = visibleRetailers || getVtFilteredRows();
+  const retailerMarkers = retailers.filter(r => r.latitude && r.longitude).map(r => {
+    const status = retailerLatestStatus[r.id];
+    const color = status ? (status.has_stock ? "#00cc44" : "#cc2200") : "#4a9eff";
+    const icon = L.divIcon({ className: "", html: `<div style="width:8px;height:8px;border-radius:50%;background:${color};border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>`, iconSize: [8,8], iconAnchor: [4,4] });
+    const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
+    return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon }).bindPopup(
+      `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+    );
+  });
+  const vtIds = new Set(allVtRetailers.map(r => String(r.id)));
+  let reports = communityReports.filter(r => r.lat && r.lng && vtIds.has(String(r.retailer_id)));
+  if (selectedVtGame) reports = reports.filter(r => r.game_name?.toLowerCase() === selectedVtGame.name.toLowerCase());
+  if (vtMapReportFilter === "in")  reports = reports.filter(r =>  r.has_stock);
+  if (vtMapReportFilter === "out") reports = reports.filter(r => !r.has_stock);
+  const reportMarkers = reports.map(r => {
+    const color = r.has_stock ? "#00cc44" : "#cc2200";
+    const icon = L.divIcon({ className: "", html: `<div style="width:10px;height:10px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>`, iconSize: [10,10], iconAnchor: [5,5] });
+    const time = r.reported_at ? timeAgo(parseReportedAt(r.reported_at)) : "";
+    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}`;
+    return L.marker([r.lat, r.lng], { icon }).bindPopup(
+      `<b>${escHtml(r.retailer_name || "")}</b><br>${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br><span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+    );
+  });
+  const allMarkers = [...retailerMarkers, ...reportMarkers];
+  if (allMarkers.length) window._vtInventoryLayer = L.layerGroup(allMarkers).addTo(vtMap);
+}
+
+function searchVtGameFilter() {
+  const input = document.getElementById("vtGameFilterInput");
+  const dd    = document.getElementById("vtGameFilterDropdown");
+  const clear = document.getElementById("vtGameFilterClear");
+  if (!input) return;
+  const q = input.value.trim().toLowerCase();
+  clear.style.display = q ? "" : "none";
+  const matches = q ? vtGames.filter(g => g.name.toLowerCase().includes(q)) : vtGames.slice(0, 50);
+  if (!matches.length) { dd.style.display = "none"; return; }
+  dd.innerHTML = matches.map(g => {
+    const meta = [g.price != null ? `$${g.price}` : null, g.return_pct != null ? `${g.return_pct.toFixed(1)}%` : null].filter(Boolean).join(" · ");
+    const sub = meta ? `<span style="color:var(--text-muted);font-size:.78rem">${escHtml(meta)}</span>` : "";
+    return `<div class="store-option" onmousedown="selectVtGameFilter(${JSON.stringify(g.name).replace(/"/g, '&quot;')})">${escHtml(g.name)} ${sub}</div>`;
+  }).join("");
+  dd.style.display = "";
+}
+
+function selectVtGameFilter(name) {
+  const input = document.getElementById("vtGameFilterInput");
+  const dd    = document.getElementById("vtGameFilterDropdown");
+  const clear = document.getElementById("vtGameFilterClear");
+  input.value = name; dd.style.display = "none"; clear.style.display = "";
+  const g = vtGames.find(g => g.name === name) || { name, price: null };
+  selectedVtGame = { name: g.name, price: g.price ?? null };
+  applyVtGameFilter();
+}
+
+function clearVtGameFilter() {
+  document.getElementById("vtGameFilterInput").value = "";
+  document.getElementById("vtGameFilterDropdown").style.display = "none";
+  document.getElementById("vtGameFilterClear").style.display = "none";
+  selectedVtGame = null;
+  applyVtGameFilter();
+}
+
+function applyVtGameFilter() {
+  const th = document.getElementById("vtLastReportTh");
+  if (th) th.textContent = selectedVtGame ? selectedVtGame.name : "Last Report";
+  buildLatestStatusFromReports();
+  if (selectedVtGame) {
+    let inCount = 0, outCount = 0;
+    for (const s of Object.values(retailerLatestStatus)) { s.has_stock ? inCount++ : outCount++; }
+    document.getElementById("vtStatInStockCard").style.display = "";
+    document.getElementById("vtStatOutCard").style.display = "";
+    document.getElementById("vtStatInStock").textContent = inCount.toLocaleString();
+    document.getElementById("vtStatOut").textContent = outCount.toLocaleString();
+    loadRetailerLatest(selectedVtGame.name);
+  } else {
+    document.getElementById("vtStatInStockCard").style.display = "none";
+    document.getElementById("vtStatOutCard").style.display = "none";
+    loadRetailerLatest();
+  }
+  renderVtTable();
+  if (vtMapVisible) renderVtMapLayers(getVtFilteredRows());
+}
+
 // ── Shared table row renderer for simple states (FL/GA/NY) ───────────────────
 
 function _stateRow(r, rank, stateCode) {
