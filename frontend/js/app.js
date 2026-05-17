@@ -197,18 +197,19 @@ function _setUser(user) {
       myStoreLink.style.display = "none";
     }
     document.getElementById("scrapeBtn").style.display = isAdmin ? "" : "none";
-    document.getElementById("statusBar").style.display = isAdmin ? "" : "none";
+    if (isAdmin) {
+      const sec = document.getElementById("dsAdminSection");
+      if (sec) sec.style.display = "";
+    }
   } else {
     chip.style.display  = "none";
     btn.style.display   = "";
     caller.style.display = "none";
-    document.getElementById("adminHealthBtn").style.display = "none";
     document.getElementById("playsTabBtn").style.display = "none";
     document.getElementById("playsLoginNudge").style.display = "";
     const msl = document.getElementById("myStoreLink");
     if (msl) msl.style.display = "none";
     document.getElementById("scrapeBtn").style.display = "none";
-    document.getElementById("statusBar").style.display = "none";
     // Close any open store profile and clear report badges
     _openProfileId = null;
     document.querySelectorAll(".store-profile-tr").forEach(el => el.remove());
