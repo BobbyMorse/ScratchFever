@@ -55,26 +55,50 @@ class IowaScraper(BaseScraper):
             odds_map: dict[float, float] = detail.get("odds_map", {})
             overall_odds: float | None = detail.get("overall_odds")
 
-            tiers = []
-            total_w = 0
-            rem_w = 0
+            # Build lookup: prize_amount -> {prizes_remaining, prizes_total}
+            rem_map = {t["prize_amount"]: t for t in rem_tiers}
+
+            # Estimate total_tickets from tiers that have BOTH remaining counts AND odds.
+            # (RemainingPrizes only tracks top/large prize tiers, so we can't just sum
+            #  prizes_total — that severely underestimates total tickets.)
+            ticket_estimates = []
             for t in rem_tiers:
-                pa = t["prize_amount"]
-                pr = t["prizes_remaining"]
-                pt = t["prizes_total"]
+                odds = odds_map.get(t["prize_amount"])
+                if odds and t["prizes_total"]:
+                    ticket_estimates.append(t["prizes_total"] * odds)
+            total_tickets = None
+            if ticket_estimates:
+                total_tickets = int(sorted(ticket_estimates)[len(ticket_estimates) // 2])
+            elif overall_odds:
+                total_w = sum(t["prizes_total"] or 0 for t in rem_tiers)
+                if total_w:
+                    total_tickets = int(total_w * overall_odds)
+
+            # Overall depletion rate from tracked tiers (the large prizes)
+            total_w = sum(t["prizes_total"] or 0 for t in rem_tiers)
+            rem_w = sum(t["prizes_remaining"] or 0 for t in rem_tiers)
+            depletion = max(0.0, min(1.0, (total_w - rem_w) / total_w)) if total_w > 0 else None
+
+            tickets_remaining = int(total_tickets * (1 - depletion)) if (total_tickets and depletion is not None) else None
+
+            # Build full tier list from detail-page odds (covers ALL prize levels).
+            # Tiers tracked in RemainingPrizes get actual remaining counts;
+            # smaller tiers not tracked there get counts estimated via depletion.
+            tiers = []
+            for pa, odds in sorted(odds_map.items(), reverse=True):
+                rem_t = rem_map.get(pa)
+                if rem_t:
+                    pr = rem_t["prizes_remaining"]
+                    pt = rem_t["prizes_total"]
+                else:
+                    pt = int(total_tickets / odds) if (total_tickets and odds) else None
+                    pr = int(pt * (1 - depletion)) if (pt and depletion is not None) else None
                 tiers.append({
                     "prize_amount": pa,
-                    "odds_one_in": odds_map.get(pa),
+                    "odds_one_in": odds,
                     "prizes_remaining": pr,
                     "prizes_total": pt,
                 })
-                if pt:
-                    total_w += pt
-                if pr:
-                    rem_w += pr
-
-            total_tickets = int(total_w * overall_odds) if (overall_odds and total_w) else None
-            tickets_remaining = int(rem_w * overall_odds) if (overall_odds and rem_w) else None
 
             games.append(self.build_game(
                 game_id=f"ia{gid}",
@@ -86,6 +110,7 @@ class IowaScraper(BaseScraper):
                 detail_url=_DETAIL_URL.format(gid),
                 image_url=info.get("image_url"),
                 overall_odds=overall_odds,
+                ev_approximate=True,
             ))
 
         logger.info("IA: built %d games", len(games))
