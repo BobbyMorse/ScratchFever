@@ -49,6 +49,8 @@ def _parse_prize_text(text: str) -> float | None:
     t = text.strip()
     if not t:
         return None
+    # Strip surrounding parentheses: "($50 x 10)" → "$50 x 10"
+    t = re.sub(r"^\((.+)\)$", r"\1", t).strip()
     # Life annuity — not calculable
     if re.search(r"\blife\b", t, re.I):
         return None
