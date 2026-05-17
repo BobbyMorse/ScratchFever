@@ -5354,3 +5354,22 @@ function _renderAdminHealth(states) {
   document.getElementById("apWarnN").textContent = warn;
   document.getElementById("apErrN").textContent = err;
 }
+
+// ── Settings tab ──────────────────────────────────────────────────────────────
+function populateSettingsTab() {
+  const huntSel = document.getElementById("prefDefaultHuntState");
+  if (huntSel) huntSel.value = _prefs.defaultHuntState || "MA";
+
+  const evSel = document.getElementById("prefEvDefaultState");
+  if (evSel) {
+    if (evSel.options.length <= 1 && states.length) {
+      states.forEach(s => {
+        const opt = document.createElement("option");
+        opt.value = s.state_code;
+        opt.textContent = s.state_name;
+        evSel.appendChild(opt);
+      });
+    }
+    evSel.value = _prefs.evDefaultState || "";
+  }
+}
