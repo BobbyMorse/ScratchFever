@@ -76,7 +76,7 @@ class FloridaScraper(BaseScraper):
             return None
 
         game_id = str(g.get("Id", ""))
-        price = g.get("TicketPrice") or 0
+        price = float(g.get("TicketPrice") or 0)
         if not price:
             return None
 
