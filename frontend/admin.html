@@ -535,7 +535,7 @@
 
   async function loadHealth() {
     document.getElementById("healthBody").innerHTML =
-      '<tr class="loading-row"><td colspan="10">Loading…</td></tr>';
+      '<tr class="loading-row"><td colspan="11">Loading…</td></tr>';
     try {
       const res = await fetch("/api/admin/health", {
         headers: { Authorization: `Bearer ${token}` }
