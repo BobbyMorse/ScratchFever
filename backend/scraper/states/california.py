@@ -117,7 +117,7 @@ class CaliforniaScraper(BaseScraper):
             if any_remaining_data:
                 tickets_remaining = round(overall_odds * total_prizes_remaining)
 
-        return self.build_game(
+        game = self.build_game(
             game_id=game_id or name,
             name=name,
             price=price,
@@ -128,3 +128,5 @@ class CaliforniaScraper(BaseScraper):
             detail_url=detail_url,
             image_url=image_url,
         )
+        game["how_to_play"] = how_to_play
+        return game
