@@ -355,7 +355,7 @@ async def get_game_detail(conn, game_db_id: int):
                g.ev, g.return_pct, g.overall_odds_one_in,
                g.top_prize, g.top_prize_remaining, g.total_tickets, g.tickets_remaining,
                g.prize_pool_left, g.is_active, g.detail_url, g.image_url, g.scraped_at,
-               g.how_to_play,
+               g.how_to_play, COALESCE(g.ev_approximate, FALSE) AS ev_approximate,
                pt.prize_amount, pt.odds_one_in, pt.prizes_total, pt.prizes_remaining
         FROM games g
         LEFT JOIN prize_tiers pt ON pt.game_db_id = g.id
