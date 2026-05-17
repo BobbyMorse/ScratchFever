@@ -344,6 +344,31 @@ function populateGameFilterSelect() {
   // data is in maGames; UI is a typeahead, nothing to rebuild
 }
 
+function populateCallerGameSelect() {
+  const sel = document.getElementById("cfGameSelect");
+  if (!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">— Select a game —</option>';
+  maGames.forEach(g => {
+    const opt = document.createElement("option");
+    opt.value = g.game_id || "";
+    opt.dataset.name  = g.name;
+    opt.dataset.price = g.price ?? "";
+    opt.textContent   = `${g.name}${g.price != null ? ` ($${g.price})` : ""}`;
+    if (g.game_id === prev) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function onCallerGameSelect() {
+  const sel = document.getElementById("cfGameSelect");
+  const opt = sel.options[sel.selectedIndex];
+  if (opt && opt.value) {
+    const price = opt.dataset.price;
+    if (price !== "") document.getElementById("cfGamePrice").value = price;
+  }
+}
+
 function searchGameFilter() {
   const input = document.getElementById("gameFilterInput");
   const dd = document.getElementById("gameFilterDropdown");
