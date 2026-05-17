@@ -34,6 +34,7 @@ class TexasScraper(BaseScraper):
     state_code = "TX"
     state_name = "Texas"
     base_url = BASE_URL
+    scraper_timeout = 600  # ~50 games × detail page fetch each
 
     def scrape(self) -> list[dict]:
         detail_urls = self._get_detail_urls()
