@@ -139,7 +139,7 @@ async def run_scraper(scraper_cls) -> tuple[str, int, str | None]:
     return scraper.state_code, count, error
 
 
-async def run_all(state_filter: str = None) -> list[dict]:
+async def run_all(state_filter: str = None, on_state=None) -> list[dict]:
     reset_cancel()
     scrapers = ALL_SCRAPERS
     if state_filter:
@@ -152,6 +152,8 @@ async def run_all(state_filter: str = None) -> list[dict]:
         if i > 0:
             logger.info("Waiting %ds before next state...", DELAY_BETWEEN_STATES)
             await asyncio.sleep(DELAY_BETWEEN_STATES)
+        if on_state:
+            on_state(cls.state_code, cls.state_name)
         try:
             code, count, error = await run_scraper(cls)
             results.append({"state": code, "games": count, "error": error})
