@@ -20,7 +20,11 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 
+import logging
+
 import httpx
+
+logger = logging.getLogger(__name__)
 
 # ── MA bounding box ──────────────────────────────────────────────────────────
 MA_LAT_MIN, MA_LAT_MAX = 41.23, 42.89
