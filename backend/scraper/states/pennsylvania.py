@@ -192,6 +192,7 @@ def _fetch_game_odds(
             logger.debug("PA %s: no PA Bulletin link on detail page", gid)
             return gid, [], overall_odds, None
 
+        time.sleep(0.15)  # brief pause between requests to the two servers
         bull_resp = requests.get(bulletin_url, headers=HEADERS, timeout=_DETAIL_TIMEOUT)
         bull_resp.raise_for_status()
 
