@@ -347,12 +347,40 @@ function populateGameFilterSelect() {
   // data is in maGames; UI is a typeahead, nothing to rebuild
 }
 
-function populateCallerGameSelect() {
+const STATE_LABELS = {
+  MA:"Massachusetts", AZ:"Arizona", RI:"Rhode Island", FL:"Florida",
+  GA:"Georgia", NY:"New York", VA:"Virginia", DC:"Washington DC",
+  VT:"Vermont", CT:"Connecticut", NJ:"New Jersey", MI:"Michigan",
+  KS:"Kansas", DE:"Delaware", WY:"Wyoming", PA:"Pennsylvania",
+};
+
+function populateCallerStateSelect() {
+  const sel = document.getElementById("cfStateSelect");
+  if (!sel) return;
+  const prev = sel.value;
+  const codes = [...new Set(allGamesUnfiltered.map(g => g.state_code).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">— State —</option>';
+  codes.forEach(code => {
+    const opt = document.createElement("option");
+    opt.value = code;
+    opt.textContent = STATE_LABELS[code] ? `${STATE_LABELS[code]} (${code})` : code;
+    if (code === prev) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  populateCallerGameSelect(sel.value);
+}
+
+function populateCallerGameSelect(stateCode) {
   const sel = document.getElementById("cfGameSelect");
   if (!sel) return;
   const prev = sel.value;
-  sel.innerHTML = '<option value="">— Select a game —</option>';
-  maGames.forEach(g => {
+  const games = stateCode
+    ? allGamesUnfiltered.filter(g => g.state_code === stateCode)
+    : [];
+  sel.innerHTML = stateCode
+    ? '<option value="">— Select a game —</option>'
+    : '<option value="">— Pick a state first —</option>';
+  games.forEach(g => {
     const opt = document.createElement("option");
     opt.value = g.game_id || "";
     opt.dataset.name  = g.name;
@@ -361,6 +389,12 @@ function populateCallerGameSelect() {
     if (g.game_id === prev) opt.selected = true;
     sel.appendChild(opt);
   });
+}
+
+function onCallerStateSelect() {
+  const state = document.getElementById("cfStateSelect").value;
+  populateCallerGameSelect(state);
+  document.getElementById("cfGamePrice").value = "";
 }
 
 function onCallerGameSelect() {
