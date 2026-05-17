@@ -310,13 +310,22 @@
     .error-cell {
       font-size: .72rem;
       color: var(--red);
-      max-width: 280px;
+      max-width: 240px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
     .error-cell[title] { cursor: help; }
     .no-error { color: var(--text-muted); font-size: .78rem; }
+
+    .retailer-cell { font-size: .78rem; }
+    .retailer-count { font-weight: 600; color: var(--text); }
+    .retailer-stale { color: var(--red); font-weight: 600; }
+    .retailer-ok { color: #16a34a; font-weight: 600; }
+    .retailer-none { color: var(--text-muted); font-style: italic; }
+
+    tr.never-scraped td { opacity: .55; }
+    tr.never-scraped .state-code { color: var(--red); }
 
     .loading-row td {
       text-align: center;
