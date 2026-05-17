@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 API_URL = "https://www.michiganlottery.com/api/prizes-remaining"
 GAME_BASE = "https://www.michiganlottery.com/games"
 
-CATALOG_QUERY = "{ getCMSGames { name igtId identifier overallOdds displayedTicketPrice canBuyInStore imageUrl } }"
+CATALOG_QUERY = "{ getCMSGames { name igtId identifier overallOdds displayedTicketPrice canBuyInStore } }"
 PRIZES_QUERY = ('{ getRetailTopPrizesRemainingByGameType(gameType: "instore-instant")'
                 ' { cms_game_igt_id game_name prizesRemainingData'
                 ' { prize_amount prizes_remaining starting_amount } } }')
