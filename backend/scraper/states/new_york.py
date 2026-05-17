@@ -91,6 +91,7 @@ class NewYorkScraper(BaseScraper):
         tiers = []
         total_prizes_printed = 0
         total_prizes_remaining = 0
+        any_remaining_data = False
 
         for t in tiers_raw:
             prize = parse_prize_amount(str(t.get("prize_amount") or ""))
@@ -98,10 +99,13 @@ class NewYorkScraper(BaseScraper):
                 continue
 
             tier_odds = parse_odds(str(t.get("overall_odds") or ""))
+            raw_remaining = t.get("prizes_remaining")
             try:
-                remaining = int(str(t.get("prizes_remaining") or "0").replace(",", ""))
+                remaining = int(str(raw_remaining or "0").replace(",", ""))
             except (ValueError, TypeError):
                 remaining = 0
+            if raw_remaining is not None and remaining > 0:
+                any_remaining_data = True
             try:
                 paid = int(str(t.get("prizes_paid_out") or "0").replace(",", ""))
             except (ValueError, TypeError):
@@ -125,7 +129,8 @@ class NewYorkScraper(BaseScraper):
         tickets_remaining = None
         if overall_odds and overall_odds > 0 and total_prizes_printed > 0:
             total_tickets = round(overall_odds * total_prizes_printed)
-            tickets_remaining = round(overall_odds * total_prizes_remaining)
+            if any_remaining_data:
+                tickets_remaining = round(overall_odds * total_prizes_remaining)
 
         return self.build_game(
             game_id=game_id or name,
