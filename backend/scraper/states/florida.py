@@ -38,7 +38,7 @@ class FloridaScraper(BaseScraper):
             if resp.status_code != 200:
                 logger.warning("FL AEM image endpoint returned %d", resp.status_code)
                 return {}
-            entries = resp.json()
+            entries = resp.json().get("data", [])
             result = {}
             for entry in entries:
                 gid = str(entry.get("id") or "")
