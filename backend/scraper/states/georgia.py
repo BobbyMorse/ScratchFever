@@ -11,7 +11,6 @@ from __future__ import annotations
 import logging
 import time
 from datetime import datetime, timezone
-
 from backend.scraper.base import BaseScraper
 
 logger = logging.getLogger(__name__)
