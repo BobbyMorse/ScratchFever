@@ -70,6 +70,33 @@ let nyMap = null;
 let nyMapVisible = false;
 let nyMapReportFilter = "all";
 
+// ── VA Hunt state ─────────────────────────────────────────────────────────────
+let allVaRetailers = [];
+let vaGames = [];
+let selectedVaGame = null;
+let vaLoaded = false;
+let vaMap = null;
+let vaMapVisible = false;
+let vaMapReportFilter = "all";
+
+// ── DC Hunt state ─────────────────────────────────────────────────────────────
+let allDcRetailers = [];
+let dcGames = [];
+let selectedDcGame = null;
+let dcLoaded = false;
+let dcMap = null;
+let dcMapVisible = false;
+let dcMapReportFilter = "all";
+
+// ── VT Hunt state ─────────────────────────────────────────────────────────────
+let allVtRetailers = [];
+let vtGames = [];
+let selectedVtGame = null;
+let vtLoaded = false;
+let vtMap = null;
+let vtMapVisible = false;
+let vtMapReportFilter = "all";
+
 // ── Render generation counters (cancel in-flight RAF renders on new render) ───
 let maRenderGen = 0;
 let azRenderGen = 0;
@@ -77,6 +104,9 @@ let riRenderGen = 0;
 let flRenderGen = 0;
 let gaRenderGen = 0;
 let nyRenderGen = 0;
+let vaRenderGen = 0;
+let dcRenderGen = 0;
+let vtRenderGen = 0;
 let communityReportsLastFetch = 0;
 
 // ── Community inventory ───────────────────────────────────────────────────────
