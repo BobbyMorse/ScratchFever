@@ -412,6 +412,8 @@ async def api_status_states():
     return {
         "states": states,
         "scraper_running": scrape_status["running"],
+        "current_state": scrape_status.get("current_state"),
+        "last_run": scrape_status.get("last_run"),
     }
 
 
