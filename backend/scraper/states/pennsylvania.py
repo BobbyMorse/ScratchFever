@@ -105,10 +105,14 @@ def _parse_bulletin(html: str) -> tuple[list[dict], int | None]:
     if not rows:
         return [], None
 
-    # Parse total_tickets from any header row (some bulletins have 2 <th> header rows)
+    # Parse total_tickets from <th> header rows only.
+    # Some bulletins render "Per¹ 5,400,000 Tickets" (superscript footnote digit
+    # between "Per" and the actual number); match any 7+ digit number before "Tickets".
     total_tickets = None
     for row in rows:
-        m = re.search(r"Per\s*([\d,]+)\s*[Tt]ickets", row.get_text())
+        if row.find("td"):
+            break  # stop at first data row
+        m = re.search(r"([\d,]{7,})\s*[Tt]ickets", row.get_text())
         if m:
             try:
                 total_tickets = int(m.group(1).replace(",", ""))
