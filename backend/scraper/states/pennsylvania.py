@@ -65,18 +65,19 @@ def _save_cache(cache: dict) -> None:
         logger.warning("PA: could not save odds cache: %s", e)
 
 
-def _cache_get(cache: dict, gid: str) -> tuple[list[dict], float | None, int | None]:
-    """Return (tiers, overall_odds, total_tickets) from cache entry.
+def _cache_get(cache: dict, gid: str) -> tuple[list[dict], float | None, int | None, str | None]:
+    """Return (tiers, overall_odds, total_tickets, image_url) from cache entry.
     Handles legacy list format (tiers only) and current dict format."""
     entry = cache.get(gid)
     if entry is None:
-        return [], None, None
+        return [], None, None, None
     if isinstance(entry, list):
-        return entry, None, None
+        return entry, None, None, None
     return (
         entry.get("tiers", []),
         entry.get("overall_odds"),
         entry.get("total_tickets"),
+        entry.get("image_url"),
     )
 
 
