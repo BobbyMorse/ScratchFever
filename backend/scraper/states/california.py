@@ -1,9 +1,11 @@
 """
 California Lottery scratch-off scraper.
 API: https://www.calottery.com/api/games/scratchers
-  Fields: gameNumber, name, price (string "$X"), cashOdds (overall odds denominator),
+  Fields: gameNumber, name, price (int), cashOdds (overall odds denominator),
           prizeTiers[]: value (dollars), odds (denominator), totalNumberOfPrizes,
-                        numberOfPrizesCashed, number (prizes remaining in unscratched tickets)
+                        numberOfPrizesCashed, numberOfPrizesPending
+  NOTE: The `number` field is a tier identifier, NOT prizes remaining.
+        Prizes remaining = totalNumberOfPrizes - numberOfPrizesCashed - numberOfPrizesPending.
 """
 from __future__ import annotations
 import logging
