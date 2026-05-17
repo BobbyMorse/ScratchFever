@@ -75,8 +75,6 @@ class CaliforniaScraper(BaseScraper):
 
         tiers_raw = g.get("prizeTiers") or []
         tiers = []
-        total_prizes_printed = 0
-        total_prizes_remaining = 0
         any_remaining_data = False
 
         for t in tiers_raw:
@@ -86,18 +84,14 @@ class CaliforniaScraper(BaseScraper):
             odds = float(t.get("odds") or 0) or None
             total = int(t.get("totalNumberOfPrizes") or 0)
             cashed = int(t.get("numberOfPrizesCashed") or 0)
-            pending = int(t.get("numberOfPrizesPending") or 0)
-            # `number` is a tier identifier, not prize count — compute real remaining
-            remaining = max(0, total - cashed - pending)
-
-            if remaining > 0:
-                any_remaining_data = True
-                total_prizes_remaining += remaining
+            # numberOfPrizesPending = prizes still in the field (not yet claimed)
+            remaining = max(0, total - cashed)
 
             if total <= 0:
                 continue
 
-            total_prizes_printed += total
+            if remaining > 0:
+                any_remaining_data = True
 
             tiers.append({
                 "prize_amount":     prize,
@@ -109,13 +103,26 @@ class CaliforniaScraper(BaseScraper):
         if not tiers:
             return None
 
+        # Use per-tier odds for accurate ticket estimates (CA provides per-tier odds explicitly)
+        total_estimates = [
+            round(t["prizes_total"] * t["odds_one_in"])
+            for t in tiers
+            if t["prizes_total"] and t.get("odds_one_in") and t["odds_one_in"] > 0
+        ]
+        remaining_estimates = [
+            round(t["prizes_remaining"] * t["odds_one_in"])
+            for t in tiers
+            if t["prizes_remaining"] and t.get("odds_one_in") and t["odds_one_in"] > 0
+        ]
+
         total_tickets = None
         tickets_remaining = None
-        if overall_odds and overall_odds > 0 and total_prizes_printed > 0:
-            total_tickets = round(overall_odds * total_prizes_printed)
-            # Only store tickets_remaining when at least one tier has prizes still in the field.
-            if any_remaining_data:
-                tickets_remaining = round(overall_odds * total_prizes_remaining)
+        if total_estimates:
+            total_estimates.sort()
+            total_tickets = total_estimates[len(total_estimates) // 2]
+        if remaining_estimates and any_remaining_data:
+            remaining_estimates.sort()
+            tickets_remaining = remaining_estimates[len(remaining_estimates) // 2]
 
         game = self.build_game(
             game_id=game_id or name,
