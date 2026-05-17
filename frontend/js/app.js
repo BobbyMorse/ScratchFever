@@ -5358,11 +5358,13 @@ function _renderAdminHealth(states) {
     <td colspan="8"><span class="ap-muted">No state lottery</span></td>
   </tr>`).join("");
 
-  document.getElementById("apHealthBody").innerHTML = (rows + noLotteryRows) ||
+  document.getElementById("htHealthBody").innerHTML = (rows + noLotteryRows) ||
     `<tr><td colspan="10" class="ap-loading">No data.</td></tr>`;
-  document.getElementById("apOkN").textContent = ok;
-  document.getElementById("apWarnN").textContent = warn;
-  document.getElementById("apErrN").textContent = err;
+  document.getElementById("htOkN").textContent = ok;
+  document.getElementById("htWarnN").textContent = warn;
+  document.getElementById("htErrN").textContent = err;
+  document.getElementById("healthTabSub").textContent =
+    `Last refreshed ${_apTimeAgo(new Date().toISOString())}`;
 }
 
 // ── Settings tab ──────────────────────────────────────────────────────────────
