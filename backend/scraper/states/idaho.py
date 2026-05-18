@@ -191,7 +191,7 @@ class IdahoScraper(BaseScraper):
                 tickets_remaining = round(overall_odds * total_rem)
 
         return self.build_game(
-            game_id=slug,
+            game_id=game_id,
             name=name,
             price=price,
             tiers=tiers,
