@@ -880,6 +880,37 @@ async function loadStateHealth() {
   }
 }
 
+async function dsRescrapeRetailers(stateCode) {
+  if (_dsRetailerRunning[stateCode]) return;
+  _dsRetailerRunning[stateCode] = true;
+  _renderDsGrid();
+  try {
+    const res = await apiFetch(`/api/admin/scrape/retailers/${stateCode}`, { method: "POST" });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      alert(`Failed to start retailer scrape for ${stateCode}: ${err.detail || res.status}`);
+      _dsRetailerRunning[stateCode] = false;
+      _renderDsGrid();
+      return;
+    }
+    // Poll for completion
+    const poll = setInterval(async () => {
+      try {
+        const sr = await apiFetch(`/api/admin/scrape/retailers/${stateCode}/status`);
+        const d = await sr.json();
+        if (!d.running) {
+          clearInterval(poll);
+          _dsRetailerRunning[stateCode] = false;
+          await loadStateHealth();
+        }
+      } catch (_) {}
+    }, 3000);
+  } catch (e) {
+    _dsRetailerRunning[stateCode] = false;
+    _renderDsGrid();
+  }
+}
+
 function fmtClaimPrize(amount) {
   if (amount >= 1_000_000) return "$" + (amount / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
   if (amount >= 1000) return "$" + (amount / 1000).toFixed(0) + "K";
