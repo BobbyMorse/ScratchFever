@@ -1499,6 +1499,24 @@
         </div>
       </div><!-- /tab-settings -->
 
+      <!-- ══════════════ ACCOUNT TAB ══════════════ -->
+      <div id="tab-account" class="tab-content" style="display:none">
+        <div class="account-page">
+          <div class="account-card">
+            <div class="account-avatar">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+            <div class="account-name" id="accountDisplayName"></div>
+            <div class="account-email-full" id="accountEmailFull"></div>
+            <span class="user-chip-role" id="accountRoleBadge"></span>
+            <button class="btn account-logout-btn" onclick="logout()">Log out</button>
+          </div>
+        </div>
+      </div><!-- /tab-account -->
+
       <!-- ══════════════ SCRAPER HEALTH TAB (admin only) ══════════════ -->
       <div id="tab-health" class="tab-content" style="display:none">
         <div class="ds-wrap">
