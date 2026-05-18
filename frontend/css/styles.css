@@ -366,30 +366,12 @@ body {
   border-top: 1px solid var(--chrome-border);
   padding-top: .6rem;
 }
-.sidebar-account .btn-login {
+.sidebar-login-btn {
   width: 100%;
   justify-content: center;
   font-size: .78rem;
   padding: .35rem .9rem;
   box-sizing: border-box;
-}
-.sidebar-account .user-chip {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: .3rem;
-}
-.sidebar-account .user-chip-email {
-  font-size: .72rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 155px;
-  display: block;
-}
-.sidebar-account .user-chip-actions {
-  display: flex;
-  align-items: center;
-  gap: .45rem;
 }
 .sidebar-pro {
   display: flex;
