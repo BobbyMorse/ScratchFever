@@ -250,6 +250,33 @@ class OregonScraper(BaseScraper):
         )
 
     @staticmethod
+    def _parse_div_tiers(soup) -> list[dict]:
+        """Parse Oregon's div-based odds/payouts section into prize tiers."""
+        tiers = []
+        for result_div in soup.select("div.ol-odds-payouts-scratchits__results"):
+            data: dict[str, str] = {}
+            for cell in result_div.select("div.ol-odds-payouts-scratchits__result"):
+                raw = cell.get_text(separator=" ", strip=True)
+                m = re.match(r"^([^:]+):\s*(.+)$", raw)
+                if m:
+                    data[m.group(1).strip().lower()] = m.group(2).strip()
+
+            prize = OregonScraper._parse_prize(data.get("prize", ""))
+            odds_raw = data.get("odds", "")
+            odds_m = re.search(r"1\s+in\s+([\d,]+(?:\.\d+)?)", odds_raw, re.IGNORECASE)
+            total = int(data["total prizes"].replace(",", "")) if "total prizes" in data else None
+            left = int(data["prizes left"].replace(",", "")) if "prizes left" in data else None
+
+            if prize and prize > 0 and odds_m:
+                tiers.append({
+                    "prize_amount": prize,
+                    "odds_one_in": float(odds_m.group(1).replace(",", "")),
+                    "prizes_remaining": left,
+                    "prizes_total": total,
+                })
+        return tiers
+
+    @staticmethod
     def _parse_text_tiers(text: str) -> list[dict]:
         """Parse prize tiers from inner_text lines: '$X  1 in Y  Z of W'."""
         tiers = []
