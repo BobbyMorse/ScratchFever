@@ -139,6 +139,11 @@ class RhodeIslandScraper(BaseScraper):
         overall_odds_raw = g.get("overallOdds")
         overall_odds = float(overall_odds_raw) if overall_odds_raw else None
 
+        end_date = None
+        end_ms = g.get("endDistributionDate")
+        if end_ms:
+            end_date = datetime.fromtimestamp(end_ms / 1000, tz=timezone.utc).date().isoformat()
+
         # Image: first try response-captured URLs by game ID, then API fields
         image_url = None
         if game_id_to_img:
