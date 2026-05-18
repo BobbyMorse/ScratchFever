@@ -20,7 +20,11 @@ logger = logging.getLogger(__name__)
 
 # Ordered list of states to scrape.
 # Each entry maps to backend/retailer_scrapers/<state_lower>.py exposing run(conn).
-SCRAPERS: list[str] = ["MA", "AZ", "NY", "NJ", "GA", "CA", "NH", "CT", "IL", "DC", "VT", "VA"]
+SCRAPERS: list[str] = [
+    "MA", "AZ", "NY", "NJ", "GA", "CA", "NH", "CT", "IL", "DC", "VT", "VA",
+    # Added scrapers
+    "ME", "OR", "CO", "SC", "WA", "TX",
+]
 
 
 async def _log_scrape(conn, state_code: str, count: int) -> None:
