@@ -46,6 +46,9 @@ class IdahoScraper(BaseScraper):
             if not m:
                 continue
             slug = m.group(1)
+            # Skip pure-numeric paths like /1 /2 /10 — those are price filter pages
+            if slug.isdigit():
+                continue
             if slug not in seen:
                 seen.add(slug)
                 slugs.append(slug)
