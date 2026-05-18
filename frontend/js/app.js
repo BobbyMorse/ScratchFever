@@ -209,23 +209,20 @@ function protectedFetch(url, opts = {}) {
 
 function _setUser(user) {
   _currentUser = user;
-  const chip  = document.getElementById("userChip");
-  const btn   = document.getElementById("loginBtn");
-  const caller = document.getElementById("callerTabBtn");
+  const btn        = document.getElementById("loginBtn");
+  const accountBtn = document.getElementById("accountTabBtn");
+  const caller     = document.getElementById("callerTabBtn");
 
   if (user) {
-    document.getElementById("userEmail").textContent = user.username || user.email;
-    const roleEl = document.getElementById("userRole");
-    const roleLabel = user.role === "admin" ? "Admin" : user.role === "retailer" ? "Retailer" : "Member";
-    roleEl.textContent = roleLabel;
-    roleEl.className = "user-chip-role role-" + user.role;
-    chip.style.display = "";
-    btn.style.display  = "none";
+    document.getElementById("userDisplayName").textContent = user.username || user.email;
+    btn.style.display        = "none";
+    accountBtn.style.display = "";
     const isAdmin = user.role === "admin";
     caller.style.display = isAdmin ? "" : "none";
     document.getElementById("playsTabBtn").style.display = "";
     document.getElementById("playsLoginNudge").style.display = "none";
-    // Show "My Store" link for retailer accounts
+    document.getElementById("scrapeBtn").style.display = isAdmin ? "" : "none";
+    // Show "My Store" link for retailer/admin accounts
     let myStoreLink = document.getElementById("myStoreLink");
     if (user.role === "retailer" || user.role === "admin") {
       if (!myStoreLink) {
@@ -235,28 +232,37 @@ function _setUser(user) {
         myStoreLink.className = "btn btn-login";
         myStoreLink.textContent = "My Store";
         myStoreLink.style.cssText = "text-decoration:none;background:rgba(20,184,166,0.15);border-color:rgba(20,184,166,0.4);color:#14b8a6";
-        chip.parentNode.insertBefore(myStoreLink, chip);
+        document.getElementById("header-right-extra") && document.getElementById("header-right-extra").appendChild(myStoreLink);
       }
       myStoreLink.style.display = "";
     } else if (myStoreLink) {
       myStoreLink.style.display = "none";
     }
-    document.getElementById("scrapeBtn").style.display = isAdmin ? "" : "none";
   } else {
-    chip.style.display  = "none";
-    btn.style.display   = "";
-    caller.style.display = "none";
+    btn.style.display        = "";
+    accountBtn.style.display = "none";
+    caller.style.display     = "none";
     document.getElementById("playsTabBtn").style.display = "none";
     document.getElementById("playsLoginNudge").style.display = "";
     const msl = document.getElementById("myStoreLink");
     if (msl) msl.style.display = "none";
     document.getElementById("scrapeBtn").style.display = "none";
-    // Close any open store profile and clear report badges
+    if (currentTab === "account") switchTab("ev");
     _openProfileId = null;
     document.querySelectorAll(".store-profile-tr").forEach(el => el.remove());
     document.querySelectorAll(".store-profile-open").forEach(el => el.classList.remove("store-profile-open"));
     updateReportBadges();
   }
+}
+
+function populateAccountTab() {
+  if (!_currentUser) return;
+  document.getElementById("accountDisplayName").textContent = _currentUser.username || _currentUser.email;
+  document.getElementById("accountEmailFull").textContent = _currentUser.email || "";
+  const roleEl = document.getElementById("accountRoleBadge");
+  const roleLabel = _currentUser.role === "admin" ? "Admin" : _currentUser.role === "retailer" ? "Retailer" : "Member";
+  roleEl.textContent = roleLabel;
+  roleEl.className = "user-chip-role role-" + _currentUser.role;
 }
 
 async function restoreSession() {
