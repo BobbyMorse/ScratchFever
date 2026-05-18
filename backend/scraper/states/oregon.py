@@ -159,10 +159,11 @@ class OregonScraper(BaseScraper):
         game_id = f"or{game_num}" if game_num else f"or-{slug}"
 
         # --- Price ---
+        # Oregon renders "Ticket Cost" label and "$20.00" on separate lines
         price = None
         for pat in [
-            r"Ticket\s+Cost[:\s]+\$?([\d.]+)",
-            r"Price[:\s]+\$?([\d.]+)",
+            r"Ticket\s+Cost[\s\n:]+\$?([\d.]+)",
+            r"Price[\s\n:]+\$?([\d.]+)",
             r"\$(\d+(?:\.\d+)?)\s+Scratch",
             r"costs?\s+\$?([\d.]+)",
         ]:
