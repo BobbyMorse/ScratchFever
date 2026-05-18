@@ -123,15 +123,15 @@
       <div class="sidebar-pro">
         🏠 PRO ACCESS
       </div>
-      <div class="sidebar-account" id="authControls">
-        <button class="btn btn-login" id="loginBtn" onclick="openAuthModal('login')">Log In</button>
-        <div class="user-chip" id="userChip" style="display:none">
-          <span class="user-chip-email" id="userEmail"></span>
-          <div class="user-chip-actions">
-            <span class="user-chip-role" id="userRole"></span>
-            <button class="btn-logout" onclick="logout()">Log out</button>
-          </div>
-        </div>
+      <div class="sidebar-account">
+        <button class="btn btn-login sidebar-login-btn" id="loginBtn" onclick="openAuthModal('login')">Log In</button>
+        <button class="sidebar-item tab-btn" id="accountTabBtn" data-tab="account" onclick="switchTab('account')" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span id="userDisplayName">Account</span>
+        </button>
       </div>
     </div>
   </aside>
