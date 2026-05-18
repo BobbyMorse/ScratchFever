@@ -232,7 +232,7 @@ function _setUser(user) {
         myStoreLink.className = "btn btn-login";
         myStoreLink.textContent = "My Store";
         myStoreLink.style.cssText = "text-decoration:none;background:rgba(20,184,166,0.15);border-color:rgba(20,184,166,0.4);color:#14b8a6";
-        document.getElementById("header-right-extra") && document.getElementById("header-right-extra").appendChild(myStoreLink);
+        document.querySelector(".header-right").appendChild(myStoreLink);
       }
       myStoreLink.style.display = "";
     } else if (myStoreLink) {
