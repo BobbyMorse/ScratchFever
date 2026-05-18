@@ -151,6 +151,14 @@ body {
   transition: background .15s;
 }
 .ds-refresh-btn:hover { background: rgba(255,255,255,.12); }
+.ds-rescrape-btn {
+  background: none; border: 1px solid rgba(255,255,255,.12);
+  color: rgba(255,255,255,.4); border-radius: 4px;
+  padding: 0 .35rem; font-size: .7rem; cursor: pointer; line-height: 1.5;
+  transition: all .15s; vertical-align: middle; margin-left: .35rem;
+}
+.ds-rescrape-btn:hover { background: rgba(255,255,255,.08); color: var(--chrome-text); border-color: rgba(255,255,255,.25); }
+.ds-rescrape-btn.ds-rescrape-running { color: var(--yellow); border-color: var(--yellow); pointer-events: none; }
 .ds-scraper-status {
   display: flex; align-items: center; gap: .5rem;
   font-size: .8rem; color: var(--yellow);
