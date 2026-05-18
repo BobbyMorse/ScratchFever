@@ -176,6 +176,21 @@ class IndianaScraper(BaseScraper):
                     depletion = pub_remaining / pub_count
                     tickets_remaining = max(0, round(total_tickets * depletion))
 
+                    # Indiana only publishes prizes >= ~$40; add a synthetic tier for
+                    # the unpublished small-prize pool so calculate_ev captures the
+                    # full ~65% payout rather than just the published portion.
+                    all_winners = total_tickets / overall_odds
+                    small_count = max(0.0, all_winners - pub_count)
+                    small_pool = total_tickets * price * _PAYOUT_RATE - pub_pool
+                    if small_count > 0 and small_pool > 0:
+                        small_remaining = max(0, round(small_count * depletion))
+                        tiers = tiers + [{
+                            "prize_amount": round(small_pool / small_count, 2),
+                            "odds_one_in": None,
+                            "prizes_remaining": small_remaining,
+                            "prizes_total": round(small_count),
+                        }]
+
         return self.build_game(
             game_id=stub["game_id"],
             name=stub["name"],

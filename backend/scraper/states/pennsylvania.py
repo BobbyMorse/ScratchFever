@@ -208,13 +208,17 @@ def _fetch_game_odds(
                     pass
                 break
 
-        # Image URL from detail page
+        # Image URL from detail page — prefer /uploadedimages/ (actual ticket art);
+        # skip site chrome like /media/Logos/ and /Custom/img/
         image_url = None
         for img in dsoup.find_all("img"):
             src = img.get("src") or img.get("data-src", "")
-            if src and re.search(r"\.(jpg|jpeg|png|webp)", src, re.I):
-                image_url = (BASE_URL + src) if src.startswith("/") else src
-                break
+            if not src or not re.search(r"\.(jpg|jpeg|png|webp)", src, re.I):
+                continue
+            if re.search(r"/(media/Logos|Custom/img)/", src, re.I):
+                continue
+            image_url = (BASE_URL + src) if src.startswith("/") else src
+            break
 
         # PA Bulletin link ("Complete Game Rules")
         bulletin_url = None
@@ -349,7 +353,13 @@ class PennsylvaniaScraper(BaseScraper):
         cache_updated = False
         overall_odds_map: dict[str, float] = {}
 
-        need_fetch = [g for g in raw if g["game_id"] not in cache and g["detail_url"]]
+        need_fetch = [
+            g for g in raw
+            if g["detail_url"] and (
+                g["game_id"] not in cache
+                or cache.get(g["game_id"], {}).get("image_url") is None
+            )
+        ]
         logger.info(
             "PA: %d games need bulletin fetch (%d already cached)",
             len(need_fetch), len(raw) - len(need_fetch),
