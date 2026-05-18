@@ -68,7 +68,8 @@ class NewMexicoScraper(BaseScraper):
                     if src:
                         image_url = (BASE_URL + src) if src.startswith("/") else src
                 if not game_id:
-                    game_id = re.sub(r"[^a-z0-9]", "", name.lower())[:20]
+                    gm = re.search(r"[Gg]ame\s*[#No.]+\s*(\d{3,6})", container.get_text())
+                    game_id = gm.group(1) if gm else re.sub(r"[^a-z0-9]", "", name.lower())[:20]
 
                 # Prize table: Prize(0) | Odds(1) | Total(2) | Remaining(3)
                 tiers = []
