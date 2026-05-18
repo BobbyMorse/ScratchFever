@@ -174,21 +174,24 @@ class OregonScraper(BaseScraper):
             return None
 
         # --- Overall odds ---
+        # Label and value are on separate lines on Oregon's site
         overall_odds = None
-        m = re.search(r"Overall\s+Odds[:\s]+1\s+in\s+([\d,]+(?:\.\d+)?)", text, re.IGNORECASE)
+        m = re.search(r"Overall\s+Odds[\s\n:]+1\s+in\s+([\d,]+(?:\.\d+)?)", text, re.IGNORECASE)
         if m:
             overall_odds = float(m.group(1).replace(",", ""))
 
-        # --- Prize tiers: try HTML table first (parse_table_tiers handles
-        #     Prize/Odds/Remaining/Total column detection automatically) ---
-        tiers = []
-        for table in soup.find_all("table"):
-            parsed = self.parse_table_tiers(table)
-            if len(parsed) >= 2:
-                tiers = parsed
-                break
+        # --- Prize tiers: Oregon uses div.ol-odds-payouts-scratchits__results ---
+        tiers = self._parse_div_tiers(soup)
 
-        # Fallback: scan text lines for "$X  1 in Y  Z of W" pattern
+        # Fallback: try HTML tables
+        if not tiers:
+            for table in soup.find_all("table"):
+                parsed = self.parse_table_tiers(table)
+                if len(parsed) >= 2:
+                    tiers = parsed
+                    break
+
+        # Last resort: scan text lines for "$X  1 in Y  Z of W" pattern
         if not tiers:
             tiers = self._parse_text_tiers(text)
 
