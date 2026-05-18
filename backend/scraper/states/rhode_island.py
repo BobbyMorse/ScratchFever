@@ -198,4 +198,5 @@ class RhodeIslandScraper(BaseScraper):
             overall_odds=overall_odds,
             detail_url=f"{self.base_url}/en-us/games/scratchers.html",
             image_url=image_url,
+            end_date=end_date,
         )
