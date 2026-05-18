@@ -331,7 +331,7 @@ class OhioScraper(BaseScraper):
             return None
 
         return self.build_game(
-            game_id=f"oh{game_id_raw}",
+            game_id=game_id_raw,
             name=name,
             price=price,
             tiers=tiers,
