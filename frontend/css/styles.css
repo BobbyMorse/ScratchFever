@@ -1284,6 +1284,29 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 /* Sidebar admin button */
 #adminHealthBtn.sidebar-item { margin-top: .25rem; }
 
+/* ── Account page ──────────────────────────────────────────────────────────── */
+.account-page { display: flex; align-items: flex-start; justify-content: center; padding: 3rem 2rem; min-height: 60vh; }
+.account-card {
+  display: flex; flex-direction: column; align-items: center; gap: 1rem;
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 16px; padding: 2.5rem 2rem; min-width: 280px; max-width: 360px; width: 100%;
+  box-shadow: 0 2px 16px rgba(0,0,0,.06);
+}
+.account-avatar {
+  width: 72px; height: 72px; border-radius: 50%;
+  background: var(--bg); border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-muted);
+}
+.account-avatar svg { width: 38px; height: 38px; }
+.account-name { font-size: 1.1rem; font-weight: 700; color: var(--text); text-align: center; word-break: break-all; }
+.account-email-full { font-size: .82rem; color: var(--text-muted); text-align: center; word-break: break-all; margin-top: -.4rem; }
+.account-logout-btn {
+  margin-top: .5rem; background: transparent; color: var(--text-muted);
+  border-color: var(--border); font-size: .82rem;
+}
+.account-logout-btn:hover { color: var(--text); border-color: var(--text-muted); }
+
 /* ── Settings page ─────────────────────────────────────────────────────────── */
 .settings-page { max-width: 620px; padding: 2.5rem 2rem; }
 
