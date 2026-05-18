@@ -780,11 +780,13 @@ function _renderDsGrid() {
   }
   function _retCell(s) {
     if (!s.has_retailer_scraper) return `<span class="ds-muted">—</span>`;
-    if (!s.retailer_last_scraped) return `<span class="ds-pct-lo">Never</span>`;
+    const running = _dsRetailerRunning[s.state_code];
+    const btn = `<button class="ds-rescrape-btn${running ? ' ds-rescrape-running' : ''}" onclick="dsRescrapeRetailers('${s.state_code}')" title="Re-scrape retailer data">${running ? '…' : '↺'}</button>`;
+    if (!s.retailer_last_scraped) return `<span class="ds-pct-lo">Never</span> ${btn}`;
     const d = _parseTs(s.retailer_last_scraped);
     const ageDays = d ? Math.floor((Date.now() - d) / 86400000) : 999;
     const cls = ageDays > 35 ? "ds-pct-lo" : "ds-pct-hi";
-    return `<span class="${cls}">${timeAgo(d)}</span>`;
+    return `<span class="${cls}">${timeAgo(d)}</span> ${btn}`;
   }
 
   const activeCode = _dsActiveCode;
