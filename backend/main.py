@@ -494,6 +494,43 @@ async def api_trigger_scrape(
     return {"message": f"Scrape started for {'all states' if not state else state}", "running": True}
 
 
+retailer_scrape_status: dict = {}  # state_code -> {"running": bool, "last_result": dict|None}
+
+
+@app.post("/api/admin/scrape/retailers/{state_code}")
+async def api_trigger_retailer_scrape(
+    state_code: str,
+    background_tasks: BackgroundTasks,
+    user: dict = Depends(require_admin),
+):
+    code = state_code.upper()
+    from backend.retailer_scrapers.runner import SCRAPERS
+    if code not in SCRAPERS:
+        raise HTTPException(status_code=404, detail=f"No retailer scraper for {code}")
+    if retailer_scrape_status.get(code, {}).get("running"):
+        return {"message": f"{code} retailer scrape already running", "running": True}
+
+    async def _run():
+        retailer_scrape_status[code] = {"running": True, "last_result": None}
+        try:
+            from backend.retailer_scrapers.runner import _run_state
+            result = await _run_state(code)
+            retailer_scrape_status[code] = {"running": False, "last_result": result}
+            logger.info("Manual retailer scrape done: %s — %d retailers", code, result.get("count", 0))
+        except Exception as e:
+            logger.error("Manual retailer scrape failed: %s — %s", code, e)
+            retailer_scrape_status[code] = {"running": False, "last_result": {"error": str(e)}}
+
+    background_tasks.add_task(_run)
+    return {"message": f"Retailer scrape started for {code}", "running": True}
+
+
+@app.get("/api/admin/scrape/retailers/{state_code}/status")
+async def api_retailer_scrape_status(state_code: str, user: dict = Depends(require_admin)):
+    code = state_code.upper()
+    return retailer_scrape_status.get(code, {"running": False, "last_result": None})
+
+
 @app.post("/api/scrape/cancel")
 async def api_cancel_scrape():
     if not scrape_status["running"]:
