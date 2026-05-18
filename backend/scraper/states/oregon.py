@@ -156,7 +156,7 @@ class OregonScraper(BaseScraper):
         if not game_num:
             m = re.search(r"Game\s*#?\s*:?\s*(\d+)", text, re.IGNORECASE)
             game_num = m.group(1) if m else ""
-        game_id = f"or{game_num}" if game_num else f"or-{slug}"
+        game_id = game_num if game_num else slug
 
         # --- Price ---
         # Oregon renders "Ticket Cost" label and "$20.00" on separate lines
