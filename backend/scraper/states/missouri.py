@@ -104,7 +104,7 @@ class MissouriScraper(BaseScraper):
                 tickets_remaining = round(overall_odds * sum_remaining)
 
         return self.build_game(
-            game_id=f"mo{game_num}",
+            game_id=game_num,
             name=name,
             price=price,
             tiers=tiers,
