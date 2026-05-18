@@ -706,6 +706,7 @@ let _dsSortCol = null;
 let _dsSortDir = 1;
 let _dsFilterStatus = null;
 let _dsActiveCode = null;
+let _dsRetailerRunning = {};  // state_code -> bool
 
 function dsToggleSort(col) {
   if (_dsSortCol === col) {
