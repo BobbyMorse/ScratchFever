@@ -59,11 +59,11 @@ class IdahoScraper(BaseScraper):
         h1 = soup.find("h1")
         name = h1.get_text(strip=True) if h1 else slug.replace("-", " ").title()
 
-        # Price: "$5.00 | Scratch"
+        # Price: "$ 20.00 | Ticket" (post-2026 redesign) or "$5.00 | Scratch" (legacy)
         price = None
-        pm = re.search(r"\$([\d.]+)\s*\|\s*Scratch", text, re.I)
+        pm = re.search(r"\$\s*([\d,]+(?:\.\d+)?)\s*\|\s*(?:Ticket|Scratch)", text, re.I)
         if pm:
-            price = float(pm.group(1))
+            price = float(pm.group(1).replace(",", ""))
         if not price:
             return None
 
