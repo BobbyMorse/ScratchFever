@@ -261,7 +261,7 @@ class OregonScraper(BaseScraper):
                 if m:
                     data[m.group(1).strip().lower()] = m.group(2).strip()
 
-            prize = OregonScraper._parse_prize(data.get("prize", ""))
+            prize = OregonScraper._parse_prize(data.get("prize", "").lstrip("$"))
             odds_raw = data.get("odds", "")
             odds_m = re.search(r"1\s+in\s+([\d,]+(?:\.\d+)?)", odds_raw, re.IGNORECASE)
             total = int(data["total prizes"].replace(",", "")) if "total prizes" in data else None
