@@ -896,7 +896,7 @@ async function dsRescrapeRetailers(stateCode) {
     // Poll for completion
     const poll = setInterval(async () => {
       try {
-        const sr = await apiFetch(`/api/admin/scrape/retailers/${stateCode}/status`);
+        const sr = await callerFetch(`/api/admin/scrape/retailers/${stateCode}/status`);
         const d = await sr.json();
         if (!d.running) {
           clearInterval(poll);
