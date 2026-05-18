@@ -885,7 +885,7 @@ async function dsRescrapeRetailers(stateCode) {
   _dsRetailerRunning[stateCode] = true;
   _renderDsGrid();
   try {
-    const res = await apiFetch(`/api/admin/scrape/retailers/${stateCode}`, { method: "POST" });
+    const res = await callerFetch(`/api/admin/scrape/retailers/${stateCode}`, { method: "POST" });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       alert(`Failed to start retailer scrape for ${stateCode}: ${err.detail || res.status}`);
