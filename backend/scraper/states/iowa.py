@@ -101,7 +101,7 @@ class IowaScraper(BaseScraper):
                 })
 
             games.append(self.build_game(
-                game_id=f"ia{gid}",
+                game_id=gid,
                 name=info["name"],
                 price=price,
                 tiers=tiers,
