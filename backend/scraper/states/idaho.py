@@ -97,6 +97,17 @@ class IdahoScraper(BaseScraper):
             src = img.get("src", "")
             image_url = (BASE_URL + src) if src.startswith("/") else src
 
+        # Game ID: try numeric from image filename, then page text, then slug
+        game_id = slug
+        if img:
+            m = re.search(r"[/_-](\d{3,6})(?:[._-]|$)", img.get("src", ""))
+            if m:
+                game_id = m.group(1)
+        if game_id == slug:
+            m = re.search(r"[Gg]ame\s*[#No.]+\s*(\d{3,6})", text)
+            if m:
+                game_id = m.group(1)
+
         # Prize table: Number of Prizes | Prize Amount | Remaining Prizes | Odds
         tiers = []
         for table in soup.find_all("table"):
