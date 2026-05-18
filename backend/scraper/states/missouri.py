@@ -64,6 +64,18 @@ class MissouriScraper(BaseScraper):
         if not price:
             return None
 
+        end_date = None
+        edm = re.search(r"End\s+Date[:\s]+([A-Za-z]+\s+\d{1,2},\s+\d{4})", text)
+        if edm:
+            try:
+                parsed = datetime.strptime(edm.group(1).strip(), "%b %d, %Y").date()
+                if parsed < date.today():
+                    logger.debug("MO: skipping expired game %s (end %s)", game_num, parsed)
+                    return None
+                end_date = parsed.isoformat()
+            except ValueError:
+                pass
+
         overall_odds = None
         om = re.search(r"[Aa]verage\s+[Cc]hances[*:.\s]+1\s+in\s+([\d,]+(?:\.\d+)?)", text)
         if om:
