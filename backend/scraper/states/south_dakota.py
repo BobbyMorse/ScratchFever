@@ -150,7 +150,7 @@ class SouthDakotaScraper(BaseScraper):
                     )
 
         return self.build_game(
-            game_id=f"sd{meta['id']}",
+            game_id=str(meta['id']),
             name=name,
             price=price,
             tiers=tiers,
