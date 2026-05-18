@@ -1437,6 +1437,9 @@ function switchTab(name) {
     if (_currentUser) loadPlays();
     else document.getElementById("playsLoginNudge").style.display = "";
   }
+  if (name === "account") {
+    populateAccountTab();
+  }
 }
 
 function toggleStateDropdown() {
