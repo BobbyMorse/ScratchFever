@@ -8,6 +8,7 @@ No per-tier odds published; tickets_remaining derived from overall_odds × sum(u
 from __future__ import annotations
 import re
 import logging
+from datetime import datetime, date
 from backend.scraper.base import BaseScraper
 
 logger = logging.getLogger(__name__)
