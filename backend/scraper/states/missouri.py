@@ -113,4 +113,5 @@ class MissouriScraper(BaseScraper):
             tickets_remaining=tickets_remaining,
             detail_url=url,
             image_url=f"{BASE_URL}/media/scratchers/tile/{game_num}.png",
+            end_date=end_date,
         )
