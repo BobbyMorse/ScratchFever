@@ -58,23 +58,31 @@ class IdahoScraper(BaseScraper):
         soup = self.soup(url)
         text = soup.get_text(" ", strip=True)
 
-        # Name
-        h1 = soup.find("h1")
-        name = h1.get_text(strip=True) if h1 else slug.replace("-", " ").title()
+        # Name: prefer page title over slug
+        title_tag = soup.find("title")
+        if title_tag:
+            raw_title = title_tag.get_text(strip=True)
+            name = re.sub(r"\s*\|.*$", "", raw_title).strip() or slug.replace("-", " ").title()
+        else:
+            h1 = soup.find("h1")
+            name = h1.get_text(strip=True) if h1 else slug.replace("-", " ").title()
 
-        # Price: "$ 20.00 | Ticket" (post-2026 redesign) or "$5.00 | Scratch" (legacy)
+        # Price and overall odds live in div.section__bar:
+        #   "$ 300,000 Top Prize $ 30.00 Ticket 1:2.95 overall odds 57.04 % sold"
+        # We must NOT use the full page text because Related Games links embed OTHER
+        # games' prices in "$ X.XX | Scratch" format which gets picked up first.
         price = None
-        pm = re.search(r"\$\s*([\d,]+(?:\.\d+)?)\s*\|\s*(?:Ticket|Scratch)", text, re.I)
+        overall_odds = None
+        bar = soup.find("div", class_="section__bar")
+        bar_text = bar.get_text(" ", strip=True) if bar else ""
+        pm = re.search(r"\$\s*([\d,]+(?:\.\d+)?)\s+Ticket\b", bar_text, re.I)
         if pm:
             price = float(pm.group(1).replace(",", ""))
-        if not price:
-            return None
-
-        # Overall odds: "1:3.47"
-        overall_odds = None
-        om = re.search(r"[Oo]verall\s+[Oo]dds[:\s]+1[:\s]+([\d,]+(?:\.\d+)?)", text)
+        om = re.search(r"1:([\d,]+(?:\.\d+)?)\s+overall\s+odds", bar_text, re.I)
         if om:
             overall_odds = float(om.group(1).replace(",", ""))
+        if not price:
+            return None
 
         # Tickets Printed gives us the exact total
         total_tickets = None
