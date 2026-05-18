@@ -22,10 +22,11 @@ class SouthCarolinaScraper(BaseScraper):
     state_code = "SC"
     state_name = "South Carolina"
     base_url = BASE_URL
+    scraper_timeout = 300
 
     def scrape(self) -> list[dict]:
         soup = self.soup(GAMES_URL)
-        games = []
+        candidates = []
         seen = set()
 
         for a in soup.find_all("a", href=True):
@@ -38,14 +39,12 @@ class SouthCarolinaScraper(BaseScraper):
                 continue
             seen.add(game_id)
 
-            # Game name from img alt: "In the Green Scratch-Off Game Link" → strip suffix
             img = a.find("img")
             alt = img.get("alt", "").strip() if img else ""
             name = re.sub(r"\s+Scratch-?Off\s+Game\s+Link\s*$", "", alt, flags=re.I).strip()
             if not name:
                 name = f"Game {game_id}"
 
-            # Image URL from listing page img src
             image_url = None
             if img:
                 src = img.get("src", "")
@@ -53,18 +52,19 @@ class SouthCarolinaScraper(BaseScraper):
                     image_url = (BASE_URL + src) if src.startswith("/") else src
 
             detail_url = (BASE_URL + href) if href.startswith("/") else href
-            price, tiers, overall_odds, tickets_remaining, total_tickets = \
-                None, [], None, None, None
+            candidates.append((game_id, name, image_url, detail_url))
+
+        def fetch(args):
+            game_id, name, image_url, detail_url = args
             try:
                 price, tiers, overall_odds, tickets_remaining, total_tickets = \
                     self._scrape_detail(detail_url)
             except Exception as e:
                 logger.debug("SC detail failed for %s: %s", name, e)
-
+                return None
             if not price:
-                continue
-
-            games.append(self.build_game(
+                return None
+            return self.build_game(
                 game_id=game_id,
                 name=name,
                 price=price,
@@ -74,7 +74,15 @@ class SouthCarolinaScraper(BaseScraper):
                 total_tickets=total_tickets,
                 detail_url=detail_url,
                 image_url=image_url,
-            ))
+            )
+
+        games = []
+        with ThreadPoolExecutor(max_workers=5) as pool:
+            futures = {pool.submit(fetch, c): c for c in candidates}
+            for fut in as_completed(futures):
+                result = fut.result()
+                if result:
+                    games.append(result)
 
         logger.info("SC: %d games scraped", len(games))
         return games
