@@ -173,6 +173,7 @@ class MassachusettsScraper(BaseScraper):
             return_pct = None
 
         top_tier = max(tiers, key=lambda t: t["prize_amount"])
+        jackpot_odds = calculate_jackpot_odds(tiers, tickets_remaining)
 
         return {
             "game_id":              game_id or slug,
@@ -183,6 +184,7 @@ class MassachusettsScraper(BaseScraper):
             "overall_odds_one_in":  official_odds,
             "top_prize":            top_tier["prize_amount"],
             "top_prize_remaining":  top_tier["prizes_remaining"],
+            "jackpot_odds_one_in":  jackpot_odds,
             "total_tickets":        total_tickets,
             "tickets_remaining":    tickets_remaining,
             "detail_url":           f"{DETAIL_BASE}/{slug}",
