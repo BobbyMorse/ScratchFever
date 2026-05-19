@@ -244,6 +244,7 @@ function _setUser(user) {
     btn.style.display        = "";
     accountBtn.style.display = "none";
     caller.style.display     = "none";
+    if (proCta) proCta.style.display = "";
     document.getElementById("playsTabBtn").style.display = "none";
     document.getElementById("playsLoginNudge").style.display = "";
     const msl = document.getElementById("myStoreLink");
