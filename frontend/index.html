@@ -120,8 +120,14 @@
     </nav>
 
     <div class="sidebar-footer">
-      <div class="sidebar-pro">
-        🏠 PRO ACCESS
+      <div class="sidebar-pro-cta" id="sidebarProCta" onclick="openAuthModal('register')">
+        <svg class="sidebar-pro-cta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+        </svg>
+        <div class="sidebar-pro-cta-text">
+          <strong>Get Pro Access</strong>
+          <span>EV data · Hunt tracking</span>
+        </div>
       </div>
       <div class="sidebar-account">
         <button class="btn btn-login sidebar-login-btn" id="loginBtn" onclick="openAuthModal('login')">Log In</button>
@@ -131,6 +137,7 @@
             <circle cx="12" cy="7" r="4"/>
           </svg>
           <span id="userDisplayName">Account</span>
+          <span class="sidebar-pro-chip">PRO</span>
         </button>
       </div>
     </div>
