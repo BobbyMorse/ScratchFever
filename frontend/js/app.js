@@ -215,7 +215,7 @@ function _setUser(user) {
   const proCta     = document.getElementById("sidebarProCta");
 
   if (user) {
-    document.getElementById("userDisplayName").textContent = user.username || user.email;
+    document.getElementById("userDisplayName").textContent = user.username || user.email.split("@")[0];
     btn.style.display        = "none";
     accountBtn.style.display = "";
     if (proCta) proCta.style.display = "none";
@@ -224,22 +224,8 @@ function _setUser(user) {
     document.getElementById("playsTabBtn").style.display = "";
     document.getElementById("playsLoginNudge").style.display = "none";
     document.getElementById("scrapeBtn").style.display = isAdmin ? "" : "none";
-    // Show "My Store" link for retailer/admin accounts
-    let myStoreLink = document.getElementById("myStoreLink");
-    if (user.role === "retailer" || user.role === "admin") {
-      if (!myStoreLink) {
-        myStoreLink = document.createElement("a");
-        myStoreLink.id = "myStoreLink";
-        myStoreLink.href = "/retailer";
-        myStoreLink.className = "btn btn-login";
-        myStoreLink.textContent = "My Store";
-        myStoreLink.style.cssText = "text-decoration:none;background:rgba(20,184,166,0.15);border-color:rgba(20,184,166,0.4);color:#14b8a6";
-        document.querySelector(".header-right").appendChild(myStoreLink);
-      }
-      myStoreLink.style.display = "";
-    } else if (myStoreLink) {
-      myStoreLink.style.display = "none";
-    }
+    const myStoreLink = document.getElementById("myStoreLink");
+    if (myStoreLink) myStoreLink.style.display = (user.role === "retailer" || user.role === "admin") ? "" : "none";
   } else {
     btn.style.display        = "";
     accountBtn.style.display = "none";
