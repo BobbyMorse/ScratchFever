@@ -1100,9 +1100,12 @@ function renderTable() {
   // Client-side secondary sort
   const { col, asc } = currentSort;
   games = [...games].sort((a, b) => {
-    const va = a[col] ?? -Infinity;
-    const vb = b[col] ?? -Infinity;
-    return asc ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
+    const aNul = a[col] == null;
+    const bNul = b[col] == null;
+    if (aNul && bNul) return 0;
+    if (aNul) return 1;
+    if (bNul) return -1;
+    return asc ? (a[col] > b[col] ? 1 : -1) : (a[col] < b[col] ? 1 : -1);
   });
 
   document.getElementById("resultCount").textContent =
