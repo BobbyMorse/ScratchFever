@@ -363,12 +363,9 @@ body {
   border-top: 1px solid var(--chrome-border);
   display: flex;
   flex-direction: column;
-  gap: .5rem;
+  gap: .45rem;
 }
-.sidebar-account {
-  border-top: 1px solid var(--chrome-border);
-  padding-top: .6rem;
-}
+.sidebar-account {}
 .sidebar-login-btn {
   width: 100%;
   justify-content: center;
@@ -376,21 +373,59 @@ body {
   padding: .35rem .9rem;
   box-sizing: border-box;
 }
-.sidebar-pro {
+
+/* Pro CTA — shown for non-logged-in users */
+.sidebar-pro-cta {
   display: flex;
   align-items: center;
-  gap: .5rem;
-  padding: .55rem .85rem;
+  gap: .6rem;
+  padding: .6rem .75rem;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, rgba(249,115,22,.13) 0%, rgba(249,115,22,.05) 100%);
+  border: 1px solid rgba(249,115,22,.28);
+  cursor: pointer;
+  transition: background .14s, border-color .14s;
+}
+.sidebar-pro-cta:hover {
+  background: linear-gradient(135deg, rgba(249,115,22,.22) 0%, rgba(249,115,22,.1) 100%);
+  border-color: rgba(249,115,22,.5);
+}
+.sidebar-pro-cta-icon {
+  width: 16px; height: 16px;
+  flex-shrink: 0;
   color: var(--orange);
+  opacity: .9;
+}
+.sidebar-pro-cta-text {
+  display: flex;
+  flex-direction: column;
+  gap: .05rem;
+  line-height: 1.2;
+}
+.sidebar-pro-cta-text strong {
   font-size: .78rem;
   font-weight: 700;
-  letter-spacing: .05em;
-  text-transform: uppercase;
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-  transition: background .12s;
+  color: var(--orange);
 }
-.sidebar-pro:hover { background: rgba(249,115,22,.08); }
+.sidebar-pro-cta-text span {
+  font-size: .67rem;
+  color: var(--chrome-text);
+  opacity: .6;
+}
+
+/* PRO chip on the account button (shown when logged in) */
+.sidebar-pro-chip {
+  margin-left: auto;
+  background: linear-gradient(135deg, #fb923c, #ea580c);
+  color: #fff;
+  font-size: .58rem;
+  font-weight: 800;
+  letter-spacing: .07em;
+  padding: .1rem .32rem;
+  border-radius: 3px;
+  line-height: 1.5;
+  flex-shrink: 0;
+}
 
 /* ── Main area (light) ────────────────────────────── */
 .main-area {
