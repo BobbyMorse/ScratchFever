@@ -16,7 +16,7 @@ import logging
 import time
 from bs4 import BeautifulSoup
 from backend.scraper.base import BaseScraper
-from backend.ev_calculator import parse_odds
+from backend.ev_calculator import parse_odds, calculate_jackpot_odds
 
 logger = logging.getLogger(__name__)
 
