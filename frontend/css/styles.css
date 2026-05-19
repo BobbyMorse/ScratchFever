@@ -413,6 +413,29 @@ body {
   opacity: .6;
 }
 
+/* Account label — truncate so long emails never overflow */
+#userDisplayName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* My Store sidebar link */
+.sidebar-mystore {
+  color: #14b8a6;
+  text-decoration: none;
+}
+.sidebar-mystore:hover { background: rgba(20,184,166,.1); color: #14b8a6; }
+.sidebar-mystore svg { color: #14b8a6; opacity: .8; }
+
+/* Admin-only scrape/cancel buttons in sidebar */
+.sidebar-scrape-btn { color: var(--orange); }
+.sidebar-scrape-btn:hover { color: var(--orange); }
+.sidebar-cancel-btn { color: var(--red, #ef4444); font-size: .8rem; }
+.sidebar-cancel-btn:hover { background: rgba(239,68,68,.08); color: var(--red, #ef4444); }
+
 /* PRO chip on the account button (shown when logged in) */
 .sidebar-pro-chip {
   margin-left: auto;
