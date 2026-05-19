@@ -212,11 +212,13 @@ function _setUser(user) {
   const btn        = document.getElementById("loginBtn");
   const accountBtn = document.getElementById("accountTabBtn");
   const caller     = document.getElementById("callerTabBtn");
+  const proCta     = document.getElementById("sidebarProCta");
 
   if (user) {
     document.getElementById("userDisplayName").textContent = user.username || user.email;
     btn.style.display        = "none";
     accountBtn.style.display = "";
+    if (proCta) proCta.style.display = "none";
     const isAdmin = user.role === "admin";
     caller.style.display = isAdmin ? "" : "none";
     document.getElementById("playsTabBtn").style.display = "";
