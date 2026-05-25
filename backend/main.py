@@ -743,7 +743,7 @@ class InventoryReportBody(BaseModel):
     game_name: str = ""
     game_price: Optional[float] = None
     has_stock: bool = False
-    notes: str = ""
+    notes: Optional[str] = None
     reported_at: Optional[str] = None
 
 
