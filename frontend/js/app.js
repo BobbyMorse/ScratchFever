@@ -3041,7 +3041,18 @@ async function toggleGameInv(retailerId, gameName, gamePrice, hasStock, notes) {
     });
     if (!res.ok) {
       let detail = `HTTP ${res.status}`;
-      try { const j = await res.json(); if (j.detail) detail = j.detail; } catch {}
+      try {
+        const j = await res.json();
+        if (j.detail) {
+          if (typeof j.detail === 'string') {
+            detail = j.detail;
+          } else if (Array.isArray(j.detail)) {
+            detail = j.detail.map(e => e.msg || JSON.stringify(e)).join('; ');
+          } else {
+            detail = JSON.stringify(j.detail);
+          }
+        }
+      } catch {}
       throw new Error(detail);
     }
   } catch (err) {
