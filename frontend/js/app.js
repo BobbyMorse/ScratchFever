@@ -3320,11 +3320,6 @@ function updateInventoryMapLayer(visibleRetailers) {
 
   const reportMarkers = reports.map(r => {
     const color = r.has_stock ? "#00cc44" : "#cc2200";
-    const icon  = L.divIcon({
-      className: "",
-      html: `<div style="width:10px;height:10px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>`,
-      iconSize: [10, 10], iconAnchor: [5, 5],
-    });
     const time = r.reported_at
       ? timeAgo(parseReportedAt(r.reported_at))
       : "";
@@ -3551,11 +3546,6 @@ function updateRiInventoryMapLayer(visibleRetailers) {
 
   const reportMarkers = reports.map(r => {
     const color = r.has_stock ? "#00cc44" : "#cc2200";
-    const icon  = L.divIcon({
-      className: "",
-      html: `<div style="width:10px;height:10px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>`,
-      iconSize: [10, 10], iconAnchor: [5, 5],
-    });
     const time = r.reported_at ? timeAgo(parseReportedAt(r.reported_at)) : "";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}`;
     return L.marker([r.lat, r.lng], { icon }).bindPopup(
@@ -3922,11 +3912,6 @@ function updateAzInventoryMapLayer(visibleRetailers) {
 
   const reportMarkers = reports.map(r => {
     const color = r.has_stock ? "#00cc44" : "#cc2200";
-    const icon  = L.divIcon({
-      className: "",
-      html: `<div style="width:10px;height:10px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>`,
-      iconSize: [10, 10], iconAnchor: [5, 5],
-    });
     const time = r.reported_at
       ? timeAgo(parseReportedAt(r.reported_at))
       : "";
