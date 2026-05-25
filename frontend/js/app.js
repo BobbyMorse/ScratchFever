@@ -3129,7 +3129,7 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
     return `<div class="modal-community-section">
       <div class="modal-community-title">📍 Community Reports</div>
       <div class="modal-community-gate">
-        <span>${count} member report${count > 1 ? "s" : ""} for this game.</span>
+        <span>In stock at ${count} member-reported location${count > 1 ? "s" : ""}.</span>
         <button class="btn btn-login" onclick="closeModal();openAuthModal('login')" style="font-size:.78rem;padding:.3rem .75rem">Log In to See</button>
         <button class="btn btn-register" onclick="closeModal();openAuthModal('register')" style="font-size:.78rem;padding:.3rem .75rem">Join Free</button>
       </div>
