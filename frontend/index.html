@@ -1743,8 +1743,20 @@
 <script src="/static/js/app.js?v=7"></script>
 <script>
   function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('open');
+    const open = document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebarBackdrop').classList.toggle('open', open);
+    document.body.classList.toggle('sidebar-open', open);
   }
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarBackdrop').classList.remove('open');
+    document.body.classList.remove('sidebar-open');
+  }
+  // Auto-close sidebar after picking a tab on mobile
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.sidebar .tab-btn, .sidebar .sidebar-mystore');
+    if (btn && window.matchMedia('(max-width: 900px)').matches) closeSidebar();
+  });
 </script>
 </body>
 </html>
