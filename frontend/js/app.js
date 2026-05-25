@@ -1148,7 +1148,7 @@ function gameRow(g, rank) {
 
   const reportCount = gameCounts[g.name.toLowerCase()] || 0;
   const reportBadge = reportCount > 0
-    ? `<span class="game-report-badge" title="${reportCount} community report${reportCount > 1 ? 's' : ''}">${reportCount} 📍</span>`
+    ? `<span class="game-report-badge" title="In stock at ${reportCount} member-reported location${reportCount > 1 ? 's' : ''}">${reportCount} 📍</span>`
     : "";
 
   const nameEsc = escHtml(g.name).replace(/'/g, "\\'");
