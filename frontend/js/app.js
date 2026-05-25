@@ -3316,7 +3316,7 @@ function updateInventoryMapLayer(visibleRetailers) {
       const color = status ? (status.has_stock ? "#00cc44" : "#cc2200") : "#4a9eff";
       const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
       const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
-      return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon })
+      return L.circleMarker([parseFloat(r.latitude), parseFloat(r.longitude)], { radius: 4, fillColor: color, fillOpacity: 1, color: '#fff', weight: 1.5 })
         .bindPopup(
           `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br>` +
           `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
@@ -3542,7 +3542,7 @@ function updateRiInventoryMapLayer(visibleRetailers) {
         ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock")
         : "Not yet checked";
       const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
-      return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon })
+      return L.circleMarker([parseFloat(r.latitude), parseFloat(r.longitude)], { radius: 4, fillColor: color, fillOpacity: 1, color: '#fff', weight: 1.5 })
         .bindPopup(
           `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br>` +
           `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
@@ -3907,7 +3907,7 @@ function updateAzInventoryMapLayer(visibleRetailers) {
         ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock")
         : "Not yet checked";
       const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
-      return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon })
+      return L.circleMarker([parseFloat(r.latitude), parseFloat(r.longitude)], { radius: 4, fillColor: color, fillOpacity: 1, color: '#fff', weight: 1.5 })
         .bindPopup(
           `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br>` +
           `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
@@ -4078,7 +4078,7 @@ function updateFlInventoryMapLayer(visibleRetailers) {
     const color = status ? (status.has_stock ? "#00cc44" : "#cc2200") : "#4a9eff";
     const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
-    return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon }).bindPopup(
+    return L.circleMarker([parseFloat(r.latitude), parseFloat(r.longitude)], { radius: 4, fillColor: color, fillOpacity: 1, color: '#fff', weight: 1.5 }).bindPopup(
       `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
     );
   });
@@ -4291,7 +4291,7 @@ function updateGaInventoryMapLayer(visibleRetailers) {
     const color = status ? (status.has_stock ? "#00cc44" : "#cc2200") : "#4a9eff";
     const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
-    return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon }).bindPopup(
+    return L.circleMarker([parseFloat(r.latitude), parseFloat(r.longitude)], { radius: 4, fillColor: color, fillOpacity: 1, color: '#fff', weight: 1.5 }).bindPopup(
       `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
     );
   });
@@ -4504,7 +4504,7 @@ function updateNyInventoryMapLayer(visibleRetailers) {
     const color = status ? (status.has_stock ? "#00cc44" : "#cc2200") : "#4a9eff";
     const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
-    return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon }).bindPopup(
+    return L.circleMarker([parseFloat(r.latitude), parseFloat(r.longitude)], { radius: 4, fillColor: color, fillOpacity: 1, color: '#fff', weight: 1.5 }).bindPopup(
       `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
     );
   });
@@ -4717,7 +4717,7 @@ function updateVaInventoryMapLayer(visibleRetailers) {
     const color = status ? (status.has_stock ? "#00cc44" : "#cc2200") : "#4a9eff";
     const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
-    return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon }).bindPopup(
+    return L.circleMarker([parseFloat(r.latitude), parseFloat(r.longitude)], { radius: 4, fillColor: color, fillOpacity: 1, color: '#fff', weight: 1.5 }).bindPopup(
       `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
     );
   });
@@ -4930,7 +4930,7 @@ function updateDcInventoryMapLayer(visibleRetailers) {
     const color = status ? (status.has_stock ? "#00cc44" : "#cc2200") : "#4a9eff";
     const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
-    return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon }).bindPopup(
+    return L.circleMarker([parseFloat(r.latitude), parseFloat(r.longitude)], { radius: 4, fillColor: color, fillOpacity: 1, color: '#fff', weight: 1.5 }).bindPopup(
       `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
     );
   });
@@ -5143,7 +5143,7 @@ function updateVtInventoryMapLayer(visibleRetailers) {
     const color = status ? (status.has_stock ? "#00cc44" : "#cc2200") : "#4a9eff";
     const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
-    return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon }).bindPopup(
+    return L.circleMarker([parseFloat(r.latitude), parseFloat(r.longitude)], { radius: 4, fillColor: color, fillOpacity: 1, color: '#fff', weight: 1.5 }).bindPopup(
       `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
     );
   });
