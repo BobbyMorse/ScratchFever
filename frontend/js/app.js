@@ -3313,7 +3313,7 @@ function updateInventoryMapLayer(visibleRetailers) {
       return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon })
         .bindPopup(
           `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br>` +
-          `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+          `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
         );
     });
 
@@ -3339,7 +3339,7 @@ function updateInventoryMapLayer(visibleRetailers) {
       `${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>` +
       `${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br>` +
       `<span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call verification" : "👤 Community report")} · ${time}</span><br>` +
-      `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+      `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
     );
   });
 
@@ -3549,7 +3549,7 @@ function updateRiInventoryMapLayer(visibleRetailers) {
       return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon })
         .bindPopup(
           `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br>` +
-          `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+          `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
         );
     });
 
@@ -3573,7 +3573,7 @@ function updateRiInventoryMapLayer(visibleRetailers) {
       `${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>` +
       `${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br>` +
       `<span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br>` +
-      `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+      `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
     );
   });
 
@@ -3924,7 +3924,7 @@ function updateAzInventoryMapLayer(visibleRetailers) {
       return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon })
         .bindPopup(
           `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br>` +
-          `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+          `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
         );
     });
 
@@ -3951,7 +3951,7 @@ function updateAzInventoryMapLayer(visibleRetailers) {
       `${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>` +
       `${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br>` +
       `<span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br>` +
-      `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+      `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
     );
   });
 
@@ -4099,7 +4099,7 @@ function updateFlInventoryMapLayer(visibleRetailers) {
     const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
     return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon }).bindPopup(
-      `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+      `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
     );
   });
   const flIds = new Set(allFlRetailers.map(r => String(r.id)));
@@ -4113,7 +4113,7 @@ function updateFlInventoryMapLayer(visibleRetailers) {
     const time = r.reported_at ? timeAgo(parseReportedAt(r.reported_at)) : "";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}`;
     return L.marker([r.lat, r.lng], { icon }).bindPopup(
-      `<b>${escHtml(r.retailer_name || "")}</b><br>${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br><span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+      `<b>${escHtml(r.retailer_name || "")}</b><br>${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br><span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
     );
   });
   const allMarkers = [...retailerMarkers, ...reportMarkers];
@@ -4314,7 +4314,7 @@ function updateGaInventoryMapLayer(visibleRetailers) {
     const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
     return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon }).bindPopup(
-      `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+      `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
     );
   });
   const gaIds = new Set(allGaRetailers.map(r => String(r.id)));
@@ -4328,7 +4328,7 @@ function updateGaInventoryMapLayer(visibleRetailers) {
     const time = r.reported_at ? timeAgo(parseReportedAt(r.reported_at)) : "";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}`;
     return L.marker([r.lat, r.lng], { icon }).bindPopup(
-      `<b>${escHtml(r.retailer_name || "")}</b><br>${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br><span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+      `<b>${escHtml(r.retailer_name || "")}</b><br>${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br><span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
     );
   });
   const allMarkers = [...retailerMarkers, ...reportMarkers];
@@ -4529,7 +4529,7 @@ function updateNyInventoryMapLayer(visibleRetailers) {
     const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
     return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon }).bindPopup(
-      `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+      `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
     );
   });
   const nyIds = new Set(allNyRetailers.map(r => String(r.id)));
@@ -4543,7 +4543,7 @@ function updateNyInventoryMapLayer(visibleRetailers) {
     const time = r.reported_at ? timeAgo(parseReportedAt(r.reported_at)) : "";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}`;
     return L.marker([r.lat, r.lng], { icon }).bindPopup(
-      `<b>${escHtml(r.retailer_name || "")}</b><br>${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br><span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+      `<b>${escHtml(r.retailer_name || "")}</b><br>${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br><span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
     );
   });
   const allMarkers = [...retailerMarkers, ...reportMarkers];
@@ -4744,7 +4744,7 @@ function updateVaInventoryMapLayer(visibleRetailers) {
     const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
     return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon }).bindPopup(
-      `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+      `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
     );
   });
   const vaIds = new Set(allVaRetailers.map(r => String(r.id)));
@@ -4758,7 +4758,7 @@ function updateVaInventoryMapLayer(visibleRetailers) {
     const time = r.reported_at ? timeAgo(parseReportedAt(r.reported_at)) : "";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}`;
     return L.marker([r.lat, r.lng], { icon }).bindPopup(
-      `<b>${escHtml(r.retailer_name || "")}</b><br>${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br><span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+      `<b>${escHtml(r.retailer_name || "")}</b><br>${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br><span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
     );
   });
   const allMarkers = [...retailerMarkers, ...reportMarkers];
@@ -4959,7 +4959,7 @@ function updateDcInventoryMapLayer(visibleRetailers) {
     const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
     return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon }).bindPopup(
-      `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+      `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
     );
   });
   const dcIds = new Set(allDcRetailers.map(r => String(r.id)));
@@ -4973,7 +4973,7 @@ function updateDcInventoryMapLayer(visibleRetailers) {
     const time = r.reported_at ? timeAgo(parseReportedAt(r.reported_at)) : "";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}`;
     return L.marker([r.lat, r.lng], { icon }).bindPopup(
-      `<b>${escHtml(r.retailer_name || "")}</b><br>${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br><span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+      `<b>${escHtml(r.retailer_name || "")}</b><br>${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br><span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
     );
   });
   const allMarkers = [...retailerMarkers, ...reportMarkers];
@@ -5174,7 +5174,7 @@ function updateVtInventoryMapLayer(visibleRetailers) {
     const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
     return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon }).bindPopup(
-      `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+      `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
     );
   });
   const vtIds = new Set(allVtRetailers.map(r => String(r.id)));
@@ -5188,7 +5188,7 @@ function updateVtInventoryMapLayer(visibleRetailers) {
     const time = r.reported_at ? timeAgo(parseReportedAt(r.reported_at)) : "";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}`;
     return L.marker([r.lat, r.lng], { icon }).bindPopup(
-      `<b>${escHtml(r.retailer_name || "")}</b><br>${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br><span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a>`
+      `<b>${escHtml(r.retailer_name || "")}</b><br>${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br><span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
     );
   });
   const allMarkers = [...retailerMarkers, ...reportMarkers];
