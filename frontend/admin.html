@@ -370,6 +370,205 @@
       pointer-events: none;
     }
     .scrape-toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      gap: .25rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.75rem;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      padding: .7rem 1.1rem;
+      font-family: inherit;
+      font-size: .88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color .12s, border-color .12s;
+    }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active {
+      color: var(--orange);
+      border-bottom-color: var(--orange);
+    }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* ── Inventory tab ── */
+    .inv-toolbar {
+      display: flex;
+      gap: .6rem;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .inv-toolbar input {
+      flex: 1;
+      min-width: 220px;
+      padding: .55rem .85rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: .88rem;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .inv-toolbar input:focus { border-color: var(--orange); }
+    .inv-count {
+      font-size: .82rem;
+      color: var(--text-muted);
+      margin-left: .25rem;
+    }
+
+    .stock-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+      padding: .2rem .55rem;
+      border-radius: 999px;
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+    }
+    .stock-pill.yes { background: var(--green-dim); color: #16a34a; }
+    .stock-pill.no  { background: var(--red-dim);   color: #dc2626; }
+
+    .row-action {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      padding: .25rem .65rem;
+      font-family: inherit;
+      font-size: .74rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: border-color .12s, color .12s;
+      margin-right: .35rem;
+    }
+    .row-action:hover { border-color: var(--orange); color: var(--orange); }
+    .row-action.danger:hover { border-color: var(--red); color: var(--red); }
+
+    .reporter-cell {
+      font-size: .78rem;
+      color: var(--text);
+    }
+    .reporter-cell .reporter-ip {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .68rem;
+      color: var(--text-muted);
+    }
+    .notes-cell {
+      font-size: .78rem;
+      color: var(--text-muted);
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* ── Edit modal ── */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-backdrop.show { display: flex; }
+    .modal-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 480px;
+      padding: 1.75rem;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    }
+    .modal-card h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+    }
+    .modal-card label {
+      display: block;
+      font-size: .72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin-bottom: .3rem;
+      margin-top: .9rem;
+    }
+    .modal-card label:first-of-type { margin-top: 0; }
+    .modal-card input[type=text],
+    .modal-card input[type=number],
+    .modal-card textarea {
+      width: 100%;
+      padding: .55rem .8rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: .9rem;
+      outline: none;
+    }
+    .modal-card input:focus,
+    .modal-card textarea:focus { border-color: var(--orange); }
+    .modal-card textarea { resize: vertical; min-height: 60px; }
+    .modal-card .stock-toggle {
+      display: flex;
+      gap: .5rem;
+      margin-top: .3rem;
+    }
+    .modal-card .stock-toggle button {
+      flex: 1;
+      padding: .5rem;
+      border: 1.5px solid var(--border);
+      background: transparent;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .modal-card .stock-toggle button.active {
+      border-color: var(--orange);
+      color: var(--orange);
+      background: rgba(249,115,22,0.08);
+    }
+    .modal-actions {
+      display: flex;
+      gap: .6rem;
+      margin-top: 1.5rem;
+      justify-content: flex-end;
+    }
+    .modal-actions button {
+      padding: .55rem 1.1rem;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: .88rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      color: var(--text-muted);
+    }
+    .modal-actions button.primary {
+      background: var(--orange);
+      border-color: var(--orange);
+      color: #fff;
+    }
+    .modal-actions button:disabled { opacity: .5; cursor: not-allowed; }
   </style>
 </head>
 <body>
