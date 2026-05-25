@@ -843,3 +843,90 @@ async def get_retailer_latest_status(
             for r in rows
         }
     }
+
+
+# ── Admin: inventory report management ────────────────────────────────────────
+
+class AdminInventoryPatchBody(BaseModel):
+    retailer_name: Optional[str] = None
+    retailer_city: Optional[str] = None
+    game_name: Optional[str] = None
+    game_price: Optional[float] = None
+    has_stock: Optional[bool] = None
+    notes: Optional[str] = None
+
+
+@app.get("/api/admin/inventory")
+async def admin_list_inventory_reports(
+    limit: int = Query(200, le=1000),
+    search: Optional[str] = Query(None),
+    retailer_id: Optional[str] = Query(None),
+    user: dict = Depends(require_admin),
+):
+    conditions = []
+    params = []
+    if retailer_id:
+        params.append(retailer_id)
+        conditions.append(f"retailer_id = ${len(params)}")
+    if search:
+        params.append(f"%{search}%")
+        idx = len(params)
+        conditions.append(
+            f"(game_name ILIKE ${idx} OR retailer_name ILIKE ${idx} "
+            f"OR retailer_city ILIKE ${idx} OR reporter_username ILIKE ${idx})"
+        )
+    params.append(limit)
+    where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+    async with get_pool().acquire() as conn:
+        rows = await conn.fetch(f"""
+            SELECT id, retailer_id, retailer_name, retailer_city, lat, lng,
+                   game_name, game_price, has_stock, source,
+                   reporter_username, reporter_ip, notes, reported_at
+            FROM inventory_reports
+            {where}
+            ORDER BY reported_at DESC
+            LIMIT ${len(params)}
+        """, *params)
+    return {
+        "reports": [dict(r) for r in rows],
+        "count": len(rows),
+    }
+
+
+@app.patch("/api/admin/inventory/{report_id}")
+async def admin_update_inventory_report(
+    report_id: int,
+    body: AdminInventoryPatchBody,
+    user: dict = Depends(require_admin),
+):
+    fields = body.dict(exclude_unset=True)
+    if not fields:
+        raise HTTPException(status_code=400, detail="No fields to update.")
+    set_parts = []
+    params = []
+    for col, val in fields.items():
+        params.append(val)
+        set_parts.append(f"{col} = ${len(params)}")
+    params.append(report_id)
+    async with get_pool().acquire() as conn:
+        result = await conn.execute(
+            f"UPDATE inventory_reports SET {', '.join(set_parts)} WHERE id = ${len(params)}",
+            *params,
+        )
+    if result.endswith(" 0"):
+        raise HTTPException(status_code=404, detail="Inventory report not found.")
+    return {"message": "Inventory report updated.", "id": report_id, "updated": fields}
+
+
+@app.delete("/api/admin/inventory/{report_id}")
+async def admin_delete_inventory_report(
+    report_id: int,
+    user: dict = Depends(require_admin),
+):
+    async with get_pool().acquire() as conn:
+        result = await conn.execute(
+            "DELETE FROM inventory_reports WHERE id = $1", report_id
+        )
+    if result.endswith(" 0"):
+        raise HTTPException(status_code=404, detail="Inventory report not found.")
+    return {"message": "Inventory report deleted.", "id": report_id}
