@@ -3003,6 +3003,7 @@ async function toggleGameInv(retailerId, gameName, gamePrice, hasStock, notes) {
   };
 
   const gameKey = (gameName || '').toLowerCase();
+  const prevReports = communityReports;
   communityReports = [
     newReport,
     ...communityReports.filter(r =>
@@ -3016,7 +3017,7 @@ async function toggleGameInv(retailerId, gameName, gamePrice, hasStock, notes) {
   updateReportBadges();
 
   try {
-    await protectedFetch('/api/inventory/report', {
+    const res = await protectedFetch('/api/inventory/report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -3031,8 +3032,20 @@ async function toggleGameInv(retailerId, gameName, gamePrice, hasStock, notes) {
         notes:         notes || null,
       }),
     });
-  } catch (_) {
-    await loadCommunityReports();
+    if (!res.ok) {
+      let detail = `HTTP ${res.status}`;
+      try { const j = await res.json(); if (j.detail) detail = j.detail; } catch {}
+      throw new Error(detail);
+    }
+  } catch (err) {
+    communityReports = prevReports;
+    buildLatestStatusFromReports();
+    refreshOpenProfile();
+    updateLastReportCells();
+    updateReportBadges();
+    console.error('Inventory report failed:', err);
+    alert(`Could not save inventory report: ${err.message}\n\nYour change was not saved.`);
+    loadCommunityReports();
   }
 }
 
