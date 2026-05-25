@@ -2822,6 +2822,13 @@ function goToStoreFromModal(retailerId) {
   }
 }
 
+function openStoreInventoryFromMap(retailerId) {
+  const tr = document.querySelector(`tr[data-retailer-id="${CSS.escape(String(retailerId))}"]`);
+  if (!tr) return;
+  if (_openProfileId !== String(retailerId)) toggleStoreProfile(tr);
+  tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 function toggleStoreProfile(tr) {
   const rid = tr.dataset.retailerId;
 
