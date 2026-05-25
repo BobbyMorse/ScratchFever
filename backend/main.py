@@ -797,11 +797,19 @@ async def get_inventory_reports(
 
 @app.get("/api/inventory/game-counts")
 async def get_inventory_game_counts(user: dict = Depends(require_member)):
-    """Members-only: returns report counts per game name."""
+    """Members-only: returns count of distinct retailers per game whose latest
+    report says the game is in stock. Games with zero in-stock retailers are omitted."""
     async with get_pool().acquire() as conn:
-        rows = await conn.fetch(
-            "SELECT LOWER(game_name), COUNT(*) FROM inventory_reports WHERE game_name IS NOT NULL GROUP BY LOWER(game_name)"
-        )
+        rows = await conn.fetch("""
+            WITH latest AS (
+                SELECT DISTINCT ON (retailer_id, LOWER(game_name))
+                    LOWER(game_name) AS gname, has_stock
+                FROM inventory_reports
+                WHERE game_name IS NOT NULL AND retailer_id IS NOT NULL
+                ORDER BY retailer_id, LOWER(game_name), reported_at DESC
+            )
+            SELECT gname, COUNT(*) FROM latest WHERE has_stock = TRUE GROUP BY gname
+        """)
     return {"counts": {r[0]: r[1] for r in rows}}
 
 
