@@ -1612,7 +1612,7 @@ function toggleMaMap() {
 }
 
 function initMaMap() {
-  maMap = L.map("maMap").setView([42.1, -71.8], 9);
+  maMap = L.map("maMap", { preferCanvas: true }).setView([42.1, -71.8], 9);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors",
     maxZoom: 19,
@@ -2271,7 +2271,7 @@ function initDetailMap(queue) {
 
   mapEl.style.display = "";
   if (_detailMap) { _detailMap.remove(); _detailMap = null; }
-  _detailMap = L.map("detailMapContainer").setView([42.3, -71.8], 8);
+  _detailMap = L.map("detailMapContainer", { preferCanvas: true }).setView([42.3, -71.8], 8);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "© OpenStreetMap contributors",
     maxZoom: 18,
@@ -2316,7 +2316,7 @@ function updateDetailMapAllRetailers(retailers) {
     const withCoords = retailers.filter(r => r.lat && r.lng).slice(0, 500);
     if (!withCoords.length) return;
     mapEl.style.display = "";
-    _detailMap = L.map("detailMapContainer").setView([42.3, -71.8], 8);
+    _detailMap = L.map("detailMapContainer", { preferCanvas: true }).setView([42.3, -71.8], 8);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "© OpenStreetMap contributors", maxZoom: 18,
     }).addTo(_detailMap);
@@ -3506,7 +3506,7 @@ function toggleRiMap() {
 }
 
 function initRiMap() {
-  riMap = L.map("riMap").setView([41.7, -71.5], 11);
+  riMap = L.map("riMap", { preferCanvas: true }).setView([41.7, -71.5], 11);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors",
     maxZoom: 19,
@@ -3881,7 +3881,7 @@ function toggleAzMap() {
 }
 
 function initAzMap() {
-  azMap = L.map("azMap").setView([34.05, -111.09], 7);
+  azMap = L.map("azMap", { preferCanvas: true }).setView([34.05, -111.09], 7);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors",
     maxZoom: 19,
@@ -4075,7 +4075,7 @@ function toggleFlMap() {
 }
 
 function initFlMap() {
-  flMap = L.map("flMap").setView([27.8, -81.7], 7);
+  flMap = L.map("flMap", { preferCanvas: true }).setView([27.8, -81.7], 7);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors", maxZoom: 19,
   }).addTo(flMap);
@@ -4290,7 +4290,7 @@ function toggleGaMap() {
 }
 
 function initGaMap() {
-  gaMap = L.map("gaMap").setView([32.7, -83.5], 7);
+  gaMap = L.map("gaMap", { preferCanvas: true }).setView([32.7, -83.5], 7);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors", maxZoom: 19,
   }).addTo(gaMap);
@@ -4505,7 +4505,7 @@ function toggleNyMap() {
 }
 
 function initNyMap() {
-  nyMap = L.map("nyMap").setView([42.9, -75.8], 7);
+  nyMap = L.map("nyMap", { preferCanvas: true }).setView([42.9, -75.8], 7);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors", maxZoom: 19,
   }).addTo(nyMap);
@@ -4720,7 +4720,7 @@ function toggleVaMap() {
 }
 
 function initVaMap() {
-  vaMap = L.map("vaMap").setView([37.5, -79.5], 7);
+  vaMap = L.map("vaMap", { preferCanvas: true }).setView([37.5, -79.5], 7);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors", maxZoom: 19,
   }).addTo(vaMap);
@@ -4935,7 +4935,7 @@ function toggleDcMap() {
 }
 
 function initDcMap() {
-  dcMap = L.map("dcMap").setView([38.9, -77.03], 12);
+  dcMap = L.map("dcMap", { preferCanvas: true }).setView([38.9, -77.03], 12);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors", maxZoom: 19,
   }).addTo(dcMap);
@@ -5150,7 +5150,7 @@ function toggleVtMap() {
 }
 
 function initVtMap() {
-  vtMap = L.map("vtMap").setView([44.0, -72.7], 8);
+  vtMap = L.map("vtMap", { preferCanvas: true }).setView([44.0, -72.7], 8);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors", maxZoom: 19,
   }).addTo(vtMap);
