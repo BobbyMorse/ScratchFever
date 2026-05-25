@@ -983,6 +983,193 @@
 
   let _lastHealthStates = [];
 
+  // ── Tabs ────────────────────────────────────────────────────────────────
+  function switchTab(name) {
+    document.querySelectorAll(".tab-btn").forEach(b => {
+      b.classList.toggle("active", b.dataset.tab === name);
+    });
+    document.querySelectorAll(".tab-pane").forEach(p => {
+      p.classList.toggle("active", p.id === `tab-${name}`);
+    });
+    if (name === "inventory" && !_invLoaded) {
+      loadInventory();
+    }
+  }
+
+  // ── Inventory tab ───────────────────────────────────────────────────────
+  let _invLoaded = false;
+  let _invReports = [];
+  let _invSearchTimer = null;
+  let _editingId = null;
+  let _editStockVal = true;
+
+  function escHtml(s) {
+    if (s == null) return "";
+    return String(s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  function onInvSearchInput() {
+    clearTimeout(_invSearchTimer);
+    _invSearchTimer = setTimeout(loadInventory, 250);
+  }
+
+  async function loadInventory() {
+    const tbody = document.getElementById("invBody");
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="9">Loading…</td></tr>';
+    const search = document.getElementById("invSearch").value.trim();
+    const qs = new URLSearchParams({ limit: "300" });
+    if (search) qs.set("search", search);
+    try {
+      const res = await fetch(`/api/admin/inventory?${qs}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.status === 401 || res.status === 403) { showLogin(); return; }
+      const data = await res.json();
+      _invReports = data.reports || [];
+      _invLoaded = true;
+      renderInventory();
+    } catch (e) {
+      tbody.innerHTML = `<tr class="loading-row"><td colspan="9" style="color:var(--red)">Failed to load: ${escHtml(e.message)}</td></tr>`;
+    }
+  }
+
+  function renderInventory() {
+    const tbody = document.getElementById("invBody");
+    const cnt = document.getElementById("invCount");
+    cnt.textContent = `· ${_invReports.length} report${_invReports.length === 1 ? "" : "s"}`;
+    if (!_invReports.length) {
+      tbody.innerHTML = '<tr class="loading-row"><td colspan="9">No reports found.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = _invReports.map(r => {
+      const stock = r.has_stock
+        ? `<span class="stock-pill yes">In stock</span>`
+        : `<span class="stock-pill no">Out</span>`;
+      const retailer = `<div style="font-weight:600">${escHtml(r.retailer_name) || "<span style='color:var(--text-muted);font-weight:400'>(unnamed)</span>"}</div>
+        <div style="font-size:.72rem;color:var(--text-muted)">${escHtml(r.retailer_city) || "—"} · <span class="mono">${escHtml(r.retailer_id)}</span></div>`;
+      const price = r.game_price != null
+        ? `<span class="mono">$${Number(r.game_price).toFixed(2)}</span>`
+        : `<span class="no-error">—</span>`;
+      const reporter = r.reporter_username
+        ? `<div class="reporter-cell">${escHtml(r.reporter_username)}${r.reporter_ip ? `<span class="reporter-ip">${escHtml(r.reporter_ip)}</span>` : ""}</div>`
+        : `<span class="no-error">—</span>`;
+      const source = `<span class="mono" style="font-size:.72rem;color:var(--text-muted)">${escHtml(r.source || "—")}</span>`;
+      const notes = r.notes
+        ? `<div class="notes-cell" title="${escHtml(r.notes)}">${escHtml(r.notes)}</div>`
+        : `<span class="no-error">—</span>`;
+      return `<tr>
+        <td><div class="time-str">${timeAgo(r.reported_at)}</div>
+            <div style="font-size:.7rem;color:#c0c8d5">${r.reported_at ? r.reported_at.slice(0,16).replace("T"," ") : ""}</div></td>
+        <td>${retailer}</td>
+        <td><div style="font-weight:600">${escHtml(r.game_name) || "<span style='color:var(--text-muted);font-weight:400'>—</span>"}</div></td>
+        <td>${price}</td>
+        <td>${stock}</td>
+        <td>${reporter}</td>
+        <td>${source}</td>
+        <td>${notes}</td>
+        <td style="white-space:nowrap;text-align:right">
+          <button class="row-action" onclick="openEditModal(${r.id})">Edit</button>
+          <button class="row-action danger" onclick="deleteReport(${r.id})">Delete</button>
+        </td>
+      </tr>`;
+    }).join("");
+  }
+
+  function openEditModal(id) {
+    const r = _invReports.find(x => x.id === id);
+    if (!r) return;
+    _editingId = id;
+    document.getElementById("editModalId").textContent = `#${id}`;
+    document.getElementById("editRetailerName").value = r.retailer_name || "";
+    document.getElementById("editRetailerCity").value = r.retailer_city || "";
+    document.getElementById("editGameName").value = r.game_name || "";
+    document.getElementById("editGamePrice").value = r.game_price != null ? r.game_price : "";
+    document.getElementById("editNotes").value = r.notes || "";
+    setEditStock(!!r.has_stock);
+    document.getElementById("editModal").classList.add("show");
+  }
+
+  function closeEditModal() {
+    document.getElementById("editModal").classList.remove("show");
+    _editingId = null;
+  }
+
+  function setEditStock(val) {
+    _editStockVal = !!val;
+    document.getElementById("editStockYes").classList.toggle("active", _editStockVal);
+    document.getElementById("editStockNo").classList.toggle("active", !_editStockVal);
+  }
+
+  async function saveEditModal() {
+    if (_editingId == null) return;
+    const body = {
+      retailer_name: document.getElementById("editRetailerName").value.trim() || null,
+      retailer_city: document.getElementById("editRetailerCity").value.trim() || null,
+      game_name:     document.getElementById("editGameName").value.trim() || null,
+      notes:         document.getElementById("editNotes").value.trim() || null,
+      has_stock:     _editStockVal,
+    };
+    const priceStr = document.getElementById("editGamePrice").value.trim();
+    body.game_price = priceStr === "" ? null : Number(priceStr);
+
+    const btn = document.getElementById("editSaveBtn");
+    btn.disabled = true;
+    btn.textContent = "Saving…";
+    try {
+      const res = await fetch(`/api/admin/inventory/${_editingId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        showToast(`Save failed: ${data.detail || res.status}`);
+        return;
+      }
+      showToast(`Report #${_editingId} updated.`);
+      closeEditModal();
+      await loadInventory();
+    } catch (e) {
+      showToast(`Save failed: ${e.message}`);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Save changes";
+    }
+  }
+
+  async function deleteReport(id) {
+    const r = _invReports.find(x => x.id === id);
+    const label = r && r.game_name ? `"${r.game_name}"` : `#${id}`;
+    if (!confirm(`Delete inventory report ${label}? This cannot be undone.`)) return;
+    try {
+      const res = await fetch(`/api/admin/inventory/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        showToast(`Delete failed: ${data.detail || res.status}`);
+        return;
+      }
+      showToast(`Report #${id} deleted.`);
+      _invReports = _invReports.filter(x => x.id !== id);
+      renderInventory();
+    } catch (e) {
+      showToast(`Delete failed: ${e.message}`);
+    }
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && document.getElementById("editModal").classList.contains("show")) {
+      closeEditModal();
+    }
+  });
+  document.getElementById("editModal").addEventListener("click", (e) => {
+    if (e.target.id === "editModal") closeEditModal();
+  });
+
   checkAuth();
 </script>
 </body>
