@@ -4080,7 +4080,6 @@ function updateFlInventoryMapLayer(visibleRetailers) {
   const retailerMarkers = retailers.filter(r => r.latitude && r.longitude).map(r => {
     const status = retailerLatestStatus[r.id];
     const color = status ? (status.has_stock ? "#00cc44" : "#cc2200") : "#4a9eff";
-    const icon = L.divIcon({ className: "", html: `<div style="width:8px;height:8px;border-radius:50%;background:${color};border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>`, iconSize: [8,8], iconAnchor: [4,4] });
     const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
     return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon }).bindPopup(
@@ -4295,7 +4294,6 @@ function updateGaInventoryMapLayer(visibleRetailers) {
   const retailerMarkers = retailers.filter(r => r.latitude && r.longitude).map(r => {
     const status = retailerLatestStatus[r.id];
     const color = status ? (status.has_stock ? "#00cc44" : "#cc2200") : "#4a9eff";
-    const icon = L.divIcon({ className: "", html: `<div style="width:8px;height:8px;border-radius:50%;background:${color};border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>`, iconSize: [8,8], iconAnchor: [4,4] });
     const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
     return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon }).bindPopup(
@@ -4510,7 +4508,6 @@ function updateNyInventoryMapLayer(visibleRetailers) {
   const retailerMarkers = retailers.filter(r => r.latitude && r.longitude).map(r => {
     const status = retailerLatestStatus[r.id];
     const color = status ? (status.has_stock ? "#00cc44" : "#cc2200") : "#4a9eff";
-    const icon = L.divIcon({ className: "", html: `<div style="width:8px;height:8px;border-radius:50%;background:${color};border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>`, iconSize: [8,8], iconAnchor: [4,4] });
     const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
     return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon }).bindPopup(
@@ -4725,7 +4722,6 @@ function updateVaInventoryMapLayer(visibleRetailers) {
   const retailerMarkers = retailers.filter(r => r.latitude && r.longitude).map(r => {
     const status = retailerLatestStatus[r.id];
     const color = status ? (status.has_stock ? "#00cc44" : "#cc2200") : "#4a9eff";
-    const icon = L.divIcon({ className: "", html: `<div style="width:8px;height:8px;border-radius:50%;background:${color};border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>`, iconSize: [8,8], iconAnchor: [4,4] });
     const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
     return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon }).bindPopup(
@@ -4940,7 +4936,6 @@ function updateDcInventoryMapLayer(visibleRetailers) {
   const retailerMarkers = retailers.filter(r => r.latitude && r.longitude).map(r => {
     const status = retailerLatestStatus[r.id];
     const color = status ? (status.has_stock ? "#00cc44" : "#cc2200") : "#4a9eff";
-    const icon = L.divIcon({ className: "", html: `<div style="width:8px;height:8px;border-radius:50%;background:${color};border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>`, iconSize: [8,8], iconAnchor: [4,4] });
     const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
     return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon }).bindPopup(
@@ -5155,7 +5150,6 @@ function updateVtInventoryMapLayer(visibleRetailers) {
   const retailerMarkers = retailers.filter(r => r.latitude && r.longitude).map(r => {
     const status = retailerLatestStatus[r.id];
     const color = status ? (status.has_stock ? "#00cc44" : "#cc2200") : "#4a9eff";
-    const icon = L.divIcon({ className: "", html: `<div style="width:8px;height:8px;border-radius:50%;background:${color};border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>`, iconSize: [8,8], iconAnchor: [4,4] });
     const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
     const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
     return L.marker([parseFloat(r.latitude), parseFloat(r.longitude)], { icon }).bindPopup(
