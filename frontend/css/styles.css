@@ -80,6 +80,36 @@ body {
   gap: 1rem;
 }
 
+/* Hamburger — hidden on desktop, shown ≤900px via media query */
+.sidebar-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  color: #e2e8f0;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.sidebar-toggle:active { background: rgba(255,255,255,0.1); }
+.sidebar-toggle svg { width: 20px; height: 20px; }
+
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 49;
+  opacity: 0;
+  transition: opacity .18s;
+}
+.sidebar-backdrop.open { display: block; opacity: 1; }
+
 .logo-block {
   display: flex;
   align-items: stretch;
