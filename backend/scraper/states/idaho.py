@@ -97,10 +97,13 @@ class IdahoScraper(BaseScraper):
             src = img.get("src", "")
             image_url = (BASE_URL + src) if src.startswith("/") else src
 
-        # Game ID: try numeric from image filename, then page text, then slug
+        # Game ID: try numeric from image FILENAME (not path — path contains YYYY-MM
+        # folders like /sites/default/files/2025-06/1828_scratched.jpg, and the year
+        # would collide every game into the same id). Filename is "<gameid>_scratched*.jpg".
         game_id = slug
         if img:
-            m = re.search(r"[/_-](\d{3,6})(?:[._-]|$)", img.get("src", ""))
+            basename = img.get("src", "").rsplit("/", 1)[-1]
+            m = re.match(r"(\d{3,6})", basename)
             if m:
                 game_id = m.group(1)
         if game_id == slug:
