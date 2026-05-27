@@ -5,12 +5,9 @@ API: https://www.galottery.com/api/v1/instant-games/games?size=1000
           prizeTiers[]: prizeAmount (1/100 cent = divide by 10000 for dollars),
           winningTickets (total printed), paidTickets (claimed)
 
-Georgia only publishes top-prize claimed counts reliably. EV is approximated by
-treating the top-prize depletion rate as a proxy for overall ticket depletion:
-  depletion = top_prize_paidTickets / top_prize_winningTickets
-  prizes_remaining_i ≈ winningTickets_i * (1 - depletion)
-  tickets_remaining ≈ total_tickets * (1 - depletion)
-ev_approximate is set True on all GA games so the UI can flag this.
+Per-tier paidTickets is published and reliable across all observed games
+(claim rates cluster tightly within each game), so prizes_remaining is
+computed directly from winningTickets - paidTickets for every tier.
 """
 from __future__ import annotations
 import logging
