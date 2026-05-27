@@ -11,7 +11,6 @@ Strategy:
   2. Parse CSV for prize tiers (printed / claimed counts).
   3. Fetch each detail page for total_tickets and overall_odds.
   4. Estimate tickets_remaining = total_tickets × (prizes_remaining / prizes_printed).
-  5. EV computed via remaining-based formula; ev_approximate=True.
 """
 from __future__ import annotations
 import csv
