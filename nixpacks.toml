@@ -9,7 +9,7 @@ aptPkgs = [
 [phases.install]
 cmds = [
   "pip install -r requirements.txt",
-  "PLAYWRIGHT_BROWSERS_PATH=/app/.playwright python -m playwright install chromium"
+  "PLAYWRIGHT_BROWSERS_PATH=/app/.playwright python -m playwright install chromium chromium-headless-shell"
 ]
 cacheDirectories = ["/app/.playwright"]
 
