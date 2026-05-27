@@ -197,6 +197,6 @@ class TexasScraper(BaseScraper):
             overall_odds=overall_odds,
             detail_url=detail_url or DETAIL_BASE,
             end_date=end_date,
-            ev_approximate=bool(total_tickets),
+            ev_approximate=False,
             image_url=image_url,
         )
