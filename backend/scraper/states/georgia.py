@@ -154,5 +154,5 @@ class GeorgiaScraper(BaseScraper):
             detail_url=f"{BASE_URL}/en-us/games/scratchers/{game_id}.html",
             image_url=image_url,
             end_date=end_date,
-            ev_approximate=ev_approximate,
+            ev_approximate=False,
         )
