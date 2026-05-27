@@ -69,24 +69,31 @@ class TexasScraper(BaseScraper):
         logger.info("TX: %d games parsed", len(games))
         return games
 
+    # Both all.html and closing.html annotate detail links with
+    # title="View details for Game Number 2658" or
+    # title="View Ticket Details for Game Number 1878".
+    _TITLE_RE = re.compile(
+        r'href="(/export/sites/lottery/Games/Scratch_Offs/details\.html_\d+\.html)"[^>]*'
+        r'title="[^"]*Game Number (\d+)"'
+        r'|title="[^"]*Game Number (\d+)"[^>]*'
+        r'href="(/export/sites/lottery/Games/Scratch_Offs/details\.html_\d+\.html)"'
+    )
+
     def _get_detail_urls(self) -> dict[str, str]:
-        """Parse all.html table rows to extract game_num → detail page URL."""
-        soup = self.soup(ALL_URL)
+        """Build game_num → detail URL map by crawling every known listing page."""
         result: dict[str, str] = {}
-        for row in soup.find_all("tr"):
-            cells = row.find_all(["td", "th"])
-            if len(cells) < 2:
+        for url in LISTING_URLS:
+            try:
+                resp = self.get(url)
+            except Exception as exc:
+                logger.warning("TX: listing fetch failed for %s: %s", url, exc)
                 continue
-            game_num = cells[0].get_text(strip=True).replace(",", "")
-            if not game_num.isdigit():
-                continue
-            for cell in cells:
-                a = cell.find("a", href=True)
-                if a and "details.html_" in (a.get("href") or ""):
-                    href = a["href"]
-                    full_url = (BASE_URL + href) if href.startswith("/") else href
-                    result[game_num] = full_url
-                    break
+            for m in self._TITLE_RE.finditer(resp.text):
+                href, game_num = (m.group(1), m.group(2)) if m.group(1) else (m.group(4), m.group(3))
+                # First listing to publish a game wins; don't let a later page
+                # (e.g. closing.html) override an active link from all.html.
+                if game_num and href and game_num not in result:
+                    result[game_num] = BASE_URL + href
         return result
 
     def _get_detail_info(self, game_num: str, url: str) -> tuple[int | None, float | None, str | None]:
