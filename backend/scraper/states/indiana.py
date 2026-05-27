@@ -8,8 +8,8 @@ Detail: https://hoosierlottery.com/games/scratch-off/{slug}/
   table: Prize Amount | Total Winning Tickets | Unclaimed | Status
   [class*=odds]: "Estimated Overall Odds: 1 in X.XX"
 
-Indiana does not publish prizes below ~$40 (small prize / free ticket tiers).
-EV is estimated from published prize tiers (ev_approximate=True):
+Indiana publishes per-tier unclaimed counts but omits prizes below ~$40 and does
+not publish total tickets printed:
   total_tickets is derived by modeling unpublished small prizes as avg_small per
   winning ticket and requiring: small_pool + pub_pool = total_tickets × price × payout.
   tickets_remaining = total_tickets × (published_remaining / published_total).
