@@ -24,7 +24,10 @@ from backend.scraper.base import BaseScraper
 logger = logging.getLogger(__name__)
 
 CSV_URL = "https://www.texaslottery.com/export/sites/lottery/Games/Scratch_Offs/scratchoff.csv"
-ALL_URL = "https://www.texaslottery.com/export/sites/lottery/Games/Scratch_Offs/all.html"
+LISTING_URLS = [
+    "https://www.texaslottery.com/export/sites/lottery/Games/Scratch_Offs/all.html",
+    "https://www.texaslottery.com/export/sites/lottery/Games/Scratch_Offs/closing.html",
+]
 BASE_URL = "https://www.texaslottery.com"
 DETAIL_BASE = f"{BASE_URL}/export/sites/lottery/Games/Scratch_Offs"
 
