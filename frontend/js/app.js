@@ -2,8 +2,7 @@
 
 // States excluded from EV rankings — no reliable ticket-count data published by state.
 // IL: publishes remaining prizes only, no total tickets or per-game odds.
-// TX: CSV has tier counts but no total tickets or per-game odds.
-const EV_EXCLUDED_STATES = new Set(["IL", "TX"]);
+const EV_EXCLUDED_STATES = new Set(["IL"]);
 
 const STATE_LOTTERY_URLS = {
   AR: "https://www.myarkansaslottery.com/games/instant-games",
