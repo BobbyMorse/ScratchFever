@@ -201,5 +201,5 @@ class IndianaScraper(BaseScraper):
             total_tickets=total_tickets,
             detail_url=stub["detail_url"],
             image_url=stub["image_url"],
-            ev_approximate=True,
+            ev_approximate=False,
         )
