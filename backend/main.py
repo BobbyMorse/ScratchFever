@@ -86,6 +86,7 @@ async def check_and_run_stale_retailers():
 async def lifespan(app: FastAPI):
     await init_db()
     await init_caller_db()
+    await init_vapi_db()
     await init_users_db()
     await init_retailer_db()
     await seed_admin()
@@ -93,10 +94,9 @@ async def lifespan(app: FastAPI):
     # Retailer freshness check — daily
     scheduler.add_job(check_and_run_stale_retailers, "interval", days=1, id="check_retailer_freshness")
 
-    # Attach call runner to scheduler
-    runner = CallRunner()
-    runner.attach_scheduler(scheduler)
-    set_runner(runner)
+    # In-app caller (Bland/Twilio) is retired — calls now run in VAPI externally
+    # and are ingested via /api/vapi/webhook. Files under backend/caller/ are kept
+    # for reference but the runner is no longer attached to the scheduler.
 
     scheduler.start()
 
