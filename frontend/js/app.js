@@ -1263,7 +1263,7 @@ function renderModal(g) {
       <strong>Limited data</strong> — ${g.state_name} does not publish ticket sales figures, so Est. Tickets Left, Tickets Sold, and EV calculations are based on prize table odds only.
     </div>` : ""}
     ${g.ev_approximate ? `<div style="background:rgba(255,160,0,.1);border:1px solid rgba(255,160,0,.3);border-radius:8px;padding:.6rem .85rem;margin:.75rem 0;font-size:.82rem;color:#c87800">
-      <strong>Estimated EV</strong> — ${g.state_name} only publishes top prize counts. EV and tickets remaining are approximated by treating the top-prize depletion rate as a proxy for overall ticket sales. Real EV may differ.
+      <strong>Estimated EV</strong> — ${g.state_name} only publishes top-prize remaining counts. The top-prize depletion rate is extrapolated to estimate remaining counts for every prize tier, total ticket sales, and EV. Real EV may differ.
     </div>` : ""}
 
     <div class="modal-stats">
