@@ -87,7 +87,7 @@ class TexasScraper(BaseScraper):
                     break
         return result
 
-    def _get_detail_info(self, url: str) -> tuple[int | None, float | None, str | None]:
+    def _get_detail_info(self, game_num: str, url: str) -> tuple[int | None, float | None, str | None]:
         """Fetch detail page and return (total_tickets, overall_odds_one_in, image_url)."""
         try:
             from bs4 import BeautifulSoup
@@ -104,11 +104,12 @@ class TexasScraper(BaseScraper):
             if m:
                 overall_odds = float(m.group(1))
 
+            # Ticket art lives at /Images/scratchoffs/{game_num}_img1.(gif|png|jpg)
             image_url = None
             soup = BeautifulSoup(text, "lxml")
             for img in soup.find_all("img"):
                 src = img.get("src") or img.get("data-src", "")
-                if src and re.search(r"\.(jpg|jpeg|png|webp)", src, re.I):
+                if src and f"scratchoffs/{game_num}_img1" in src:
                     image_url = (BASE_URL + src) if src.startswith("/") else src
                     break
 
