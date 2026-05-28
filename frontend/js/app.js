@@ -1797,41 +1797,93 @@ let _callerHits = [];
 
 async function loadCallerData() {
   try {
-    const [campRes, hitsRes, statusRes] = await Promise.all([
-      callerFetch("/api/caller/campaigns"),
-      callerFetch("/api/caller/hits"),
-      callerFetch("/api/caller/status"),
+    const [statsRes, recentRes, configRes] = await Promise.all([
+      callerFetch("/api/vapi/stats"),
+      callerFetch("/api/vapi/recent?limit=100"),
+      callerFetch("/api/vapi/config"),
     ]);
-    const campData   = await campRes.json();
-    const hitsData   = await hitsRes.json();
-    const statusData = await statusRes.json();
+    const stats  = await statsRes.json();
+    const recent = await recentRes.json();
+    const config = await configRes.json();
 
-    _callerCampaigns = campData.campaigns || [];
-    _callerHits      = hitsData.hits || [];
-
-    const totalCalls = _callerCampaigns.reduce((s, c) => s + (c.calls_made || 0), 0);
-    const totalHits  = _callerCampaigns.reduce((s, c) => s + (c.hits_found || 0), 0);
-
-    document.getElementById("callerStatHits").textContent      = totalHits.toLocaleString();
-    document.getElementById("callerStatCalls").textContent     = totalCalls.toLocaleString();
-    document.getElementById("callerStatFlight").textContent    = statusData.calls_in_flight ?? 0;
-    document.getElementById("callerStatCampaigns").textContent = _callerCampaigns.length;
+    document.getElementById("callerStatHits").textContent      = (stats.hits || 0).toLocaleString();
+    document.getElementById("callerStatCalls").textContent     = (stats.total_calls || 0).toLocaleString();
+    document.getElementById("callerStatFlight").textContent    = (stats.in_flight || 0).toLocaleString();
+    document.getElementById("callerStatCampaigns").textContent = (stats.calls_today || 0).toLocaleString();
 
     const backendEl = document.getElementById("callerBackendBadge");
     if (backendEl) {
-      const b = statusData.backend || "unknown";
-      const label = b === "bland" ? "Bland AI" : b === "twilio" ? "Twilio" : "Not Configured";
-      const cls   = b === "bland" ? "badge-status-active" : b === "twilio" ? "badge-status-paused" : "badge-status-idle";
-      backendEl.textContent = label;
-      backendEl.className   = `badge ${cls}`;
+      if (config.configured) {
+        backendEl.textContent = "VAPI Ready";
+        backendEl.className = "badge badge-status-active";
+      } else {
+        backendEl.textContent = "Not Configured";
+        backendEl.className = "badge badge-status-idle";
+      }
     }
 
-    renderCallerCampaigns();
-    renderCallerHits();
+    const banner = document.getElementById("callerConfigBanner");
+    if (banner) {
+      if (config.configured) {
+        banner.style.display = "none";
+      } else {
+        const missing = [];
+        if (!config.has_private_key)  missing.push("<code>VAPI_PRIVATE_KEY</code>");
+        if (!config.has_assistant_id) missing.push("<code>VAPI_ASSISTANT_ID</code>");
+        if (!config.has_phone_number) missing.push("<code>VAPI_PHONE_NUMBER_ID</code>");
+        banner.innerHTML = `VAPI is not configured — set ${missing.join(", ")} in your environment to enable live calls. Preview still works.`;
+        banner.style.background = "rgba(245,158,11,0.12)";
+        banner.style.color      = "#92400e";
+        banner.style.border     = "1px solid rgba(245,158,11,0.35)";
+        banner.style.display    = "block";
+      }
+    }
+
+    _callerRecent = recent.calls || [];
+    renderCallerRecent();
   } catch (e) {
-    document.getElementById("callerCampaignsList").innerHTML =
-      `<div class="loading-cell">Failed to load caller data. Is the server running?</div>`;
+    const body = document.getElementById("callerRecentBody");
+    if (body) body.innerHTML = `<tr><td colspan="9" class="loading-cell">Failed to load caller data. Is the server running?</td></tr>`;
   }
+}
+
+let _callerRecent = [];
+
+function renderCallerRecent() {
+  const tbody = document.getElementById("callerRecentBody");
+  if (!tbody) return;
+  if (!_callerRecent.length) {
+    tbody.innerHTML = `<tr><td colspan="9" class="loading-cell">No calls yet — start a dispatch above.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = _callerRecent.map(c => {
+    let result, resultCls;
+    if (c.ended_at == null && c.has_game == null) {
+      result = "In flight"; resultCls = "badge-status-paused";
+    } else if (c.has_game === true) {
+      result = "Has Ticket"; resultCls = "badge-green";
+    } else if (c.has_game === false) {
+      result = "No Ticket"; resultCls = "badge-status-idle";
+    } else {
+      result = "—"; resultCls = "badge-status-idle";
+    }
+    const conf = c.confidence != null ? `${Math.round(parseFloat(c.confidence) * 100)}%` : "—";
+    const dur  = c.duration_sec != null ? `${Math.round(parseFloat(c.duration_sec))}s` : "—";
+    const when = c.ended_at || c.received_at || "";
+    const whenShort = when ? when.slice(0, 16).replace("T", " ") : "—";
+    const summary = c.summary ? escHtml(c.summary) : "—";
+    return `<tr>
+      <td><span style="white-space:nowrap">${whenShort}</span></td>
+      <td><strong>${escHtml(c.retailer_name) || "<span style='color:var(--text-muted)'>(unknown)</span>"}</strong></td>
+      <td>${escHtml(c.retailer_city) || "—"}</td>
+      <td>${escHtml(c.game_name) || "—"}</td>
+      <td><span class="badge ${resultCls}">${result}</span></td>
+      <td>${conf}</td>
+      <td>${dur}</td>
+      <td><span style="color:var(--text-muted);font-size:.78rem">${escHtml(c.ended_reason || "—")}</span></td>
+      <td><span title="${escHtml(c.summary || '')}" style="display:inline-block;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle">${summary}</span></td>
+    </tr>`;
+  }).join("");
 }
 
 function renderCallerCampaigns() {
