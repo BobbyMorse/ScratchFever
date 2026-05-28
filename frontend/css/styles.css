@@ -1274,7 +1274,7 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
     padding: 1.25rem 1rem 2rem;
   }
   .auth-modal { height: auto; min-height: auto; overflow: visible; border-radius: var(--radius); margin: 1rem; max-width: 100%; }
-  .auth-modal + .modal-close, .modal-close { top: .8rem; right: .8rem; position: sticky; float: right; align-self: flex-end; }
+  .modal-close { position: fixed; top: .8rem; right: .8rem; z-index: 10; }
 
   /* Hunt layout: collapse to single column on mobile */
   .hunt-layout { flex-direction: column; }
