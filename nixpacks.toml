@@ -9,9 +9,11 @@ aptPkgs = [
 [phases.install]
 cmds = [
   "pip install -r requirements.txt",
-  "PLAYWRIGHT_BROWSERS_PATH=/app/.playwright python -m playwright install --force chromium chromium-headless-shell"
+  "rm -rf /app/.playwright",
+  "PLAYWRIGHT_BROWSERS_PATH=/app/.playwright python -m playwright install --force chromium chromium-headless-shell",
+  "ls -la /app/.playwright/",
+  "test -f /app/.playwright/chromium_headless_shell-*/chrome-headless-shell-linux64/chrome-headless-shell && echo HEADLESS_SHELL_OK || (echo HEADLESS_SHELL_MISSING && exit 1)"
 ]
-cacheDirectories = ["/app/.playwright"]
 
 [variables]
 PLAYWRIGHT_BROWSERS_PATH = "/app/.playwright"
