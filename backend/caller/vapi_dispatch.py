@@ -444,11 +444,14 @@ async def vapi_states(_user: dict = Depends(require_admin)):
     return {"states": [dict(r) for r in rows]}
 
 
+class TicketSpec(BaseModel):
+    name: str
+    price: Optional[float] = None
+
+
 class DispatchBody(BaseModel):
     retailer_ids: list[int] = Field(..., min_length=1, max_length=MAX_BATCH)
-    game_name: str
-    game_price: Optional[float] = None
-    game_number: Optional[str] = None
+    tickets: list[TicketSpec] = Field(..., min_length=1, max_length=20)
     dry_run: bool = False
 
 
@@ -471,28 +474,29 @@ async def vapi_dispatch(body: DispatchBody, _user: dict = Depends(require_admin)
         raise HTTPException(status_code=404, detail="No matching retailers found")
 
     targets = [dict(r) for r in rows]
+    tickets = [t.model_dump() for t in body.tickets]
     if body.dry_run:
         return {
             "dry_run": True,
             "would_call": sum(1 for t in targets if _to_e164(t.get("phone"))),
+            "tickets_text": _build_tickets_text(tickets),
             "preview": targets[:25],
         }
 
-    results, skipped = await _dispatch_calls(targets, body.game_name, body.game_price, body.game_number, env)
+    results, skipped = await _dispatch_calls(targets, tickets, env)
     success = sum(1 for r in results if r["ok"])
     return {
-        "dispatched": success,
-        "failed":     len(results) - success,
-        "skipped":    skipped,
-        "results":    results,
+        "dispatched":   success,
+        "failed":       len(results) - success,
+        "skipped":      skipped,
+        "results":      results,
+        "tickets_text": _build_tickets_text(tickets),
     }
 
 
 class CampaignBody(BaseModel):
     state: str = Field(..., min_length=2, max_length=2)
-    game_name: str
-    game_price: Optional[float] = None
-    game_number: Optional[str] = None
+    tickets: list[TicketSpec] = Field(..., min_length=1, max_length=20)
     max_stores: int = Field(default=100, ge=1, le=MAX_BATCH)
     cooldown_hours: int = Field(default=168, ge=0, le=8760)  # 7 days default
     dry_run: bool = False
@@ -517,6 +521,7 @@ async def vapi_dispatch_campaign(body: CampaignBody, _user: dict = Depends(requi
                     f"(excluded {excluded} recently-contacted)"),
         )
 
+    tickets = [t.model_dump() for t in body.tickets]
     if body.dry_run:
         preview = [{
             "name":           t["name"],
@@ -531,10 +536,11 @@ async def vapi_dispatch_campaign(body: CampaignBody, _user: dict = Depends(requi
             "selected":            len(targets),
             "excluded_cooldown":   excluded,
             "would_call":          sum(1 for t in targets if _to_e164(t.get("phone"))),
+            "tickets_text":        _build_tickets_text(tickets),
             "preview":             preview,
         }
 
-    results, skipped = await _dispatch_calls(targets, body.game_name, body.game_price, body.game_number, env)
+    results, skipped = await _dispatch_calls(targets, tickets, env)
     success = sum(1 for r in results if r["ok"])
     return {
         "selected":          len(targets),
@@ -542,15 +548,14 @@ async def vapi_dispatch_campaign(body: CampaignBody, _user: dict = Depends(requi
         "dispatched":        success,
         "failed":            len(results) - success,
         "skipped":           skipped,
+        "tickets_text":      _build_tickets_text(tickets),
         "results":           results[:50],
     }
 
 
 class TestCallBody(BaseModel):
     phone: str
-    game_name: str = "Test Game"
-    game_price: Optional[float] = None
-    game_number: Optional[str] = None
+    tickets: list[TicketSpec] = Field(..., min_length=1, max_length=20)
     as_retailer_id: Optional[int] = None  # state_retailers.id — simulate this store
 
 
