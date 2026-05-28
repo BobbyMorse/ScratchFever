@@ -1856,30 +1856,21 @@ function fmtDate(dt) {
 }
 
 // ── Launch campaign from EV table ─────────────────────────────────────────────
-function launchCampaign(name, price, gameId, stateCode) {
+function launchCampaign(name, price, _gameId, stateCode) {
   switchTab("caller");
   if (stateCode) {
     const stateSel = document.getElementById("cfStateSelect");
-    if (stateSel) {
+    if (stateSel && stateSel.value !== stateCode) {
       stateSel.value = stateCode;
-      populateCallerGameSelect(stateCode);
+      onCallerStateSelect();
     }
   }
-  const sel = document.getElementById("cfGameSelect");
-  if (sel) {
-    sel.value = gameId;
-    if (!sel.value) {
-      const opt = document.createElement("option");
-      opt.value = gameId;
-      opt.dataset.name  = name;
-      opt.dataset.price = price ?? "";
-      opt.textContent   = `${name}${price != null ? ` ($${price})` : ""}`;
-      sel.appendChild(opt);
-      sel.value = gameId;
-    }
+  if (name) {
+    _selectedTickets.add(name);
+    renderTicketsPicker();
   }
-  document.getElementById("cfGamePrice").value = price ?? "";
-  document.getElementById("cfCreateBtn").scrollIntoView({ behavior: "smooth", block: "center" });
+  const btn = document.getElementById("cfCreateBtn");
+  if (btn) btn.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 // ── Call Agent ────────────────────────────────────────────────────────────────
