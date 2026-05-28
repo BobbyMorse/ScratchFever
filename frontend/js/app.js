@@ -458,9 +458,82 @@ function populateCallerGameSelect(stateCode) {
 
 function onCallerStateSelect() {
   const state = document.getElementById("cfStateSelect").value;
-  populateCallerGameSelect(state);
-  document.getElementById("cfGamePrice").value = "";
+  _selectedTickets = new Set();
+  const searchEl = document.getElementById("cfTicketsSearch");
+  if (searchEl) searchEl.value = "";
+  renderTicketsPicker();
   populateTestRetailerSelect(state);
+}
+
+let _selectedTickets = new Set();
+
+function _currentStateGames() {
+  const state = document.getElementById("cfStateSelect")?.value || "";
+  if (!state) return [];
+  return allGamesUnfiltered.filter(g => g.state_code === state);
+}
+
+function renderTicketsPicker() {
+  const listEl   = document.getElementById("cfTicketsList");
+  const countEl  = document.getElementById("cfTicketsCount");
+  if (!listEl) return;
+
+  const state = document.getElementById("cfStateSelect")?.value || "";
+  if (!state) {
+    listEl.innerHTML = `<div class="cf-tickets-empty">— Pick a state first —</div>`;
+    if (countEl) countEl.textContent = "No tickets selected";
+    return;
+  }
+
+  const search = (document.getElementById("cfTicketsSearch")?.value || "").trim().toLowerCase();
+  const games  = _currentStateGames();
+  const matches = search ? games.filter(g => (g.name || "").toLowerCase().includes(search)) : games;
+
+  if (!matches.length) {
+    listEl.innerHTML = `<div class="cf-tickets-empty">No games match.</div>`;
+  } else {
+    // Selected first, then the rest
+    const selected   = matches.filter(g => _selectedTickets.has(g.name));
+    const unselected = matches.filter(g => !_selectedTickets.has(g.name));
+    const ordered    = [...selected, ...unselected];
+    listEl.innerHTML = ordered.map(g => {
+      const checked = _selectedTickets.has(g.name) ? "checked" : "";
+      const priceStr = g.price != null ? `$${g.price}` : "";
+      return `<label class="cf-ticket-row">
+        <input type="checkbox" data-name="${escHtml(g.name)}" ${checked} onchange="toggleTicket(this)" />
+        <span>${escHtml(g.name)}</span>
+        <span class="cf-ticket-price">${priceStr}</span>
+      </label>`;
+    }).join("");
+  }
+
+  if (countEl) {
+    const n = _selectedTickets.size;
+    countEl.textContent = n === 0
+      ? "No tickets selected"
+      : `${n} ticket${n === 1 ? "" : "s"} selected`;
+  }
+}
+
+function toggleTicket(input) {
+  const name = input.dataset.name;
+  if (input.checked) _selectedTickets.add(name);
+  else _selectedTickets.delete(name);
+  const countEl = document.getElementById("cfTicketsCount");
+  if (countEl) {
+    const n = _selectedTickets.size;
+    countEl.textContent = n === 0 ? "No tickets selected" : `${n} ticket${n === 1 ? "" : "s"} selected`;
+  }
+}
+
+function getSelectedTickets() {
+  const games = _currentStateGames();
+  const out = [];
+  _selectedTickets.forEach(name => {
+    const g = games.find(x => x.name === name);
+    out.push({ name, price: g && g.price != null ? g.price : null });
+  });
+  return out;
 }
 
 async function populateTestRetailerSelect(state) {
