@@ -467,38 +467,55 @@ class CampaignBody(BaseModel):
     game_price: Optional[float] = None
     game_number: Optional[str] = None
     max_stores: int = Field(default=100, ge=1, le=MAX_BATCH)
+    cooldown_hours: int = Field(default=168, ge=0, le=8760)  # 7 days default
     dry_run: bool = False
 
 
 @router.post("/dispatch_campaign")
 async def vapi_dispatch_campaign(body: CampaignBody, _user: dict = Depends(require_admin)):
-    """Campaign-style dispatch: pick top-N retailers for a state and fire."""
+    """Campaign-style dispatch: pick top-N retailers for a state and fire.
+    Skips retailers we already successfully talked to within cooldown_hours."""
     env = _vapi_env()
     if not body.dry_run and not all(env.values()):
         missing = [k for k, v in env.items() if not v]
         raise HTTPException(status_code=400, detail=f"VAPI not configured — missing env: {', '.join(missing)}")
 
-    targets = await _select_scored_retailers(body.state.upper(), body.max_stores)
+    targets, excluded = await _select_scored_retailers(
+        body.state.upper(), body.max_stores, body.cooldown_hours
+    )
     if not targets:
-        raise HTTPException(status_code=404, detail=f"No callable retailers found for {body.state}")
+        raise HTTPException(
+            status_code=404,
+            detail=(f"No callable retailers found for {body.state} "
+                    f"(excluded {excluded} recently-contacted)"),
+        )
 
     if body.dry_run:
-        preview = [{"name": t["name"], "city": t["city"], "score": t.get("score"), "phone": t["phone"]} for t in targets[:25]]
+        preview = [{
+            "name":           t["name"],
+            "city":           t["city"],
+            "score":          t.get("score"),
+            "phone":          t["phone"],
+            "last_called_at": t.get("last_called_at"),
+            "last_talked":    t.get("last_talked"),
+        } for t in targets[:25]]
         return {
-            "dry_run":    True,
-            "selected":   len(targets),
-            "would_call": sum(1 for t in targets if _to_e164(t.get("phone"))),
-            "preview":    preview,
+            "dry_run":             True,
+            "selected":            len(targets),
+            "excluded_cooldown":   excluded,
+            "would_call":          sum(1 for t in targets if _to_e164(t.get("phone"))),
+            "preview":             preview,
         }
 
     results, skipped = await _dispatch_calls(targets, body.game_name, body.game_price, body.game_number, env)
     success = sum(1 for r in results if r["ok"])
     return {
-        "selected":   len(targets),
-        "dispatched": success,
-        "failed":     len(results) - success,
-        "skipped":    skipped,
-        "results":    results[:50],
+        "selected":          len(targets),
+        "excluded_cooldown": excluded,
+        "dispatched":        success,
+        "failed":            len(results) - success,
+        "skipped":           skipped,
+        "results":           results[:50],
     }
 
 
