@@ -2157,15 +2157,12 @@ async function createCallerCampaign(dryRun) {
 }
 
 async function sendTestCall() {
-  const phone  = document.getElementById("cfTestPhone").value.trim();
-  const sel    = document.getElementById("cfGameSelect");
-  const opt    = sel.options[sel.selectedIndex];
-  const name   = opt?.dataset.name || "Test Game";
-  const number = opt?.value        || "";
-  const price  = parseFloat(document.getElementById("cfGamePrice").value) || null;
-  const btn    = document.getElementById("cfTestBtn");
+  const phone   = document.getElementById("cfTestPhone").value.trim();
+  const tickets = getSelectedTickets();
+  const btn     = document.getElementById("cfTestBtn");
 
-  if (!phone) { showCallerMsg("Enter a phone number for the test call.", "err"); return; }
+  if (!phone)          { showCallerMsg("Enter a phone number for the test call.", "err"); return; }
+  if (!tickets.length) { showCallerMsg("Pick at least one ticket above first.", "err"); return; }
 
   btn.disabled = true;
   btn.textContent = "Calling…";
@@ -2180,9 +2177,7 @@ async function sendTestCall() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         phone,
-        game_name:      name,
-        game_number:    number || null,
-        game_price:     price,
+        tickets,
         as_retailer_id: asRetailerId,
       }),
     });
