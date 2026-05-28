@@ -1358,6 +1358,213 @@
     }
   }
 
+  // ── Caller tab ───────────────────────────────────────────────────────────
+  let _vapiLoaded = false;
+  let _vapiRetailers = [];
+  let _vapiSelected = new Set();
+  let _vapiSearchTimer = null;
+
+  async function initVapiTab() {
+    _vapiLoaded = true;
+    await Promise.all([loadVapiConfig(), loadVapiStates(), loadRecentVapiCalls()]);
+  }
+
+  async function loadVapiConfig() {
+    const banner = document.getElementById("vapiConfigBanner");
+    try {
+      const res = await fetch("/api/vapi/config", { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) { banner.style.display = "none"; return; }
+      const cfg = await res.json();
+      if (cfg.configured) {
+        banner.className = "vapi-banner ok";
+        banner.innerHTML = `VAPI configured. Assistant <code>${escHtml(cfg.assistant_id)}</code> · Phone <code>${escHtml(cfg.phone_number_id)}</code>`;
+      } else {
+        const missing = [];
+        if (!cfg.has_private_key)  missing.push("<code>VAPI_PRIVATE_KEY</code>");
+        if (!cfg.has_assistant_id) missing.push("<code>VAPI_ASSISTANT_ID</code>");
+        if (!cfg.has_phone_number) missing.push("<code>VAPI_PHONE_NUMBER_ID</code>");
+        banner.className = "vapi-banner";
+        banner.innerHTML = `VAPI not configured — set ${missing.join(", ")} in your environment to enable dispatch. Dry run still works.`;
+      }
+      banner.style.display = "block";
+    } catch { banner.style.display = "none"; }
+  }
+
+  async function loadVapiStates() {
+    const sel = document.getElementById("vapiState");
+    try {
+      const res = await fetch("/api/vapi/states", { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      const states = data.states || [];
+      sel.innerHTML = `<option value="">— select a state —</option>` +
+        states.map(s => `<option value="${s.state_code}">${s.state_code} · ${s.with_phone.toLocaleString()} with phone</option>`).join("");
+      sel.onchange = () => loadVapiRetailers();
+    } catch (e) {
+      sel.innerHTML = `<option>Failed to load states</option>`;
+    }
+  }
+
+  function onVapiSearchInput() {
+    clearTimeout(_vapiSearchTimer);
+    _vapiSearchTimer = setTimeout(loadVapiRetailers, 300);
+  }
+
+  async function loadVapiRetailers() {
+    const state = document.getElementById("vapiState").value;
+    const tbody = document.getElementById("vapiRetailerBody");
+    if (!state) {
+      tbody.innerHTML = '<tr class="loading-row"><td colspan="6">Pick a state to load retailers.</td></tr>';
+      _vapiRetailers = [];
+      updateVapiSelectionSummary();
+      return;
+    }
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="6">Loading…</td></tr>';
+    const qs = new URLSearchParams({
+      state,
+      limit: "500",
+      only_with_phone: document.getElementById("vapiOnlyWithPhone").checked ? "true" : "false",
+    });
+    const search = document.getElementById("vapiSearch").value.trim();
+    if (search) qs.set("search", search);
+    try {
+      const res = await fetch(`/api/vapi/retailers?${qs}`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.status === 401 || res.status === 403) { showLogin(); return; }
+      const data = await res.json();
+      _vapiRetailers = data.retailers || [];
+      renderVapiRetailers();
+    } catch (e) {
+      tbody.innerHTML = `<tr class="loading-row"><td colspan="6" style="color:var(--red)">Failed to load: ${escHtml(e.message)}</td></tr>`;
+    }
+  }
+
+  function renderVapiRetailers() {
+    const tbody = document.getElementById("vapiRetailerBody");
+    if (!_vapiRetailers.length) {
+      tbody.innerHTML = '<tr class="loading-row"><td colspan="6">No retailers matched.</td></tr>';
+      updateVapiSelectionSummary();
+      return;
+    }
+    tbody.innerHTML = _vapiRetailers.map(r => `
+      <tr>
+        <td><input type="checkbox" data-vapi-id="${r.id}" ${_vapiSelected.has(r.id) ? "checked" : ""} onchange="vapiToggleRow(${r.id}, this.checked)"/></td>
+        <td><span class="mono" style="font-size:.78rem">${escHtml(r.state_code)}</span></td>
+        <td style="font-weight:600">${escHtml(r.name)}</td>
+        <td>${escHtml(r.city) || "<span class='no-error'>—</span>"}</td>
+        <td><span class="mono" style="font-size:.78rem">${escHtml(r.phone) || "<span class='no-error'>—</span>"}</span></td>
+        <td><span class="mono" style="font-size:.7rem;color:var(--text-muted)">${escHtml(r.external_id)}</span></td>
+      </tr>`).join("");
+    updateVapiSelectionSummary();
+  }
+
+  function vapiToggleRow(id, checked) {
+    if (checked) _vapiSelected.add(id); else _vapiSelected.delete(id);
+    updateVapiSelectionSummary();
+  }
+
+  function vapiToggleAllHeader(checked) {
+    _vapiRetailers.forEach(r => { if (checked) _vapiSelected.add(r.id); else _vapiSelected.delete(r.id); });
+    renderVapiRetailers();
+  }
+
+  function vapiSelectAllVisible() {
+    _vapiRetailers.forEach(r => _vapiSelected.add(r.id));
+    renderVapiRetailers();
+  }
+
+  function vapiSelectNone() {
+    _vapiSelected.clear();
+    renderVapiRetailers();
+  }
+
+  function updateVapiSelectionSummary() {
+    const n = _vapiSelected.size;
+    document.getElementById("vapiSelectionSummary").textContent =
+      `${n} retailer${n === 1 ? "" : "s"} selected`;
+  }
+
+  async function vapiDispatch(dryRun) {
+    const game = document.getElementById("vapiGameName").value.trim();
+    if (!game) { showToast("Enter a game name first."); return; }
+    if (!_vapiSelected.size) { showToast("Select at least one retailer."); return; }
+    if (!dryRun && !confirm(`Dispatch ${_vapiSelected.size} real VAPI call${_vapiSelected.size === 1 ? "" : "s"} now?`)) return;
+
+    const priceStr = document.getElementById("vapiGamePrice").value.trim();
+    const body = {
+      retailer_ids: Array.from(_vapiSelected),
+      game_name:    game,
+      game_price:   priceStr === "" ? null : Number(priceStr),
+      game_number:  document.getElementById("vapiGameNumber").value.trim() || null,
+      dry_run:      !!dryRun,
+    };
+
+    const btn = document.getElementById("vapiDispatchBtn");
+    btn.disabled = true;
+    btn.textContent = dryRun ? "Previewing…" : "Dispatching…";
+    try {
+      const res = await fetch("/api/vapi/dispatch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        showToast(`Dispatch failed: ${data.detail || res.status}`, 5000);
+        return;
+      }
+      if (dryRun) {
+        showToast(`Dry run: would call ${data.would_call}, skip ${data.skipped.length}.`, 5000);
+      } else {
+        showToast(`Dispatched ${data.dispatched} · failed ${data.failed} · skipped ${data.skipped.length}`, 6000);
+        loadRecentVapiCalls();
+      }
+    } catch (e) {
+      showToast(`Dispatch error: ${e.message}`, 5000);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Start calls";
+    }
+  }
+
+  async function loadRecentVapiCalls() {
+    const tbody = document.getElementById("vapiRecentBody");
+    tbody.innerHTML = '<tr class="loading-row"><td colspan="8">Loading…</td></tr>';
+    try {
+      const res = await fetch("/api/vapi/recent?limit=50", { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      const calls = data.calls || [];
+      if (!calls.length) {
+        tbody.innerHTML = '<tr class="loading-row"><td colspan="8">No calls yet.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = calls.map(c => {
+        const stock = c.has_game === true
+          ? `<span class="stock-pill yes">Yes</span>`
+          : c.has_game === false
+            ? `<span class="stock-pill no">No</span>`
+            : `<span class="no-error">—</span>`;
+        const conf = c.confidence != null ? `<span class="mono">${Number(c.confidence).toFixed(2)}</span>` : "—";
+        const dur  = c.duration_sec != null ? `<span class="mono">${Math.round(c.duration_sec)}s</span>` : "—";
+        const retailer = `<div style="font-weight:600">${escHtml(c.retailer_name) || "<span style='color:var(--text-muted);font-weight:400'>(unknown)</span>"}</div>
+          <div style="font-size:.72rem;color:var(--text-muted)">${escHtml(c.retailer_city) || "—"}${c.state_code ? " · " + escHtml(c.state_code) : ""}</div>`;
+        const summary = c.summary
+          ? `<div class="notes-cell" title="${escHtml(c.summary)}">${escHtml(c.summary)}</div>`
+          : `<span class="no-error">—</span>`;
+        return `<tr>
+          <td><div class="time-str">${timeAgo(c.ended_at || c.received_at)}</div></td>
+          <td>${retailer}</td>
+          <td>${escHtml(c.game_name) || "<span class='no-error'>—</span>"}</td>
+          <td>${stock}</td>
+          <td>${conf}</td>
+          <td>${dur}</td>
+          <td><span class="mono" style="font-size:.72rem;color:var(--text-muted)">${escHtml(c.ended_reason || "—")}</span></td>
+          <td>${summary}</td>
+        </tr>`;
+      }).join("");
+    } catch (e) {
+      tbody.innerHTML = `<tr class="loading-row"><td colspan="8" style="color:var(--red)">Failed to load: ${escHtml(e.message)}</td></tr>`;
+    }
+  }
+
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && document.getElementById("editModal").classList.contains("show")) {
       closeEditModal();
