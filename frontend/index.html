@@ -1264,12 +1264,21 @@
                 <button class="btn btn-call-create" id="cfCreateBtn" onclick="createCallerCampaign(false)">📞 Start Calls</button>
               </div>
             </div>
-            <div style="display:flex;align-items:flex-end;gap:.65rem;margin-top:.55rem">
+            <div style="display:flex;align-items:flex-end;gap:.65rem;margin-top:.55rem;flex-wrap:wrap">
               <div class="filter-group" style="flex:1;max-width:240px;margin:0">
                 <label>Test Call Phone #</label>
                 <input type="tel" id="cfTestPhone" value="401-206-3962" placeholder="e.g. 401-555-1234" />
               </div>
+              <div class="filter-group" style="flex:2;min-width:260px;margin:0">
+                <label>Simulate as store (optional)</label>
+                <select id="cfTestAsRetailer">
+                  <option value="">— Generic test (no specific store) —</option>
+                </select>
+              </div>
               <button class="btn" id="cfTestBtn" onclick="sendTestCall()" style="white-space:nowrap">📞 Send Test Call</button>
+            </div>
+            <div style="font-size:.75rem;color:var(--text-muted);margin-top:.35rem">
+              Test calls dial your phone using VAPI but don't write to <code>inventory_reports</code> — they appear in Recent VAPI Calls below so you can verify the full flow.
             </div>
             <div id="cfMessage" class="caller-msg" style="display:none"></div>
           </div>
