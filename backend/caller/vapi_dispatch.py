@@ -207,11 +207,38 @@ async def _select_scored_retailers(
     return _enrich_and_filter(candidates)
 
 
+def _format_price(price) -> str:
+    if price is None or price == "":
+        return ""
+    try:
+        p = float(price)
+    except (TypeError, ValueError):
+        return ""
+    return f"${int(p)}" if p == int(p) else f"${p:.2f}"
+
+
+def _build_tickets_text(tickets: list[dict]) -> str:
+    """Turn [{name, price}, ...] into 'Fabulous Fortune ($10)\\n300X ($30)'."""
+    lines = []
+    for t in tickets or []:
+        name = (t.get("name") or "").strip()
+        if not name:
+            continue
+        price_str = _format_price(t.get("price"))
+        lines.append(f"{name} ({price_str})" if price_str else name)
+    return "\n".join(lines)
+
+
+def _tickets_label(tickets: list[dict]) -> str:
+    """Short human label for storing in vapi_calls.game_name. E.g. '300X, Fabulous Fortune'."""
+    names = [(t.get("name") or "").strip() for t in (tickets or [])]
+    names = [n for n in names if n]
+    return ", ".join(names)
+
+
 async def _dispatch_calls(
     targets: list[dict],
-    game_name: str,
-    game_price: Optional[float],
-    game_number: Optional[str],
+    tickets: list[dict],
     env: dict,
 ) -> tuple[list[dict], list[dict]]:
     """POSTs to VAPI for each target. Inserts placeholder vapi_calls rows for
@@ -219,6 +246,8 @@ async def _dispatch_calls(
 
     Returns (results, skipped).
     """
+    tickets_text = _build_tickets_text(tickets)
+    tickets_label = _tickets_label(tickets)
     valid: list[dict] = []
     skipped: list[dict] = []
     for t in targets:
