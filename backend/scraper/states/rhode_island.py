@@ -28,6 +28,7 @@ class RhodeIslandScraper(BaseScraper):
     state_code = "RI"
     state_name = "Rhode Island"
     base_url = "https://www.rilot.com"
+    scraper_timeout = 600
 
     def scrape(self) -> list[dict]:
         try:
