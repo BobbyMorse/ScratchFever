@@ -460,6 +460,25 @@ function onCallerStateSelect() {
   const state = document.getElementById("cfStateSelect").value;
   populateCallerGameSelect(state);
   document.getElementById("cfGamePrice").value = "";
+  populateTestRetailerSelect(state);
+}
+
+async function populateTestRetailerSelect(state) {
+  const sel = document.getElementById("cfTestAsRetailer");
+  if (!sel) return;
+  sel.innerHTML = `<option value="">— Generic test (no specific store) —</option>`;
+  if (!state) return;
+  try {
+    const res = await callerFetch(`/api/vapi/retailers?state=${encodeURIComponent(state)}&limit=200&only_with_phone=false`);
+    if (!res.ok) return;
+    const data = await res.json();
+    (data.retailers || []).forEach(r => {
+      const opt = document.createElement("option");
+      opt.value = r.id;
+      opt.textContent = `${r.name}${r.city ? ' · ' + r.city : ''}`;
+      sel.appendChild(opt);
+    });
+  } catch (_) {}
 }
 
 function onCallerGameSelect() {
