@@ -449,14 +449,26 @@ async def api_status_states():
 
 
 @app.get("/api/status")
-async def api_status():
+async def api_status(
+    limit: int = Query(20, ge=1, le=500),
+    state: Optional[str] = Query(None, description="Filter scrape_log to one state code"),
+):
     async with get_pool().acquire() as conn:
         total = await conn.fetchval("SELECT COUNT(*) FROM games WHERE is_active=TRUE")
         states = await conn.fetchval("SELECT COUNT(DISTINCT state_code) FROM games WHERE is_active=TRUE")
-        rows = await conn.fetch(
-            "SELECT ran_at, state_code, success, games_scraped FROM scrape_log ORDER BY ran_at DESC LIMIT 20"
-        )
-        log = [dict(zip(["ran_at", "state_code", "success", "games_scraped"], r)) for r in rows]
+        if state:
+            rows = await conn.fetch(
+                "SELECT ran_at, state_code, success, games_scraped, error_msg "
+                "FROM scrape_log WHERE state_code=$1 ORDER BY ran_at DESC LIMIT $2",
+                state.upper(), limit,
+            )
+        else:
+            rows = await conn.fetch(
+                "SELECT ran_at, state_code, success, games_scraped, error_msg "
+                "FROM scrape_log ORDER BY ran_at DESC LIMIT $1",
+                limit,
+            )
+        log = [dict(zip(["ran_at", "state_code", "success", "games_scraped", "error_msg"], r)) for r in rows]
         db_last_run = await conn.fetchval("SELECT MAX(ran_at) FROM scrape_log")
     last_run = scrape_status["last_run"] or (db_last_run.isoformat() if db_last_run else None)
     return {
