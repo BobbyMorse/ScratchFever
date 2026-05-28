@@ -82,6 +82,30 @@ async def check_and_run_stale_retailers():
         logger.error("Retailer staleness check failed: %s", e)
 
 
+def ensure_playwright_browsers():
+    """Install Chromium if missing. Railway's Nixpacks build silently drops the
+    binary from the runtime image, so every Playwright scraper (AZ, OH, IL, etc.)
+    fails with 'Executable doesn't exist'. Self-heal at startup."""
+    import glob
+    import subprocess
+    browsers_path = os.environ.get("PLAYWRIGHT_BROWSERS_PATH", "/app/.playwright")
+    pattern = os.path.join(browsers_path, "chromium_headless_shell-*",
+                           "chrome-headless-shell-linux64", "chrome-headless-shell")
+    if glob.glob(pattern):
+        logger.info("Playwright headless-shell already installed at %s", browsers_path)
+        return
+    logger.warning("Playwright headless-shell missing — installing into %s", browsers_path)
+    env = {**os.environ, "PLAYWRIGHT_BROWSERS_PATH": browsers_path}
+    try:
+        subprocess.run(
+            ["python", "-m", "playwright", "install", "chromium", "chromium-headless-shell"],
+            env=env, check=True, timeout=300,
+        )
+        logger.info("Playwright install complete")
+    except Exception as e:
+        logger.error("Playwright self-heal install failed: %s", e)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
