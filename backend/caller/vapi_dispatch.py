@@ -524,11 +524,15 @@ class TestCallBody(BaseModel):
     game_name: str = "Test Game"
     game_price: Optional[float] = None
     game_number: Optional[str] = None
+    as_retailer_id: Optional[int] = None  # state_retailers.id — simulate this store
 
 
 @router.post("/test_call")
 async def vapi_test_call(body: TestCallBody, _user: dict = Depends(require_admin)):
-    """Dispatch a single test call to an arbitrary number."""
+    """Dispatch a single test call to an arbitrary number. Optionally simulate
+    a real retailer so the assistant prompt sounds like a production call.
+    The external_id is always prefixed with 'test' so the webhook skips the
+    inventory_reports mirror and the call doesn't pollute production data."""
     env = _vapi_env()
     if not all(env.values()):
         missing = [k for k, v in env.items() if not v]
@@ -538,15 +542,42 @@ async def vapi_test_call(body: TestCallBody, _user: dict = Depends(require_admin
     if not e164:
         raise HTTPException(status_code=400, detail="Invalid phone number")
 
+    sim_name = "Test Call"
+    sim_city = ""
+    sim_state = ""
+    sim_external = "test"
+
+    if body.as_retailer_id is not None:
+        async with get_pool().acquire() as conn:
+            row = await conn.fetchrow(
+                """SELECT state_code, external_id, name, city
+                   FROM state_retailers WHERE id = $1""",
+                body.as_retailer_id,
+            )
+        if not row:
+            raise HTTPException(status_code=404, detail="as_retailer_id not found")
+        sim_name = row["name"] or sim_name
+        sim_city = row["city"] or ""
+        sim_state = row["state_code"] or ""
+        # Prefix with 'test:' so the webhook recognizes this as a test and
+        # skips the inventory mirror, but the real external_id is preserved
+        # for traceability in vapi_calls.raw_payload.
+        sim_external = f"test:{row['external_id']}"
+
     target = {
-        "external_id": "test",
-        "state_code":  "",
-        "name":        "Test Call",
-        "city":        "",
+        "external_id": sim_external,
+        "state_code":  sim_state,
+        "name":        sim_name,
+        "city":        sim_city,
         "phone":       e164,
     }
     results, _ = await _dispatch_calls([target], body.game_name, body.game_price, body.game_number, env)
     r = results[0] if results else {"ok": False, "error": "no result"}
     if not r["ok"]:
         raise HTTPException(status_code=502, detail=f"VAPI dispatch failed: {r.get('error')}")
-    return {"ok": True, "call_id": r["call_id"]}
+    return {
+        "ok":              True,
+        "call_id":         r["call_id"],
+        "simulated_store": sim_name,
+        "simulated_city":  sim_city,
+    }
