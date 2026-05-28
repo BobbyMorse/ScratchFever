@@ -433,6 +433,7 @@ function populateCallerStateSelect() {
     sel.appendChild(opt);
   });
   populateCallerGameSelect(sel.value);
+  renderTicketsPicker();
 }
 
 function populateCallerGameSelect(stateCode) {
