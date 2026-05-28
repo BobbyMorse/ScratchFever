@@ -2103,16 +2103,31 @@ async function sendTestCall() {
   btn.textContent = "Calling…";
   showCallerMsg("", "");
 
+  const asRetailerVal = document.getElementById("cfTestAsRetailer")?.value || "";
+  const asRetailerId  = asRetailerVal ? parseInt(asRetailerVal) : null;
+
   try {
     const res  = await callerFetch("/api/vapi/test_call", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phone, game_name: name, game_number: number || null, game_price: price }),
+      body: JSON.stringify({
+        phone,
+        game_name:      name,
+        game_number:    number || null,
+        game_price:     price,
+        as_retailer_id: asRetailerId,
+      }),
     });
     let data = {};
     try { data = await res.json(); } catch (_) {}
     if (!res.ok) throw new Error(data.detail || `Server error (${res.status})`);
-    showCallerMsg(`Test call placed — you should receive a call shortly. VAPI call id: <code>${escHtml(data.call_id || '—')}</code>`, "ok");
+    const asLabel = data.simulated_store && data.simulated_store !== "Test Call"
+      ? ` (assistant will think it's calling <strong>${escHtml(data.simulated_store)}${data.simulated_city ? ' in ' + escHtml(data.simulated_city) : ''}</strong>)`
+      : "";
+    showCallerMsg(
+      `Test call placed${asLabel} — your phone should ring shortly. VAPI call id: <code>${escHtml(data.call_id || '—')}</code>`,
+      "ok"
+    );
     setTimeout(loadCallerData, 1500);
   } catch (e) {
     showCallerMsg(`Test call failed: ${e.message}`, "err");
