@@ -474,6 +474,101 @@
       white-space: nowrap;
     }
 
+    /* ── Caller tab ── */
+    .vapi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    @media (max-width: 960px) { .vapi-grid { grid-template-columns: 1fr; } }
+    .vapi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.1rem;
+    }
+    .vapi-card-title {
+      font-size: .68rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: .85rem;
+    }
+    .vapi-card label {
+      display: block;
+      font-size: .68rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      margin: .7rem 0 .3rem;
+    }
+    .vapi-card label:first-of-type { margin-top: 0; }
+    .vapi-card input[type=text],
+    .vapi-card input[type=number],
+    .vapi-card select {
+      width: 100%;
+      padding: .5rem .75rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: .88rem;
+      outline: none;
+      background: #fff;
+    }
+    .vapi-card input:focus,
+    .vapi-card select:focus { border-color: var(--orange); }
+    .vapi-row { display: flex; gap: .6rem; }
+    .vapi-row > div { flex: 1; }
+    .vapi-card-action { display: flex; flex-direction: column; }
+    .vapi-summary {
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: .75rem;
+    }
+    .vapi-btn-primary, .vapi-btn-secondary {
+      padding: .55rem .9rem;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: .85rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      margin-top: .4rem;
+      transition: border-color .12s, color .12s, background .12s;
+    }
+    .vapi-btn-secondary:hover { border-color: var(--orange); color: var(--orange); }
+    .vapi-btn-primary {
+      background: var(--orange);
+      border-color: var(--orange);
+      color: #fff;
+      margin-top: .8rem;
+    }
+    .vapi-btn-primary:hover { filter: brightness(1.05); }
+    .vapi-btn-primary:disabled, .vapi-btn-secondary:disabled { opacity: .5; cursor: not-allowed; }
+    .vapi-banner {
+      padding: .75rem 1rem;
+      border-radius: 8px;
+      background: var(--yellow-dim);
+      color: #92400e;
+      border: 1px solid rgba(245,158,11,0.35);
+      font-size: .85rem;
+      margin-bottom: 1rem;
+    }
+    .vapi-banner.ok { background: var(--green-dim); color: #166534; border-color: rgba(34,197,94,0.35); }
+    .vapi-banner code {
+      font-family: 'JetBrains Mono', monospace;
+      background: rgba(0,0,0,0.06);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: .78rem;
+    }
+
     /* ── Edit modal ── */
     .modal-backdrop {
       display: none;
