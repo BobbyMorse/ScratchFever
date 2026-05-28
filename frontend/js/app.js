@@ -2002,48 +2002,70 @@ function toggleTranscript(queueId) {
   if (btn) btn.textContent = hidden ? "📋 ▲" : "📋";
 }
 
-async function createCallerCampaign() {
-  const sel    = document.getElementById("cfGameSelect");
-  const opt    = sel.options[sel.selectedIndex];
-  const name   = opt?.dataset.name  || "";
-  const number = opt?.value         || "";
-  const price  = parseFloat(document.getElementById("cfGamePrice").value) || 0;
-  const max    = parseInt(document.getElementById("cfMaxStores").value) || 200;
-  const btn    = document.getElementById("cfCreateBtn");
+async function createCallerCampaign(dryRun) {
+  const state    = document.getElementById("cfStateSelect").value;
+  const sel      = document.getElementById("cfGameSelect");
+  const opt      = sel.options[sel.selectedIndex];
+  const name     = opt?.dataset.name  || "";
+  const number   = opt?.value         || "";
+  const price    = parseFloat(document.getElementById("cfGamePrice").value) || null;
+  const max      = parseInt(document.getElementById("cfMaxStores").value) || 100;
+  const cooldown = parseInt(document.getElementById("cfCooldownDays").value);
+  const cooldownHrs = (isNaN(cooldown) ? 7 : cooldown) * 24;
+  const btn      = dryRun ? document.getElementById("cfDryRunBtn") : document.getElementById("cfCreateBtn");
+  const origLabel = btn.textContent;
 
-  if (!name) {
-    showCallerMsg("Select a game first.", "err");
-    return;
-  }
+  if (!state) { showCallerMsg("Select a state first.", "err"); return; }
+  if (!name)  { showCallerMsg("Select a game first.", "err"); return; }
+  if (!dryRun && !confirm(`Dispatch up to ${max} VAPI calls in ${state} for "${name}"?\n\nStores we already talked to within ${cooldown || 0} day(s) are skipped.`)) return;
 
   btn.disabled = true;
-  btn.textContent = "Creating…";
+  btn.textContent = dryRun ? "Previewing…" : "Dispatching…";
   showCallerMsg("", "");
 
   try {
-    const res = await callerFetch("/api/caller/campaigns", {
+    const res = await callerFetch("/api/vapi/dispatch_campaign", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ game_name: name, game_number: number, game_price: price,
-                             max_stores: max, call_backend: document.getElementById("cfBackend").value }),
+      body: JSON.stringify({
+        state,
+        game_name:      name,
+        game_number:    number || null,
+        game_price:     price,
+        max_stores:     max,
+        cooldown_hours: cooldownHrs,
+        dry_run:        !!dryRun,
+      }),
     });
     let data = {};
     try { data = await res.json(); } catch (_) {}
     if (!res.ok) throw new Error(data.detail || `Server error (${res.status})`);
-    showCallerMsg(
-      `Campaign #${data.campaign.id} created — ${data.queue_loaded} stores queued. Hit Start to begin calling.`,
-      "ok"
-    );
-    document.getElementById("cfStateSelect").value = "";
-    sel.value = "";
-    populateCallerGameSelect("");
-    document.getElementById("cfGamePrice").value = "";
-    await loadCallerData();
+    if (dryRun) {
+      const preview = (data.preview || []).slice(0, 5)
+        .map(p => `• ${escHtml(p.name)} (${escHtml(p.city || '—')})${p.last_called_at ? ' · last called ' + p.last_called_at.slice(0,10) : ''}`)
+        .join("<br>");
+      showCallerMsg(
+        `Preview — would call <strong>${data.would_call}</strong> stores in ${state}. ` +
+        `Skipped <strong>${data.excluded_cooldown || 0}</strong> recently-contacted.` +
+        (preview ? `<br><br>${preview}` : ""),
+        "ok"
+      );
+    } else {
+      showCallerMsg(
+        `Dispatched <strong>${data.dispatched}</strong> calls · ` +
+        `<strong>${data.failed || 0}</strong> failed · ` +
+        `skipped <strong>${data.excluded_cooldown || 0}</strong> recently-contacted` +
+        (data.skipped && data.skipped.length ? `, <strong>${data.skipped.length}</strong> with bad phone` : "") +
+        ". Watch the table below for results as VAPI completes calls.",
+        "ok"
+      );
+      await loadCallerData();
+    }
   } catch (e) {
     showCallerMsg(e.message, "err");
   } finally {
     btn.disabled = false;
-    btn.textContent = "+ Create Campaign";
+    btn.textContent = origLabel;
   }
 }
 
@@ -2053,7 +2075,7 @@ async function sendTestCall() {
   const opt    = sel.options[sel.selectedIndex];
   const name   = opt?.dataset.name || "Test Game";
   const number = opt?.value        || "";
-  const price  = parseFloat(document.getElementById("cfGamePrice").value) || 0;
+  const price  = parseFloat(document.getElementById("cfGamePrice").value) || null;
   const btn    = document.getElementById("cfTestBtn");
 
   if (!phone) { showCallerMsg("Enter a phone number for the test call.", "err"); return; }
@@ -2063,15 +2085,16 @@ async function sendTestCall() {
   showCallerMsg("", "");
 
   try {
-    const res  = await callerFetch("/api/caller/test-call", {
+    const res  = await callerFetch("/api/vapi/test_call", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phone, game_name: name, game_number: number, game_price: price }),
+      body: JSON.stringify({ phone, game_name: name, game_number: number || null, game_price: price }),
     });
     let data = {};
     try { data = await res.json(); } catch (_) {}
     if (!res.ok) throw new Error(data.detail || `Server error (${res.status})`);
-    showCallerMsg(`Test call placed — you should receive a call shortly! SID: ${data.call_sid}`, "ok");
+    showCallerMsg(`Test call placed — you should receive a call shortly. VAPI call id: <code>${escHtml(data.call_id || '—')}</code>`, "ok");
+    setTimeout(loadCallerData, 1500);
   } catch (e) {
     showCallerMsg(`Test call failed: ${e.message}`, "err");
   } finally {
