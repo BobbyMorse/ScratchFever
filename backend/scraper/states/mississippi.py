@@ -67,24 +67,24 @@ class MississippiScraper(BaseScraper):
         soup = self.soup(url)
         page_text = soup.get_text(" ", strip=True)
 
-        # Image URL: look for a prominent game ticket image
+        # Image URL: mslottery.com lazy-loads, so the real URL is in data-src.
+        # Prefer the full-size FRONT-C (front, complete/uncovered) over thumbnails/back.
         image_url = None
+        candidates = []
         for img in soup.find_all("img"):
-            src = img.get("src", "")
-            if not src:
+            src = (img.get("data-src") or img.get("src") or "").split("?")[0]
+            if "wp-content/uploads" not in src or "FRONT" not in src.upper():
                 continue
-            # Skip tiny icons/logos; prefer images with game-related path segments
-            src_lower = src.lower()
-            if any(k in src_lower for k in ("ticket", "game", "instant", "scratch")):
-                image_url = (BASE_URL + src) if src.startswith("/") else src
-                break
-        # Fallback: first non-trivial img on the page
-        if not image_url:
-            for img in soup.find_all("img"):
-                src = img.get("src", "")
-                if src and not any(k in src.lower() for k in ("logo", "icon", "banner", "header", "footer", "button")):
-                    image_url = (BASE_URL + src) if src.startswith("/") else src
-                    break
+            candidates.append(src)
+        # Rank: prefer "scaled" or no size suffix; deprioritize thumbnails like -210x210
+        def rank(u: str) -> tuple:
+            uu = u.upper()
+            is_thumb = bool(re.search(r"-\d+X\d+\.[A-Z]+$", uu))
+            is_c = "FRONT-C" in uu  # front cover, no winning ticket overlay
+            return (is_thumb, not is_c)
+        for u in sorted(candidates, key=rank):
+            image_url = u if u.startswith("http") else (BASE_URL + u)
+            break
 
         # Name and price from H1: "Wheel of Fortune ($10)"
         name = price = None
