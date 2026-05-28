@@ -1262,15 +1262,19 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
   .table-scroll { max-height: calc(100vh - 280px); min-height: 240px; }
 
   /* Modals: full-bleed on phones */
-  .modal-overlay { padding: 0; align-items: stretch; }
+  .modal-overlay { padding: 0; align-items: stretch; overflow: hidden; }
   .modal {
     border-radius: 0;
     max-width: 100%;
-    min-height: 100vh;
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
     padding: 1.25rem 1rem 2rem;
   }
-  .auth-modal { min-height: auto; border-radius: var(--radius); margin: 1rem; max-width: 100%; }
-  .auth-modal + .modal-close, .modal-close { top: .8rem; right: .8rem; }
+  .auth-modal { height: auto; min-height: auto; overflow: visible; border-radius: var(--radius); margin: 1rem; max-width: 100%; }
+  .auth-modal + .modal-close, .modal-close { top: .8rem; right: .8rem; position: sticky; float: right; align-self: flex-end; }
 
   /* Hunt layout: collapse to single column on mobile */
   .hunt-layout { flex-direction: column; }
