@@ -73,19 +73,98 @@ def _to_e164(phone: Optional[str]) -> Optional[str]:
 
 # ── Retailer selection ────────────────────────────────────────────────────────
 
-async def _select_scored_retailers(state: str, max_stores: int) -> list[dict]:
+def _last10(phone: Optional[str]) -> Optional[str]:
+    if not phone:
+        return None
+    digits = re.sub(r"\D", "", phone)
+    return digits[-10:] if len(digits) >= 10 else None
+
+
+async def _recently_contacted_phones(cooldown_hours: int) -> set[str]:
+    """Return last-10-digit phone keys for retailers we successfully talked to
+    within the cooldown window. A call counts as "talked to" when we got
+    structured data back (has_game set), or the human-side duration suggests
+    real conversation (>= 15s)."""
+    if cooldown_hours <= 0:
+        return set()
+    async with get_pool().acquire() as conn:
+        rows = await conn.fetch(
+            """SELECT to_phone
+               FROM vapi_calls
+               WHERE received_at > NOW() - ($1::int || ' hours')::interval
+                 AND to_phone IS NOT NULL
+                 AND (has_game IS NOT NULL
+                      OR confidence IS NOT NULL
+                      OR (duration_sec IS NOT NULL AND duration_sec >= 15))""",
+            cooldown_hours,
+        )
+    return {_last10(r["to_phone"]) for r in rows if _last10(r["to_phone"])}
+
+
+async def _last_call_lookup() -> dict[str, dict]:
+    """Map last-10-digit phone → {last_called_at, last_talked} across all
+    vapi_calls history. Used to annotate the selection so the UI can show
+    'last called X days ago' next to each retailer."""
+    async with get_pool().acquire() as conn:
+        rows = await conn.fetch("""
+            SELECT DISTINCT ON (RIGHT(REGEXP_REPLACE(to_phone, '[^0-9]', '', 'g'), 10))
+                   RIGHT(REGEXP_REPLACE(to_phone, '[^0-9]', '', 'g'), 10) AS phone10,
+                   received_at,
+                   (has_game IS NOT NULL
+                    OR confidence IS NOT NULL
+                    OR (duration_sec IS NOT NULL AND duration_sec >= 15)) AS talked
+            FROM vapi_calls
+            WHERE to_phone IS NOT NULL
+            ORDER BY 1, received_at DESC
+        """)
+    return {
+        r["phone10"]: {"last_called_at": r["received_at"], "last_talked": r["talked"]}
+        for r in rows if r["phone10"]
+    }
+
+
+async def _select_scored_retailers(
+    state: str,
+    max_stores: int,
+    cooldown_hours: int = 168,  # 7 days default
+) -> tuple[list[dict], int]:
     """For MA/AZ use the scorer (highest score first). Other states fall back
-    to state_retailers in unspecified order."""
+    to state_retailers in unspecified order.
+
+    Filters out retailers we've successfully talked to within `cooldown_hours`.
+    Annotates each pick with last_called_at / last_talked from history.
+
+    Returns (selected, excluded_count).
+    """
     state = state.upper()
+    cooldown_phones = await _recently_contacted_phones(cooldown_hours)
+    last_call_map   = await _last_call_lookup()
+
+    def _enrich_and_filter(candidates: list[dict]) -> tuple[list[dict], int]:
+        out: list[dict] = []
+        excluded = 0
+        for r in candidates:
+            ph10 = _last10(r.get("phone"))
+            if ph10 and ph10 in cooldown_phones:
+                excluded += 1
+                continue
+            hist = last_call_map.get(ph10 or "")
+            out.append({
+                **r,
+                "last_called_at": hist["last_called_at"].isoformat() if hist and hist["last_called_at"] else None,
+                "last_talked":    bool(hist["last_talked"]) if hist else False,
+            })
+            if max_stores and len(out) >= max_stores:
+                break
+        return out, excluded
+
     if state == "MA":
         from backend.ma_scorer import load_and_score_async
         async with get_pool().acquire() as conn:
             scored = await load_and_score_async(conn)
         scored = [r for r in scored if r.get("phone")]
         scored.sort(key=lambda r: r.get("score", 0), reverse=True)
-        if max_stores:
-            scored = scored[:max_stores]
-        return [{
+        candidates = [{
             "external_id": str(r["id"]),
             "state_code":  "MA",
             "name":        r.get("name") or "",
@@ -93,17 +172,15 @@ async def _select_scored_retailers(state: str, max_stores: int) -> list[dict]:
             "phone":       r.get("phone"),
             "score":       r.get("score"),
         } for r in scored]
+        return _enrich_and_filter(candidates)
 
     if state == "AZ":
         from backend.az_scorer import load_and_score_async
         async with get_pool().acquire() as conn:
             scored = await load_and_score_async(conn)
         scored = [r for r in scored if r.get("phone")]
-        # az_scorer may or may not produce score; sort defensively
         scored.sort(key=lambda r: r.get("score", 0) or 0, reverse=True)
-        if max_stores:
-            scored = scored[:max_stores]
-        return [{
+        candidates = [{
             "external_id": str(r["id"]),
             "state_code":  "AZ",
             "name":        r.get("name") or "",
@@ -111,9 +188,11 @@ async def _select_scored_retailers(state: str, max_stores: int) -> list[dict]:
             "phone":       r.get("phone"),
             "score":       r.get("score"),
         } for r in scored]
+        return _enrich_and_filter(candidates)
 
-    # Generic fallback — any state with rows in state_retailers
-    limit = max_stores if max_stores and max_stores > 0 else 200
+    # Generic fallback: pull a generous pool so cooldown exclusions still
+    # leave us with max_stores actual targets.
+    pool_size = max(max_stores * 3, 200) if max_stores else 500
     async with get_pool().acquire() as conn:
         rows = await conn.fetch(
             """SELECT external_id, state_code, name, city, phone
@@ -122,9 +201,10 @@ async def _select_scored_retailers(state: str, max_stores: int) -> list[dict]:
                  AND phone IS NOT NULL AND phone <> ''
                ORDER BY city NULLS LAST, name
                LIMIT $2""",
-            state, limit,
+            state, pool_size,
         )
-    return [dict(r) | {"score": None} for r in rows]
+    candidates = [dict(r) | {"score": None} for r in rows]
+    return _enrich_and_filter(candidates)
 
 
 async def _dispatch_calls(
