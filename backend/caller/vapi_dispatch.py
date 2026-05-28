@@ -312,9 +312,9 @@ async def _dispatch_calls(
                             "retailer_external_id": t.get("external_id"),
                             "retailer_name":        t.get("name"),
                             "retailer_city":        t.get("city"),
-                            "game_name":            game_name,
-                            "game_price":           game_price,
-                            "game_number":          game_number,
+                            "game_name":            tickets_label,
+                            "game_price":           None,
+                            "game_number":          None,
                         })
                 except Exception as exc:
                     logger.exception("VAPI dispatch failed for %s", t.get("name"))
