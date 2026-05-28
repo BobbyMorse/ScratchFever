@@ -2107,7 +2107,7 @@ function showCallerMsg(text, type) {
   const el = document.getElementById("cfMessage");
   el.style.display = text ? "" : "none";
   el.className = `caller-msg ${type}`;
-  el.textContent = text;
+  el.innerHTML = text;
 }
 
 async function startCampaign(id) {
