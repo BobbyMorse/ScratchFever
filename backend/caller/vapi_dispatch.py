@@ -603,7 +603,8 @@ async def vapi_test_call(body: TestCallBody, _user: dict = Depends(require_admin
         "city":        sim_city,
         "phone":       e164,
     }
-    results, _ = await _dispatch_calls([target], body.game_name, body.game_price, body.game_number, env)
+    tickets = [t.model_dump() for t in body.tickets]
+    results, _ = await _dispatch_calls([target], tickets, env)
     r = results[0] if results else {"ok": False, "error": "no result"}
     if not r["ok"]:
         raise HTTPException(status_code=502, detail=f"VAPI dispatch failed: {r.get('error')}")
@@ -612,4 +613,5 @@ async def vapi_test_call(body: TestCallBody, _user: dict = Depends(require_admin
         "call_id":         r["call_id"],
         "simulated_store": sim_name,
         "simulated_city":  sim_city,
+        "tickets_text":    _build_tickets_text(tickets),
     }
