@@ -691,6 +691,104 @@
       </div>
     </div>
 
+    <!-- Caller tab -->
+    <div class="tab-pane" id="tab-caller">
+      <div class="page-top">
+        <div>
+          <h1>VAPI <span>Caller</span></h1>
+          <div style="font-size:.82rem;color:var(--text-muted);margin-top:.2rem">
+            Pick retailers from the database and dispatch outbound VAPI calls to ask about a specific game.
+          </div>
+        </div>
+        <button class="refresh-btn" onclick="loadVapiRetailers()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+          Refresh
+        </button>
+      </div>
+
+      <div id="vapiConfigBanner" class="vapi-banner" style="display:none"></div>
+
+      <div class="vapi-grid">
+        <div class="vapi-card">
+          <div class="vapi-card-title">1 · Game to ask about</div>
+          <label>Game name *</label>
+          <input type="text" id="vapiGameName" placeholder="e.g. $1,000,000 Cash Wheel" />
+          <div class="vapi-row">
+            <div>
+              <label>Price</label>
+              <input type="number" id="vapiGamePrice" step="0.01" min="0" placeholder="30" />
+            </div>
+            <div>
+              <label>Game #</label>
+              <input type="text" id="vapiGameNumber" placeholder="1605" />
+            </div>
+          </div>
+        </div>
+
+        <div class="vapi-card">
+          <div class="vapi-card-title">2 · Filter retailers</div>
+          <label>State</label>
+          <select id="vapiState"></select>
+          <label>Search (name or city)</label>
+          <input type="text" id="vapiSearch" placeholder="Cumberland Farms, Worcester…" oninput="onVapiSearchInput()" />
+          <div class="vapi-row" style="margin-top:.75rem">
+            <label style="display:flex;align-items:center;gap:.4rem;font-size:.78rem;text-transform:none;letter-spacing:0;color:var(--text);font-weight:500">
+              <input type="checkbox" id="vapiOnlyWithPhone" checked onchange="loadVapiRetailers()" />
+              Only retailers with phone numbers
+            </label>
+          </div>
+        </div>
+
+        <div class="vapi-card vapi-card-action">
+          <div class="vapi-card-title">3 · Dispatch</div>
+          <div id="vapiSelectionSummary" class="vapi-summary">0 retailers selected</div>
+          <button class="vapi-btn-secondary" onclick="vapiSelectAllVisible()">Select all visible</button>
+          <button class="vapi-btn-secondary" onclick="vapiSelectNone()">Clear selection</button>
+          <button class="vapi-btn-primary" id="vapiDispatchBtn" onclick="vapiDispatch(false)">Start calls</button>
+          <button class="vapi-btn-secondary" onclick="vapiDispatch(true)">Dry run (preview)</button>
+        </div>
+      </div>
+
+      <div class="table-wrap" style="margin-top:1rem">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:36px"><input type="checkbox" id="vapiSelectAllHdr" onchange="vapiToggleAllHeader(this.checked)" /></th>
+              <th>State</th>
+              <th>Name</th>
+              <th>City</th>
+              <th>Phone</th>
+              <th>External ID</th>
+            </tr>
+          </thead>
+          <tbody id="vapiRetailerBody">
+            <tr class="loading-row"><td colspan="6">Pick a state to load retailers.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 style="margin-top:2rem;font-size:1.05rem;font-weight:700">Recent VAPI calls</h2>
+      <div class="table-wrap" style="margin-top:.6rem">
+        <table>
+          <thead>
+            <tr>
+              <th>When</th>
+              <th>Retailer</th>
+              <th>Game</th>
+              <th>Has stock</th>
+              <th>Conf</th>
+              <th>Dur</th>
+              <th>Ended</th>
+              <th>Summary</th>
+            </tr>
+          </thead>
+          <tbody id="vapiRecentBody">
+            <tr class="loading-row"><td colspan="8">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <div class="scrape-toast" id="scrapeToast"></div>
 
   </div>
