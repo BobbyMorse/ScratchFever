@@ -2096,20 +2096,17 @@ function toggleTranscript(queueId) {
 
 async function createCallerCampaign(dryRun) {
   const state    = document.getElementById("cfStateSelect").value;
-  const sel      = document.getElementById("cfGameSelect");
-  const opt      = sel.options[sel.selectedIndex];
-  const name     = opt?.dataset.name  || "";
-  const number   = opt?.value         || "";
-  const price    = parseFloat(document.getElementById("cfGamePrice").value) || null;
+  const tickets  = getSelectedTickets();
   const max      = parseInt(document.getElementById("cfMaxStores").value) || 100;
   const cooldown = parseInt(document.getElementById("cfCooldownDays").value);
   const cooldownHrs = (isNaN(cooldown) ? 7 : cooldown) * 24;
   const btn      = dryRun ? document.getElementById("cfDryRunBtn") : document.getElementById("cfCreateBtn");
   const origLabel = btn.textContent;
 
-  if (!state) { showCallerMsg("Select a state first.", "err"); return; }
-  if (!name)  { showCallerMsg("Select a game first.", "err"); return; }
-  if (!dryRun && !confirm(`Dispatch up to ${max} VAPI calls in ${state} for "${name}"?\n\nStores we already talked to within ${cooldown || 0} day(s) are skipped.`)) return;
+  if (!state)            { showCallerMsg("Select a state first.", "err"); return; }
+  if (!tickets.length)   { showCallerMsg("Pick at least one ticket.", "err"); return; }
+  const ticketsLabel = tickets.map(t => `${t.name}${t.price != null ? ` ($${t.price})` : ""}`).join(", ");
+  if (!dryRun && !confirm(`Dispatch up to ${max} VAPI calls in ${state} asking about:\n\n${ticketsLabel}\n\nStores we already talked to within ${cooldown || 0} day(s) are skipped.`)) return;
 
   btn.disabled = true;
   btn.textContent = dryRun ? "Previewing…" : "Dispatching…";
@@ -2121,9 +2118,7 @@ async function createCallerCampaign(dryRun) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         state,
-        game_name:      name,
-        game_number:    number || null,
-        game_price:     price,
+        tickets,
         max_stores:     max,
         cooldown_hours: cooldownHrs,
         dry_run:        !!dryRun,
