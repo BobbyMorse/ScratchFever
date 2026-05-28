@@ -1232,8 +1232,8 @@
 
         <section class="caller-form-section" id="callerFormSection">
           <div class="caller-form-card">
-            <h2 class="caller-form-title">New Calling Campaign</h2>
-            <p class="caller-form-subtitle">Select a state and game, then load retailers into a calling queue (highest score first) during business hours (9 AM–8 PM ET, Mon–Sat).</p>
+            <h2 class="caller-form-title">Dispatch VAPI Calls</h2>
+            <p class="caller-form-subtitle">Pick a state and game, set how many top-scored retailers to dial. Stores we already talked to within the recall window are skipped automatically.</p>
             <div class="caller-form-row">
               <div class="filter-group">
                 <label>State *</label>
@@ -1252,18 +1252,16 @@
                 <input type="number" id="cfGamePrice" placeholder="30" min="1" max="100" />
               </div>
               <div class="filter-group">
-                <label>Max Stores (0 = all)</label>
-                <input type="number" id="cfMaxStores" value="0" min="0" max="9999" />
+                <label>Stores to Call</label>
+                <input type="number" id="cfMaxStores" value="100" min="1" max="500" />
               </div>
               <div class="filter-group">
-                <label>Call Backend</label>
-                <select id="cfBackend">
-                  <option value="twilio_ivr">Twilio IVR</option>
-                  <option value="bland">Bland AI</option>
-                </select>
+                <label>Recall after (days)</label>
+                <input type="number" id="cfCooldownDays" value="7" min="0" max="365" title="Skip retailers we successfully talked to within this many days" />
               </div>
-              <div class="filter-group" style="justify-content:flex-end;align-items:flex-end">
-                <button class="btn btn-call-create" id="cfCreateBtn" onclick="createCallerCampaign()">+ Create Campaign</button>
+              <div class="filter-group" style="justify-content:flex-end;align-items:flex-end;gap:.4rem;flex-direction:row">
+                <button class="btn" id="cfDryRunBtn" onclick="createCallerCampaign(true)" title="Preview who would be called without dialing">Preview</button>
+                <button class="btn btn-call-create" id="cfCreateBtn" onclick="createCallerCampaign(false)">📞 Start Calls</button>
               </div>
             </div>
             <div style="display:flex;align-items:flex-end;gap:.65rem;margin-top:.55rem">
