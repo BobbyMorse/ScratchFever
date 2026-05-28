@@ -217,7 +217,10 @@ async def vapi_webhook(
     call_id = await insert_vapi_call(parsed)
 
     inventory_id = None
-    if parsed["has_game"] is not None and parsed["retailer_external_id"] and parsed["game_name"]:
+    is_test = isinstance(parsed["retailer_external_id"], str) and parsed["retailer_external_id"].startswith("test")
+    if is_test:
+        logger.info("VAPI test call %s — skipping inventory mirror", parsed["vapi_call_id"])
+    elif parsed["has_game"] is not None and parsed["retailer_external_id"] and parsed["game_name"]:
         match_geo = await find_retailer_by_phone(_digits_only(parsed["to_phone"]))
         lat = match_geo["latitude"]  if match_geo else None
         lng = match_geo["longitude"] if match_geo else None
