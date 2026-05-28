@@ -277,14 +277,12 @@ async def _dispatch_calls(
                 "customer":       {"number": t["phone_e164"]},
                 "assistantOverrides": {
                     "variableValues": {
-                        "store_id":     t.get("external_id") or "",
-                        "store_name":   t.get("name") or "",
-                        "store_city":   t.get("city") or "",
-                        "store_phone":  t["phone_e164"],
-                        "state_code":   t.get("state_code") or "",
-                        "game_name":    game_name,
-                        "game_price":   game_price if game_price is not None else "",
-                        "game_number":  game_number or "",
+                        "store_id":       t.get("external_id") or "",
+                        "store_name":     t.get("name") or "",
+                        "store_city":     t.get("city") or "",
+                        "store_phone":    t["phone_e164"],
+                        "state_code":     t.get("state_code") or "",
+                        "ticketsToCheck": tickets_text,
                     },
                 },
             }
