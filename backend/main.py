@@ -129,6 +129,7 @@ async def lifespan(app: FastAPI):
 
     async def _delayed_startup():
         await asyncio.sleep(STARTUP_DELAY)
+        await asyncio.to_thread(ensure_playwright_browsers)
         try:
             from backend.ma_scorer import load_and_score_async as warm_ma
             from backend.az_scorer import load_and_score_async as warm_az
