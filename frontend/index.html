@@ -1241,16 +1241,6 @@
                   <option value="">— State —</option>
                 </select>
               </div>
-              <div class="filter-group" style="min-width:220px">
-                <label>Game *</label>
-                <select id="cfGameSelect" onchange="onCallerGameSelect()">
-                  <option value="">— Select a game —</option>
-                </select>
-              </div>
-              <div class="filter-group">
-                <label>Ticket Price ($)</label>
-                <input type="number" id="cfGamePrice" placeholder="30" min="1" max="100" />
-              </div>
               <div class="filter-group">
                 <label>Stores to Call</label>
                 <input type="number" id="cfMaxStores" value="100" min="1" max="500" />
@@ -1262,6 +1252,20 @@
               <div class="filter-group" style="justify-content:flex-end;align-items:flex-end;gap:.4rem;flex-direction:row">
                 <button class="btn" id="cfDryRunBtn" onclick="createCallerCampaign(true)" title="Preview who would be called without dialing">Preview</button>
                 <button class="btn btn-call-create" id="cfCreateBtn" onclick="createCallerCampaign(false)">📞 Start Calls</button>
+              </div>
+            </div>
+
+            <div class="cf-tickets-wrap">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.4rem">
+                <label style="font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em">Tickets to check *</label>
+                <span id="cfTicketsCount" style="font-size:.78rem;color:var(--text-muted)">No tickets selected</span>
+              </div>
+              <div class="cf-tickets-card">
+                <input type="text" id="cfTicketsSearch" placeholder="Search games…" oninput="renderTicketsPicker()" />
+                <div id="cfTicketsList" class="cf-tickets-list">— Pick a state first —</div>
+              </div>
+              <div style="font-size:.75rem;color:var(--text-muted);margin-top:.35rem">
+                Passed to VAPI as <code>ticketsToCheck</code> (newline-separated <code>Name ($Price)</code>) — the same list is used for both dispatch and test calls.
               </div>
             </div>
             <div style="display:flex;align-items:flex-end;gap:.65rem;margin-top:.55rem;flex-wrap:wrap">
