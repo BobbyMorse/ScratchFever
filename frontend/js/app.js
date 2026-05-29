@@ -3092,16 +3092,23 @@ async function loadCommunityReports() {
       : selectedGame;
     loadRetailerLatest(activeGame?.name);
     updateReportBadges();
-    renderMaTable();
-    renderAzTable();
-    renderRiTable();
-    renderFlTable();
-    renderGaTable();
-    renderNyTable();
-    renderVaTable();
-    renderDcTable();
-    renderVtTable();
-    refreshOpenProfile();
+    // If the user has an inventory panel open, avoid the full table re-renders —
+    // they reset _openProfileId and tear down the panel mid-edit. Cell-level
+    // updates + a profile refresh keep the page stable.
+    if (_openProfileId) {
+      updateLastReportCells();
+      refreshOpenProfile();
+    } else {
+      renderMaTable();
+      renderAzTable();
+      renderRiTable();
+      renderFlTable();
+      renderGaTable();
+      renderNyTable();
+      renderVaTable();
+      renderDcTable();
+      renderVtTable();
+    }
     refreshOpenModalCommunity();
     if (currentHuntState === 'AZ') updateAzInventoryMapLayer();
     else if (currentHuntState === 'RI') updateRiInventoryMapLayer();
