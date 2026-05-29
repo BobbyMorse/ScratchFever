@@ -227,8 +227,6 @@ function _setUser(user) {
     document.getElementById("scrapeBtn").style.display = isAdmin ? "" : "none";
     const thCampaign = document.getElementById("thCampaign");
     if (thCampaign) thCampaign.style.display = isAdmin ? "" : "none";
-    const thCampaignFilter = document.getElementById("thCampaignFilter");
-    if (thCampaignFilter) thCampaignFilter.style.display = isAdmin ? "" : "none";
     const myStoreLink = document.getElementById("myStoreLink");
     if (myStoreLink) myStoreLink.style.display = (user.role === "retailer" || user.role === "admin") ? "" : "none";
   } else {
