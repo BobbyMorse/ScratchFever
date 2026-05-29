@@ -133,6 +133,7 @@ class WashingtonScraper(PlaywrightScraper):
                 total_tickets=total_tickets,
                 overall_odds=overall_odds,
                 detail_url=f"{EXPLORER_URL}?id={game_id}",
+                image_url=f"{BASE_URL}/scratch/assets/imgs/tickets/grid/{game_id}.jpg",
                 end_date=gd.get("end_date"),
             ))
 
