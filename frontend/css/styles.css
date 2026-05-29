@@ -1143,6 +1143,30 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
   border-style: solid;
 }
 
+.modal-find-chase {
+  display: block;
+  width: 100%;
+  margin: .25rem 0 .85rem;
+  padding: .7rem .95rem;
+  background: var(--orange-dim);
+  border: 1px solid var(--orange);
+  border-radius: var(--radius-sm);
+  color: var(--orange);
+  font-family: inherit;
+  font-size: .88rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  transition: background .12s, color .12s, transform .08s;
+}
+.modal-find-chase:hover {
+  background: var(--orange);
+  color: #fff;
+}
+.modal-find-chase:active {
+  transform: translateY(1px);
+}
+
 .store-profile-tr td { padding: 0; background: var(--bg) !important; }
 .store-profile-open > td:first-child { border-left: 3px solid var(--orange); }
 
