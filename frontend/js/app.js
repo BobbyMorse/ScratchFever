@@ -2118,7 +2118,7 @@ async function createCallerCampaign(dryRun) {
     });
     let data = {};
     try { data = await res.json(); } catch (_) {}
-    if (!res.ok) throw new Error(data.detail || `Server error (${res.status})`);
+    if (!res.ok) throw new Error(_formatApiError(data, res.status));
     if (dryRun) {
       const preview = (data.preview || []).slice(0, 5)
         .map(p => `• ${escHtml(p.name)} (${escHtml(p.city || '—')})${p.last_called_at ? ' · last called ' + p.last_called_at.slice(0,10) : ''}`)
