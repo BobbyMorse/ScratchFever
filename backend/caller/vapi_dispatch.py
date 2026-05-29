@@ -606,7 +606,7 @@ async def vapi_test_call(body: TestCallBody, _user: dict = Depends(require_admin
     sim_name = "Test Call"
     sim_city = ""
     sim_state = ""
-    sim_external = "test"
+    sim_external = "test"  # generic test → webhook skips inventory mirror
 
     if body.as_retailer_id is not None:
         async with get_pool().acquire() as conn:
@@ -620,10 +620,11 @@ async def vapi_test_call(body: TestCallBody, _user: dict = Depends(require_admin
         sim_name = row["name"] or sim_name
         sim_city = row["city"] or ""
         sim_state = row["state_code"] or ""
-        # Prefix with 'test:' so the webhook recognizes this as a test and
-        # skips the inventory mirror, but the real external_id is preserved
-        # for traceability in vapi_calls.raw_payload.
-        sim_external = f"test:{row['external_id']}"
+        # Simulate-as-store IS the simulated store from the webhook's POV:
+        # use the real external_id so the per-ticket inventory mirror fires
+        # for this retailer. That's the user's explicit ask — "I want these to
+        # update inventory reports! that is the point also."
+        sim_external = row["external_id"]
 
     target = {
         "external_id": sim_external,
