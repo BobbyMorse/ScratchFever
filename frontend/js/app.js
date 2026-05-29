@@ -3366,8 +3366,7 @@ async function toggleGameInv(retailerId, gameName, gamePrice, hasStock, notes) {
     updateLastReportCells();
     updateReportBadges();
     console.error('Inventory report failed:', err);
-    alert(`Could not save inventory report: ${err.message}\n\nYour change was not saved.`);
-    loadCommunityReports();
+    showToast(`Could not save: ${err.message}`, "err", 6000);
   }
 }
 
