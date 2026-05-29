@@ -1962,16 +1962,7 @@ function renderCallerRecent() {
     return;
   }
   tbody.innerHTML = _callerRecent.map(c => {
-    let result, resultCls;
-    if (c.ended_at == null && c.has_game == null) {
-      result = "In flight"; resultCls = "badge-status-paused";
-    } else if (c.has_game === true) {
-      result = "Has Ticket"; resultCls = "badge-green";
-    } else if (c.has_game === false) {
-      result = "No Ticket"; resultCls = "badge-status-idle";
-    } else {
-      result = "—"; resultCls = "badge-status-idle";
-    }
+    const resultHtml = renderResultCell(c);
     const conf = c.confidence != null ? `${Math.round(parseFloat(c.confidence) * 100)}%` : "—";
     const dur  = c.duration_sec != null ? `${Math.round(parseFloat(c.duration_sec))}s` : "—";
     const when = c.ended_at || c.received_at || "";
@@ -1982,13 +1973,38 @@ function renderCallerRecent() {
       <td><strong>${escHtml(c.retailer_name) || "<span style='color:var(--text-muted)'>(unknown)</span>"}</strong></td>
       <td>${escHtml(c.retailer_city) || "—"}</td>
       <td>${escHtml(c.game_name) || "—"}</td>
-      <td><span class="badge ${resultCls}">${result}</span></td>
+      <td>${resultHtml}</td>
       <td>${conf}</td>
       <td>${dur}</td>
       <td><span style="color:var(--text-muted);font-size:.78rem">${escHtml(c.ended_reason || "—")}</span></td>
       <td><span title="${escHtml(c.summary || '')}" style="display:inline-block;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle">${summary}</span></td>
     </tr>`;
   }).join("");
+}
+
+function renderResultCell(c) {
+  // In flight: VAPI placeholder row, no end-of-call report yet.
+  if (c.ended_at == null && c.has_game == null && !(c.per_ticket_results && c.per_ticket_results.length)) {
+    return `<span class="badge badge-status-paused">In flight</span>`;
+  }
+  // Per-ticket array — show one pill per ticket the assistant got an answer on.
+  if (Array.isArray(c.per_ticket_results) && c.per_ticket_results.length) {
+    const pills = c.per_ticket_results.map(t => {
+      const name = (t && t.name) ? String(t.name) : "?";
+      const has = t && t.has_game;
+      const cls = has === true ? "yes" : has === false ? "no" : "unk";
+      const mark = has === true ? "✓" : has === false ? "✗" : "—";
+      const conf = t && t.confidence != null ? ` ${Math.round(parseFloat(t.confidence) * 100)}%` : "";
+      const titleParts = [name];
+      if (t && t.notes) titleParts.push(String(t.notes));
+      return `<span class="cf-ticket-pill ${cls}" title="${escHtml(titleParts.join(' — '))}"><span class="cf-pill-name">${escHtml(name)}</span><span class="cf-pill-mark">${mark}${conf}</span></span>`;
+    }).join("");
+    return `<div class="cf-ticket-result">${pills}</div>`;
+  }
+  // Legacy single-game roll-up.
+  if (c.has_game === true)  return `<span class="badge badge-green">Has Ticket</span>`;
+  if (c.has_game === false) return `<span class="badge badge-status-idle">No Ticket</span>`;
+  return `<span class="badge badge-status-idle">—</span>`;
 }
 
 function renderCallerCampaigns() {
