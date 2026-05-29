@@ -101,6 +101,32 @@ class LouisianaScraper(BaseScraper):
                 and tiers
                 and all(t.get("prizes_remaining") == t.get("prizes_total") for t in tiers)
             )
+
+            # LA's overall_odds includes an unlisted free-ticket tier (win-the-price-back)
+            # that isn't in the prize table. Synthesize it so EV reflects it. The implied
+            # winner count: total_tickets / overall_odds minus the visible tier sum.
+            synthesized = False
+            if (
+                tiers and total_tickets and overall_odds and overall_odds > 0
+                and not no_claims
+            ):
+                visible_winners = sum((t.get("prizes_total") or 0) for t in tiers)
+                expected_winners = total_tickets / overall_odds
+                missing = round(expected_winners - visible_winners)
+                if visible_winners > 0 and missing > visible_winners * 0.1:
+                    if all_have_rem:
+                        visible_remaining = sum(t["prizes_remaining"] for t in tiers)
+                        missing_remaining = round(missing * visible_remaining / visible_winners)
+                    else:
+                        missing_remaining = None
+                    tiers.append({
+                        "prize_amount":     price,
+                        "odds_one_in":      round(total_tickets / missing, 2),
+                        "prizes_total":     missing,
+                        "prizes_remaining": missing_remaining,
+                    })
+                    synthesized = True
+
             if no_claims:
                 tickets_remaining = None
                 total_tickets = None
@@ -115,6 +141,7 @@ class LouisianaScraper(BaseScraper):
                 total_tickets=total_tickets,
                 detail_url=detail_url,
                 image_url=image_url,
+                ev_approximate=synthesized,
             )
             if no_claims:
                 game["ev"] = None
