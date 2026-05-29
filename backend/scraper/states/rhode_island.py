@@ -46,7 +46,6 @@ class RhodeIslandScraper(BaseScraper):
         from playwright.sync_api import sync_playwright
 
         _data = [None]
-        game_id_to_img: dict[str, str] = {}
 
         def handle_route(route, request):
             if API_PATH in request.url:
@@ -59,17 +58,6 @@ class RhodeIslandScraper(BaseScraper):
                 route.continue_()
             else:
                 route.continue_()
-
-        def capture_image(response):
-            url = response.url
-            low = url.lower()
-            if not any(low.endswith(ext) or (ext + "?") in low
-                       for ext in (".jpg", ".jpeg", ".png", ".gif", ".webp")):
-                return
-            # Extract any 3+ digit sequence that could be a game ID
-            for gid in re.findall(r"\b(\d{3,})\b", url):
-                if gid not in game_id_to_img:
-                    game_id_to_img[gid] = url.split("?")[0]
 
         with sync_playwright() as pw:
             browser = pw.chromium.launch(headless=True)
@@ -84,7 +72,6 @@ class RhodeIslandScraper(BaseScraper):
             page = ctx.new_page()
 
             page.route("**/*", handle_route)
-            page.on("response", capture_image)
 
             try:
                 page.goto(LIST_URL, wait_until="networkidle", timeout=30_000)
@@ -98,8 +85,6 @@ class RhodeIslandScraper(BaseScraper):
                     pass
 
             browser.close()
-
-        logger.info("RI: %d image URLs captured", len(game_id_to_img))
 
         if _data[0] is None:
             logger.warning("RI: no API data captured")
@@ -117,14 +102,14 @@ class RhodeIslandScraper(BaseScraper):
 
         games = []
         for g in active:
-            game = self._parse_game(g, game_id_to_img)
+            game = self._parse_game(g)
             if game:
                 games.append(game)
 
         logger.info("RI: %d games parsed", len(games))
         return games
 
-    def _parse_game(self, g: dict, game_id_to_img: dict | None = None) -> dict | None:
+    def _parse_game(self, g: dict) -> dict | None:
         name = (g.get("gameName") or "").strip().title()
         if not name:
             return None
