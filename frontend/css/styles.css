@@ -803,6 +803,49 @@ thead th:last-child  { border-radius: 0 var(--radius-sm) 0 0; }
 thead th:hover { color: var(--text); }
 thead th.active { color: var(--orange); }
 
+/* Per-column filter row — second sticky thead row */
+thead tr.col-filter-row th {
+  top: 36px; /* sits just below the first sticky header row */
+  padding: .35rem .45rem;
+  background: linear-gradient(180deg, #edf0f7 0%, #e6eaf3 100%);
+  border-bottom: 1.5px solid var(--border);
+  border-radius: 0;
+  cursor: default;
+  z-index: 9;
+}
+thead tr.col-filter-row th:hover { color: var(--text-muted); background: linear-gradient(180deg, #edf0f7 0%, #e6eaf3 100%); }
+thead tr.col-filter-row input.cf-input {
+  width: 100%;
+  min-width: 0;
+  padding: .25rem .4rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--text);
+  font-size: .72rem;
+  font-family: inherit;
+  font-weight: 500;
+  outline: none;
+  text-transform: none;
+  letter-spacing: 0;
+  box-sizing: border-box;
+  transition: border-color .12s, box-shadow .12s;
+}
+thead tr.col-filter-row input.cf-input::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+thead tr.col-filter-row input.cf-input:focus {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 2px var(--orange-dim);
+}
+thead tr.col-filter-row input.cf-input.cf-active {
+  border-color: var(--orange);
+  background: #fff7ed;
+}
+
 tbody tr {
   border-bottom: 1px solid #f0f3f8;
   transition: background .08s;
