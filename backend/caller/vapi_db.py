@@ -39,9 +39,14 @@ async def init_vapi_db() -> None:
                 summary TEXT,
                 notes TEXT,
                 transcript TEXT,
+                per_ticket_results JSONB,
                 raw_payload JSONB
             )
         """)
+        # Backfill for existing prod DBs that predate the per_ticket_results column.
+        await conn.execute(
+            "ALTER TABLE vapi_calls ADD COLUMN IF NOT EXISTS per_ticket_results JSONB"
+        )
         await conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_vapi_received ON vapi_calls(received_at DESC)"
         )
