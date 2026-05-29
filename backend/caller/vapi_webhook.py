@@ -236,44 +236,95 @@ async def vapi_webhook(
 
     call_id = await insert_vapi_call(parsed)
 
-    inventory_id = None
+    inventory_rows_written = 0
     is_test = isinstance(parsed["retailer_external_id"], str) and parsed["retailer_external_id"].startswith("test")
+    has_retailer = bool(parsed["retailer_external_id"]) and not is_test
+
     if is_test:
         logger.info("VAPI test call %s — skipping inventory mirror", parsed["vapi_call_id"])
-    elif parsed["has_game"] is not None and parsed["retailer_external_id"] and parsed["game_name"]:
+    elif has_retailer:
         match_geo = await find_retailer_by_phone(_digits_only(parsed["to_phone"]))
         lat = match_geo["latitude"]  if match_geo else None
         lng = match_geo["longitude"] if match_geo else None
-        async with get_pool().acquire() as conn:
-            await add_inventory_report(
-                conn,
-                retailer_id=parsed["retailer_external_id"],
-                retailer_name=parsed["retailer_name"],
-                retailer_city=parsed["retailer_city"],
-                lat=lat,
-                lng=lng,
-                game_name=parsed["game_name"],
-                game_price=parsed["game_price"],
-                has_stock=bool(parsed["has_game"]),
-                source="vapi_call",
-                reporter_username="vapi",
-                notes=(parsed["notes"] or parsed["summary"] or None),
-                reported_at=parsed["ended_at"],
+
+        # Per-ticket path: write one inventory_reports row per ticket the
+        # assistant got an answer on. This is what the public map and retailer
+        # inventory views read.
+        if parsed["per_ticket"]:
+            async with get_pool().acquire() as conn:
+                for t in parsed["per_ticket"]:
+                    if not isinstance(t, dict):
+                        continue
+                    t_name = (t.get("name") or "").strip()
+                    t_has  = _to_bool(t.get("has_game"))
+                    if not t_name or t_has is None:
+                        continue
+                    t_price = _to_float(t.get("price"))
+                    t_conf  = _to_float(t.get("confidence"))
+                    t_notes = t.get("notes") or t.get("note") or None
+                    note_parts = []
+                    if t_notes:
+                        note_parts.append(str(t_notes))
+                    if t_conf is not None:
+                        note_parts.append(f"conf={t_conf:.2f}")
+                    await add_inventory_report(
+                        conn,
+                        retailer_id=parsed["retailer_external_id"],
+                        retailer_name=parsed["retailer_name"],
+                        retailer_city=parsed["retailer_city"],
+                        lat=lat,
+                        lng=lng,
+                        game_name=t_name,
+                        game_price=t_price,
+                        has_stock=bool(t_has),
+                        source="vapi_call",
+                        reporter_username="vapi",
+                        notes=" · ".join(note_parts) or None,
+                        reported_at=parsed["ended_at"],
+                    )
+                    inventory_rows_written += 1
+            logger.info(
+                "VAPI per-ticket inventory mirror: %d rows for %s (call=%s)",
+                inventory_rows_written, parsed["retailer_external_id"], parsed["vapi_call_id"],
             )
-        inventory_id = "written"
-        logger.info(
-            "VAPI inventory mirror: %s @ %s -> has_stock=%s conf=%s",
-            parsed["game_name"], parsed["retailer_external_id"],
-            parsed["has_game"], parsed["confidence"],
-        )
+
+        # Legacy single-game path — only if no per-ticket array AND we still
+        # have a single has_game + game_name (back-compat for older assistants)
+        elif parsed["has_game"] is not None and parsed["game_name"]:
+            async with get_pool().acquire() as conn:
+                await add_inventory_report(
+                    conn,
+                    retailer_id=parsed["retailer_external_id"],
+                    retailer_name=parsed["retailer_name"],
+                    retailer_city=parsed["retailer_city"],
+                    lat=lat,
+                    lng=lng,
+                    game_name=parsed["game_name"],
+                    game_price=parsed["game_price"],
+                    has_stock=bool(parsed["has_game"]),
+                    source="vapi_call",
+                    reporter_username="vapi",
+                    notes=(parsed["notes"] or parsed["summary"] or None),
+                    reported_at=parsed["ended_at"],
+                )
+            inventory_rows_written = 1
+            logger.info(
+                "VAPI legacy inventory mirror: %s @ %s -> has_stock=%s",
+                parsed["game_name"], parsed["retailer_external_id"], parsed["has_game"],
+            )
+        else:
+            logger.info(
+                "VAPI call %s stored (no inventory mirror: per_ticket=%s, has_game=%s, game=%s)",
+                parsed["vapi_call_id"], bool(parsed["per_ticket"]),
+                parsed["has_game"], parsed["game_name"],
+            )
     else:
         logger.info(
-            "VAPI call %s stored (no inventory mirror: has_game=%s, retailer=%s, game=%s)",
-            parsed["vapi_call_id"], parsed["has_game"],
-            parsed["retailer_external_id"], parsed["game_name"],
+            "VAPI call %s stored (no retailer external id, can't mirror)",
+            parsed["vapi_call_id"],
         )
 
-    return {"ok": True, "call_id": call_id, "inventory_report": inventory_id}
+    return {"ok": True, "call_id": call_id, "inventory_rows_written": inventory_rows_written}
 
 
 @router.get("/recent")
