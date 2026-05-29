@@ -1158,6 +1158,60 @@ async function applyFilters() {
   loadGames();
 }
 
+// Per-column filter state: { col: rawString }
+const colFilters = {};
+
+// Parse user-friendly number input: "1M" → 1e6, "100k" → 1e5, "5,000" → 5000, "$50" → 50
+function parseColNum(raw) {
+  if (raw == null) return NaN;
+  const s = String(raw).trim().toLowerCase().replace(/[\s,$≥≤><=]+/g, "");
+  if (!s) return NaN;
+  const m = s.match(/^(-?[\d.]+)\s*([kmb])?$/);
+  if (!m) return NaN;
+  const n = parseFloat(m[1]);
+  if (!Number.isFinite(n)) return NaN;
+  const mult = m[2] === "k" ? 1e3 : m[2] === "m" ? 1e6 : m[2] === "b" ? 1e9 : 1;
+  return n * mult;
+}
+
+// Apply per-column filters to the games list. Direction (min vs max) is fixed per column.
+function applyColFilters(games) {
+  const f = colFilters;
+  const stateQ = (f.state || "").toLowerCase().trim();
+  const nameQ  = (f.name  || "").toLowerCase().trim();
+  const idQ    = (f.game_id || "").toLowerCase().trim();
+  const priceN = parseColNum(f.price);
+  // "min" columns: row value must be ≥ filter
+  const minCols = ["return_pct", "ev", "top_prize", "top_prize_remaining", "tickets_remaining", "prize_pool_remaining"];
+  // "max" columns: row value must be ≤ filter (lower 1-in-X = better)
+  const maxCols = ["jackpot_odds_one_in", "overall_odds_one_in", "scraped_age_h"];
+  const mins = {}, maxs = {};
+  for (const c of minCols) { const v = parseColNum(f[c]); if (Number.isFinite(v)) mins[c] = v; }
+  for (const c of maxCols) { const v = parseColNum(f[c]); if (Number.isFinite(v)) maxs[c] = v; }
+
+  return games.filter(g => {
+    if (stateQ && !(g.state_code || "").toLowerCase().includes(stateQ) && !(g.state_name || "").toLowerCase().includes(stateQ)) return false;
+    if (nameQ && !(g.name || "").toLowerCase().includes(nameQ)) return false;
+    if (idQ && !String(g.game_id || "").toLowerCase().includes(idQ)) return false;
+    if (Number.isFinite(priceN) && Number(g.price) !== priceN) return false;
+    for (const c in mins) {
+      const v = g[c];
+      if (v == null || v < mins[c]) return false;
+    }
+    for (const c in maxs) {
+      let v;
+      if (c === "scraped_age_h") {
+        if (!g.scraped_at) return false;
+        v = (Date.now() - parseReportedAt(g.scraped_at).getTime()) / 3600000;
+      } else {
+        v = g[c];
+      }
+      if (v == null || v > maxs[c]) return false;
+    }
+    return true;
+  });
+}
+
 function renderTable() {
   const search = document.getElementById("searchInput").value.toLowerCase().trim();
   const showNearSoldOut = document.getElementById("hideSuspicious")?.checked;
@@ -1182,6 +1236,8 @@ function renderTable() {
       g.state_code.toLowerCase().includes(search)
     );
   }
+
+  games = applyColFilters(games);
 
   // Client-side secondary sort
   const { col, asc } = currentSort;
