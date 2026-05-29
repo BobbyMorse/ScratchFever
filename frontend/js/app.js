@@ -243,8 +243,6 @@ function _setUser(user) {
     document.getElementById("scrapeBtn").style.display = "none";
     const thCampaign = document.getElementById("thCampaign");
     if (thCampaign) thCampaign.style.display = "none";
-    const thCampaignFilter = document.getElementById("thCampaignFilter");
-    if (thCampaignFilter) thCampaignFilter.style.display = "none";
     if (currentTab === "account") switchTab("ev");
     _openProfileId = null;
     document.querySelectorAll(".store-profile-tr").forEach(el => el.remove());
