@@ -20,35 +20,62 @@ import httpx
 ASSISTANT_ID = sys.argv[1] if len(sys.argv) > 1 else "e87d7468-01f9-4a83-8a62-2feef8a4ab44"
 
 
+WEBHOOK_URL = "https://scratchfever.app/api/vapi/webhook"
+
 STRUCTURED_SCHEMA = {
     "type": "object",
     "properties": {
-        "has_game": {
-            "type": "boolean",
+        "per_ticket_results": {
+            "type": "array",
             "description": (
-                "True if the store CURRENTLY HAS IN STOCK at least one of the "
-                "tickets listed in ticketsToCheck. False if they have none. "
-                "Set null only if the human refused to check or the answer was "
-                "genuinely ambiguous."
+                "ONE entry per ticket listed in ticketsToCheck. Always include "
+                "every ticket the assistant asked about, even if the store said "
+                "no to all of them."
             ),
+            "items": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": (
+                            "EXACT game name as it appeared in ticketsToCheck "
+                            "(do not include the price). Example: '300X' or "
+                            "'Fabulous Fortune'."
+                        ),
+                    },
+                    "price": {
+                        "type": "number",
+                        "description": "Ticket price in dollars (10, 30, etc).",
+                    },
+                    "has_game": {
+                        "type": "boolean",
+                        "description": (
+                            "True if the store currently has THIS specific "
+                            "ticket in stock. False if they don't. Set null "
+                            "only when truly unable to tell."
+                        ),
+                    },
+                    "confidence": {
+                        "type": "number",
+                        "description": "0 to 1 — how confident in this answer.",
+                    },
+                    "notes": {
+                        "type": "string",
+                        "description": (
+                            "Anything specific the store said about THIS "
+                            "ticket — low stock, sold out yesterday, etc."
+                        ),
+                    },
+                },
+                "required": ["name", "has_game"],
+            },
         },
-        "confidence": {
-            "type": "number",
-            "description": (
-                "0 to 1, how confident you are in the has_game answer based on "
-                "the human's responses. Use 0.9+ when the human explicitly "
-                "confirmed/denied, 0.5-0.8 when implied, below 0.5 when unsure."
-            ),
-        },
-        "notes": {
+        "summary_notes": {
             "type": "string",
-            "description": (
-                "Any specifics the store mentioned — which tickets they have, "
-                "low stock, when they expect restock, etc. Keep under 200 chars."
-            ),
+            "description": "Overall observations about the call (max 240 chars).",
         },
     },
-    "required": ["has_game", "confidence"],
+    "required": ["per_ticket_results"],
 }
 
 
