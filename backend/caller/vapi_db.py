@@ -63,6 +63,10 @@ async def insert_vapi_call(row: dict[str, Any]) -> int:
     if raw is not None and not isinstance(raw, str):
         raw = json.dumps(raw, default=str)
 
+    per_ticket = row.get("per_ticket_results")
+    if per_ticket is not None and not isinstance(per_ticket, str):
+        per_ticket = json.dumps(per_ticket, default=str)
+
     pool = get_pool()
     async with pool.acquire() as conn:
         new_id = await conn.fetchval(
@@ -73,26 +77,27 @@ async def insert_vapi_call(row: dict[str, Any]) -> int:
                 retailer_external_id, retailer_name, retailer_city,
                 game_name, game_price, game_number,
                 has_game, confidence, can_order,
-                summary, notes, transcript, raw_payload
+                summary, notes, transcript, per_ticket_results, raw_payload
             ) VALUES (
                 $1, $2, $3, $4, $5,
                 $6, $7, $8,
                 $9, $10, $11,
                 $12, $13, $14,
                 $15, $16, $17,
-                $18, $19, $20, $21::jsonb
+                $18, $19, $20, $21::jsonb, $22::jsonb
             )
             ON CONFLICT (vapi_call_id) DO UPDATE SET
-                ended_at      = COALESCE(EXCLUDED.ended_at,      vapi_calls.ended_at),
-                duration_sec  = COALESCE(EXCLUDED.duration_sec,  vapi_calls.duration_sec),
-                ended_reason  = COALESCE(EXCLUDED.ended_reason,  vapi_calls.ended_reason),
-                has_game      = COALESCE(EXCLUDED.has_game,      vapi_calls.has_game),
-                confidence    = COALESCE(EXCLUDED.confidence,    vapi_calls.confidence),
-                can_order     = COALESCE(EXCLUDED.can_order,     vapi_calls.can_order),
-                summary       = COALESCE(EXCLUDED.summary,       vapi_calls.summary),
-                notes         = COALESCE(EXCLUDED.notes,         vapi_calls.notes),
-                transcript    = COALESCE(EXCLUDED.transcript,    vapi_calls.transcript),
-                raw_payload   = EXCLUDED.raw_payload
+                ended_at           = COALESCE(EXCLUDED.ended_at,           vapi_calls.ended_at),
+                duration_sec       = COALESCE(EXCLUDED.duration_sec,       vapi_calls.duration_sec),
+                ended_reason       = COALESCE(EXCLUDED.ended_reason,       vapi_calls.ended_reason),
+                has_game           = COALESCE(EXCLUDED.has_game,           vapi_calls.has_game),
+                confidence         = COALESCE(EXCLUDED.confidence,         vapi_calls.confidence),
+                can_order          = COALESCE(EXCLUDED.can_order,          vapi_calls.can_order),
+                summary            = COALESCE(EXCLUDED.summary,            vapi_calls.summary),
+                notes              = COALESCE(EXCLUDED.notes,              vapi_calls.notes),
+                transcript         = COALESCE(EXCLUDED.transcript,         vapi_calls.transcript),
+                per_ticket_results = COALESCE(EXCLUDED.per_ticket_results, vapi_calls.per_ticket_results),
+                raw_payload        = EXCLUDED.raw_payload
             RETURNING id
             """,
             row.get("vapi_call_id"),
@@ -115,6 +120,7 @@ async def insert_vapi_call(row: dict[str, Any]) -> int:
             row.get("summary"),
             row.get("notes"),
             row.get("transcript"),
+            per_ticket,
             raw,
         )
         return new_id
