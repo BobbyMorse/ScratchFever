@@ -122,8 +122,9 @@ class RhodeIslandScraper(BaseScraper):
 
         total_tickets = g.get("totalTicket") or None
 
-        overall_odds_raw = g.get("overallOdds")
-        overall_odds = float(overall_odds_raw) if overall_odds_raw else None
+        # The API's `overallOdds` field is not the cash-prize overall odds shown
+        # on rilot.com (it returns values like 1.33 that imply >75% win rate).
+        # Compute it ourselves from the prize-tier winning-ticket counts.
 
         end_date = None
         end_ms = g.get("endDistributionDate")
