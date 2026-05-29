@@ -3431,6 +3431,18 @@ function normalizeGameName(name) {
   return (name || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
 }
 
+const MODAL_REPORTS_LIMIT = 5;
+
+function viewGameInChase(gameName, stateCode) {
+  closeModal();
+  const code = (stateCode || "MA").toUpperCase();
+  switchTab("ma");
+  selectHuntState(code);
+  if (code === "MA") {
+    setTimeout(() => { try { selectGameFilter(gameName); } catch (e) {} }, 60);
+  }
+}
+
 function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
   const count = gameCounts[gameName.toLowerCase()] || 0;
   if (!count && !_currentUser) return "";
@@ -3449,6 +3461,7 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
   const normGame = normalizeGameName(gameName);
   const allReports = communityReports.filter(r => normalizeGameName(r.game_name) === normGame);
   const addBtn = `<button class="btn btn-report" onclick="openReportModalForGame(${JSON.stringify(gameName)},${gamePrice != null ? gamePrice : "null"})" style="font-size:.78rem;padding:.3rem .75rem">+ Add Report</button>`;
+  const chaseHref = `onclick="viewGameInChase(${JSON.stringify(gameName)},${JSON.stringify(stateCode || "")})"`;
 
   // --- Retailer-confirmed section ---
   const latestByRetailer = {};
@@ -3474,7 +3487,12 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
         </div>
       </div>`;
     } else {
-      const rows = retailerConfirmed.map(r => {
+      const rIn  = retailerConfirmed.filter(r => r.has_stock).length;
+      const rOut = retailerConfirmed.length - rIn;
+      const summary = `<span style="color:var(--text-muted);font-weight:400;font-size:.82rem">${retailerConfirmed.length} store${retailerConfirmed.length > 1 ? "s" : ""} · <span style="color:var(--green);font-weight:600">${rIn} in</span> · <span style="color:var(--red);font-weight:600">${rOut} out</span></span>`;
+      const shown = retailerConfirmed.slice(0, MODAL_REPORTS_LIMIT);
+      const hiddenCount = retailerConfirmed.length - shown.length;
+      const rows = shown.map(r => {
         const inStock = r.has_stock;
         const time = r.reported_at ? timeAgo(parseReportedAt(r.reported_at)) : "—";
         return `<div class="retailer-stock-row" onclick="goToStoreFromModal(${JSON.stringify(String(r.retailer_id))})" style="cursor:pointer">
@@ -3484,9 +3502,15 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
           <span class="retailer-stock-time">${time}</span>
         </div>`;
       }).join("");
+      const viewAll = hiddenCount > 0
+        ? `<button class="modal-view-all-chase" ${chaseHref}>View all ${retailerConfirmed.length} in The Chase →</button>`
+        : "";
       retailerSection = `<div class="modal-retailer-section">
-        <div class="modal-community-title" style="margin-bottom:.55rem">🏪 Retailer-Confirmed</div>
+        <div class="modal-community-title" style="margin-bottom:.55rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
+          <span>🏪 Retailer-Confirmed</span>${summary}
+        </div>
         <div class="retailer-stock-list">${rows}</div>
+        ${viewAll}
       </div>`;
     }
   }
@@ -3503,7 +3527,15 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
     </div>`;
   }
 
-  const items = reports.map(r => {
+  const cIn  = reports.filter(r => r.has_stock).length;
+  const cOut = reports.length - cIn;
+  const cSummary = reports.length
+    ? `<span style="color:var(--text-muted);font-weight:400;font-size:.82rem">${reports.length} report${reports.length > 1 ? "s" : ""} · <span style="color:var(--green);font-weight:600">${cIn} in</span> · <span style="color:var(--red);font-weight:600">${cOut} out</span></span>`
+    : "";
+  const shownReports = reports.slice(0, MODAL_REPORTS_LIMIT);
+  const hiddenReports = reports.length - shownReports.length;
+
+  const items = shownReports.map(r => {
     const stock = r.has_stock
       ? '<span style="color:var(--green);font-weight:600">✅ In Stock</span>'
       : '<span style="color:var(--red)">❌ Out of Stock</span>';
@@ -3519,11 +3551,17 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
     </div>`;
   }).join("");
 
+  const viewAllCommunity = hiddenReports > 0
+    ? `<button class="modal-view-all-chase" ${chaseHref}>View all ${reports.length} in The Chase →</button>`
+    : "";
+
   const communitySection = reports.length ? `<div class="modal-community-section">
-    <div class="modal-community-title" style="display:flex;align-items:center;justify-content:space-between">
-      <span>📍 Community Reports <span style="color:var(--text-muted);font-weight:400;font-size:.82rem">(${stateCode || ""})</span></span>${addBtn}
+    <div class="modal-community-title" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
+      <span>📍 Community Reports <span style="color:var(--text-muted);font-weight:400;font-size:.82rem">(${stateCode || ""})</span></span>
+      <span style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">${cSummary}${addBtn}</span>
     </div>
     <div class="profile-reports-list">${items}</div>
+    ${viewAllCommunity}
   </div>` : `<div class="modal-community-section">
     <div class="modal-community-title" style="display:flex;align-items:center;justify-content:space-between">
       <span>📍 Community Reports</span>${addBtn}
