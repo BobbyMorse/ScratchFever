@@ -1910,9 +1910,7 @@ async function loadCallerData() {
 
     const banner = document.getElementById("callerConfigBanner");
     if (banner) {
-      if (config.configured) {
-        banner.style.display = "none";
-      } else {
+      if (!config.configured) {
         const missing = [];
         if (!config.has_private_key)  missing.push("<code>VAPI_PRIVATE_KEY</code>");
         if (!config.has_assistant_id) missing.push("<code>VAPI_ASSISTANT_ID</code>");
@@ -1922,6 +1920,27 @@ async function loadCallerData() {
         banner.style.color      = "#92400e";
         banner.style.border     = "1px solid rgba(245,158,11,0.35)";
         banner.style.display    = "block";
+      } else if (diag && diag.stuck_in_flight >= 2 && !diag.last_webhook_received_at) {
+        banner.innerHTML =
+          `<strong>⚠ VAPI webhook isn't reaching this server.</strong> ` +
+          `${diag.stuck_in_flight} calls are stuck "In flight" because we never received an end-of-call report. ` +
+          `<br><br>In your VAPI dashboard → Assistant → <strong>Server URL</strong>, set:<br>` +
+          `<code style="font-size:.78rem">${escHtml(diag.expected_webhook_url || '')}</code>` +
+          `<br><br>And under <strong>Server Messages</strong>, enable <code>end-of-call-report</code>.` +
+          (diag.webhook_secret_configured ? `<br>Also set the assistant's webhook header <code>X-VAPI-Secret</code> to match <code>VAPI_WEBHOOK_SECRET</code>.` : "");
+        banner.style.background = "rgba(239,68,68,0.10)";
+        banner.style.color      = "#991b1b";
+        banner.style.border     = "1px solid rgba(239,68,68,0.4)";
+        banner.style.display    = "block";
+      } else if (diag && diag.last_webhook_received_at) {
+        const ago = timeAgo ? timeAgo(diag.last_webhook_received_at) : diag.last_webhook_received_at;
+        banner.innerHTML = `✓ Webhook healthy — last end-of-call report received ${ago}. <span style="color:var(--text-muted);font-size:.78rem">URL: <code>${escHtml(diag.expected_webhook_url || '')}</code></span>`;
+        banner.style.background = "rgba(34,197,94,0.10)";
+        banner.style.color      = "#166534";
+        banner.style.border     = "1px solid rgba(34,197,94,0.35)";
+        banner.style.display    = "block";
+      } else {
+        banner.style.display = "none";
       }
     }
 
