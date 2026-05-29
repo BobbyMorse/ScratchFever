@@ -1187,7 +1187,6 @@ function renderTable() {
     );
   }
 
-  games = applyColFilters(games);
 
   // Client-side secondary sort
   const { col, asc } = currentSort;
