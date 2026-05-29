@@ -114,6 +114,7 @@ class VirginiaScraper(PlaywrightScraper):
                 total_tickets=total_tickets,
                 overall_odds=overall_odds,
                 detail_url=detail_url,
+                image_url=image_url,
             ))
 
         logger.info("VA: %d games scraped", len(games))
