@@ -180,6 +180,25 @@ async def health():
     return {"status": "ok"}
 
 
+@app.get("/api/debug/playwright", include_in_schema=False)
+async def debug_playwright():
+    import glob
+    info = {
+        "PLAYWRIGHT_BROWSERS_PATH": os.environ.get("PLAYWRIGHT_BROWSERS_PATH"),
+        "ms_playwright_exists": os.path.isdir("/ms-playwright"),
+        "app_playwright_exists": os.path.isdir("/app/.playwright"),
+        "ms_playwright_listing": sorted(glob.glob("/ms-playwright/*"))[:20] if os.path.isdir("/ms-playwright") else None,
+        "app_playwright_listing": sorted(glob.glob("/app/.playwright/*"))[:20] if os.path.isdir("/app/.playwright") else None,
+    }
+    try:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            info["chromium_executable_path"] = p.chromium.executable_path
+    except Exception as e:
+        info["chromium_executable_error"] = str(e)
+    return info
+
+
 @app.get("/", include_in_schema=False)
 async def index():
     return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
