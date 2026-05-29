@@ -814,13 +814,14 @@ async def submit_inventory_report(
     user: dict = Depends(require_member),
 ):
     reporter_ip = request.client.host if request.client else None
+    is_admin = user.get("role") == "admin"
     async with get_pool().acquire() as conn:
-        if reporter_ip:
+        if reporter_ip and not is_admin:
             count = await conn.fetchval(
                 "SELECT COUNT(*) FROM inventory_reports WHERE reporter_ip=$1 AND reported_at > NOW() - INTERVAL '1 hour'",
                 reporter_ip,
             )
-            if count >= 10:
+            if count >= 300:
                 raise HTTPException(status_code=429, detail="Too many reports. Try again in an hour.")
         await add_inventory_report(
             conn,
