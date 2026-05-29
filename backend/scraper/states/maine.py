@@ -286,6 +286,12 @@ class MaineScraper(BaseScraper):
                     "top_tiers":       top_tiers,
                 }
                 result[_norm(name_cell)] = current
+                # Also index without a leading "$N" / "$N,NNN" prefix so
+                # "$500,000 ROYAL CASH" (unclaimed table) matches "ROYAL CASH"
+                # (listing page).
+                stripped = re.sub(r"^\s*\$[\d,]+\s+", "", name_cell)
+                if stripped and stripped != name_cell:
+                    result.setdefault(_norm(stripped), current)
             else:
                 # Continuation row: extra tier for the current game.
                 if current is None:
