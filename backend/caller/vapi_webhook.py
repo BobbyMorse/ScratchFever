@@ -140,10 +140,29 @@ def _extract(payload: dict) -> dict:
     ended_at = _parse_dt(_pick(msg, "endedAt", "ended_at"))
     duration = _to_float(_pick(msg, "durationSeconds", "duration_seconds", "durationSec", "duration"))
 
+    # Per-ticket array (new schema) — list of {name, price, has_game, confidence, notes}
+    per_ticket = _pick(structured, "per_ticket_results", "perTicketResults", "tickets", "results")
+    if not isinstance(per_ticket, list):
+        per_ticket = None
+
+    # Legacy single-game fields still tolerated for assistants that haven't moved to per-ticket
     has_game = _to_bool(_pick(structured, "has_game", "hasGame", "in_stock", "inStock"))
     confidence = _to_float(_pick(structured, "confidence"))
     can_order = _to_bool(_pick(structured, "can_order", "canOrder"))
-    extracted_notes = _pick(structured, "notes", "note", "details")
+    extracted_notes = _pick(structured, "notes", "note", "details") or _pick(structured, "summary_notes")
+
+    # Roll the per-ticket list up into the single legacy columns so the dashboard
+    # still has useful values for in-flight → final transition: has_game = ANY,
+    # confidence = MAX.
+    if per_ticket:
+        any_yes = any(_to_bool(t.get("has_game")) is True for t in per_ticket if isinstance(t, dict))
+        any_no  = any(_to_bool(t.get("has_game")) is False for t in per_ticket if isinstance(t, dict))
+        if has_game is None:
+            has_game = True if any_yes else (False if any_no else None)
+        confs = [_to_float(t.get("confidence")) for t in per_ticket if isinstance(t, dict)]
+        confs = [c for c in confs if c is not None]
+        if confidence is None and confs:
+            confidence = max(confs)
 
     summary = msg.get("summary") or analysis.get("summary")
     transcript = msg.get("transcript") or analysis.get("transcript")
