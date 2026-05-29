@@ -238,7 +238,7 @@ async def vapi_webhook(
     call_id = await insert_vapi_call(parsed)
 
     inventory_rows_written = 0
-    is_test = isinstance(parsed["retailer_external_id"], str) and parsed["retailer_external_id"].startswith("test")
+    is_test = parsed["retailer_external_id"] == "test"
     has_retailer = bool(parsed["retailer_external_id"]) and not is_test
 
     if is_test:
