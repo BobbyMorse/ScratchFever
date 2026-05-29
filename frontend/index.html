@@ -282,6 +282,23 @@
                   <th title="Last time data was pulled from the state lottery website">State Data</th>
                   <th id="thCampaign" title="Create calling campaign" style="display:none">Campaign</th>
                 </tr>
+                <tr class="col-filter-row">
+                  <th></th>
+                  <th><input type="text" class="cf-input" data-cf="state" placeholder="ST" maxlength="2" /></th>
+                  <th><input type="text" class="cf-input" data-cf="name" placeholder="contains…" /></th>
+                  <th style="width:60px;max-width:60px"><input type="text" class="cf-input" data-cf="game_id" placeholder="ID" /></th>
+                  <th><input type="text" class="cf-input" data-cf="price" placeholder="$" /></th>
+                  <th><input type="text" class="cf-input" data-cf="return_pct" placeholder="≥ %" /></th>
+                  <th><input type="text" class="cf-input" data-cf="ev" placeholder="≥ $" /></th>
+                  <th><input type="text" class="cf-input" data-cf="jackpot_odds_one_in" placeholder="≤ 1 in" title="Maximum '1 in X' — lower = better odds" /></th>
+                  <th><input type="text" class="cf-input" data-cf="top_prize" placeholder="≥ $ (1M,500k)" /></th>
+                  <th><input type="text" class="cf-input" data-cf="top_prize_remaining" placeholder="≥ #" /></th>
+                  <th><input type="text" class="cf-input" data-cf="overall_odds_one_in" placeholder="≤ 1 in" title="Maximum '1 in X' — lower = better odds" /></th>
+                  <th><input type="text" class="cf-input" data-cf="tickets_remaining" placeholder="≥ # (10k,1M)" /></th>
+                  <th><input type="text" class="cf-input" data-cf="prize_pool_remaining" placeholder="≥ $ (1M,500k)" /></th>
+                  <th><input type="text" class="cf-input" data-cf="scraped_age_h" placeholder="≤ hours" title="Maximum age (hours) of state data" /></th>
+                  <th id="thCampaignFilter" style="display:none"></th>
+                </tr>
               </thead>
               <tbody id="gamesBody">
                 <tr><td colspan="15" class="loading-cell">Loading games…</td></tr>
