@@ -169,4 +169,4 @@ class VirginiaScraper(PlaywrightScraper):
             if tiers:
                 break
 
-        return tiers, overall_odds
+        return tiers, overall_odds, image_url
