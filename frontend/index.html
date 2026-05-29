@@ -1315,6 +1315,14 @@
           </div>
         </section>
 
+        <!-- Call detail modal — opens when a Summary cell is clicked -->
+        <div id="callDetailModal" class="call-detail-backdrop" onclick="closeCallDetail(event)">
+          <div class="call-detail-card" onclick="event.stopPropagation()">
+            <button class="call-detail-close" onclick="closeCallDetail()" aria-label="Close">×</button>
+            <div id="callDetailBody"></div>
+          </div>
+        </div>
+
         <section class="table-section" id="callerHitsSection" style="display:none">
           <div class="table-meta">
             <span id="callerHitsCount">Hits</span>
