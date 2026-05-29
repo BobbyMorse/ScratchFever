@@ -2061,28 +2061,40 @@ function formatTranscript(text) {
 }
 
 function renderResultCell(c) {
-  // In flight: VAPI placeholder row, no end-of-call report yet.
+  // Compact ratio for the table row: "2/3 in stock", color-coded.
   if (c.ended_at == null && c.has_game == null && !(c.per_ticket_results && c.per_ticket_results.length)) {
     return `<span class="badge badge-status-paused">In flight</span>`;
   }
-  // Per-ticket array — show one pill per ticket the assistant got an answer on.
   if (Array.isArray(c.per_ticket_results) && c.per_ticket_results.length) {
-    const pills = c.per_ticket_results.map(t => {
-      const name = (t && t.name) ? String(t.name) : "?";
-      const has = t && t.has_game;
-      const cls = has === true ? "yes" : has === false ? "no" : "unk";
-      const mark = has === true ? "✓" : has === false ? "✗" : "—";
-      const conf = t && t.confidence != null ? ` ${Math.round(parseFloat(t.confidence) * 100)}%` : "";
-      const titleParts = [name];
-      if (t && t.notes) titleParts.push(String(t.notes));
-      return `<span class="cf-ticket-pill ${cls}" title="${escHtml(titleParts.join(' — '))}"><span class="cf-pill-name">${escHtml(name)}</span><span class="cf-pill-mark">${mark}${conf}</span></span>`;
-    }).join("");
-    return `<div class="cf-ticket-result">${pills}</div>`;
+    const total = c.per_ticket_results.length;
+    const yes = c.per_ticket_results.filter(t => t && t.has_game === true).length;
+    let cls;
+    if (yes === total)   cls = "badge-green";          // all in stock
+    else if (yes === 0)  cls = "badge-status-idle";    // none
+    else                 cls = "badge-status-paused";  // partial (highlight)
+    return `<span class="badge ${cls}" title="${yes} of ${total} tickets in stock">${yes}/${total} in stock</span>`;
   }
-  // Legacy single-game roll-up.
-  if (c.has_game === true)  return `<span class="badge badge-green">Has Ticket</span>`;
-  if (c.has_game === false) return `<span class="badge badge-status-idle">No Ticket</span>`;
+  if (c.has_game === true)  return `<span class="badge badge-green">1/1 in stock</span>`;
+  if (c.has_game === false) return `<span class="badge badge-status-idle">0/1 in stock</span>`;
   return `<span class="badge badge-status-idle">—</span>`;
+}
+
+function renderResultDetail(c) {
+  // Per-ticket pills for the detail modal — always shows the breakdown.
+  if (!Array.isArray(c.per_ticket_results) || !c.per_ticket_results.length) {
+    return renderResultCell(c);
+  }
+  const pills = c.per_ticket_results.map(t => {
+    const name = (t && t.name) ? String(t.name) : "?";
+    const has = t && t.has_game;
+    const cls = has === true ? "yes" : has === false ? "no" : "unk";
+    const mark = has === true ? "✓ Has" : has === false ? "✗ Out" : "— Unknown";
+    const conf = t && t.confidence != null ? ` ${Math.round(parseFloat(t.confidence) * 100)}%` : "";
+    const titleParts = [name];
+    if (t && t.notes) titleParts.push(String(t.notes));
+    return `<span class="cf-ticket-pill ${cls}" title="${escHtml(titleParts.join(' — '))}"><span class="cf-pill-name">${escHtml(name)}</span><span class="cf-pill-mark">${mark}${conf}</span></span>`;
+  }).join("");
+  return `<div class="cf-ticket-result">${pills}</div>`;
 }
 
 function renderCallerCampaigns() {
