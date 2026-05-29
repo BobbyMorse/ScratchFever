@@ -57,26 +57,9 @@ class ArizonaScraper(BaseScraper):
             )
             page = ctx.new_page()
 
-            # Collect ticket image URLs while visiting listing pages.
-            # Images are JS-loaded; filenames embed the game ID (e.g. "1466-instant-millions-p2.jpg").
-            game_id_to_img: dict[str, str] = {}
-
-            def _capture_image(response):
-                url = response.url
-                low = url.lower()
-                if "arizonalottery.com" not in low:
-                    return
-                if not any(low.endswith(ext) or (ext + "?") in low
-                           for ext in (".jpg", ".jpeg", ".png", ".gif", ".webp")):
-                    return
-                path = url.split("?")[0]
-                for gid in re.findall(r"\b(\d{4,})\b", path):
-                    if gid not in game_id_to_img:
-                        game_id_to_img[gid] = path
-
-            page.on("response", _capture_image)
-            slugs = self._get_slugs(page)
-            page.remove_listener("response", _capture_image)
+            # Listing tiles are server-rendered: each game lives in a
+            # <div class="card" data-game-id="1523"> with a thumbnail <img>.
+            slugs, game_id_to_img = self._get_slugs_and_images(page)
 
             logger.info("AZ: %d game slugs found, %d images captured", len(slugs), len(game_id_to_img))
 
