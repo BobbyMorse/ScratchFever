@@ -3451,14 +3451,35 @@ function normalizeGameName(name) {
 
 const MODAL_REPORTS_LIMIT = 5;
 
+const CHASE_HANDLERS = {
+  MA: { select: "selectGameFilter",   inv: "maInvFilter", render: "renderMaTable" },
+  AZ: { select: "selectAzGameFilter", inv: "azInvFilter", render: "renderAzTable" },
+  RI: { select: "selectRiGameFilter", inv: "riInvFilter", render: "renderRiTable" },
+  FL: { select: "selectFlGameFilter", inv: "flInvFilter", render: "renderFlTable" },
+  GA: { select: "selectGaGameFilter", inv: "gaInvFilter", render: "renderGaTable" },
+  NY: { select: "selectNyGameFilter", inv: "nyInvFilter", render: "renderNyTable" },
+  VA: { select: "selectVaGameFilter", inv: "vaInvFilter", render: "renderVaTable" },
+  DC: { select: "selectDcGameFilter", inv: "dcInvFilter", render: "renderDcTable" },
+  VT: { select: "selectVtGameFilter", inv: "vtInvFilter", render: "renderVtTable" },
+};
+
 function viewGameInChase(gameName, stateCode) {
   closeModal();
   const code = (stateCode || "MA").toUpperCase();
   switchTab("ma");
   selectHuntState(code);
-  if (code === "MA") {
-    setTimeout(() => { try { selectGameFilter(gameName); } catch (e) {} }, 60);
-  }
+  const h = CHASE_HANDLERS[code];
+  if (!h) return;
+  setTimeout(() => {
+    try {
+      const invEl = document.getElementById(h.inv);
+      if (invEl) invEl.value = "in";
+      const selectFn = window[h.select];
+      if (typeof selectFn === "function") selectFn(gameName);
+      const renderFn = window[h.render];
+      if (typeof renderFn === "function") renderFn();
+    } catch (e) {}
+  }, 60);
 }
 
 function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
