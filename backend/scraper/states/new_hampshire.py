@@ -155,6 +155,13 @@ class NewHampshireScraper(BaseScraper):
         svc_id = (raw.get("configuration") or {}).get("dataServices", {}).get("gameDataServiceId")
         tiers = prizes_by_game.get(svc_id, []) if svc_id else []
 
+        odds_by_amount = self._fetch_odds_by_amount(game_id)
+        if odds_by_amount:
+            for tier in tiers:
+                odds = odds_by_amount.get(tier["prize_amount"])
+                if odds:
+                    tier["odds_one_in"] = odds
+
         tickets_remaining = None
         if overall_odds and tiers:
             total_remaining = sum(t["prizes_remaining"] for t in tiers)
