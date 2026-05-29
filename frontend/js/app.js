@@ -1881,14 +1881,16 @@ let _callerHits = [];
 
 async function loadCallerData() {
   try {
-    const [statsRes, recentRes, configRes] = await Promise.all([
+    const [statsRes, recentRes, configRes, diagRes] = await Promise.all([
       callerFetch("/api/vapi/stats"),
       callerFetch("/api/vapi/recent?limit=100"),
       callerFetch("/api/vapi/config"),
+      callerFetch("/api/vapi/diagnostics"),
     ]);
     const stats  = await statsRes.json();
     const recent = await recentRes.json();
     const config = await configRes.json();
+    const diag   = await diagRes.json();
 
     document.getElementById("callerStatHits").textContent      = (stats.hits || 0).toLocaleString();
     document.getElementById("callerStatCalls").textContent     = (stats.total_calls || 0).toLocaleString();
