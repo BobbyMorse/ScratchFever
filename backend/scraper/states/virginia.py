@@ -91,7 +91,7 @@ class VirginiaScraper(PlaywrightScraper):
                 continue
 
             detail_url = f"{BASE_URL}/scratchers/{game_id}"
-            tiers, overall_odds = self._scrape_detail(detail_url)
+            tiers, overall_odds, image_url = self._scrape_detail(detail_url)
 
             tickets_remaining = None
             if overall_odds and tiers and all(t.get("prizes_remaining") is not None for t in tiers):
