@@ -189,6 +189,7 @@ def _extract(payload: dict) -> dict:
         "notes":                extracted_notes,
         "transcript":           transcript,
         "per_ticket":           per_ticket,
+        "per_ticket_results":   per_ticket,
         "raw_payload":          payload,
     }
 
