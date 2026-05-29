@@ -2189,7 +2189,7 @@ async function sendTestCall() {
     });
     let data = {};
     try { data = await res.json(); } catch (_) {}
-    if (!res.ok) throw new Error(data.detail || `Server error (${res.status})`);
+    if (!res.ok) throw new Error(_formatApiError(data, res.status));
     const asLabel = data.simulated_store && data.simulated_store !== "Test Call"
       ? ` (assistant will think it's calling <strong>${escHtml(data.simulated_store)}${data.simulated_city ? ' in ' + escHtml(data.simulated_city) : ''}</strong>)`
       : "";
