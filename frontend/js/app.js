@@ -1291,6 +1291,13 @@ function updateStats(games) {
 }
 
 // ── Column sort ───────────────────────────────────────────────────────────────
+// Columns where ascending is the natural first-click direction (alphabetical names,
+// lower-is-better odds, lower price).
+const ASC_DEFAULT_COLS = new Set([
+  "state_code", "name", "game_id", "price",
+  "jackpot_odds_one_in", "overall_odds_one_in",
+]);
+
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("thead th[data-col]").forEach(th => {
     th.addEventListener("click", () => {
@@ -1299,7 +1306,7 @@ document.addEventListener("DOMContentLoaded", () => {
         currentSort.asc = !currentSort.asc;
       } else {
         currentSort.col = col;
-        currentSort.asc = false;
+        currentSort.asc = ASC_DEFAULT_COLS.has(col);
       }
       document.querySelectorAll("thead th").forEach(h => h.classList.remove("active"));
       th.classList.add("active");
