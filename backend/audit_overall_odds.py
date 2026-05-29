@@ -66,12 +66,14 @@ async def main():
         print(f"{'STATE':<6}{'N':>5}{'AVG STATED':>12}{'AVG COMPUTED':>14}{'AVG |DIFF|':>12}{'N OFF >0.5':>12}{'N <2.0':>10}")
         print("-" * 100)
         rows = await conn.fetch(SQL)
+        def f(x, w, p=2):
+            return f"{x:>{w}.{p}f}" if x is not None else f"{'-':>{w}}"
         for r in rows:
             print(f"{r['state_code']:<6}"
                   f"{r['n_games']:>5}"
-                  f"{r['avg_stated']:>12.2f}"
-                  f"{r['avg_computed']:>14.2f}"
-                  f"{r['avg_abs_diff']:>12.2f}"
+                  f"{f(r['avg_stated'], 12)}"
+                  f"{f(r['avg_computed'], 14)}"
+                  f"{f(r['avg_abs_diff'], 12)}"
                   f"{r['n_off_by_half']:>12}"
                   f"{r['n_implausibly_low']:>10}")
         print("\nWORST INDIVIDUAL GAMES (stated vs computed):")
