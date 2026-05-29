@@ -1504,6 +1504,9 @@ async function pollScrapeStatus() {
 
 // ── Tab switching ─────────────────────────────────────────────────────────────
 function switchTab(name) {
+  if (name === "health" && !(_currentUser && _currentUser.role === "admin")) {
+    name = "ev";
+  }
   currentTab = name;
   document.querySelectorAll(".tab-content").forEach(el => el.style.display = "none");
   document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
