@@ -1967,7 +1967,11 @@ function renderCallerRecent() {
     const dur  = c.duration_sec != null ? `${Math.round(parseFloat(c.duration_sec))}s` : "—";
     const when = c.ended_at || c.received_at || "";
     const whenShort = when ? when.slice(0, 16).replace("T", " ") : "—";
-    const summary = c.summary ? escHtml(c.summary) : "—";
+    const hasDetail = !!(c.summary || c.transcript || (c.per_ticket_results && c.per_ticket_results.length));
+    const summaryShort = c.summary ? escHtml(c.summary) : "—";
+    const summaryCell = hasDetail
+      ? `<span class="cf-summary-link" onclick="openCallDetail(${c.id})" title="Click to read transcript">${summaryShort}</span>`
+      : summaryShort;
     return `<tr>
       <td><span style="white-space:nowrap">${whenShort}</span></td>
       <td><strong>${escHtml(c.retailer_name) || "<span style='color:var(--text-muted)'>(unknown)</span>"}</strong></td>
@@ -1977,9 +1981,83 @@ function renderCallerRecent() {
       <td>${conf}</td>
       <td>${dur}</td>
       <td><span style="color:var(--text-muted);font-size:.78rem">${escHtml(c.ended_reason || "—")}</span></td>
-      <td><span title="${escHtml(c.summary || '')}" style="display:inline-block;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle">${summary}</span></td>
+      <td><span style="display:inline-block;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle">${summaryCell}</span></td>
     </tr>`;
   }).join("");
+}
+
+function openCallDetail(callId) {
+  const c = (_callerRecent || []).find(x => x.id === callId);
+  if (!c) return;
+
+  const when = c.ended_at || c.received_at || "";
+  const whenStr = when ? when.replace("T", " ").slice(0, 19) : "—";
+  const dur  = c.duration_sec != null ? `${Math.round(parseFloat(c.duration_sec))}s` : "—";
+  const conf = c.confidence != null ? `${Math.round(parseFloat(c.confidence) * 100)}%` : "—";
+
+  const ticketsHtml = renderResultCell(c);
+  const perTicketBlock = (Array.isArray(c.per_ticket_results) && c.per_ticket_results.length)
+    ? `<div class="call-detail-section">
+         <div class="call-detail-section-label">Per-ticket results</div>
+         <div>${ticketsHtml}</div>
+       </div>`
+    : "";
+
+  const summaryBlock = c.summary
+    ? `<div class="call-detail-section">
+         <div class="call-detail-section-label">Summary</div>
+         <div class="call-detail-summary">${escHtml(c.summary)}</div>
+       </div>`
+    : "";
+
+  const transcriptBlock = c.transcript
+    ? `<div class="call-detail-section">
+         <div class="call-detail-section-label">Transcript</div>
+         <div class="call-detail-transcript">${formatTranscript(c.transcript)}</div>
+       </div>`
+    : `<div class="call-detail-section">
+         <div class="call-detail-section-label">Transcript</div>
+         <div style="font-size:.85rem;color:var(--text-muted)">No transcript saved for this call.</div>
+       </div>`;
+
+  const retailer = c.retailer_name || "(unknown retailer)";
+  const meta = [
+    whenStr,
+    c.retailer_city || null,
+    c.state_code || null,
+    `Duration ${dur}`,
+    `Confidence ${conf}`,
+    c.ended_reason ? `Ended: ${c.ended_reason}` : null,
+  ].filter(Boolean).map(escHtml).join(" · ");
+
+  document.getElementById("callDetailBody").innerHTML = `
+    <div class="call-detail-header">
+      <div class="call-detail-title">${escHtml(retailer)}</div>
+      <div class="call-detail-meta">${meta}</div>
+      <div style="font-size:.85rem;margin-top:.2rem"><strong>Asked about:</strong> ${escHtml(c.game_name || "—")}</div>
+    </div>
+    ${perTicketBlock}
+    ${summaryBlock}
+    ${transcriptBlock}
+  `;
+  document.getElementById("callDetailModal").classList.add("show");
+}
+
+function closeCallDetail(ev) {
+  if (ev && ev.target && ev.target.id !== "callDetailModal" && !ev.target.classList.contains("call-detail-close")) return;
+  document.getElementById("callDetailModal").classList.remove("show");
+}
+
+function formatTranscript(text) {
+  if (!text) return "";
+  // VAPI delivers transcripts like:  "User: hello\nAI: hi there\nUser: ..."
+  return String(text).split(/\r?\n/).map(line => {
+    const m = line.match(/^(AI|Assistant|User|Customer|Bot)\s*:\s*(.*)$/i);
+    if (!m) return escHtml(line);
+    const isAi = /ai|assistant|bot/i.test(m[1]);
+    const cls  = isAi ? "speaker-ai" : "speaker-user";
+    return `<span class="${cls}">${escHtml(m[1])}:</span> ${escHtml(m[2])}`;
+  }).join("\n");
 }
 
 function renderResultCell(c) {
