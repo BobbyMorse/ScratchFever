@@ -267,37 +267,20 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th>State</th>
-                  <th>Game</th>
-                  <th style="width:60px;max-width:60px">Game ID</th>
-                  <th>Price</th>
+                  <th data-col="state_code">State</th>
+                  <th data-col="name">Game</th>
+                  <th style="width:60px;max-width:60px" data-col="game_id">Game ID</th>
+                  <th data-col="price">Price</th>
                   <th class="col-sort active" data-col="return_pct">Return % ▼</th>
                   <th data-col="ev">Net EV</th>
                   <th data-col="jackpot_odds_one_in" title="Odds of winning $1M or more">$1M+ Odds</th>
                   <th data-col="top_prize">Top Prize</th>
-                  <th>Top Remaining</th>
-                  <th>Overall Odds</th>
-                  <th>Est Tickets Left</th>
-                  <th>Prize Pool Left</th>
-                  <th title="Last time data was pulled from the state lottery website">State Data</th>
+                  <th data-col="top_prize_remaining">Top Remaining</th>
+                  <th data-col="overall_odds_one_in">Overall Odds</th>
+                  <th data-col="tickets_remaining">Est Tickets Left</th>
+                  <th data-col="prize_pool_remaining">Prize Pool Left</th>
+                  <th data-col="scraped_at" title="Last time data was pulled from the state lottery website">State Data</th>
                   <th id="thCampaign" title="Create calling campaign" style="display:none">Campaign</th>
-                </tr>
-                <tr class="col-filter-row">
-                  <th></th>
-                  <th><input type="text" class="cf-input" data-cf="state" placeholder="ST" maxlength="2" /></th>
-                  <th><input type="text" class="cf-input" data-cf="name" placeholder="contains…" /></th>
-                  <th style="width:60px;max-width:60px"><input type="text" class="cf-input" data-cf="game_id" placeholder="ID" /></th>
-                  <th><input type="text" class="cf-input" data-cf="price" placeholder="$" /></th>
-                  <th><input type="text" class="cf-input" data-cf="return_pct" placeholder="≥ %" /></th>
-                  <th><input type="text" class="cf-input" data-cf="ev" placeholder="≥ $" /></th>
-                  <th><input type="text" class="cf-input" data-cf="jackpot_odds_one_in" placeholder="≤ 1 in" title="Maximum '1 in X' — lower = better odds" /></th>
-                  <th><input type="text" class="cf-input" data-cf="top_prize" placeholder="≥ $ (1M,500k)" /></th>
-                  <th><input type="text" class="cf-input" data-cf="top_prize_remaining" placeholder="≥ #" /></th>
-                  <th><input type="text" class="cf-input" data-cf="overall_odds_one_in" placeholder="≤ 1 in" title="Maximum '1 in X' — lower = better odds" /></th>
-                  <th><input type="text" class="cf-input" data-cf="tickets_remaining" placeholder="≥ # (10k,1M)" /></th>
-                  <th><input type="text" class="cf-input" data-cf="prize_pool_remaining" placeholder="≥ $ (1M,500k)" /></th>
-                  <th><input type="text" class="cf-input" data-cf="scraped_age_h" placeholder="≤ hours" title="Maximum age (hours) of state data" /></th>
-                  <th id="thCampaignFilter" style="display:none"></th>
                 </tr>
               </thead>
               <tbody id="gamesBody">
