@@ -80,8 +80,8 @@ class ArizonaScraper(BaseScraper):
         logger.info("AZ: %d games scraped", len(games))
         return games
 
-    def _get_slugs(self, page) -> list[str]:
-        """Collect game slugs from all listing pages, deduped."""
+    def _get_slugs_and_images(self, page) -> tuple[list[str], dict[str, str]]:
+        """Collect slugs and per-game thumbnail URLs from listing pages."""
         from bs4 import BeautifulSoup
 
         _SKIP = {"top-prizes-remaining", "how-to-play", "winners",
@@ -89,6 +89,7 @@ class ArizonaScraper(BaseScraper):
 
         seen: set[str] = set()
         slugs: list[str] = []
+        game_id_to_img: dict[str, str] = {}
 
         for url in LISTING_URLS:
             try:
@@ -97,6 +98,23 @@ class ArizonaScraper(BaseScraper):
                 logger.warning("AZ: listing page failed %s: %s", url, e)
                 continue
             soup = BeautifulSoup(page.content(), "lxml")
+
+            for card in soup.select("div.card[data-game-id]"):
+                gid = (card.get("data-game-id") or "").strip()
+                if not gid or gid in game_id_to_img:
+                    continue
+                img = card.find("img")
+                if not img:
+                    continue
+                # Prefer the larger thumbnail (data-img-t) when present.
+                src = img.get("data-img-t") or img.get("data-img-m") or img.get("src")
+                if not src:
+                    continue
+                src = src.split("?")[0]
+                if src.startswith("/"):
+                    src = BASE_URL + src
+                game_id_to_img[gid] = src
+
             for a in soup.find_all("a", href=True):
                 m = re.search(r"/scratchers/([a-z0-9-]+)/?$", a["href"])
                 if not m:
@@ -107,7 +125,7 @@ class ArizonaScraper(BaseScraper):
                 seen.add(slug)
                 slugs.append(slug)
 
-        return slugs
+        return slugs, game_id_to_img
 
     def _scrape_detail(self, page, slug: str, url: str, image_url: str | None = None) -> dict | None:
         page.goto(url, wait_until="networkidle", timeout=20_000)
