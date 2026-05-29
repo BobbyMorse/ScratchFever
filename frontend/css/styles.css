@@ -1121,6 +1121,28 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
 .retailer-stock-status.status-out { color: var(--red); }
 .retailer-stock-time { font-size: .72rem; color: var(--text-muted); flex-shrink: 0; }
 
+.modal-view-all-chase {
+  display: block;
+  width: 100%;
+  margin-top: .55rem;
+  padding: .55rem .8rem;
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--orange);
+  font-family: inherit;
+  font-size: .8rem;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.modal-view-all-chase:hover {
+  background: var(--orange-dim);
+  border-color: var(--orange);
+  border-style: solid;
+}
+
 .store-profile-tr td { padding: 0; background: var(--bg) !important; }
 .store-profile-open > td:first-child { border-left: 3px solid var(--orange); }
 
