@@ -172,6 +172,11 @@ class RhodeIslandScraper(BaseScraper):
         rem_prizes   = sum(t["prizes_remaining"] for t in tiers)
         fraction_remaining = rem_prizes / total_prizes if total_prizes > 0 else None
 
+        overall_odds = (
+            round(total_tickets / total_prizes, 2)
+            if total_tickets and total_prizes > 0 else None
+        )
+
         tickets_remaining = None
         if total_tickets and fraction_remaining is not None:
             tickets_remaining = round(total_tickets * fraction_remaining)
