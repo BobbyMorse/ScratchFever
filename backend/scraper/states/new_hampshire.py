@@ -1,17 +1,22 @@
 """
 New Hampshire Lottery scratch-off scraper.
-Game list from the public NH Lottery CMS API; prize tiers from the
-Gambyt game-data service (API key embedded in the NH Lottery JS bundle).
+Game list from the public NH Lottery CMS API; remaining prize counts from the
+Gambyt game-data service (API key embedded in the NH Lottery JS bundle); per-tier
+original odds from NH's own prize-table endpoint.
 """
 from __future__ import annotations
 import logging
 from collections import defaultdict
+
+import requests
+
 from backend.scraper.base import BaseScraper
 
 logger = logging.getLogger(__name__)
 
 GAME_LIST_URL = "https://www.nhlottery.com/api/v1/game/all?platform=web&cmsPreview=false"
 PRIZES_URL = "https://prod.game-data.gambytservices.com/v1/instant-game/prizes-remaining"
+PRIZE_TABLE_URL = "https://www.nhlottery.com/api/v1/game/prize-table"
 GAME_DATA_API_KEY = "1c4c69db-274c-4f59-95c5-3211cd74e9d8"
 BASE_URL = "https://www.nhlottery.com"
 
