@@ -220,6 +220,8 @@ function _setUser(user) {
     if (proCta) proCta.style.display = "none";
     const isAdmin = user.role === "admin";
     caller.style.display = isAdmin ? "" : "none";
+    const dataStatusBtn = document.getElementById("dataStatusBtn");
+    if (dataStatusBtn) dataStatusBtn.style.display = isAdmin ? "" : "none";
     document.getElementById("playsTabBtn").style.display = "";
     document.getElementById("playsLoginNudge").style.display = "none";
     document.getElementById("scrapeBtn").style.display = isAdmin ? "" : "none";
