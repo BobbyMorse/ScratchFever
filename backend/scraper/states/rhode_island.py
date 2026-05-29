@@ -7,7 +7,8 @@ API call to:
 
 Response fields (amounts in CENTS):
   gameId, gameName, validationStatus, ticketPrice (cents), totalTicket,
-  overallOdds (string "1.56" = 1-in-1.56 chance of any win),
+  overallOdds (NOT the cash-prize overall odds — gives bogus low values like 1.33;
+               we compute overall odds from prize-tier data instead),
   prizeTiers[]: prizeAmount (cents), winningTickets (total), paidTickets (claimed)
 
 remaining = winningTickets - paidTickets for each tier.
