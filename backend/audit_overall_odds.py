@@ -10,78 +10,45 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-SQL = """
-WITH per_game AS (
-  SELECT g.state_code, g.name, g.game_id,
-         g.overall_odds_one_in AS stated,
-         g.total_tickets,
-         SUM(t.prizes_total) AS sum_winners
-  FROM games g
-  JOIN prize_tiers t ON t.game_db_id = g.id
-  WHERE g.is_active = TRUE
-    AND g.total_tickets IS NOT NULL
-    AND g.overall_odds_one_in IS NOT NULL
-  GROUP BY g.id
-)
-SELECT state_code,
-       COUNT(*) AS n_games,
-       AVG(stated) AS avg_stated,
-       AVG(total_tickets::float / sum_winners) AS avg_computed,
-       AVG(ABS(stated - total_tickets::float / sum_winners)) AS avg_abs_diff,
-       SUM(CASE WHEN ABS(stated - total_tickets::float / sum_winners) > 0.5 THEN 1 ELSE 0 END) AS n_off_by_half,
-       SUM(CASE WHEN stated < 2.0 THEN 1 ELSE 0 END) AS n_implausibly_low
-FROM per_game
-GROUP BY state_code
-ORDER BY avg_abs_diff DESC NULLS LAST;
-"""
-
-WORST_GAMES_SQL = """
-WITH per_game AS (
-  SELECT g.state_code, g.name, g.game_id,
-         g.overall_odds_one_in AS stated,
-         g.total_tickets,
-         SUM(t.prizes_total) AS sum_winners
-  FROM games g
-  JOIN prize_tiers t ON t.game_db_id = g.id
-  WHERE g.is_active = TRUE
-    AND g.total_tickets IS NOT NULL
-    AND g.overall_odds_one_in IS NOT NULL
-  GROUP BY g.id
-)
-SELECT state_code, name, stated,
-       ROUND((total_tickets::float / sum_winners)::numeric, 2) AS computed,
-       total_tickets, sum_winners
-FROM per_game
-WHERE ABS(stated - total_tickets::float / sum_winners) > 0.5
-ORDER BY ABS(stated - total_tickets::float / sum_winners) DESC
-LIMIT 25;
-"""
-
 
 async def main():
     url = os.environ["DATABASE_URL"]
     conn = await asyncpg.connect(url, statement_cache_size=0)
     try:
+        # Per-game outliers: implausibly low (<2.0) or high (>15.0) stated odds.
         print("=" * 100)
-        print(f"{'STATE':<6}{'N':>5}{'AVG STATED':>12}{'AVG COMPUTED':>14}{'AVG |DIFF|':>12}{'N OFF >0.5':>12}{'N <2.0':>10}")
+        print("GAMES WITH IMPLAUSIBLE STATED OVERALL_ODDS (<2.0 or >15.0):")
         print("-" * 100)
-        rows = await conn.fetch(SQL)
-        def f(x, w, p=2):
-            return f"{x:>{w}.{p}f}" if x is not None else f"{'-':>{w}}"
+        rows = await conn.fetch("""
+            SELECT state_code, name, game_id, overall_odds_one_in, price
+            FROM games
+            WHERE is_active = TRUE
+              AND overall_odds_one_in IS NOT NULL
+              AND (overall_odds_one_in < 2.0 OR overall_odds_one_in > 15.0)
+            ORDER BY overall_odds_one_in ASC
+            LIMIT 60;
+        """)
         for r in rows:
-            print(f"{r['state_code']:<6}"
-                  f"{r['n_games']:>5}"
-                  f"{f(r['avg_stated'], 12)}"
-                  f"{f(r['avg_computed'], 14)}"
-                  f"{f(r['avg_abs_diff'], 12)}"
-                  f"{r['n_off_by_half']:>12}"
-                  f"{r['n_implausibly_low']:>10}")
-        print("\nWORST INDIVIDUAL GAMES (stated vs computed):")
+            print(f"  {r['state_code']:<4} {r['name'][:45]:<45} odds=1 in {r['overall_odds_one_in']:>6.2f}  ${r['price']}")
+        print(f"\nTotal: {len(rows)}")
+
+        print("\n" + "=" * 100)
+        print("PER-STATE COUNT OF IMPLAUSIBLY LOW (<2.5) STATED ODDS:")
         print("-" * 100)
-        worst = await conn.fetch(WORST_GAMES_SQL)
-        for r in worst:
-            print(f"  {r['state_code']:<4} {r['name'][:40]:<40} stated={r['stated']:>6.2f}  computed={r['computed']:>6.2f}  "
-                  f"total_tickets={r['total_tickets']:>10}  sum_winners={r['sum_winners']:>10}")
+        rows = await conn.fetch("""
+            SELECT state_code,
+                   COUNT(*) FILTER (WHERE overall_odds_one_in < 2.5) AS n_low,
+                   COUNT(*) FILTER (WHERE overall_odds_one_in IS NOT NULL) AS n_total,
+                   MIN(overall_odds_one_in) AS min_odds,
+                   MAX(overall_odds_one_in) AS max_odds
+            FROM games
+            WHERE is_active = TRUE
+            GROUP BY state_code
+            HAVING COUNT(*) FILTER (WHERE overall_odds_one_in < 2.5) > 0
+            ORDER BY n_low DESC;
+        """)
+        for r in rows:
+            print(f"  {r['state_code']:<4} {r['n_low']:>4} of {r['n_total']:>4} games <2.5;  min={r['min_odds']:.2f}  max={r['max_odds']:.2f}")
     finally:
         await conn.close()
 
