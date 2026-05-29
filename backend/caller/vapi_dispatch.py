@@ -377,6 +377,35 @@ async def vapi_config(_user: dict = Depends(require_admin)):
     }
 
 
+@router.get("/diagnostics")
+async def vapi_diagnostics(request: Request, _user: dict = Depends(require_admin)):
+    """Webhook health check — tells you if VAPI's end-of-call reports are
+    actually reaching this server, and gives you the exact URL to configure
+    in the VAPI assistant if they're not."""
+    async with get_pool().acquire() as conn:
+        last_webhook = await conn.fetchval("""
+            SELECT MAX(received_at)
+            FROM vapi_calls
+            WHERE ended_at IS NOT NULL OR transcript IS NOT NULL OR ended_reason IS NOT NULL
+        """)
+        last_any = await conn.fetchval("SELECT MAX(received_at) FROM vapi_calls")
+        stuck = await conn.fetchval("""
+            SELECT COUNT(*)
+            FROM vapi_calls
+            WHERE ended_at IS NULL
+              AND received_at < NOW() - INTERVAL '5 min'
+        """)
+
+    base = str(request.base_url).rstrip("/")
+    return {
+        "expected_webhook_url":      f"{base}/api/vapi/webhook",
+        "webhook_secret_configured": bool(os.getenv("VAPI_WEBHOOK_SECRET")),
+        "last_webhook_received_at":  last_webhook.isoformat() if last_webhook else None,
+        "last_call_dispatched_at":   last_any.isoformat() if last_any else None,
+        "stuck_in_flight":           int(stuck or 0),
+    }
+
+
 @router.get("/stats")
 async def vapi_stats(_user: dict = Depends(require_admin)):
     async with get_pool().acquire() as conn:
