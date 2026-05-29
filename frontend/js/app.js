@@ -1363,6 +1363,25 @@ document.addEventListener("DOMContentLoaded", () => {
       requestAnimationFrame(renderTable);
     });
   });
+
+  // Per-column filter inputs — debounced re-render + prevent sort click bubbling
+  let cfTimer = null;
+  document.querySelectorAll("#gamesTable .col-filter-row .cf-input").forEach(inp => {
+    inp.addEventListener("click", e => e.stopPropagation());
+    inp.addEventListener("input", () => {
+      const key = inp.dataset.cf;
+      const val = inp.value;
+      if (val.trim()) {
+        colFilters[key] = val;
+        inp.classList.add("cf-active");
+      } else {
+        delete colFilters[key];
+        inp.classList.remove("cf-active");
+      }
+      clearTimeout(cfTimer);
+      cfTimer = setTimeout(renderTable, 120);
+    });
+  });
 });
 
 // ── Game detail modal ─────────────────────────────────────────────────────────
