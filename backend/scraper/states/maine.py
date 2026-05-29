@@ -214,7 +214,7 @@ class MaineScraper(BaseScraper):
                 pass
 
         total_tickets = None
-        m2 = re.search(r"Tickets?\s+Printed[:\s]+([\d,]+)", page_text, re.IGNORECASE)
+        m2 = re.search(r"Tickets?\s+Printed[-‐-―:\s]+([\d,]+)", page_text, re.IGNORECASE)
         if m2:
             try:
                 total_tickets = int(m2.group(1).replace(",", ""))
