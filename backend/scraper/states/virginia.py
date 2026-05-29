@@ -120,7 +120,7 @@ class VirginiaScraper(PlaywrightScraper):
         logger.info("VA: %d games scraped", len(games))
         return games
 
-    def _scrape_detail(self, url: str) -> tuple[list, float | None]:
+    def _scrape_detail(self, url: str) -> tuple[list, float | None, str | None]:
         soup = self.soup(url)
         text = soup.get_text(" ", strip=True)
 
@@ -128,6 +128,15 @@ class VirginiaScraper(PlaywrightScraper):
         om = re.search(r"1\s+in\s+([\d.]+)", text, re.I)
         if om:
             overall_odds = float(om.group(1))
+
+        # Ticket image — VA serves it from one of two media folders, so we read
+        # the <img> the page actually uses rather than guessing the path.
+        image_url = None
+        for img in soup.find_all("img", src=True):
+            src = img["src"]
+            if "_unscratched" in src.lower():
+                image_url = src.split("?")[0]
+                break
 
         tiers = []
         for table in soup.find_all("table"):
