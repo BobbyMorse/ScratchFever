@@ -62,6 +62,71 @@ class NewHampshireScraper(BaseScraper):
             })
         return dict(by_game)
 
+    def _fetch_odds_by_amount(self, identifier: str) -> dict[float, float]:
+        """Fetch the per-game Odds Breakdown table and return {prize_amount -> odds_one_in}.
+        Multiple table rows can pay the same dollar amount (different winning
+        patterns); we combine them: every row has prizes_i * odds_i == total
+        tickets in the game, so the combined odds for an amount is
+        total_tickets / sum(prizes_i)."""
+        try:
+            resp = self.get(
+                PRIZE_TABLE_URL,
+                params={"identifier": identifier},
+                headers={"Accept": "application/json"},
+            )
+            payload = resp.json()
+        except (requests.RequestException, ValueError) as exc:
+            logger.debug("NH: prize-table fetch failed for %s: %s", identifier, exc)
+            return {}
+
+        if payload.get("status") != "success":
+            return {}
+        table = (payload.get("data") or {}).get("prizeTable") or {}
+        headers = [str(h).strip().lower() for h in table.get("headers", [])]
+        rows = table.get("rows") or []
+
+        def find_col(*keywords: str) -> int | None:
+            for i, h in enumerate(headers):
+                if any(k in h for k in keywords):
+                    return i
+            return None
+
+        win_idx = find_col("win")
+        count_idx = find_col("prizes in game", "prizes")
+        odds_idx = find_col("odds")
+        if None in (win_idx, count_idx, odds_idx):
+            return {}
+
+        agg: dict[float, dict[str, float]] = defaultdict(lambda: {"prizes": 0, "tickets": 0.0, "n": 0})
+        for row in rows:
+            if max(win_idx, count_idx, odds_idx) >= len(row):
+                continue
+            win_txt = str(row[win_idx]).replace("\t", "").replace(",", "").replace("$", "").strip()
+            if not win_txt or "total" in win_txt.lower():
+                continue
+            count_txt = str(row[count_idx]).replace("\t", "").replace(",", "").strip()
+            odds_txt = str(row[odds_idx]).replace("\t", "").replace(",", "").strip()
+            try:
+                amount = float(win_txt)
+                prizes = int(float(count_txt))
+                odds = float(odds_txt)
+            except ValueError:
+                continue
+            if amount <= 0 or prizes <= 0 or odds <= 0:
+                continue
+            entry = agg[amount]
+            entry["prizes"] += prizes
+            entry["tickets"] += prizes * odds
+            entry["n"] += 1
+
+        out: dict[float, float] = {}
+        for amount, entry in agg.items():
+            if entry["prizes"] <= 0 or entry["n"] <= 0:
+                continue
+            avg_total_tickets = entry["tickets"] / entry["n"]
+            out[amount] = round(avg_total_tickets / entry["prizes"], 2)
+        return out
+
     def _parse_game(self, raw: dict, prizes_by_game: dict) -> dict | None:
         game_id = (raw.get("identifier") or "").strip()
         if not game_id:
