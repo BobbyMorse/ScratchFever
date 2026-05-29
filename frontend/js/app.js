@@ -1995,7 +1995,7 @@ function openCallDetail(callId) {
   const dur  = c.duration_sec != null ? `${Math.round(parseFloat(c.duration_sec))}s` : "—";
   const conf = c.confidence != null ? `${Math.round(parseFloat(c.confidence) * 100)}%` : "—";
 
-  const ticketsHtml = renderResultCell(c);
+  const ticketsHtml = renderResultDetail(c);
   const perTicketBlock = (Array.isArray(c.per_ticket_results) && c.per_ticket_results.length)
     ? `<div class="call-detail-section">
          <div class="call-detail-section-label">Per-ticket results</div>
