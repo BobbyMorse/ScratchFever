@@ -3569,7 +3569,55 @@ function refreshOpenProfile() {
   const profileTr = document.querySelector(".store-profile-tr");
   if (!profileTr) return;
   const td = profileTr.querySelector("td");
-  if (td) td.innerHTML = storeProfileHtml(_openProfileId);
+  if (!td) return;
+
+  // Preserve filter-tab selection and game-list scroll position across re-render
+  const prevPanel = td.querySelector(".inv-panel");
+  const activeTab = prevPanel?.querySelector(".inv-filter-tab.active");
+  const prevFilter = activeTab
+    ? (activeTab.textContent.trim().toLowerCase() === "in stock"     ? "in"
+      : activeTab.textContent.trim().toLowerCase() === "out of stock" ? "out"
+      : activeTab.textContent.trim().toLowerCase() === "not set"      ? "not_set"
+      : "all")
+    : "all";
+  const prevScroll = prevPanel?.querySelector(".inv-game-list")?.scrollTop || 0;
+
+  td.innerHTML = storeProfileHtml(_openProfileId);
+
+  if (prevFilter !== "all") {
+    const newPanel = td.querySelector(".inv-panel");
+    const tabs = newPanel?.querySelectorAll(".inv-filter-tab");
+    if (tabs) {
+      const map = { all: 0, in: 1, out: 2, not_set: 3 };
+      const idx = map[prevFilter];
+      if (idx != null && tabs[idx]) setInvPanelFilter(tabs[idx], prevFilter);
+    }
+  }
+  const newList = td.querySelector(".inv-game-list");
+  if (newList && prevScroll) newList.scrollTop = prevScroll;
+}
+
+// ── Non-blocking toast ────────────────────────────────────────────────────────
+function showToast(msg, type = "info", ms = 4500) {
+  let stack = document.getElementById("sfToastStack");
+  if (!stack) {
+    stack = document.createElement("div");
+    stack.id = "sfToastStack";
+    stack.className = "sf-toast-stack";
+    document.body.appendChild(stack);
+  }
+  const icon = type === "err" ? "⚠️" : type === "ok" ? "✅" : "ℹ️";
+  const toast = document.createElement("div");
+  toast.className = `sf-toast ${type}`;
+  toast.innerHTML = `<span class="sf-toast-icon">${icon}</span><span class="sf-toast-body"></span><button class="sf-toast-close" aria-label="Dismiss">✕</button>`;
+  toast.querySelector(".sf-toast-body").textContent = msg;
+  const dismiss = () => {
+    toast.classList.add("fade-out");
+    setTimeout(() => toast.remove(), 220);
+  };
+  toast.querySelector(".sf-toast-close").onclick = dismiss;
+  stack.appendChild(toast);
+  setTimeout(dismiss, ms);
 }
 
 // ── Game-centric filter ───────────────────────────────────────────────────────
