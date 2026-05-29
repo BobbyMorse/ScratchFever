@@ -330,10 +330,18 @@ async def vapi_webhook(
 
 @router.get("/recent")
 async def vapi_recent(limit: int = 50):
+    import json as _json
     limit = max(1, min(limit, 500))
     calls = await recent_vapi_calls(limit=limit)
     for c in calls:
         for k in ("received_at", "ended_at"):
             if c.get(k):
                 c[k] = c[k].isoformat()
+        # asyncpg returns JSONB as str unless a codec is registered — deserialize here.
+        pt = c.get("per_ticket_results")
+        if isinstance(pt, str):
+            try:
+                c["per_ticket_results"] = _json.loads(pt)
+            except Exception:
+                c["per_ticket_results"] = None
     return {"calls": calls, "count": len(calls)}
