@@ -86,6 +86,7 @@ def main() -> int:
         return 1
 
     patch = {
+        "server": {"url": WEBHOOK_URL},
         "serverMessages": ["end-of-call-report"],
         "analysisPlan": {
             "structuredDataPlan": {
