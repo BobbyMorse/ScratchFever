@@ -130,10 +130,11 @@ class RhodeIslandScraper(BaseScraper):
         if end_ms:
             end_date = datetime.fromtimestamp(end_ms / 1000, tz=timezone.utc).date().isoformat()
 
-        # Image: first try response-captured URLs by game ID, then API fields
+        # RI serves ticket thumbnails from a deterministic CDN path keyed by game ID.
         image_url = None
-        if game_id_to_img:
-            image_url = game_id_to_img.get(game_id)
+        if game_id:
+            image_url = f"{self.base_url}/content/dam/interactive/ilottery/images/instantgames/{game_id}/thumb-sq.jpg"
+        # Fall back to any API-provided field, in case the CDN convention changes.
         if not image_url:
             raw_img = (
                 g.get("ticketImageUrl") or g.get("imageUrl") or g.get("image") or
