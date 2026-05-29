@@ -2148,6 +2148,20 @@ async function createCallerCampaign(dryRun) {
   }
 }
 
+function _formatApiError(data, status) {
+  if (!data) return `Server error (${status})`;
+  const d = data.detail;
+  if (typeof d === "string") return d;
+  if (Array.isArray(d)) {
+    return d.map(e => {
+      const loc = Array.isArray(e.loc) ? e.loc.filter(x => x !== "body").join(".") : "";
+      return loc ? `${loc}: ${e.msg || JSON.stringify(e)}` : (e.msg || JSON.stringify(e));
+    }).join("; ");
+  }
+  if (d && typeof d === "object") return JSON.stringify(d);
+  return data.message || `Server error (${status})`;
+}
+
 async function sendTestCall() {
   const phone   = document.getElementById("cfTestPhone").value.trim();
   const tickets = getSelectedTickets();
