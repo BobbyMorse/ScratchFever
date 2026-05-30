@@ -2700,6 +2700,18 @@ let _storesCluster   = null;      // L.markerClusterGroup
 let _storesMarkers   = new Map(); // external_id → L.Marker
 let _showSelectedOnly = false;    // when true, list+map show only checked stores
 
+function _updateMapCoverageNote(shown, totalFiltered, missingCoords) {
+  const countEl = document.getElementById("cfStoresCount");
+  if (!countEl) return;
+  // Append to whatever updateStoresCount sets so it doesn't clobber.
+  const sel = _selectedStores.size;
+  const base = sel === 0 ? "No stores selected" : `${sel} store${sel === 1 ? "" : "s"} selected`;
+  const cov = missingCoords > 0
+    ? ` · map: ${shown.toLocaleString()} of ${totalFiltered.toLocaleString()} (${missingCoords.toLocaleString()} missing coords)`
+    : ` · map: ${shown.toLocaleString()}`;
+  countEl.textContent = base + cov;
+}
+
 function toggleShowSelectedOnly() {
   _showSelectedOnly = !_showSelectedOnly;
   const btn = document.getElementById("cfShowSelectedBtn");
