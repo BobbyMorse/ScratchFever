@@ -12,6 +12,7 @@ from backend.scraper.winners.massachusetts import MassachusettsWinnersScraper
 from backend.scraper.winners.michigan import MichiganWinnersScraper
 from backend.scraper.winners.rhode_island import RhodeIslandWinnersScraper
 from backend.scraper.winners.pennsylvania import PennsylvaniaWinnersScraper
+from backend.scraper.winners.georgia import GeorgiaWinnersScraper
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +21,7 @@ ALL_WINNERS_SCRAPERS = [
     MichiganWinnersScraper,
     RhodeIslandWinnersScraper,
     PennsylvaniaWinnersScraper,
+    GeorgiaWinnersScraper,
 ]
 
 TIMEOUT_SEC = 180
