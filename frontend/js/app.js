@@ -5845,58 +5845,191 @@ function renderPlaysChart(plays) {
   `;
 }
 
-async function logPlay() {
-  const gameName = document.getElementById("plGameName").value.trim();
-  const price    = parseFloat(document.getElementById("plPrice").value);
-  const prize    = parseFloat(document.getElementById("plPrize").value) || 0;
-  const store    = document.getElementById("plStore").value.trim();
-  const dateVal  = document.getElementById("plDate").value;
-  const gameDbId = document.getElementById("plGameDbId").value || null;
-  const state    = document.getElementById("plGameState").value || null;
+function _plGamesForState(state) {
+  if (!state) return [];
+  const pool = (allGamesUnfiltered && allGamesUnfiltered.length)
+    ? allGamesUnfiltered
+    : (allGames || []);
+  return pool
+    .filter(g => g.state_code === state)
+    .slice()
+    .sort((a, b) => (b.return_pct || 0) - (a.return_pct || 0));
+}
 
+function _plTodayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function _plRowTemplate(idx) {
+  const today = _plTodayStr();
+  return `
+    <div class="plays-log-row" data-row-idx="${idx}">
+      <div class="filter-group" style="flex:2;min-width:180px">
+        <label>Game *</label>
+        <select class="pl-game" onchange="onPlGameSelect(this)">
+          <option value="">Pick a state first…</option>
+        </select>
+      </div>
+      <div class="filter-group" style="width:90px">
+        <label>Price ($)</label>
+        <input type="number" class="pl-price" placeholder="30" min="1" max="100" step="1">
+      </div>
+      <div class="filter-group" style="width:110px">
+        <label>Prize Won ($)</label>
+        <input type="number" class="pl-prize" placeholder="0" min="0" step="1" value="0">
+      </div>
+      <div class="filter-group" style="flex:1;min-width:130px">
+        <label>Store <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
+        <input type="text" class="pl-store" placeholder="Store name…">
+      </div>
+      <div class="filter-group" style="width:130px">
+        <label>Date</label>
+        <input type="date" class="pl-date" value="${today}">
+      </div>
+      <button type="button" class="pl-remove-btn" onclick="removePlRow(this)" title="Remove ticket" aria-label="Remove ticket">✕</button>
+    </div>`;
+}
+
+function _plGameOptionsHtml(state) {
+  const games = _plGamesForState(state);
+  if (!state) return `<option value="">Pick a state first…</option>`;
+  if (!games.length) return `<option value="">No games available</option>`;
+  return `<option value="">Select a game…</option>` + games.map(g => {
+    const ret = g.return_pct != null ? `${g.return_pct.toFixed(1)}%` : "—";
+    const price = g.price != null ? `$${g.price}` : "—";
+    return `<option value="${g.id}" data-price="${g.price ?? ''}" data-name="${escHtml(g.name)}">
+      ${escHtml(g.name)} — ${ret} · ${price}
+    </option>`;
+  }).join("");
+}
+
+function initPlStateSelect() {
+  const sel = document.getElementById("plState");
+  if (!sel) return;
+  const pool = (allGamesUnfiltered && allGamesUnfiltered.length)
+    ? allGamesUnfiltered
+    : (allGames || []);
+  const states = Array.from(new Set(pool.map(g => g.state_code).filter(Boolean))).sort();
+  const prev = sel.value;
+  sel.innerHTML = `<option value="">Select state…</option>` +
+    states.map(s => `<option value="${s}">${s}</option>`).join("");
+  if (prev && states.includes(prev)) sel.value = prev;
+}
+
+function onPlStateChange() {
+  const state = document.getElementById("plState").value;
+  const optsHtml = _plGameOptionsHtml(state);
+  document.querySelectorAll("#plRows .pl-game").forEach(sel => {
+    sel.innerHTML = optsHtml;
+  });
+}
+
+function onPlGameSelect(selectEl) {
+  const opt = selectEl.options[selectEl.selectedIndex];
+  if (!opt || !opt.value) return;
+  const row = selectEl.closest(".plays-log-row");
+  const priceInput = row.querySelector(".pl-price");
+  const price = opt.getAttribute("data-price");
+  if (priceInput && !priceInput.value && price) priceInput.value = price;
+}
+
+let _plRowCounter = 0;
+function addPlRow() {
+  const container = document.getElementById("plRows");
+  if (!container) return;
+  const idx = ++_plRowCounter;
+  container.insertAdjacentHTML("beforeend", _plRowTemplate(idx));
+  const newRow = container.lastElementChild;
+  const sel = newRow.querySelector(".pl-game");
+  if (sel) sel.innerHTML = _plGameOptionsHtml(document.getElementById("plState").value);
+  // Hide remove btn when only one row
+  _updatePlRemoveVisibility();
+}
+
+function removePlRow(btn) {
+  const row = btn.closest(".plays-log-row");
+  if (!row) return;
+  const container = document.getElementById("plRows");
+  if (container.children.length <= 1) return; // keep at least one
+  row.remove();
+  _updatePlRemoveVisibility();
+}
+
+function _updatePlRemoveVisibility() {
+  const rows = document.querySelectorAll("#plRows .plays-log-row");
+  const showRemove = rows.length > 1;
+  rows.forEach(r => {
+    const btn = r.querySelector(".pl-remove-btn");
+    if (btn) btn.style.display = showRemove ? "" : "none";
+  });
+}
+
+function resetPlForm() {
+  document.getElementById("plRows").innerHTML = "";
+  _plRowCounter = 0;
+  addPlRow();
+}
+
+async function logPlays() {
+  const state = document.getElementById("plState").value || null;
+  const rows = Array.from(document.querySelectorAll("#plRows .plays-log-row"));
   const msgEl = document.getElementById("plMsg");
   msgEl.style.display = "none";
 
-  if (!gameName) { showPlMsg("Game name is required", true); return; }
-  if (!price || price <= 0) { showPlMsg("Enter a valid ticket price", true); return; }
+  if (!state) { showPlMsg("Select a state first", true); return; }
 
-  const body = {
-    game_name: gameName,
-    game_db_id: gameDbId ? parseInt(gameDbId) : null,
-    state_code: state || null,
-    price_paid: price,
-    prize_won: prize,
-    retailer_name: store || null,
-    played_at: dateVal ? dateVal + "T12:00:00" : null,
-  };
+  const payloads = [];
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const sel = row.querySelector(".pl-game");
+    const opt = sel.options[sel.selectedIndex];
+    const gameDbId = sel.value ? parseInt(sel.value) : null;
+    const gameName = opt && opt.getAttribute("data-name") ? opt.getAttribute("data-name") : "";
+    const price = parseFloat(row.querySelector(".pl-price").value);
+    const prize = parseFloat(row.querySelector(".pl-prize").value) || 0;
+    const store = row.querySelector(".pl-store").value.trim();
+    const dateVal = row.querySelector(".pl-date").value;
 
-  document.getElementById("plLogBtn").disabled = true;
-  try {
-    const res = await protectedFetch("/api/plays", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+    if (!gameName) { showPlMsg(`Ticket ${i+1}: pick a game`, true); return; }
+    if (!price || price <= 0) { showPlMsg(`Ticket ${i+1}: enter a valid price`, true); return; }
+
+    payloads.push({
+      game_name: gameName,
+      game_db_id: gameDbId,
+      state_code: state,
+      price_paid: price,
+      prize_won: prize,
+      retailer_name: store || null,
+      played_at: dateVal ? dateVal + "T12:00:00" : null,
     });
-    const data = await res.json();
-    if (!res.ok) { showPlMsg(data.detail || "Failed to log play", true); return; }
+  }
 
-    showPlMsg("Logged!", false);
-    // reset form
-    document.getElementById("plGameName").value = "";
-    document.getElementById("plGameDbId").value = "";
-    document.getElementById("plGameState").value = "";
-    document.getElementById("plPrice").value = "";
-    document.getElementById("plPrize").value = "0";
-    document.getElementById("plStore").value = "";
-    document.getElementById("plDate").value = "";
-    document.getElementById("plGameDropdown").style.display = "none";
-
+  const btn = document.getElementById("plLogBtn");
+  btn.disabled = true;
+  try {
+    const results = await Promise.allSettled(payloads.map(body =>
+      protectedFetch("/api/plays", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      }).then(r => r.ok ? r.json() : r.json().then(d => Promise.reject(d)))
+    ));
+    const okCount = results.filter(r => r.status === "fulfilled").length;
+    const failCount = results.length - okCount;
+    if (failCount === 0) {
+      showPlMsg(`Logged ${okCount} ticket${okCount === 1 ? "" : "s"}!`, false);
+      resetPlForm();
+    } else if (okCount === 0) {
+      showPlMsg("Failed to log tickets", true);
+    } else {
+      showPlMsg(`Logged ${okCount}, ${failCount} failed`, true);
+    }
     await loadPlays();
-    setTimeout(() => { msgEl.style.display = "none"; }, 2500);
+    setTimeout(() => { msgEl.style.display = "none"; }, 3000);
   } catch(e) {
     showPlMsg("Network error", true);
   } finally {
-    document.getElementById("plLogBtn").disabled = false;
+    btn.disabled = false;
   }
 }
 
