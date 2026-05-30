@@ -141,6 +141,8 @@ async def _all_scored_candidates(state: str) -> list[dict]:
             "city":        r.get("city") or "",
             "phone":       r.get("phone"),
             "score":       r.get("score"),
+            "latitude":    r.get("latitude"),
+            "longitude":   r.get("longitude"),
         } for r in scored]
 
     if state == "AZ":
@@ -156,11 +158,13 @@ async def _all_scored_candidates(state: str) -> list[dict]:
             "city":        r.get("city") or "",
             "phone":       r.get("phone"),
             "score":       r.get("score"),
+            "latitude":    r.get("latitude"),
+            "longitude":   r.get("longitude"),
         } for r in scored]
 
     async with get_pool().acquire() as conn:
         rows = await conn.fetch(
-            """SELECT external_id, state_code, name, city, phone
+            """SELECT external_id, state_code, name, city, phone, latitude, longitude
                FROM state_retailers
                WHERE state_code = $1 AND is_active = TRUE
                  AND phone IS NOT NULL AND phone <> ''
@@ -168,6 +172,20 @@ async def _all_scored_candidates(state: str) -> list[dict]:
             state,
         )
     return [dict(r) | {"score": None} for r in rows]
+
+
+async def _inventory_updated_ids(state: str) -> set[str]:
+    """retailer_id values that have ever produced an inventory_reports row from
+    a VAPI call (any game). Used for the 'Inventory updated' badge."""
+    async with get_pool().acquire() as conn:
+        rows = await conn.fetch(
+            """SELECT DISTINCT retailer_id
+               FROM inventory_reports
+               WHERE source = 'vapi_call'
+                 AND retailer_id IS NOT NULL
+                 AND retailer_id <> ''"""
+        )
+    return {r["retailer_id"] for r in rows if r["retailer_id"]}
 
 
 async def _annotate_candidates(
