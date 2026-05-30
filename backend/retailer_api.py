@@ -543,7 +543,7 @@ async def list_my_claims(user: dict = Depends(require_member)):
 
 @admin_router.get("/claims")
 async def admin_list_claims(
-    status: Optional[str] = Query(None, regex="^(pending|approved|rejected)$"),
+    status: Optional[str] = Query(None, pattern="^(pending|approved|rejected)$"),
     limit: int = Query(100, le=500),
     admin: dict = Depends(require_admin),
 ):
