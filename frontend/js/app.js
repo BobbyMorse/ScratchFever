@@ -1913,7 +1913,6 @@ function getFilteredRows() {
       if (invFilter === "in")      return s && s.has_stock;
       if (invFilter === "out")     return s && !s.has_stock;
       if (invFilter === "checked") return !!s;
-      if (invFilter === "unchecked") return !s;
       return true;
     });
   }
@@ -4160,7 +4159,6 @@ function getRiFilteredRows() {
       if (invFilter === "in")      return s && s.has_stock;
       if (invFilter === "out")     return s && !s.has_stock;
       if (invFilter === "checked") return !!s;
-      if (invFilter === "unchecked") return !s;
       return true;
     });
   }
@@ -4469,7 +4467,6 @@ function getAzFilteredRows() {
       if (invFilter === "in")      return s && s.has_stock;
       if (invFilter === "out")     return s && !s.has_stock;
       if (invFilter === "checked") return !!s;
-      if (invFilter === "unchecked") return !s;
       return true;
     });
   }
@@ -4631,7 +4628,6 @@ function getFlFilteredRows() {
       if (invFilter === "in")      return s && s.has_stock;
       if (invFilter === "out")     return s && !s.has_stock;
       if (invFilter === "checked") return !!s;
-      if (invFilter === "unchecked") return !s;
       return true;
     });
   }
@@ -4811,7 +4807,6 @@ function getGaFilteredRows() {
       if (invFilter === "in")      return s && s.has_stock;
       if (invFilter === "out")     return s && !s.has_stock;
       if (invFilter === "checked") return !!s;
-      if (invFilter === "unchecked") return !s;
       return true;
     });
   }
@@ -4991,7 +4986,6 @@ function getNyFilteredRows() {
       if (invFilter === "in")      return s && s.has_stock;
       if (invFilter === "out")     return s && !s.has_stock;
       if (invFilter === "checked") return !!s;
-      if (invFilter === "unchecked") return !s;
       return true;
     });
   }
@@ -5171,7 +5165,6 @@ function getVaFilteredRows() {
       if (invFilter === "in")      return s && s.has_stock;
       if (invFilter === "out")     return s && !s.has_stock;
       if (invFilter === "checked") return !!s;
-      if (invFilter === "unchecked") return !s;
       return true;
     });
   }
@@ -5351,7 +5344,6 @@ function getDcFilteredRows() {
       if (invFilter === "in")      return s && s.has_stock;
       if (invFilter === "out")     return s && !s.has_stock;
       if (invFilter === "checked") return !!s;
-      if (invFilter === "unchecked") return !s;
       return true;
     });
   }
@@ -5531,7 +5523,6 @@ function getVtFilteredRows() {
       if (invFilter === "in")      return s && s.has_stock;
       if (invFilter === "out")     return s && !s.has_stock;
       if (invFilter === "checked") return !!s;
-      if (invFilter === "unchecked") return !s;
       return true;
     });
   }
