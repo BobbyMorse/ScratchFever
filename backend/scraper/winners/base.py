@@ -47,15 +47,35 @@ class WinnersScraper(ABC):
         self.session = requests.Session()
         self.session.headers.update(HEADERS)
 
+    def _request(self, method: str, url: str, **kwargs) -> requests.Response:
+        kwargs.setdefault("timeout", 30)
+        last_exc: Exception | None = None
+        for attempt in range(1, MAX_RETRIES + 1):
+            try:
+                resp = self.session.request(method, url, **kwargs)
+            except requests.RequestException as e:
+                last_exc = e
+                resp = None
+            if resp is not None and resp.status_code not in RETRY_STATUSES:
+                resp.raise_for_status()
+                return resp
+            if attempt == MAX_RETRIES:
+                if resp is not None:
+                    resp.raise_for_status()
+                raise last_exc  # type: ignore[misc]
+            backoff = min(30.0, 1.5 ** attempt)
+            logger.warning("%s %s attempt %d failed (%s) — sleeping %.1fs",
+                           method, url, attempt,
+                           resp.status_code if resp is not None else type(last_exc).__name__,
+                           backoff)
+            time.sleep(backoff)
+        raise RuntimeError("unreachable")
+
     def get(self, url: str, **kwargs) -> requests.Response:
-        resp = self.session.get(url, timeout=30, **kwargs)
-        resp.raise_for_status()
-        return resp
+        return self._request("GET", url, **kwargs)
 
     def post(self, url: str, **kwargs) -> requests.Response:
-        resp = self.session.post(url, timeout=30, **kwargs)
-        resp.raise_for_status()
-        return resp
+        return self._request("POST", url, **kwargs)
 
     @abstractmethod
     def scrape(self, days: int = 14) -> list[dict]:
