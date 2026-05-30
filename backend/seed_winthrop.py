@@ -70,27 +70,44 @@ async def main():
             sys.exit(1)
         print(f"Found user: id={user['id']} email={user['email']} role={user['role']}")
 
-        # 2. Pick a retailer_id — prefer a real Winthrop, MA state_retailers row
-        # so consumer-side discovery works; otherwise fall back to a synthetic ID
-        # that only the dashboard surfaces.
-        real_row = await conn.fetchrow(
-            """SELECT id, name, address, city, zip_code, phone
-               FROM state_retailers
-               WHERE state_code='MA' AND LOWER(city)=LOWER($1) AND is_active=TRUE
-               ORDER BY id
+        # 2. Insert (or reuse) a real ma_retailers row for "Winthrop Variety"
+        # so the store is discoverable in the consumer-side MA feed + map.
+        # MA-specific because the MA list is served from ma_retailers (not state_retailers).
+        phone = "(617) 555-0142"
+        zip_code = "02152"
+        address = "100 Main St"
+        # Winthrop, MA centerish — far enough from other shops to stand out on the map
+        latitude = 42.3751
+        longitude = -70.9786
+
+        existing_ma = await conn.fetchrow(
+            """SELECT id FROM ma_retailers
+               WHERE LOWER(name)=LOWER($1) AND LOWER(city)=LOWER($2)
                LIMIT 1""",
-            CITY,
+            STORE_NAME, CITY,
         )
-        if real_row:
-            retailer_id = str(real_row["id"])
-            phone = real_row["phone"]
-            zip_code = real_row["zip_code"]
-            print(f"Using real MA retailer #{retailer_id}: {real_row['name']} ({real_row['city']})")
+        if existing_ma:
+            retailer_id = str(existing_ma["id"])
+            # Make sure the existing row is active and has up-to-date demo data
+            await conn.execute(
+                """UPDATE ma_retailers SET
+                     address=$2, zip_code=$3, phone=$4,
+                     latitude=$5, longitude=$6, is_active=TRUE
+                   WHERE id=$1""",
+                int(retailer_id), address, zip_code, phone, latitude, longitude,
+            )
+            print(f"Reusing existing ma_retailers row #{retailer_id}: {STORE_NAME}")
         else:
-            retailer_id = "demo-winthrop-variety"
-            phone = "(617) 555-0142"
-            zip_code = "02152"
-            print(f"No real {CITY} retailer found — using synthetic id '{retailer_id}'.")
+            new_row = await conn.fetchrow(
+                """INSERT INTO ma_retailers
+                   (name, address, city, zip_code, phone, latitude, longitude,
+                    is_active, is_chain, is_gas)
+                   VALUES ($1,$2,$3,$4,$5,$6,$7,TRUE,FALSE,FALSE)
+                   RETURNING id""",
+                STORE_NAME, address, CITY, zip_code, phone, latitude, longitude,
+            )
+            retailer_id = str(new_row["id"])
+            print(f"Created ma_retailers row #{retailer_id}: {STORE_NAME}")
 
         # 3. Upsert retailer_profiles row, bump user role, in one transaction
         async with conn.transaction():
