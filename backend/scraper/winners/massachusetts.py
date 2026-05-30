@@ -13,7 +13,7 @@ Per-win fields:
 from __future__ import annotations
 import datetime as dt
 import logging
-from backend.scraper.winners.base import WinnersScraper
+from backend.scraper.winners.base import WinnersScraper, is_draw_game
 
 logger = logging.getLogger(__name__)
 
