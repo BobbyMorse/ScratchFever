@@ -2719,7 +2719,7 @@ async function loadStoreCandidates() {
     const data = await res.json();
     _storeCandidates = data.candidates || [];
     _selectedStores  = new Set();
-    autoSelectStores();
+    // Start from zero — user adds via list checkboxes, map clicks, or "Select top N".
     renderStoresPicker();
     // If map was already initialized (e.g. user switches state while in map view),
     // rebuild markers for the new state. Otherwise it builds on first switch.
