@@ -122,6 +122,50 @@ async def init_db():
         await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS how_to_play TEXT")
         await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS end_date DATE")
         await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS ev_approximate BOOLEAN DEFAULT FALSE")
+        # Game launch date — enables sell-through velocity (tickets/day) and "days on sale" UI.
+        await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS start_date DATE")
+        # Annuity metadata for the top prize. cash_value is what EV math uses; face stays in top_prize.
+        await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS top_prize_is_annuity BOOLEAN DEFAULT FALSE")
+        await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS top_prize_cash_value REAL")
+        await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS top_prize_annuity_years INTEGER")
+        await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS top_prize_annuity_annual REAL")
+        # Second-chance drawing surface (most games run them; few are scraped today).
+        await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS has_second_chance BOOLEAN DEFAULT FALSE")
+        await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS second_chance_url TEXT")
+        # State-published per-tier claim date (distinct from prize_claims delta detection).
+        await conn.execute("ALTER TABLE prize_tiers ADD COLUMN IF NOT EXISTS last_claimed_at TIMESTAMPTZ")
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS game_weekly_sales (
+                id SERIAL PRIMARY KEY,
+                state_code TEXT NOT NULL,
+                game_id TEXT NOT NULL,
+                game_db_id INTEGER REFERENCES games(id) ON DELETE SET NULL,
+                week_ending DATE NOT NULL,
+                tickets_sold BIGINT,
+                dollars_sold REAL,
+                source_url TEXT,
+                scraped_at TIMESTAMPTZ DEFAULT NOW(),
+                UNIQUE(state_code, game_id, week_ending)
+            )
+        """)
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_weekly_sales_game ON game_weekly_sales(state_code, game_id, week_ending DESC)")
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_weekly_sales_db ON game_weekly_sales(game_db_id, week_ending DESC)")
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS second_chance_drawings (
+                id SERIAL PRIMARY KEY,
+                state_code TEXT NOT NULL,
+                drawing_id TEXT NOT NULL,
+                drawing_name TEXT,
+                drawing_date DATE,
+                prize_description TEXT,
+                prize_pool REAL,
+                game_ids TEXT[],
+                detail_url TEXT,
+                scraped_at TIMESTAMPTZ DEFAULT NOW(),
+                UNIQUE(state_code, drawing_id)
+            )
+        """)
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_sc_state_date ON second_chance_drawings(state_code, drawing_date DESC)")
         # Clear stale past end_dates for states whose scrapers no longer set end_date (e.g. CA).
         # Active games with a past end_date were set by an older scraper version and should not
         # suppress display.
