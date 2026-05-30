@@ -92,6 +92,27 @@ async def get_user_by_email(email: str) -> Optional[dict]:
         return dict(row) if row else None
 
 
+async def is_user_pro(user_id: int) -> bool:
+    async with get_pool().acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT pro_until FROM users WHERE id=$1",
+            user_id,
+        )
+    if not row or row["pro_until"] is None:
+        return False
+    import datetime as _dt
+    return row["pro_until"] > _dt.datetime.now(_dt.timezone.utc)
+
+
+async def set_user_pro_until(user_id: int, pro_until) -> None:
+    """Called by the RevenueCat webhook. `pro_until` may be a datetime or None."""
+    async with get_pool().acquire() as conn:
+        await conn.execute(
+            "UPDATE users SET pro_until=$1 WHERE id=$2",
+            pro_until, user_id,
+        )
+
+
 async def seed_admin():
     email    = os.getenv("ADMIN_EMAIL", "").strip()
     password = os.getenv("ADMIN_PASSWORD", "").strip()
