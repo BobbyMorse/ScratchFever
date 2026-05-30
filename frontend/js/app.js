@@ -3031,11 +3031,13 @@ function renderStoresMap() {
   }
 
   const search = (document.getElementById("cfStoresSearch")?.value || "").trim().toLowerCase();
-  const withCoords = _storeCandidates.filter(c =>
-    c.latitude != null && c.longitude != null &&
+  const matchesFilters = c =>
     (!_showSelectedOnly || _selectedStores.has(c.external_id)) &&
-    (!search || (c.name || "").toLowerCase().includes(search) || (c.city || "").toLowerCase().includes(search))
-  );
+    (!search || (c.name || "").toLowerCase().includes(search) || (c.city || "").toLowerCase().includes(search));
+  const filtered = _storeCandidates.filter(matchesFilters);
+  const withCoords = filtered.filter(c => c.latitude != null && c.longitude != null);
+  const missingCoords = filtered.length - withCoords.length;
+  _updateMapCoverageNote(withCoords.length, filtered.length, missingCoords);
 
   if (!withCoords.length) {
     setTimeout(() => _storesMap.invalidateSize(), 50);
