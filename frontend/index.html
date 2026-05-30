@@ -1154,7 +1154,7 @@
         <section class="caller-form-section" id="callerFormSection">
           <div class="caller-form-card">
             <h2 class="caller-form-title">Dispatch VAPI Calls</h2>
-            <p class="caller-form-subtitle">Pick a state and game, set how many top-scored retailers to dial. Stores we already talked to within the recall window are skipped automatically.</p>
+            <p class="caller-form-subtitle">Pick a state, pick the stores to dial (in order, top score first), and the tickets to ask about.</p>
             <div class="caller-form-row">
               <div class="filter-group">
                 <label>State *</label>
@@ -1163,16 +1163,38 @@
                 </select>
               </div>
               <div class="filter-group">
-                <label>Stores to Call</label>
-                <input type="number" id="cfMaxStores" value="100" min="1" max="500" />
-              </div>
-              <div class="filter-group">
-                <label>Recall after (days)</label>
-                <input type="number" id="cfCooldownDays" value="7" min="0" max="365" title="Skip retailers we successfully talked to within this many days" />
+                <label>Recall window (days)</label>
+                <input type="number" id="cfCooldownDays" value="7" min="0" max="365" onchange="onCooldownChange()" title="Defines the 'Called within window' badge — stores called inside this window are flagged" />
               </div>
               <div class="filter-group" style="justify-content:flex-end;align-items:flex-end;gap:.4rem;flex-direction:row">
-                <button class="btn" id="cfDryRunBtn" onclick="createCallerCampaign(true)" title="Preview who would be called without dialing">Preview</button>
-                <button class="btn btn-call-create" id="cfCreateBtn" onclick="createCallerCampaign(false)">📞 Start Calls</button>
+                <button class="btn" id="cfDryRunBtn" onclick="dispatchSelectedStores(true)" title="Preview who would be called without dialing">Preview</button>
+                <button class="btn btn-call-create" id="cfCreateBtn" onclick="dispatchSelectedStores(false)">📞 Start Calls</button>
+              </div>
+            </div>
+
+            <div class="cf-stores-wrap" style="margin-top:.9rem">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.4rem;flex-wrap:wrap;gap:.5rem">
+                <label style="font-size:.72rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em">Stores to call *</label>
+                <div style="display:flex;align-items:center;gap:.8rem;flex-wrap:wrap">
+                  <label style="display:flex;align-items:center;gap:.35rem;font-size:.78rem;cursor:pointer">
+                    <input type="checkbox" id="cfSkipCalled" checked onchange="onSkipCalledToggle()" />
+                    Skip stores already AI-called
+                  </label>
+                  <span id="cfStoresCount" style="font-size:.78rem;color:var(--text-muted)">No stores selected</span>
+                </div>
+              </div>
+              <div class="cf-tickets-card">
+                <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-bottom:.4rem">
+                  <input type="text" id="cfStoresSearch" placeholder="Search by name or city…" oninput="renderStoresPicker()" style="flex:1;min-width:180px" />
+                  <button type="button" class="btn" id="cfSelectTopBtn" onclick="selectTopNStores()" style="font-size:.74rem;padding:.28rem .65rem;white-space:nowrap">Select top
+                    <input type="number" id="cfSelectTopN" value="100" min="1" max="500" onclick="event.stopPropagation()" style="width:54px;margin:0 .25rem;padding:.1rem .25rem;font-size:.74rem" />
+                  </button>
+                  <button type="button" class="btn" onclick="selectNoStores()" style="font-size:.74rem;padding:.28rem .65rem;white-space:nowrap">Clear</button>
+                </div>
+                <div id="cfStoresList" class="cf-tickets-list" style="max-height:340px;overflow-y:auto">— Pick a state first —</div>
+              </div>
+              <div style="font-size:.75rem;color:var(--text-muted);margin-top:.35rem">
+                Stores are dialed top-to-bottom in the order shown (highest score first). Checked stores are dispatched as one batch.
               </div>
             </div>
 
