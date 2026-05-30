@@ -119,6 +119,17 @@ async def lifespan(app: FastAPI):
     # Retailer freshness check — daily
     scheduler.add_job(check_and_run_stale_retailers, "interval", days=1, id="check_retailer_freshness")
 
+    # Winners feed scrape — hourly. Light JSON pull, populates reported_wins for the map.
+    async def _scheduled_winners_scrape():
+        try:
+            from backend.scraper.winners.runner import run_all as run_winners
+            results = await run_winners(days=14)
+            logger.info("winners scrape: %s", results)
+            _reported_wins_cache.clear()
+        except Exception:
+            logger.exception("scheduled winners scrape failed")
+    scheduler.add_job(_scheduled_winners_scrape, "interval", hours=1, id="scrape_winners")
+
     # In-app caller (Bland/Twilio) is retired — calls now run in VAPI externally
     # and are ingested via /api/vapi/webhook. Files under backend/caller/ are kept
     # for reference but the runner is no longer attached to the scheduler.
