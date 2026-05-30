@@ -612,7 +612,6 @@ async def vapi_candidates(
     _user: dict = Depends(require_admin),
     state: str = Query(..., min_length=2, max_length=2),
     cooldown_hours: int = Query(168, ge=0, le=8760),
-    limit: int = Query(10000, ge=1, le=20000),
 ):
     """All callable retailers for `state` (score-sorted), each annotated with
     last_called_at / last_talked / called_within_window so the UI can show
@@ -623,7 +622,7 @@ async def vapi_candidates(
         "state":          state.upper(),
         "cooldown_hours": cooldown_hours,
         "total":          len(annotated),
-        "candidates":     annotated[:limit],
+        "candidates":     annotated,
     }
 
 
