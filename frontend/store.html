@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title id="pageTitle">Store — ScratchFever</title>
+  <meta name="description" id="metaDesc" content="A claimed lottery retailer on ScratchFever." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --chrome:        #0d1117;
+      --chrome2:       #141d2c;
+      --bg:            #edf0f7;
+      --card:          #ffffff;
+      --border:        #e2e7f0;
+      --text:          #111827;
+      --text-muted:    #6b7280;
+      --teal:          #14b8a6;
+      --teal-dim:      rgba(20,184,166,0.12);
+      --teal-dark:     #0d9488;
+      --orange:        #f97316;
+      --red:           #ef4444;
+      --red-dim:       rgba(239,68,68,0.10);
+      --green:         #22c55e;
+      --green-dim:     rgba(34,197,94,0.12);
+      --radius:        14px;
+      --radius-sm:     8px;
+    }
+    html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'Outfit', -apple-system, sans-serif;
+      line-height: 1.55;
+      min-height: 100vh;
+    }
+
+    /* ── Top bar ─────────────────────────────────────── */
+    .topbar {
+      background:
+        repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(255,255,255,0.009) 8px, rgba(255,255,255,0.009) 16px),
+        radial-gradient(ellipse 45% 160% at 4% 50%, rgba(20,184,166,0.12) 0%, transparent 100%),
+        var(--chrome);
+      border-bottom: 1px solid rgba(20,184,166,0.18);
+      padding: .85rem 1.25rem;
+      display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+    }
+    .topbar a.brand {
+      color: var(--teal); text-decoration: none;
+      font-size: .72rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase; opacity: .85;
+    }
+    .topbar a.brand:hover { opacity: 1; }
+    .topbar-spacer { flex: 1; }
+    .topbar .btn-back {
+      font-size: .8rem; color: rgba(255,255,255,0.6);
+      text-decoration: none;
+      padding: .4rem .9rem;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.12);
+      transition: border-color .15s, color .15s;
+    }
+    .topbar .btn-back:hover { color: #fff; border-color: rgba(255,255,255,0.25); }
+
+    /* ── Layout ──────────────────────────────────────── */
+    .wrap {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+    }
+
+    /* ── Loading / Error ─────────────────────────────── */
+    .loader {
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 1rem;
+      padding: 6rem 1rem;
+      color: var(--text-muted); font-size: .9rem;
+    }
+    .spin {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 3px solid var(--border); border-top-color: var(--teal);
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .not-claimed {
+      max-width: 520px; margin: 0 auto;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 2rem;
+      text-align: center;
+    }
+    .not-claimed h2 { font-size: 1.4rem; font-weight: 800; margin-bottom: .55rem; }
+    .not-claimed p { color: var(--text-muted); font-size: .92rem; margin-bottom: 1.5rem; }
+
+    /* ── Hero (fresh banner + header) ───────────────── */
+    .fresh-banner {
+      display: flex; align-items: center; gap: .65rem;
+      padding: .85rem 1.25rem;
+      background: linear-gradient(90deg, #14b8a6 0%, #0ea5e9 100%);
+      color: #fff;
+      border-radius: var(--radius);
+      font-size: 1rem; font-weight: 600;
+      margin-bottom: 1.25rem;
+      box-shadow: 0 8px 20px rgba(20,184,166,0.18);
+    }
+    .fresh-banner-tag {
+      font-size: .65rem; font-weight: 800; letter-spacing: .14em;
+      padding: .2rem .55rem; border-radius: 4px;
+      background: rgba(255,255,255,0.22);
+      flex-shrink: 0;
+    }
+
+    .hero {
+      background: var(--card); border-radius: var(--radius);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+      margin-bottom: 1.5rem;
+    }
+    .hero-photo {
+      width: 100%; aspect-ratio: 16/7;
+      background: linear-gradient(135deg, #0d9488 0%, #0ea5e9 50%, #6366f1 100%);
+      background-size: cover; background-position: center;
+      position: relative;
+    }
+    .hero-photo::after {
+      content: "🏪";
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3.5rem;
+      opacity: .35;
+    }
+    .hero-photo.has-photo::after { display: none; }
+    .hero-body { padding: 1.5rem 1.75rem; }
+    .hero-row {
+      display: flex; align-items: center; gap: .65rem; flex-wrap: wrap;
+      margin-bottom: .4rem;
+    }
+    .verified-pill {
+      display: inline-flex; align-items: center; gap: .25rem;
+      font-size: .7rem; font-weight: 700; letter-spacing: .04em;
+      padding: .22rem .65rem; border-radius: 12px;
+      background: var(--teal-dim); color: var(--teal-dark);
+    }
+    h1 {
+      font-size: 2rem; font-weight: 900; letter-spacing: -.015em;
+      line-height: 1.1;
+    }
+    .hero-loc {
+      font-size: .95rem; color: var(--text-muted);
+      margin-top: .15rem;
+    }
+    .hero-desc {
+      font-size: 1rem; color: var(--text);
+      margin-top: 1rem; max-width: 580px;
+    }
+    .hero-actions {
+      display: flex; gap: .55rem; flex-wrap: wrap;
+      margin-top: 1.5rem;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .6rem 1.2rem; border-radius: 22px;
+      font-family: inherit; font-size: .9rem; font-weight: 700;
+      text-decoration: none; cursor: pointer; border: none;
+      transition: opacity .15s, transform .1s;
+    }
+    .btn-primary { background: var(--teal); color: #fff; }
+    .btn-primary:hover { opacity: .88; }
+    .btn-primary:active { transform: scale(.97); }
+    .btn-ghost {
+      background: var(--card); color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { border-color: var(--text-muted); }
+
+    /* ── Two-column body ───────────────────────────── */
+    .cols { display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem; }
+    @media (max-width: 720px) { .cols { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.4rem 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .card-title {
+      font-size: .72rem; font-weight: 800; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--text-muted);
+      margin-bottom: 1rem;
+    }
+
+    /* ── Promotions list ─────────────────────────────── */
+    .promo {
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .promo:first-child { padding-top: 0; }
+    .promo:last-child { border-bottom: none; padding-bottom: 0; }
+    .promo-title {
+      font-size: 1.05rem; font-weight: 700; color: var(--text);
+      line-height: 1.3; margin-bottom: .25rem;
+    }
+    .promo-body {
+      font-size: .92rem; color: var(--text);
+      white-space: pre-wrap; line-height: 1.5;
+      margin-top: .35rem;
+    }
+    .promo-meta {
+      font-size: .76rem; color: var(--text-muted);
+      margin-top: .55rem;
+    }
+    .promo-fresh {
+      background: var(--teal-dim); color: var(--teal-dark);
+      font-size: .62rem; font-weight: 800; letter-spacing: .08em;
+      padding: .15rem .5rem; border-radius: 4px;
+      margin-right: .45rem; text-transform: uppercase;
+      vertical-align: 1px;
+    }
+    .empty {
+      color: var(--text-muted); font-size: .9rem;
+      padding: 1.5rem 0; text-align: center; font-style: italic;
+    }
+
+    /* ── Right column info ───────────────────────────── */
+    .info-row {
+      display: flex; gap: .55rem;
+      padding: .55rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: .9rem;
+      align-items: flex-start;
+    }
+    .info-row:first-child { padding-top: 0; }
+    .info-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .info-icon { font-size: 1.05rem; flex-shrink: 0; line-height: 1.5; }
+    .info-content { flex: 1; min-width: 0; }
+    .info-label {
+      font-size: .68rem; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; color: var(--text-muted);
+      margin-bottom: .1rem;
+    }
+    .info-value { color: var(--text); word-break: break-word; }
+    .info-value a { color: var(--teal); text-decoration: none; font-weight: 600; }
+    .info-value a:hover { text-decoration: underline; }
+
+    /* ── Owner CTA banner at footer (for unclaimed stores) ─── */
+    .owner-ribbon {
+      max-width: 680px; margin: 1.5rem auto 0;
+      padding: .85rem 1.25rem;
+      background: var(--card); border: 1px dashed var(--border);
+      border-radius: var(--radius-sm);
+      text-align: center; font-size: .82rem; color: var(--text-muted);
+    }
+    .owner-ribbon a { color: var(--teal); font-weight: 700; text-decoration: none; }
+    .owner-ribbon a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="/" class="brand">ScratchFever</a>
+  <div class="topbar-spacer"></div>
+  <a href="/" class="btn-back">← All stores</a>
+</header>
+
+<main class="wrap">
+  <div id="content">
+    <div class="loader">
+      <div class="spin"></div>
+      <div>Loading store…</div>
+    </div>
+  </div>
+</main>
+
+<script>
+  const RID = (function(){
+    // /store/<id> — pluck the last path segment
+    const segs = window.location.pathname.split("/").filter(Boolean);
+    return decodeURIComponent(segs[segs.length - 1] || "");
+  })();
+
+  function escHtml(s) {
+    return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+  function timeAgo(iso) {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    const diff = Date.now() - d.getTime();
+    const m = Math.floor(diff / 60000);
+    if (m < 1) return "just now";
+    if (m < 60) return `${m}m ago`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}h ago`;
+    const days = Math.floor(h / 24);
+    if (days < 7) return `${days}d ago`;
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  }
+
+  async function load() {
+    if (!RID) { renderNotFound(); return; }
+    try {
+      const [pRes, postsRes] = await Promise.all([
+        fetch(`/api/public/retailer/${encodeURIComponent(RID)}/profile`),
+        fetch(`/api/public/retailer/${encodeURIComponent(RID)}/posts?limit=50`),
+      ]);
+      const pData = pRes.ok ? await pRes.json() : { profile: null };
+      const postsData = postsRes.ok ? await postsRes.json() : { posts: [] };
+      render(pData.profile, postsData.posts || []);
+    } catch (e) {
+      document.getElementById("content").innerHTML =
+        `<div class="loader" style="color:var(--red)">Couldn't load this store. Please try again.</div>`;
+    }
+  }
+
+  function renderNotFound() {
+    document.getElementById("content").innerHTML = `
+      <div class="not-claimed">
+        <h2>Store not found</h2>
+        <p>Try browsing all stores from the main map.</p>
+        <a href="/" class="btn btn-primary">Back to ScratchFever</a>
+      </div>`;
+  }
+
+  function render(profile, posts) {
+    if (!profile && !posts.length) {
+      document.getElementById("content").innerHTML = `
+        <div class="not-claimed">
+          <h2>This store hasn't been claimed yet</h2>
+          <p>If you own or operate this store, you can claim it for free and get a custom page like the ones other stores use.</p>
+          <a href="/claim?retailer_id=${encodeURIComponent(RID)}" class="btn btn-primary">Claim this store</a>
+        </div>`;
+      return;
+    }
+
+    const name = profile?.store_name || "Lottery Retailer";
+    document.getElementById("pageTitle").textContent = `${name} — ScratchFever`;
+    if (profile?.description) {
+      document.getElementById("metaDesc").content = profile.description.slice(0, 160);
+    }
+
+    const photoStyle = profile?.photo_url
+      ? `background-image: url('${escHtml(profile.photo_url).replace(/'/g, "\\'")}');`
+      : "";
+
+    const bannerHtml = profile?.banner_text ? `
+      <div class="fresh-banner">
+        <span class="fresh-banner-tag">FRESH</span>
+        <span>${escHtml(profile.banner_text)}</span>
+      </div>` : "";
+
+    const verifiedPill = profile?.verified
+      ? `<span class="verified-pill">✓ Verified by owner</span>` : "";
+
+    const locLine = profile
+      ? `${profile.city ? escHtml(profile.city) + " · " : ""}${escHtml(profile.state_code || "")}`
+      : "";
+
+    const directionsQ = encodeURIComponent(`${name} ${profile?.city || ""} ${profile?.state_code || ""}`);
+    const heroActions = `
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="/?store=${encodeURIComponent(RID)}&state=${encodeURIComponent(profile?.state_code || 'MA')}">
+          See live ticket inventory →
+        </a>
+        <a class="btn btn-ghost" href="https://www.google.com/maps/search/?api=1&query=${directionsQ}" target="_blank" rel="noopener">
+          Get directions
+        </a>
+        ${profile?.phone ? `<a class="btn btn-ghost" href="tel:${escHtml(profile.phone)}">Call</a>` : ""}
+      </div>`;
+
+    const promosHtml = posts.length ? posts.map((p, i) => {
+      const fresh = (Date.now() - new Date(p.created_at).getTime()) < 24 * 3600 * 1000;
+      return `<div class="promo">
+        <div class="promo-title">
+          ${fresh ? '<span class="promo-fresh">New</span>' : ''}${escHtml(p.title)}
+        </div>
+        ${p.body ? `<div class="promo-body">${escHtml(p.body)}</div>` : ''}
+        <div class="promo-meta">${timeAgo(p.created_at)}</div>
+      </div>`;
+    }).join("") : `<div class="empty">No promotions or announcements yet — check back soon.</div>`;
+
+    const infoRows = [];
+    if (profile?.hours_text) infoRows.push({ icon: "🕐", label: "Hours", value: escHtml(profile.hours_text) });
+    if (profile?.phone)      infoRows.push({ icon: "📞", label: "Phone", value: `<a href="tel:${escHtml(profile.phone)}">${escHtml(profile.phone)}</a>` });
+    if (profile?.website)    infoRows.push({ icon: "🌐", label: "Website", value: `<a href="${escHtml(profile.website)}" target="_blank" rel="noopener">${escHtml(profile.website.replace(/^https?:\/\//, ""))}</a>` });
+    if (profile?.contact_email) infoRows.push({ icon: "✉️", label: "Contact", value: `<a href="mailto:${escHtml(profile.contact_email)}">${escHtml(profile.contact_email)}</a>` });
+
+    const infoHtml = infoRows.length
+      ? infoRows.map(r => `
+          <div class="info-row">
+            <div class="info-icon">${r.icon}</div>
+            <div class="info-content">
+              <div class="info-label">${r.label}</div>
+              <div class="info-value">${r.value}</div>
+            </div>
+          </div>`).join("")
+      : `<div class="empty" style="padding:.5rem 0">The owner hasn't added contact info yet.</div>`;
+
+    document.getElementById("content").innerHTML = `
+      ${bannerHtml}
+      <div class="hero">
+        <div class="hero-photo ${profile?.photo_url ? 'has-photo' : ''}" style="${photoStyle}"></div>
+        <div class="hero-body">
+          <div class="hero-row">
+            <h1>${escHtml(name)}</h1>
+            ${verifiedPill}
+          </div>
+          <div class="hero-loc">${locLine}</div>
+          ${profile?.description ? `<div class="hero-desc">${escHtml(profile.description)}</div>` : ""}
+          ${heroActions}
+        </div>
+      </div>
+
+      <div class="cols">
+        <div>
+          <div class="card">
+            <div class="card-title">Promotions &amp; Announcements</div>
+            ${promosHtml}
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-title">Store Info</div>
+            ${infoHtml}
+          </div>
+        </div>
+      </div>
+
+      <div class="owner-ribbon">
+        Own this store?
+        <a href="/claim?retailer_id=${encodeURIComponent(RID)}&state_code=${encodeURIComponent(profile?.state_code || '')}&store_name=${encodeURIComponent(name)}">Claim it</a>
+        to control this page, post promotions, and drive foot traffic from ScratchFever players.
+      </div>
+    `;
+  }
+
+  load();
+</script>
+</body>
+</html>
