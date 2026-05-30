@@ -3033,6 +3033,7 @@ function renderStoresMap() {
   const search = (document.getElementById("cfStoresSearch")?.value || "").trim().toLowerCase();
   const withCoords = _storeCandidates.filter(c =>
     c.latitude != null && c.longitude != null &&
+    (!_showSelectedOnly || _selectedStores.has(c.external_id)) &&
     (!search || (c.name || "").toLowerCase().includes(search) || (c.city || "").toLowerCase().includes(search))
   );
 
