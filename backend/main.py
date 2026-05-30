@@ -182,6 +182,7 @@ app.include_router(vapi_dispatch_router)
 app.include_router(retailer_router)
 app.include_router(retailer_public_router)
 app.include_router(plays_router)
+app.include_router(revenuecat_router)
 
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
 if os.path.isdir(FRONTEND_DIR):
