@@ -3573,6 +3573,9 @@ function getRetailerState(retailerId) {
   if (allFlRetailers.some(r => String(r.id) === String(retailerId))) return 'FL';
   if (allGaRetailers.some(r => String(r.id) === String(retailerId))) return 'GA';
   if (allNyRetailers.some(r => String(r.id) === String(retailerId))) return 'NY';
+  if (allVaRetailers.some(r => String(r.id) === String(retailerId))) return 'VA';
+  if (allDcRetailers.some(r => String(r.id) === String(retailerId))) return 'DC';
+  if (allVtRetailers.some(r => String(r.id) === String(retailerId))) return 'VT';
   return null;
 }
 
