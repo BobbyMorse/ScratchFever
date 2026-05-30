@@ -61,7 +61,7 @@ def _parse_from_table(table) -> list[dict]:
             zip_    = cells[col["zip"]].get_text(strip=True)     if "zip"     in col and len(cells) > col["zip"]     else ""
             if "phone" in col and len(cells) > col["phone"]:
                 tel = cells[col["phone"]].find("a", href=re.compile(r"^tel:"))
-                phone = (tel["href"].replace("tel:", "").strip() if tel
+                phone = _clean_phone(tel["href"].replace("tel:", "") if tel
                          else cells[col["phone"]].get_text(strip=True))
             else:
                 phone = ""
