@@ -1262,8 +1262,18 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
 /* ── My Plays ─────────────────────────────────────── */
 .plays-log-section { margin: 0 1.5rem 1.25rem; }
 .plays-log-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.4rem; box-shadow: var(--shadow-card); }
-.plays-log-title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: .9rem; }
-.plays-log-row { display: flex; flex-wrap: wrap; gap: .65rem; align-items: flex-end; }
+.plays-log-title { font-size: 1rem; font-weight: 700; color: var(--text); margin: 0; }
+.plays-log-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; margin-bottom: .9rem; flex-wrap: wrap; }
+.plays-log-state { display: flex; flex-direction: column; gap: .25rem; min-width: 160px; }
+.plays-log-state label { font-size: .72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+.plays-log-state select { padding: .45rem .6rem; border-radius: 8px; border: 1px solid var(--border); background: var(--card); color: var(--text); font-size: .9rem; cursor: pointer; }
+.plays-log-row { display: flex; flex-wrap: wrap; gap: .65rem; align-items: flex-end; position: relative; padding-right: 2rem; }
+.plays-log-row + .plays-log-row { margin-top: .9rem; padding-top: .9rem; border-top: 1px dashed var(--border); }
+.pl-remove-btn { position: absolute; right: 0; bottom: .35rem; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border); background: var(--card); color: var(--text-muted); cursor: pointer; font-size: .75rem; line-height: 1; display: flex; align-items: center; justify-content: center; transition: color .12s, background .12s, border-color .12s; }
+.pl-remove-btn:hover { color: var(--red); border-color: var(--red); background: var(--red-dim); }
+.plays-log-actions { display: flex; gap: .65rem; align-items: center; justify-content: flex-end; margin-top: 1.1rem; flex-wrap: wrap; }
+.plays-log-actions .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+.plays-log-actions .btn-ghost:hover { background: var(--card-hover, rgba(0,0,0,.04)); }
 
 .plays-chart-section { margin: 0 1.5rem 1.25rem; }
 .plays-chart-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.2rem .7rem; box-shadow: var(--shadow-card); }
