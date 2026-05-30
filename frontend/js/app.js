@@ -5519,7 +5519,6 @@ function getVtFilteredRows() {
   const city          = (document.getElementById("vtCityInput")?.value   || "").toLowerCase().trim();
   const invFilter     = document.getElementById("vtInvFilter")?.value  || "";
   const dateFilter    = document.getElementById("vtDateFilter")?.value || "";
-  const showUnchecked = document.getElementById("vtShowUnchecked")?.checked ?? true;
 
   vtMapReportFilter = (invFilter === "in" || invFilter === "out") ? invFilter : "all";
 
