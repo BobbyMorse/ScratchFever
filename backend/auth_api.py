@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 from backend.users import (
     create_user, get_user_by_email, verify_password,
-    create_token, require_member,
+    create_token, require_member, is_user_pro,
 )
 
 router = APIRouter()
