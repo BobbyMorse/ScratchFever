@@ -413,3 +413,243 @@ async def get_public_retailer_posts(retailer_id: str, limit: int = Query(10, le=
             for r in rows
         ]
     }
+
+
+@public_router.get("/retailer/{retailer_id}/profile")
+async def get_public_retailer_profile(retailer_id: str):
+    """Owner-published store profile fields, surfaced on the consumer-side
+    retailer card. Only returns rows whose claim was approved (verified=TRUE
+    or any retailer_profiles row, which only exists post-approval)."""
+    async with get_pool().acquire() as conn:
+        p = await conn.fetchrow(
+            """SELECT store_name, city, state_code, phone, verified,
+                      description, website, contact_email, hours_text,
+                      photo_url, banner_text, banner_until
+               FROM retailer_profiles WHERE retailer_id=$1
+               ORDER BY id LIMIT 1""",
+            retailer_id,
+        )
+    if not p:
+        return {"profile": None}
+    banner_active = (
+        bool(p["banner_text"])
+        and (p["banner_until"] is None or p["banner_until"] > datetime.datetime.now(datetime.timezone.utc))
+    )
+    return {
+        "profile": {
+            "store_name":    p["store_name"],
+            "city":          p["city"],
+            "state_code":    p["state_code"],
+            "phone":         p["phone"],
+            "verified":      p["verified"],
+            "description":   p["description"],
+            "website":       p["website"],
+            "contact_email": p["contact_email"],
+            "hours_text":    p["hours_text"],
+            "photo_url":     p["photo_url"],
+            "banner_text":   p["banner_text"] if banner_active else None,
+        }
+    }
+
+
+# ── Claim flow ────────────────────────────────────────────────────────────────
+
+class ClaimBody(BaseModel):
+    retailer_id: str
+    state_code: str
+    store_name: str
+    city: Optional[str] = None
+    zip: Optional[str] = None
+    phone: Optional[str] = None
+    claimant_role: Optional[str] = None   # owner | manager | clerk | other
+    claimant_name: Optional[str] = None
+    claimant_phone: Optional[str] = None
+    notes: Optional[str] = None
+
+
+@router.post("/claim")
+async def submit_claim(body: ClaimBody, user: dict = Depends(require_member)):
+    """Any logged-in member can submit a claim for a specific retailer.
+    Blocks duplicates (same user, same retailer, still pending) and blocks
+    users who already own an approved store."""
+    rid = (body.retailer_id or "").strip()
+    state_code = (body.state_code or "").strip().upper()
+    store_name = (body.store_name or "").strip()
+    if not rid or not state_code or not store_name:
+        raise HTTPException(status_code=400, detail="retailer_id, state_code, and store_name are required")
+    if len(state_code) != 2:
+        raise HTTPException(status_code=400, detail="state_code must be a 2-letter code")
+
+    async with get_pool().acquire() as conn:
+        existing_profile = await conn.fetchval(
+            "SELECT id FROM retailer_profiles WHERE user_id=$1", user["uid"]
+        )
+        if existing_profile:
+            raise HTTPException(status_code=409, detail="This account already owns a store. Contact support to claim a second location.")
+        pending_dup = await conn.fetchval(
+            """SELECT id FROM retailer_claims
+               WHERE user_id=$1 AND retailer_id=$2 AND state_code=$3 AND status='pending'""",
+            user["uid"], rid, state_code,
+        )
+        if pending_dup:
+            raise HTTPException(status_code=409, detail="You already have a pending claim for this store.")
+        row = await conn.fetchrow(
+            """INSERT INTO retailer_claims
+               (user_id, retailer_id, state_code, store_name, city, zip, phone,
+                claimant_role, claimant_name, claimant_phone, notes)
+               VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+               RETURNING id, created_at""",
+            user["uid"], rid, state_code, store_name[:120],
+            (body.city or "").strip()[:120] or None,
+            (body.zip or "").strip()[:20] or None,
+            (body.phone or "").strip()[:30] or None,
+            (body.claimant_role or "").strip()[:30] or None,
+            (body.claimant_name or "").strip()[:120] or None,
+            (body.claimant_phone or "").strip()[:30] or None,
+            (body.notes or "").strip()[:1000] or None,
+        )
+    return {"id": row["id"], "status": "pending", "created_at": row["created_at"].isoformat()}
+
+
+@router.get("/my-claims")
+async def list_my_claims(user: dict = Depends(require_member)):
+    async with get_pool().acquire() as conn:
+        rows = await conn.fetch(
+            """SELECT id, retailer_id, state_code, store_name, city, status,
+                      created_at, reviewed_at, review_notes
+               FROM retailer_claims WHERE user_id=$1
+               ORDER BY created_at DESC""",
+            user["uid"],
+        )
+    return {
+        "claims": [
+            {
+                "id": r["id"],
+                "retailer_id": r["retailer_id"],
+                "state_code": r["state_code"],
+                "store_name": r["store_name"],
+                "city": r["city"],
+                "status": r["status"],
+                "created_at": r["created_at"].isoformat(),
+                "reviewed_at": r["reviewed_at"].isoformat() if r["reviewed_at"] else None,
+                "review_notes": r["review_notes"],
+            }
+            for r in rows
+        ]
+    }
+
+
+# ── Admin: claim review ───────────────────────────────────────────────────────
+
+@admin_router.get("/claims")
+async def admin_list_claims(
+    status: Optional[str] = Query(None, regex="^(pending|approved|rejected)$"),
+    limit: int = Query(100, le=500),
+    admin: dict = Depends(require_admin),
+):
+    where = "WHERE c.status=$1" if status else ""
+    args = [status] if status else []
+    args.append(limit)
+    async with get_pool().acquire() as conn:
+        rows = await conn.fetch(
+            f"""SELECT c.id, c.user_id, c.retailer_id, c.state_code, c.store_name,
+                       c.city, c.zip, c.phone, c.claimant_role, c.claimant_name,
+                       c.claimant_phone, c.notes, c.status, c.created_at,
+                       c.reviewed_at, c.review_notes,
+                       u.email AS user_email, u.username AS user_username
+                FROM retailer_claims c
+                JOIN users u ON u.id = c.user_id
+                {where}
+                ORDER BY c.created_at DESC
+                LIMIT ${len(args)}""",
+            *args,
+        )
+    return {
+        "claims": [
+            {
+                "id": r["id"],
+                "user_id": r["user_id"],
+                "user_email": r["user_email"],
+                "user_username": r["user_username"],
+                "retailer_id": r["retailer_id"],
+                "state_code": r["state_code"],
+                "store_name": r["store_name"],
+                "city": r["city"],
+                "zip": r["zip"],
+                "phone": r["phone"],
+                "claimant_role": r["claimant_role"],
+                "claimant_name": r["claimant_name"],
+                "claimant_phone": r["claimant_phone"],
+                "notes": r["notes"],
+                "status": r["status"],
+                "created_at": r["created_at"].isoformat(),
+                "reviewed_at": r["reviewed_at"].isoformat() if r["reviewed_at"] else None,
+                "review_notes": r["review_notes"],
+            }
+            for r in rows
+        ]
+    }
+
+
+class ClaimReviewBody(BaseModel):
+    review_notes: Optional[str] = None
+
+
+@admin_router.post("/claims/{claim_id}/approve")
+async def admin_approve_claim(claim_id: int, body: ClaimReviewBody, admin: dict = Depends(require_admin)):
+    """Approve a claim. Idempotent on the role bump; the profile insert is
+    rejected (409) if the user already owns a store."""
+    async with get_pool().acquire() as conn:
+        async with conn.transaction():
+            c = await conn.fetchrow(
+                "SELECT id, user_id, retailer_id, state_code, store_name, city, zip, phone, status FROM retailer_claims WHERE id=$1 FOR UPDATE",
+                claim_id,
+            )
+            if not c:
+                raise HTTPException(status_code=404, detail="Claim not found")
+            if c["status"] != "pending":
+                raise HTTPException(status_code=409, detail=f"Claim is already {c['status']}")
+            already_owns = await conn.fetchval(
+                "SELECT id FROM retailer_profiles WHERE user_id=$1", c["user_id"]
+            )
+            if already_owns:
+                raise HTTPException(status_code=409, detail="User already owns a store. Reject this claim or remove their existing profile first.")
+            await conn.execute(
+                """INSERT INTO retailer_profiles
+                   (user_id, retailer_id, state_code, store_name, city, zip, phone, verified)
+                   VALUES ($1,$2,$3,$4,$5,$6,$7,TRUE)""",
+                c["user_id"], c["retailer_id"], c["state_code"], c["store_name"],
+                c["city"], c["zip"], c["phone"],
+            )
+            await conn.execute(
+                "UPDATE users SET role='retailer' WHERE id=$1 AND role='member'",
+                c["user_id"],
+            )
+            await conn.execute(
+                """UPDATE retailer_claims
+                   SET status='approved', reviewed_at=NOW(),
+                       reviewed_by=$2, review_notes=$3
+                   WHERE id=$1""",
+                claim_id, admin["uid"], (body.review_notes or "").strip()[:1000] or None,
+            )
+    return {"id": claim_id, "status": "approved"}
+
+
+@admin_router.post("/claims/{claim_id}/reject")
+async def admin_reject_claim(claim_id: int, body: ClaimReviewBody, admin: dict = Depends(require_admin)):
+    async with get_pool().acquire() as conn:
+        c = await conn.fetchrow(
+            "SELECT status FROM retailer_claims WHERE id=$1", claim_id
+        )
+        if not c:
+            raise HTTPException(status_code=404, detail="Claim not found")
+        if c["status"] != "pending":
+            raise HTTPException(status_code=409, detail=f"Claim is already {c['status']}")
+        await conn.execute(
+            """UPDATE retailer_claims
+               SET status='rejected', reviewed_at=NOW(),
+                   reviewed_by=$2, review_notes=$3
+               WHERE id=$1""",
+            claim_id, admin["uid"], (body.review_notes or "").strip()[:1000] or None,
+        )
+    return {"id": claim_id, "status": "rejected"}
