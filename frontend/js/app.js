@@ -2698,6 +2698,18 @@ let _storesView      = "list";    // "list" | "map"
 let _storesMap       = null;      // Leaflet map instance (lazy)
 let _storesCluster   = null;      // L.markerClusterGroup
 let _storesMarkers   = new Map(); // external_id → L.Marker
+let _showSelectedOnly = false;    // when true, list+map show only checked stores
+
+function toggleShowSelectedOnly() {
+  _showSelectedOnly = !_showSelectedOnly;
+  const btn = document.getElementById("cfShowSelectedBtn");
+  if (btn) {
+    btn.textContent = _showSelectedOnly ? "Show all" : "Show selected";
+    btn.classList.toggle("cf-view-active", _showSelectedOnly);
+  }
+  renderStoresPicker();
+  if (_storesView === "map" && _storesMap) renderStoresMap();
+}
 
 async function loadStoreCandidates() {
   const state = document.getElementById("cfStateSelect").value;
