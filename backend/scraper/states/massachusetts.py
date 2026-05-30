@@ -184,10 +184,6 @@ class MassachusettsScraper(BaseScraper):
         for t in tiers:
             t["odds_one_in"] = round(total_tickets / t["prizes_total"], 2) if t["prizes_total"] else None
 
-        # Apply name-based annuity heuristic so the top tier can carry cash_value / annuity
-        # metadata before EV math runs. Honors any scraper-supplied annuity fields.
-        _apply_annuity_heuristic(name, tiers)
-
         if tickets_remaining and tickets_remaining > 0:
             ev_data = calculate_ev(price, tiers, tickets_remaining)
             ev = ev_data["ev"]
