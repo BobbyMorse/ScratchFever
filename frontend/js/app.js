@@ -1121,6 +1121,7 @@ async function loadBigWins() {
 }
 
 function filterBigWins() {
+  if (bigwinsView === "map") { renderBigWinsMap(); return; }
   const state = document.getElementById("bigwinsStateFilter")?.value || "";
   const list = document.getElementById("bigwinsList");
   const countEl = document.getElementById("bigwinsCount");
@@ -1132,6 +1133,163 @@ function filterBigWins() {
   }
   countEl.textContent = `${filtered.length} claim${filtered.length !== 1 ? "s" : ""}`;
   list.innerHTML = filtered.map(buildClaimItem).join("");
+}
+
+function setBigWinsView(view) {
+  bigwinsView = view;
+  const listBtn = document.getElementById("bigwinsViewListBtn");
+  const mapBtn = document.getElementById("bigwinsViewMapBtn");
+  const listEl = document.getElementById("bigwinsList");
+  const mapWrap = document.getElementById("bigwinsMapWrap");
+  if (view === "map") {
+    listBtn?.classList.remove("is-active");
+    mapBtn?.classList.add("is-active");
+    listBtn?.setAttribute("aria-selected", "false");
+    mapBtn?.setAttribute("aria-selected", "true");
+    if (listEl) listEl.style.display = "none";
+    if (mapWrap) mapWrap.style.display = "";
+    loadBigWinsReported().then(() => renderBigWinsMap());
+  } else {
+    mapBtn?.classList.remove("is-active");
+    listBtn?.classList.add("is-active");
+    mapBtn?.setAttribute("aria-selected", "false");
+    listBtn?.setAttribute("aria-selected", "true");
+    if (mapWrap) mapWrap.style.display = "none";
+    if (listEl) listEl.style.display = "";
+    filterBigWins();
+  }
+}
+
+async function loadBigWinsReported() {
+  if (bigwinsReportedLoaded) return;
+  try {
+    const res = await fetch("/api/reported-wins?days=30&min_prize=10000&has_location=true&limit=3000");
+    if (!res.ok) { bigwinsReportedLoaded = true; return; }
+    const data = await res.json();
+    bigwinsReportedWins = data.wins || [];
+    bigwinsReportedLoaded = true;
+    const sel = document.getElementById("bigwinsStateFilter");
+    if (sel) {
+      const existing = new Set([...sel.options].map(o => o.value));
+      (data.states_with_data || []).forEach(sc => {
+        if (!existing.has(sc)) {
+          const opt = document.createElement("option");
+          opt.value = sc;
+          opt.textContent = sc;
+          sel.appendChild(opt);
+        }
+      });
+    }
+  } catch (e) {
+    console.error("loadBigWinsReported:", e);
+    bigwinsReportedLoaded = true;
+  }
+}
+
+function initBigWinsMap() {
+  if (bigwinsMap) return;
+  bigwinsMap = L.map("bigwinsMap", { preferCanvas: true }).setView([39.5, -96.0], 4);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors",
+    maxZoom: 19,
+  }).addTo(bigwinsMap);
+  bigwinsMapMarkers = L.layerGroup().addTo(bigwinsMap);
+}
+
+function renderBigWinsMap() {
+  initBigWinsMap();
+  // Leaflet sometimes needs a kick if container was display:none when init ran
+  setTimeout(() => bigwinsMap && bigwinsMap.invalidateSize(), 50);
+  bigwinsMapMarkers.clearLayers();
+
+  const state = document.getElementById("bigwinsStateFilter")?.value || "";
+  const wins = state ? bigwinsReportedWins.filter(w => w.state_code === state) : bigwinsReportedWins;
+
+  const empty = document.getElementById("bigwinsMapEmpty");
+  const stats = document.getElementById("bigwinsMapStats");
+  const countEl = document.getElementById("bigwinsCount");
+
+  if (!wins.length) {
+    if (empty) {
+      empty.style.display = "";
+      empty.textContent = state
+        ? `No mapped wins for ${state} in the last 30 days.`
+        : "No mapped wins yet. (Currently only MA publishes retailer-level winners.)";
+    }
+    if (stats) stats.textContent = "";
+    if (countEl) countEl.textContent = "";
+    return;
+  }
+  if (empty) empty.style.display = "none";
+
+  // Group wins by retailer (lat/lng key)
+  const groups = new Map();
+  for (const w of wins) {
+    const key = `${w.retailer_lat.toFixed(5)}|${w.retailer_lng.toFixed(5)}`;
+    if (!groups.has(key)) {
+      groups.set(key, {
+        lat: w.retailer_lat,
+        lng: w.retailer_lng,
+        retailer: w.retailer_name,
+        city: w.retailer_city,
+        state: w.state_code,
+        wins: [],
+        total: 0,
+      });
+    }
+    const g = groups.get(key);
+    g.wins.push(w);
+    g.total += w.prize_amount || 0;
+  }
+
+  const totalPrize = wins.reduce((s, w) => s + (w.prize_amount || 0), 0);
+  if (stats) {
+    stats.innerHTML = `<strong>${wins.length}</strong> wins across <strong>${groups.size}</strong> retailers · <strong>${fmtClaimPrize(totalPrize)}</strong> total prizes · last 30 days${state ? ` · ${state}` : ""}`;
+  }
+  if (countEl) countEl.textContent = `${wins.length} mapped win${wins.length !== 1 ? "s" : ""}`;
+
+  const bounds = [];
+  for (const g of groups.values()) {
+    const radius = Math.max(7, Math.min(28, Math.sqrt(g.total) / 30));
+    const color = g.wins.length > 1 ? "#e85d04" : "#f48c06";
+    const marker = L.circleMarker([g.lat, g.lng], {
+      radius,
+      fillColor: color,
+      color: "#7a2a00",
+      weight: 1.5,
+      opacity: 0.9,
+      fillOpacity: 0.7,
+    });
+    marker.bindPopup(buildBigWinsPopup(g), { maxWidth: 280 });
+    marker.addTo(bigwinsMapMarkers);
+    bounds.push([g.lat, g.lng]);
+  }
+  if (bounds.length) {
+    bigwinsMap.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
+  }
+}
+
+function buildBigWinsPopup(g) {
+  const items = g.wins
+    .slice()
+    .sort((a, b) => (b.prize_amount || 0) - (a.prize_amount || 0))
+    .slice(0, 12)
+    .map(w => {
+      const prize = fmtClaimPrize(w.prize_amount);
+      const game = escHtml((w.source_game_name || "").trim() || "(unknown game)");
+      const gameHtml = w.game_db_id != null
+        ? `<a class="bp-game-link" onclick="openGame(${w.game_db_id});return false;">${game}</a>`
+        : game;
+      const date = w.claim_date ? `<span class="bp-date"> · ${escHtml(w.claim_date)}</span>` : "";
+      return `<li><span class="bp-prize">${prize}</span> · ${gameHtml}${date}</li>`;
+    })
+    .join("");
+  const moreNote = g.wins.length > 12 ? `<li class="bp-date">…and ${g.wins.length - 12} more</li>` : "";
+  return `<div class="bigwins-popup">
+    <div class="bp-retailer">${escHtml(g.retailer || "Unknown retailer")}</div>
+    <div class="bp-city">${escHtml(g.city || "")}${g.state ? ", " + escHtml(g.state) : ""} · ${g.wins.length} win${g.wins.length !== 1 ? "s" : ""}</div>
+    <ul>${items}${moreNote}</ul>
+  </div>`;
 }
 
 // ── Filters & sorting ─────────────────────────────────────────────────────────
