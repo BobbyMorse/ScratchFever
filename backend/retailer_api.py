@@ -70,28 +70,113 @@ async def retailer_games(user: dict = Depends(require_retailer)):
 
 # ── Profile ───────────────────────────────────────────────────────────────────
 
+def _profile_to_dict(p) -> dict:
+    return {
+        "id": p["id"],
+        "retailer_id": p["retailer_id"],
+        "state_code": p["state_code"],
+        "store_name": p["store_name"],
+        "city": p["city"],
+        "zip": p["zip"],
+        "phone": p["phone"],
+        "verified": p["verified"],
+        "created_at": p["created_at"].isoformat(),
+        "description": p["description"],
+        "website": p["website"],
+        "contact_email": p["contact_email"],
+        "hours_text": p["hours_text"],
+        "photo_url": p["photo_url"],
+        "banner_text": p["banner_text"],
+        "banner_until": p["banner_until"].isoformat() if p["banner_until"] else None,
+    }
+
+
 @router.get("/me")
 async def get_retailer_me(user: dict = Depends(require_retailer)):
     async with get_pool().acquire() as conn:
         profile = await conn.fetchrow(
             """SELECT id, user_id, retailer_id, state_code, store_name,
-                      city, zip, phone, verified, created_at
+                      city, zip, phone, verified, created_at,
+                      description, website, contact_email, hours_text,
+                      photo_url, banner_text, banner_until
                FROM retailer_profiles WHERE user_id=$1""",
             user["uid"],
         )
     if not profile:
-        raise HTTPException(status_code=404, detail="No retailer profile linked to this account. Contact support.")
-    return {
-        "id": profile["id"],
-        "retailer_id": profile["retailer_id"],
-        "state_code": profile["state_code"],
-        "store_name": profile["store_name"],
-        "city": profile["city"],
-        "zip": profile["zip"],
-        "phone": profile["phone"],
-        "verified": profile["verified"],
-        "created_at": profile["created_at"].isoformat(),
-    }
+        raise HTTPException(status_code=404, detail="No retailer profile linked to this account. Submit a store claim from the store's page.")
+    return _profile_to_dict(profile)
+
+
+class ProfileEditBody(BaseModel):
+    store_name: Optional[str] = None
+    phone: Optional[str] = None
+    description: Optional[str] = None
+    website: Optional[str] = None
+    contact_email: Optional[str] = None
+    hours_text: Optional[str] = None
+    photo_url: Optional[str] = None
+    banner_text: Optional[str] = None
+    banner_until: Optional[datetime.datetime] = None
+
+
+@router.put("/me")
+async def update_retailer_me(body: ProfileEditBody, user: dict = Depends(require_retailer)):
+    # Sanitize text fields up front; we trust nothing from the client.
+    def _clip(val: Optional[str], maxlen: int) -> Optional[str]:
+        if val is None:
+            return None
+        v = val.strip()
+        return v[:maxlen] if v else None
+
+    store_name    = _clip(body.store_name, 120)
+    phone         = _clip(body.phone, 30)
+    description   = _clip(body.description, 1000)
+    website       = _clip(body.website, 300)
+    contact_email = _clip(body.contact_email, 200)
+    hours_text    = _clip(body.hours_text, 500)
+    photo_url     = _clip(body.photo_url, 500)
+    banner_text   = _clip(body.banner_text, 200)
+    banner_until  = body.banner_until
+
+    if website and not (website.startswith("http://") or website.startswith("https://")):
+        website = "https://" + website
+
+    async with get_pool().acquire() as conn:
+        existing = await conn.fetchrow(
+            "SELECT id, store_name FROM retailer_profiles WHERE user_id=$1", user["uid"]
+        )
+        if not existing:
+            raise HTTPException(status_code=404, detail="No retailer profile found")
+        # Use COALESCE so omitted fields stay unchanged; explicit "" from the
+        # client (sanitized to None above) is treated as "no change", not clear.
+        # Owners can clear a field by sending the literal string "—" or null —
+        # for now we leave clearing out of scope; banner_until is the one
+        # explicit nullable knob (set/expire the announce banner).
+        await conn.execute(
+            """UPDATE retailer_profiles SET
+                 store_name    = COALESCE($2, store_name),
+                 phone         = COALESCE($3, phone),
+                 description   = COALESCE($4, description),
+                 website       = COALESCE($5, website),
+                 contact_email = COALESCE($6, contact_email),
+                 hours_text    = COALESCE($7, hours_text),
+                 photo_url     = COALESCE($8, photo_url),
+                 banner_text   = $9,
+                 banner_until  = $10,
+                 updated_at    = NOW()
+               WHERE user_id=$1""",
+            user["uid"], store_name, phone, description, website, contact_email,
+            hours_text, photo_url, banner_text, banner_until,
+        )
+        profile = await conn.fetchrow(
+            """SELECT id, user_id, retailer_id, state_code, store_name,
+                      city, zip, phone, verified, created_at,
+                      description, website, contact_email, hours_text,
+                      photo_url, banner_text, banner_until
+               FROM retailer_profiles WHERE user_id=$1""",
+            user["uid"],
+        )
+    return _profile_to_dict(profile)
 
 
 # ── Inventory ─────────────────────────────────────────────────────────────────
