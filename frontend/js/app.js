@@ -1105,14 +1105,8 @@ async function loadBigWins() {
       return;
     }
     allBigWins = data.claims;
-    const sel = document.getElementById("bigwinsStateFilter");
-    const stateCodes = [...new Set(data.claims.map(c => c.state_code))].sort();
-    stateCodes.forEach(sc => {
-      const opt = document.createElement("option");
-      opt.value = sc;
-      opt.textContent = sc;
-      sel.appendChild(opt);
-    });
+    allBigWinsStates = [...new Set(data.claims.map(c => c.state_code))].sort();
+    rebuildBigWinsStateDropdown();
     filterBigWins();
   } catch (e) {
     const loadingEl = document.getElementById("bigwinsLoading");
