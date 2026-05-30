@@ -1,0 +1,110 @@
+"""
+Arkansas winners scraper.
+
+AR Lottery has a paginated HTML list at:
+  https://www.myarkansaslottery.com/winners?page=N
+Each row exposes Name, City, Amount, Game, Date Claimed via `data-cell-title`.
+No retailer info — winner home city only.
+
+Pages are 0-indexed-ish (page=1..N, ~79 winners per page). We page until either
+the response has no winners or all winners are older than the cutoff.
+"""
+from __future__ import annotations
+import datetime as dt
+import logging
+import re
+from backend.scraper.winners.base import WinnersScraper, is_draw_game
+
+logger = logging.getLogger(__name__)
+
+URL = "https://www.myarkansaslottery.com/winners"
+
+ROW_RE = re.compile(
+    r'<tr>\s*'
+    r'<td data-cell-title="Name:\s*">\s*([^<]*?)\s*</td>\s*'
+    r'<td data-cell-title="City:\s*">\s*([^<]*?)\s*</td>\s*'
+    r'<td data-cell-title="Amount:\s*">\s*\$?([\d,.]+)\s*</td>\s*'
+    r'<td data-cell-title="Game:\s*">\s*([^<]*?)\s*</td>\s*'
+    r'<td data-cell-title="Date Claimed:\s*">\s*([^<]*?)\s*</td>',
+    re.IGNORECASE,
+)
+
+
+class ArkansasWinnersScraper(WinnersScraper):
+    state_code = "AR"
+    state_name = "Arkansas"
+    min_prize = 10000.0
+
+    def scrape(self, days: int = 14) -> list[dict]:
+        cutoff = dt.date.today() - dt.timedelta(days=days)
+        out: list[dict] = []
+        seen: set[str] = set()
+        page = 1
+        # Safety: AR has ~800+ pages.
+        while page < 2000:
+            try:
+                resp = self.get(URL, params={"page": page})
+            except Exception as e:
+                logger.warning("AR page %d failed: %s", page, e)
+                break
+            matches = list(ROW_RE.finditer(resp.text))
+            if not matches:
+                break
+            stale = 0
+            for m in matches:
+                norm = self._normalize(m)
+                if not norm:
+                    continue
+                if norm["claim_date"] and norm["claim_date"] < cutoff:
+                    stale += 1
+                    continue
+                if norm["source_id"] in seen:
+                    continue
+                seen.add(norm["source_id"])
+                out.append(norm)
+            if stale == len(matches) and stale > 0:
+                break
+            page += 1
+        return out
+
+    def _normalize(self, m) -> dict | None:
+        name, city, amt_raw, game, date_raw = m.groups()
+        try:
+            prize = float(amt_raw.replace(",", ""))
+        except ValueError:
+            return None
+        if prize < self.min_prize:
+            return None
+        game = game.strip()
+        if not game or is_draw_game(self.state_code, game):
+            return None
+        city = city.strip().title() or None
+        if not city:
+            return None
+        claim_date = None
+        for fmt in ("%B %d, %Y", "%b %d, %Y"):
+            try:
+                claim_date = dt.datetime.strptime(date_raw.strip(), fmt).date()
+                break
+            except ValueError:
+                pass
+        sid_parts = [
+            claim_date.isoformat() if claim_date else "",
+            name.strip(), city, game, f"{int(prize)}",
+        ]
+        source_id = "|".join(sid_parts)
+        return {
+            "source_id": source_id,
+            "source_game_id": None,
+            "source_game_name": game,
+            "prize_amount": prize,
+            "claim_date": claim_date,
+            "retailer_name": None,
+            "retailer_city": None,
+            "retailer_address": None,
+            "retailer_zip": None,
+            "winner_city": city,
+            "retailer_lat": None,
+            "retailer_lng": None,
+            "source_url": "https://www.myarkansaslottery.com/winners",
+        }
