@@ -5159,7 +5159,6 @@ function getVaFilteredRows() {
   const city          = (document.getElementById("vaCityInput")?.value   || "").toLowerCase().trim();
   const invFilter     = document.getElementById("vaInvFilter")?.value  || "";
   const dateFilter    = document.getElementById("vaDateFilter")?.value || "";
-  const showUnchecked = document.getElementById("vaShowUnchecked")?.checked ?? true;
 
   vaMapReportFilter = (invFilter === "in" || invFilter === "out") ? invFilter : "all";
 
