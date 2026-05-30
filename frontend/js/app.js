@@ -2743,18 +2743,29 @@ function autoSelectStores() {
 function selectTopNStores() {
   if (!_storeCandidates.length) return;
   autoSelectStores();
-  renderStoresPicker();
+  refreshStoresViews();
 }
 
 function selectNoStores() {
   _selectedStores = new Set();
-  renderStoresPicker();
+  refreshStoresViews();
 }
 
 function onSkipCalledToggle() {
   // Re-run auto-selection respecting the new toggle state.
   autoSelectStores();
+  refreshStoresViews();
+}
+
+function refreshStoresViews() {
   renderStoresPicker();
+  // Refresh marker icons in place so map reflects selection changes.
+  if (_storesMap && _storesMarkers.size) {
+    _storeCandidates.forEach(c => {
+      const m = _storesMarkers.get(c.external_id);
+      if (m) m.setIcon(_storeMarkerIcon(c));
+    });
+  }
 }
 
 function onCooldownChange() {
