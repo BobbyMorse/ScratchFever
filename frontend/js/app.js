@@ -2811,10 +2811,13 @@ function renderStoresPicker() {
       ? `<span class="badge" style="background:rgba(99,102,241,0.12);color:#4338ca;font-size:.7rem">${Math.round(c.score)}</span>`
       : "";
     const calledEverBadge = c.last_called_at
-      ? `<span class="badge badge-status-paused" style="font-size:.7rem" title="Last AI-called ${c.last_called_at.slice(0,10)}${c.last_talked ? ' · had real conversation' : ''}">Called ${c.last_called_at.slice(0,10)}</span>`
-      : "";
+      ? `<span class="badge" style="background:rgba(245,158,11,0.15);color:#92400e;font-size:.7rem" title="Last AI-called ${c.last_called_at.slice(0,10)}${c.last_talked ? ' · had real conversation' : ''}">Called ${_relativeDays(c.last_called_at)}</span>`
+      : `<span class="badge" style="background:rgba(148,163,184,0.18);color:#475569;font-size:.7rem">Never called</span>`;
     const inWindowBadge = c.called_within_window
       ? `<span class="badge" style="background:rgba(239,68,68,0.12);color:#991b1b;font-size:.7rem" title="AI-called within the ${cooldownDays}-day recall window">Within ${cooldownDays}d</span>`
+      : "";
+    const invBadge = c.inventory_updated
+      ? `<span class="badge" style="background:rgba(34,197,94,0.15);color:#166534;font-size:.7rem" title="A prior VAPI call wrote inventory_reports for this store">Inventory ✓</span>`
       : "";
     const phoneShort = c.phone ? String(c.phone).replace(/[^0-9]/g, "").slice(-10).replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3") : "—";
     return `<label class="cf-ticket-row" style="display:grid;grid-template-columns:auto 1fr auto;gap:.55rem;align-items:center;padding:.35rem .55rem">
@@ -2824,11 +2827,156 @@ function renderStoresPicker() {
         <div style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(c.city || "—")} · ${phoneShort}</div>
       </div>
       <div style="display:flex;gap:.3rem;align-items:center;flex-wrap:wrap;justify-content:flex-end">
-        ${scoreBadge} ${calledEverBadge} ${inWindowBadge}
+        ${scoreBadge} ${calledEverBadge} ${inWindowBadge} ${invBadge}
       </div>
     </label>`;
   }).join("");
   updateStoresCount();
+}
+
+function _relativeDays(iso) {
+  if (!iso) return "—";
+  const then = new Date(iso).getTime();
+  if (isNaN(then)) return iso.slice(0, 10);
+  const days = Math.floor((Date.now() - then) / (1000 * 60 * 60 * 24));
+  if (days <= 0) return "today";
+  if (days === 1) return "1d ago";
+  if (days < 30) return `${days}d ago`;
+  if (days < 365) return `${Math.floor(days / 30)}mo ago`;
+  return `${Math.floor(days / 365)}y ago`;
+}
+
+// ── Stores map view ──────────────────────────────────────────────────────────
+function setStoresView(mode) {
+  _storesView = mode;
+  const listEl = document.getElementById("cfStoresList");
+  const mapEl  = document.getElementById("cfStoresMap");
+  const legendEl = document.getElementById("cfStoresMapLegend");
+  const listBtn = document.getElementById("cfViewListBtn");
+  const mapBtn  = document.getElementById("cfViewMapBtn");
+  if (mode === "map") {
+    listEl.style.display = "none";
+    mapEl.style.display  = "block";
+    if (legendEl) legendEl.style.display = "flex";
+    listBtn.classList.remove("cf-view-active");
+    mapBtn.classList.add("cf-view-active");
+    renderStoresMap();
+  } else {
+    listEl.style.display = "";
+    mapEl.style.display  = "none";
+    if (legendEl) legendEl.style.display = "none";
+    mapBtn.classList.remove("cf-view-active");
+    listBtn.classList.add("cf-view-active");
+  }
+}
+
+function _storeMarkerColor(c) {
+  if (_selectedStores.has(c.external_id)) return "#22c55e"; // green
+  if (c.called_within_window)              return "#ef4444"; // red
+  if (c.last_called_at)                    return "#f59e0b"; // amber
+  if (c.inventory_updated)                 return "#6366f1"; // indigo
+  return "#94a3b8";                                          // slate
+}
+
+function _storeMarkerIcon(c) {
+  const color = _storeMarkerColor(c);
+  const selectedCls = _selectedStores.has(c.external_id) ? "selected" : "";
+  return L.divIcon({
+    className: "",
+    iconSize: [16, 16],
+    iconAnchor: [8, 8],
+    html: `<div class="cf-store-marker ${selectedCls}" style="width:16px;height:16px;background:${color}"></div>`,
+  });
+}
+
+function renderStoresMap() {
+  const mapEl = document.getElementById("cfStoresMap");
+  if (!mapEl) return;
+  if (!_storesMap) {
+    _storesMap = L.map(mapEl, { preferCanvas: true }).setView([39.5, -96.0], 4);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "© OpenStreetMap",
+      maxZoom: 19,
+    }).addTo(_storesMap);
+    _storesCluster = L.markerClusterGroup({
+      chunkedLoading: true,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+    });
+    _storesMap.addLayer(_storesCluster);
+  } else {
+    _storesCluster.clearLayers();
+    _storesMarkers.clear();
+  }
+
+  const search = (document.getElementById("cfStoresSearch")?.value || "").trim().toLowerCase();
+  const withCoords = _storeCandidates.filter(c =>
+    c.latitude != null && c.longitude != null &&
+    (!search || (c.name || "").toLowerCase().includes(search) || (c.city || "").toLowerCase().includes(search))
+  );
+
+  if (!withCoords.length) {
+    setTimeout(() => _storesMap.invalidateSize(), 50);
+    return;
+  }
+
+  const bounds = [];
+  withCoords.forEach(c => {
+    const lat = parseFloat(c.latitude);
+    const lng = parseFloat(c.longitude);
+    if (!isFinite(lat) || !isFinite(lng)) return;
+    bounds.push([lat, lng]);
+    const m = L.marker([lat, lng], { icon: _storeMarkerIcon(c) });
+    const phoneShort = c.phone ? String(c.phone).replace(/[^0-9]/g, "").slice(-10).replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3") : "—";
+    const calledLine = c.last_called_at
+      ? `Called ${_relativeDays(c.last_called_at)}${c.called_within_window ? ' (within window)' : ''}`
+      : 'Never called';
+    const invLine = c.inventory_updated ? '<br>Inventory ✓ updated previously' : '';
+    const scoreLine = c.score != null ? `<br>Score ${Math.round(c.score)}` : '';
+    m.bindPopup(
+      `<div style="font-size:.85rem">
+         <div style="font-weight:700">${escHtml(c.name || '(unnamed)')}</div>
+         <div style="color:#666;font-size:.78rem">${escHtml(c.city || '—')} · ${phoneShort}${scoreLine}</div>
+         <div style="font-size:.78rem;margin-top:.3rem">${calledLine}${invLine}</div>
+         <div style="margin-top:.45rem">
+           <button onclick="toggleStoreById('${escHtml(c.external_id)}')" style="font-size:.78rem;padding:.25rem .55rem;border:1px solid #ccc;border-radius:4px;cursor:pointer;background:#fff">
+             ${_selectedStores.has(c.external_id) ? 'Remove from call list' : 'Add to call list'}
+           </button>
+         </div>
+       </div>`
+    );
+    m.on("click", () => toggleStoreById(c.external_id));
+    _storesCluster.addLayer(m);
+    _storesMarkers.set(c.external_id, m);
+  });
+
+  if (bounds.length) {
+    try { _storesMap.fitBounds(bounds, { padding: [20, 20], maxZoom: 12 }); } catch (_) {}
+  }
+  setTimeout(() => _storesMap && _storesMap.invalidateSize(), 50);
+}
+
+function toggleStoreById(id) {
+  if (_selectedStores.has(id)) _selectedStores.delete(id);
+  else _selectedStores.add(id);
+  // Refresh just the affected marker icon.
+  const m = _storesMarkers.get(id);
+  const c = _storeCandidates.find(x => x.external_id === id);
+  if (m && c) {
+    m.setIcon(_storeMarkerIcon(c));
+    // Refresh open popup label if open.
+    if (m.getPopup() && m.isPopupOpen()) {
+      const popup = m.getPopup();
+      const html = popup.getContent().replace(
+        /(Remove from call list|Add to call list)/,
+        _selectedStores.has(id) ? 'Remove from call list' : 'Add to call list'
+      );
+      popup.setContent(html);
+    }
+  }
+  updateStoresCount();
+  // Keep list in sync if visible later.
+  if (_storesView === "list") renderStoresPicker();
 }
 
 async function dispatchSelectedStores(dryRun) {
