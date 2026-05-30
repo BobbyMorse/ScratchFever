@@ -1167,6 +1167,105 @@
     }
   }
 
+  /* ── PROFILE EDIT ──────────────────────────────────── */
+  function fillProfileForm() {
+    const p = _profile;
+    document.getElementById("pfStoreName").value = p.store_name || "";
+    document.getElementById("pfPhone").value     = p.phone        || "";
+    document.getElementById("pfWebsite").value   = p.website      || "";
+    document.getElementById("pfEmail").value     = p.contact_email|| "";
+    document.getElementById("pfHours").value     = p.hours_text   || "";
+    document.getElementById("pfPhoto").value     = p.photo_url    || "";
+    document.getElementById("pfDesc").value      = p.description  || "";
+    document.getElementById("pfBannerText").value= p.banner_text  || "";
+  }
+
+  async function saveProfile() {
+    const body = {
+      store_name:    document.getElementById("pfStoreName").value.trim() || null,
+      phone:         document.getElementById("pfPhone").value.trim() || null,
+      website:       document.getElementById("pfWebsite").value.trim() || null,
+      contact_email: document.getElementById("pfEmail").value.trim() || null,
+      hours_text:    document.getElementById("pfHours").value.trim() || null,
+      photo_url:     document.getElementById("pfPhoto").value.trim() || null,
+      description:   document.getElementById("pfDesc").value.trim() || null,
+    };
+    try {
+      const res = await authFetch("/api/retailer/me", {
+        method: "PUT",
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Save failed");
+      _profile = data;
+      renderProfile();
+      renderOverview();
+      fillProfileForm();
+      showMsg("pfMsg", "Profile saved — visible to players right now.", "ok");
+    } catch (e) {
+      showMsg("pfMsg", e.message, "err");
+    }
+  }
+
+  async function saveBanner() {
+    const text = document.getElementById("pfBannerText").value.trim();
+    if (!text) {
+      showMsg("pfBannerMsg", "Enter banner text first, or use Clear.", "err");
+      return;
+    }
+    const hours = parseInt(document.getElementById("pfBannerExpiry").value, 10);
+    const until = hours > 0
+      ? new Date(Date.now() + hours * 3600_000).toISOString()
+      : null;
+    try {
+      const res = await authFetch("/api/retailer/me", {
+        method: "PUT",
+        body: JSON.stringify({ banner_text: text, banner_until: until }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Save failed");
+      _profile = data;
+      renderOverview();
+      showMsg("pfBannerMsg", "Banner live — players will see it on your store page.", "ok");
+    } catch (e) {
+      showMsg("pfBannerMsg", e.message, "err");
+    }
+  }
+
+  async function clearBanner() {
+    try {
+      const res = await authFetch("/api/retailer/me", {
+        method: "PUT",
+        body: JSON.stringify({ banner_text: null, banner_until: null }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Save failed");
+      _profile = data;
+      document.getElementById("pfBannerText").value = "";
+      renderOverview();
+      showMsg("pfBannerMsg", "Banner cleared.", "ok");
+    } catch (e) {
+      showMsg("pfBannerMsg", e.message, "err");
+    }
+  }
+
+  /* ── POST QUICKFILL ────────────────────────────────── */
+  function prefillPost(kind) {
+    const t = document.getElementById("postTitle");
+    const b = document.getElementById("postBody");
+    if (kind === "fresh") {
+      t.value = "Just opened a fresh $30 pack — 300X";
+      b.value = "Brand new book, top prize still in. Stop by, ask for it at the counter.";
+    } else if (kind === "winner") {
+      t.value = "Big winner at our store this week!";
+      b.value = "Someone walked out with a $10,000 ticket from us. Could be you next.";
+    } else if (kind === "restock") {
+      t.value = "Restocked — top-prize games back on the shelf";
+      b.value = "Just got fresh inventory on our best games. Come check what we have.";
+    }
+    t.focus();
+  }
+
   /* ── Helpers ───────────────────────────────────────── */
   function escHtml(s) {
     return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
