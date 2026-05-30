@@ -846,6 +846,66 @@ async def api_ny_retailers(
     return {"retailers": retailers[:limit], "total": len(retailers)}
 
 
+@app.get("/api/dc/retailers")
+async def api_dc_retailers(
+    search: Optional[str] = Query(None, description="Name / city search"),
+    limit:  int           = Query(500, le=30000),
+):
+    async with get_pool().acquire() as conn:
+        rows = await conn.fetch(
+            """SELECT id, name, address, city, zip_code, phone, latitude, longitude
+               FROM state_retailers WHERE state_code='DC' AND is_active=TRUE
+               ORDER BY city, name"""
+        )
+    retailers = [
+        {
+            "id":        str(r["id"]),
+            "name":      r["name"] or "",
+            "address":   r["address"] or "",
+            "city":      r["city"] or "",
+            "zipCode":   r["zip_code"] or "",
+            "phone":     r["phone"] or "",
+            "latitude":  r["latitude"],
+            "longitude": r["longitude"],
+        }
+        for r in rows
+    ]
+    if search:
+        q = search.lower()
+        retailers = [r for r in retailers if q in r["name"].lower() or q in r["city"].lower()]
+    return {"retailers": retailers[:limit], "total": len(retailers)}
+
+
+@app.get("/api/va/retailers")
+async def api_va_retailers(
+    search: Optional[str] = Query(None, description="Name / city search"),
+    limit:  int           = Query(500, le=30000),
+):
+    async with get_pool().acquire() as conn:
+        rows = await conn.fetch(
+            """SELECT id, name, address, city, zip_code, phone, latitude, longitude
+               FROM state_retailers WHERE state_code='VA' AND is_active=TRUE
+               ORDER BY city, name"""
+        )
+    retailers = [
+        {
+            "id":        str(r["id"]),
+            "name":      r["name"] or "",
+            "address":   r["address"] or "",
+            "city":      r["city"] or "",
+            "zipCode":   r["zip_code"] or "",
+            "phone":     r["phone"] or "",
+            "latitude":  r["latitude"],
+            "longitude": r["longitude"],
+        }
+        for r in rows
+    ]
+    if search:
+        q = search.lower()
+        retailers = [r for r in retailers if q in r["name"].lower() or q in r["city"].lower()]
+    return {"retailers": retailers[:limit], "total": len(retailers)}
+
+
 @app.get("/api/vt/retailers")
 async def api_vt_retailers(
     search: Optional[str] = Query(None, description="Name / city search"),
