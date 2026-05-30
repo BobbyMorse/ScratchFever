@@ -1479,7 +1479,7 @@ async function triggerScrape() {
   btn.disabled = true;
   document.getElementById("cancelScrapeBtn").style.display = "";
   try {
-    await fetch(`/api/scrape?state=${state}`, { method: "POST" });
+    await fetch(`/api/scrape?state=${state}`, { method: "POST", headers: authHeaders() });
     pollScrapeStatus();
   } catch (e) {
     btn.classList.remove("busy");
