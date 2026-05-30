@@ -73,9 +73,9 @@ class TexasWinnersScraper(WinnersScraper):
                 city = mt.group(1).strip().title() if mt else None
             if not city:
                 continue
-            # Pull amount from title
-            ma = AMOUNT_RE.search(title)
-            prize = _parse_amount(ma.group(0)) if ma else None
+            # Pull amount from title — first $-marker is the prize
+            ma = re.search(r'\$([\d,.]+)\s*(MILLION|M|THOUSAND|K)?', title, re.IGNORECASE)
+            prize = _parse_amount(ma.group(1), ma.group(2)) if ma else None
             if not prize or prize < self.min_prize:
                 continue
             # Extract game name from filename slug
