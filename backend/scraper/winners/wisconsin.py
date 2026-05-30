@@ -24,9 +24,11 @@ CARD_RE = re.compile(
     r'<div class="game-name">\s*([^<]+?)\s*</div>[\s\S]*?'
     r'<div class="prize-amount">\s*\$?([\d,.]+)\s*</div>[\s\S]*?'
     r'<div class="winner-name">\s*([^<]*?)\s*</div>[\s\S]*?'
-    r'<div class="date-loc">([\s\S]*?)</div>',
+    r'<div class="date-loc">\s*'
+    r'<div>\s*([^<]*?)\s*</div>\s*'
+    r'<div>\s*([^<]*?)\s*</div>\s*'
+    r'<div>\s*([^<]*?)\s*</div>',
 )
-LINE_RE = re.compile(r'<div>\s*([^<]+?)\s*</div>')
 
 
 class WisconsinWinnersScraper(WinnersScraper):
