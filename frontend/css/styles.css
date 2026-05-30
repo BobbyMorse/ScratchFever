@@ -1798,3 +1798,22 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 .health-tab-sub { font-size: .72rem; color: rgba(255,255,255,0.3); margin-top: .15rem; }
 .health-tab-chips { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
 .health-tab-body { flex: 1; overflow-x: auto; }
+
+/* Inventory map cluster bubbles — green for "inventory marked", grey otherwise. */
+.sf-cluster {
+  background-clip: padding-box;
+  border-radius: 20px;
+}
+.sf-cluster div {
+  width: 30px;
+  height: 30px;
+  margin-left: 5px;
+  margin-top: 5px;
+  text-align: center;
+  border-radius: 15px;
+  font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif;
+  color: #fff;
+}
+.sf-cluster span { line-height: 30px; font-weight: 600; }
+.sf-cluster-instock { background-color: rgba(0, 204, 68, 0.35); }
+.sf-cluster-neutral { background-color: rgba(120, 120, 120, 0.30); }
