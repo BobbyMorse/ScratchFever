@@ -26,21 +26,18 @@ LINK_RE = re.compile(
     r'<a[^>]+href="([^"]+(\d{2}-\d{2}-\d{2})[_-]([^"]+?)\.pdf)"[^>]*>([^<]+)</a>',
     re.IGNORECASE,
 )
-AMOUNT_RE = re.compile(r'\$([\d.]+)\s*(MILLION|M|THOUSAND|K)?', re.IGNORECASE)
+AMOUNT_RE = re.compile(r'\$?([\d,.]+)\s*(MILLION|M|THOUSAND|K)?', re.IGNORECASE)
 
 
-def _parse_amount(amt_token: str) -> float | None:
-    m = AMOUNT_RE.match(amt_token.strip().lstrip("$"))
-    if not m:
-        return None
+def _parse_amount(num: str, unit: str | None) -> float | None:
     try:
-        n = float(m.group(1))
-    except ValueError:
+        n = float(num.replace(",", ""))
+    except (ValueError, TypeError):
         return None
-    unit = (m.group(2) or "").upper()
-    if unit in ("MILLION", "M"):
+    u = (unit or "").upper()
+    if u in ("MILLION", "M"):
         return n * 1_000_000
-    if unit in ("THOUSAND", "K"):
+    if u in ("THOUSAND", "K"):
         return n * 1_000
     return n
 
