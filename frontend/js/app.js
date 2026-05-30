@@ -5339,7 +5339,6 @@ function getDcFilteredRows() {
   const city          = (document.getElementById("dcCityInput")?.value   || "").toLowerCase().trim();
   const invFilter     = document.getElementById("dcInvFilter")?.value  || "";
   const dateFilter    = document.getElementById("dcDateFilter")?.value || "";
-  const showUnchecked = document.getElementById("dcShowUnchecked")?.checked ?? true;
 
   dcMapReportFilter = (invFilter === "in" || invFilter === "out") ? invFilter : "all";
 
