@@ -190,7 +190,7 @@ class WestVirginiaScraper(BaseScraper):
 
     def _scrape_detail(self, page, url: str, game_id: str) -> dict | None:
         try:
-            page.goto(url, wait_until="networkidle", timeout=25_000)
+            page.goto(url, wait_until="domcontentloaded", timeout=25_000)
         except Exception as e:
             logger.debug("WV: goto failed %s: %s", url, e)
             return None
