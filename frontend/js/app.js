@@ -3043,6 +3043,7 @@ function updateDetailMapAllRetailers(retailers) {
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: "© OpenStreetMap contributors", maxZoom: 18,
     }).addTo(_detailMap);
+    setupMapAutoResize(_detailMap);
   } else {
     // Clear existing markers
     _detailMap.eachLayer(l => { if (l instanceof L.CircleMarker) _detailMap.removeLayer(l); });
