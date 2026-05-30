@@ -291,12 +291,23 @@ async def upsert_game(conn: asyncpg.Connection, state_code: str, state_name: str
             raw_end = datetime.date.fromisoformat(raw_end)
         except ValueError:
             raw_end = None
+    raw_start = game_data.get("start_date")
+    if isinstance(raw_start, str):
+        try:
+            raw_start = datetime.date.fromisoformat(raw_start)
+        except ValueError:
+            raw_start = None
     row = await conn.fetchrow("""
         INSERT INTO games (state_code, state_name, game_id, name, price, ev, return_pct,
             overall_odds_one_in, top_prize, top_prize_remaining,
             total_tickets, tickets_remaining, prize_pool_left, jackpot_odds_one_in,
-            detail_url, image_url, how_to_play, end_date, ev_approximate, scraped_at, is_active)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW(), TRUE)
+            detail_url, image_url, how_to_play, end_date, ev_approximate,
+            start_date, top_prize_is_annuity, top_prize_cash_value,
+            top_prize_annuity_years, top_prize_annuity_annual,
+            has_second_chance, second_chance_url,
+            scraped_at, is_active)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19,
+                $20, $21, $22, $23, $24, $25, $26, NOW(), TRUE)
         ON CONFLICT(state_code, game_id) DO UPDATE SET
             name=EXCLUDED.name, price=EXCLUDED.price,
             ev=EXCLUDED.ev,
@@ -309,6 +320,13 @@ async def upsert_game(conn: asyncpg.Connection, state_code: str, state_name: str
             how_to_play=COALESCE(EXCLUDED.how_to_play, games.how_to_play),
             end_date=EXCLUDED.end_date,
             ev_approximate=EXCLUDED.ev_approximate,
+            start_date=COALESCE(EXCLUDED.start_date, games.start_date),
+            top_prize_is_annuity=EXCLUDED.top_prize_is_annuity,
+            top_prize_cash_value=EXCLUDED.top_prize_cash_value,
+            top_prize_annuity_years=EXCLUDED.top_prize_annuity_years,
+            top_prize_annuity_annual=EXCLUDED.top_prize_annuity_annual,
+            has_second_chance=EXCLUDED.has_second_chance,
+            second_chance_url=COALESCE(EXCLUDED.second_chance_url, games.second_chance_url),
             scraped_at=NOW(), is_active=TRUE
         RETURNING id
     """,
@@ -320,6 +338,13 @@ async def upsert_game(conn: asyncpg.Connection, state_code: str, state_name: str
         game_data.get("detail_url"), game_data.get("image_url"),
         game_data.get("how_to_play"), raw_end,
         bool(game_data.get("ev_approximate", False)),
+        raw_start,
+        bool(game_data.get("top_prize_is_annuity", False)),
+        game_data.get("top_prize_cash_value"),
+        game_data.get("top_prize_annuity_years"),
+        game_data.get("top_prize_annuity_annual"),
+        bool(game_data.get("has_second_chance", False)),
+        game_data.get("second_chance_url"),
     )
     return row["id"]
 
