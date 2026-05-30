@@ -91,25 +91,22 @@ class TestHeuristicSkips:
 
 
 class TestRegexCoverage:
-    """Names observed in real state data — must match the heuristic regex."""
+    """Names observed in real state data — must match the heuristic regex.
+    Face values here are sized large enough that the ratio guard never fires,
+    so the test isolates regex coverage from the guard."""
     @pytest.mark.parametrize("name", [
         "$100 A WEEK FOR LIFE",
-        "$200 A WEEK FOR LIFE",          # MA trailing space stripped upstream
+        "$200 A WEEK FOR LIFE",
         "$1,000 A WEEK FOR LIFE",
         "$2,500 A WEEK FOR LIFE",
         "$10,000 A WEEK FOR LIFE",
         "$10K A WEEK FOR LIFE",
-        "$5,000 a week for life",        # case insensitive
-        "Win $1,000 A Month For Life",   # GA capitalization
+        "$5,000 a week for life",
+        "Win $1,000 A Month For Life",
         "$50,000 A YEAR FOR LIFE",
     ])
     def test_match(self, name):
-        tier = {"prize_amount": 1, "prizes_total": 1, "prizes_remaining": 1}
-        _apply_annuity_heuristic(name, [tier])
-        # Tiers should NOT be marked is_annuity here only because the ratio
-        # guard catches the $1 face. Verify the guard fires (heuristic did
-        # match but refused to apply) by checking with a sane face value.
-        big_tier = {"prize_amount": 80_000, "prizes_total": 1, "prizes_remaining": 1}
+        big_tier = {"prize_amount": 100_000_000, "prizes_total": 1, "prizes_remaining": 1}
         _apply_annuity_heuristic(name, [big_tier])
         assert big_tier.get("is_annuity") is True, f"regex failed to match: {name!r}"
 
@@ -117,8 +114,9 @@ class TestRegexCoverage:
         "Million Dollar Giveaway",
         "300X The Money",
         "Holiday Cash Blowout",
+        "Set For Life",  # no $-amount → no match (heuristic relies on amount in name)
     ])
     def test_no_match(self, name):
-        tier = {"prize_amount": 80_000, "prizes_total": 1, "prizes_remaining": 1}
-        _apply_annuity_heuristic(name, [tier])
-        assert "is_annuity" not in tier
+        big_tier = {"prize_amount": 100_000_000, "prizes_total": 1, "prizes_remaining": 1}
+        _apply_annuity_heuristic(name, [big_tier])
+        assert "is_annuity" not in big_tier
