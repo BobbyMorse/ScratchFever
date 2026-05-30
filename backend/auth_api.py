@@ -13,7 +13,7 @@ from backend.users import (
 
 router = APIRouter()
 
-_USERNAME_RE = re.compile(r"^[a-zA-Z0-9_]{3,20}$")
+_USERNAME_RE = re.compile(r"^[a-zA-Z0-9_.@+\-]{3,64}$")
 
 
 class LoginBody(BaseModel):
