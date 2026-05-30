@@ -10,12 +10,14 @@ import logging
 from backend.database import get_pool, upsert_reported_wins
 from backend.scraper.winners.massachusetts import MassachusettsWinnersScraper
 from backend.scraper.winners.michigan import MichiganWinnersScraper
+from backend.scraper.winners.rhode_island import RhodeIslandWinnersScraper
 
 logger = logging.getLogger(__name__)
 
 ALL_WINNERS_SCRAPERS = [
     MassachusettsWinnersScraper,
     MichiganWinnersScraper,
+    RhodeIslandWinnersScraper,
 ]
 
 TIMEOUT_SEC = 180
