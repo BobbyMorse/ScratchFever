@@ -2690,34 +2690,173 @@ function toggleTranscript(queueId) {
   if (btn) btn.textContent = hidden ? "📋 ▲" : "📋";
 }
 
-async function createCallerCampaign(dryRun) {
+// ── Store picker ──────────────────────────────────────────────────────────────
+let _storeCandidates = [];        // [{external_id, name, city, phone, score, last_called_at, last_talked, called_within_window}, ...]
+let _selectedStores  = new Set(); // set of external_id
+
+async function loadStoreCandidates() {
+  const state = document.getElementById("cfStateSelect").value;
+  const listEl = document.getElementById("cfStoresList");
+  const countEl = document.getElementById("cfStoresCount");
+  if (!state) {
+    _storeCandidates = [];
+    _selectedStores = new Set();
+    if (listEl) listEl.innerHTML = `<div class="cf-tickets-empty">— Pick a state first —</div>`;
+    if (countEl) countEl.textContent = "No stores selected";
+    return;
+  }
+  if (listEl) listEl.innerHTML = `<div class="cf-tickets-empty">Loading stores…</div>`;
+  const cooldownDays = parseInt(document.getElementById("cfCooldownDays").value);
+  const cooldownHrs = (isNaN(cooldownDays) ? 7 : cooldownDays) * 24;
+  try {
+    const res = await callerFetch(`/api/vapi/candidates?state=${encodeURIComponent(state)}&cooldown_hours=${cooldownHrs}&limit=500`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    _storeCandidates = data.candidates || [];
+    _selectedStores  = new Set();
+    autoSelectStores();
+    renderStoresPicker();
+  } catch (e) {
+    if (listEl) listEl.innerHTML = `<div class="cf-tickets-empty" style="color:var(--danger)">Failed to load stores: ${escHtml(e.message)}</div>`;
+  }
+}
+
+function autoSelectStores() {
+  // On fresh state load, default-select top 100 (subject to skip toggle).
+  const skipCalled = document.getElementById("cfSkipCalled")?.checked !== false;
+  const topN = parseInt(document.getElementById("cfSelectTopN")?.value) || 100;
+  _selectedStores = new Set();
+  let picked = 0;
+  for (const c of _storeCandidates) {
+    if (picked >= topN) break;
+    if (skipCalled && (c.last_called_at || c.called_within_window)) continue;
+    _selectedStores.add(c.external_id);
+    picked++;
+  }
+}
+
+function selectTopNStores() {
+  if (!_storeCandidates.length) return;
+  autoSelectStores();
+  renderStoresPicker();
+}
+
+function selectNoStores() {
+  _selectedStores = new Set();
+  renderStoresPicker();
+}
+
+function onSkipCalledToggle() {
+  // Re-run auto-selection respecting the new toggle state.
+  autoSelectStores();
+  renderStoresPicker();
+}
+
+function onCooldownChange() {
+  // Cooldown defines the "within window" badge — re-fetch annotations.
+  if (document.getElementById("cfStateSelect").value) loadStoreCandidates();
+}
+
+function toggleStore(input) {
+  const id = input.dataset.id;
+  if (input.checked) _selectedStores.add(id);
+  else _selectedStores.delete(id);
+  updateStoresCount();
+}
+
+function updateStoresCount() {
+  const countEl = document.getElementById("cfStoresCount");
+  if (!countEl) return;
+  const n = _selectedStores.size;
+  countEl.textContent = n === 0 ? "No stores selected" : `${n} store${n === 1 ? "" : "s"} selected`;
+}
+
+function renderStoresPicker() {
+  const listEl = document.getElementById("cfStoresList");
+  if (!listEl) return;
+  if (!_storeCandidates.length) {
+    listEl.innerHTML = `<div class="cf-tickets-empty">No callable stores for this state.</div>`;
+    updateStoresCount();
+    return;
+  }
+  const skipCalled = document.getElementById("cfSkipCalled")?.checked !== false;
+  const search = (document.getElementById("cfStoresSearch")?.value || "").trim().toLowerCase();
+  const cooldownDays = parseInt(document.getElementById("cfCooldownDays").value) || 7;
+
+  let rows = _storeCandidates;
+  if (search) {
+    rows = rows.filter(c => (c.name || "").toLowerCase().includes(search) || (c.city || "").toLowerCase().includes(search));
+  }
+  // Sink already-called rows when the skip toggle is on (still visible, just last).
+  if (skipCalled) {
+    const fresh = rows.filter(c => !c.last_called_at && !c.called_within_window);
+    const called = rows.filter(c =>  c.last_called_at ||  c.called_within_window);
+    rows = [...fresh, ...called];
+  }
+
+  if (!rows.length) {
+    listEl.innerHTML = `<div class="cf-tickets-empty">No stores match.</div>`;
+    updateStoresCount();
+    return;
+  }
+
+  listEl.innerHTML = rows.map(c => {
+    const checked = _selectedStores.has(c.external_id) ? "checked" : "";
+    const scoreBadge = c.score != null
+      ? `<span class="badge" style="background:rgba(99,102,241,0.12);color:#4338ca;font-size:.7rem">${Math.round(c.score)}</span>`
+      : "";
+    const calledEverBadge = c.last_called_at
+      ? `<span class="badge badge-status-paused" style="font-size:.7rem" title="Last AI-called ${c.last_called_at.slice(0,10)}${c.last_talked ? ' · had real conversation' : ''}">Called ${c.last_called_at.slice(0,10)}</span>`
+      : "";
+    const inWindowBadge = c.called_within_window
+      ? `<span class="badge" style="background:rgba(239,68,68,0.12);color:#991b1b;font-size:.7rem" title="AI-called within the ${cooldownDays}-day recall window">Within ${cooldownDays}d</span>`
+      : "";
+    const phoneShort = c.phone ? String(c.phone).replace(/[^0-9]/g, "").slice(-10).replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3") : "—";
+    return `<label class="cf-ticket-row" style="display:grid;grid-template-columns:auto 1fr auto;gap:.55rem;align-items:center;padding:.35rem .55rem">
+      <input type="checkbox" data-id="${escHtml(c.external_id)}" ${checked} onchange="toggleStore(this)" />
+      <div style="min-width:0">
+        <div style="font-weight:600;font-size:.84rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(c.name || "(unnamed)")}</div>
+        <div style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(c.city || "—")} · ${phoneShort}</div>
+      </div>
+      <div style="display:flex;gap:.3rem;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+        ${scoreBadge} ${calledEverBadge} ${inWindowBadge}
+      </div>
+    </label>`;
+  }).join("");
+  updateStoresCount();
+}
+
+async function dispatchSelectedStores(dryRun) {
   const state    = document.getElementById("cfStateSelect").value;
   const tickets  = getSelectedTickets();
-  const max      = parseInt(document.getElementById("cfMaxStores").value) || 100;
-  const cooldown = parseInt(document.getElementById("cfCooldownDays").value);
-  const cooldownHrs = (isNaN(cooldown) ? 7 : cooldown) * 24;
   const btn      = dryRun ? document.getElementById("cfDryRunBtn") : document.getElementById("cfCreateBtn");
   const origLabel = btn.textContent;
 
   if (!state)            { showCallerMsg("Select a state first.", "err"); return; }
   if (!tickets.length)   { showCallerMsg("Pick at least one ticket.", "err"); return; }
+  if (!_selectedStores.size) { showCallerMsg("Pick at least one store to call.", "err"); return; }
+
+  // Preserve the on-screen order of _storeCandidates (already score-sorted by backend).
+  const orderedIds = _storeCandidates
+    .filter(c => _selectedStores.has(c.external_id))
+    .map(c => c.external_id);
+
   const ticketsLabel = tickets.map(t => `${t.name}${t.price != null ? ` ($${t.price})` : ""}`).join(", ");
-  if (!dryRun && !confirm(`Dispatch up to ${max} VAPI calls in ${state} asking about:\n\n${ticketsLabel}\n\nStores we already talked to within ${cooldown || 0} day(s) are skipped.`)) return;
+  if (!dryRun && !confirm(`Dispatch ${orderedIds.length} VAPI calls in ${state} asking about:\n\n${ticketsLabel}`)) return;
 
   btn.disabled = true;
   btn.textContent = dryRun ? "Previewing…" : "Dispatching…";
   showCallerMsg("", "");
 
   try {
-    const res = await callerFetch("/api/vapi/dispatch_campaign", {
+    const res = await callerFetch("/api/vapi/dispatch_selected", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         state,
         tickets,
-        max_stores:     max,
-        cooldown_hours: cooldownHrs,
-        dry_run:        !!dryRun,
+        selected_external_ids: orderedIds,
+        dry_run: !!dryRun,
       }),
     });
     let data = {};
@@ -2725,24 +2864,25 @@ async function createCallerCampaign(dryRun) {
     if (!res.ok) throw new Error(_formatApiError(data, res.status));
     if (dryRun) {
       const preview = (data.preview || []).slice(0, 5)
-        .map(p => `• ${escHtml(p.name)} (${escHtml(p.city || '—')})${p.last_called_at ? ' · last called ' + p.last_called_at.slice(0,10) : ''}`)
+        .map(p => `• ${escHtml(p.name)} (${escHtml(p.city || '—')})`)
         .join("<br>");
       showCallerMsg(
-        `Preview — would call <strong>${data.would_call}</strong> stores in ${state}. ` +
-        `Skipped <strong>${data.excluded_cooldown || 0}</strong> recently-contacted.` +
+        `Preview — would call <strong>${data.would_call}</strong> of ${data.selected} selected stores in ${state}.` +
+        (data.missing_ids && data.missing_ids.length ? ` ⚠ ${data.missing_ids.length} stale ID(s).` : "") +
         (preview ? `<br><br>${preview}` : ""),
         "ok"
       );
     } else {
       showCallerMsg(
         `Dispatched <strong>${data.dispatched}</strong> calls · ` +
-        `<strong>${data.failed || 0}</strong> failed · ` +
-        `skipped <strong>${data.excluded_cooldown || 0}</strong> recently-contacted` +
-        (data.skipped && data.skipped.length ? `, <strong>${data.skipped.length}</strong> with bad phone` : "") +
+        `<strong>${data.failed || 0}</strong> failed` +
+        (data.skipped && data.skipped.length ? ` · <strong>${data.skipped.length}</strong> with bad phone` : "") +
         ". Watch the table below for results as VAPI completes calls.",
         "ok"
       );
       await loadCallerData();
+      // Refresh candidates so newly-dispatched stores get their "Called" badge.
+      await loadStoreCandidates();
     }
   } catch (e) {
     showCallerMsg(e.message, "err");
