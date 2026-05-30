@@ -15,7 +15,7 @@ from __future__ import annotations
 import logging
 import time
 from bs4 import BeautifulSoup
-from backend.scraper.base import BaseScraper, _apply_annuity_heuristic
+from backend.scraper.base import BaseScraper, _apply_annuity_heuristic, _sum_prize_pool
 from backend.ev_calculator import parse_odds, calculate_jackpot_odds, calculate_ev
 
 logger = logging.getLogger(__name__)
