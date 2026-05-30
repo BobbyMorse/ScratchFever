@@ -98,13 +98,18 @@ async def main():
             )
             print(f"Reusing existing ma_retailers row #{retailer_id}: {STORE_NAME}")
         else:
+            # ma_retailers.id is not auto-increment (real rows come from MA's
+            # lottery export with their own IDs). Pick an id well above the max
+            # so future imports don't collide.
+            max_id = await conn.fetchval("SELECT COALESCE(MAX(id), 0) FROM ma_retailers")
+            new_id = max(max_id + 1, 999_000_000)  # always demo-range
             new_row = await conn.fetchrow(
                 """INSERT INTO ma_retailers
-                   (name, address, city, zip_code, phone, latitude, longitude,
+                   (id, name, address, city, zip_code, phone, latitude, longitude,
                     is_active, is_chain, is_gas)
-                   VALUES ($1,$2,$3,$4,$5,$6,$7,TRUE,FALSE,FALSE)
+                   VALUES ($1,$2,$3,$4,$5,$6,$7,$8,TRUE,FALSE,FALSE)
                    RETURNING id""",
-                STORE_NAME, address, CITY, zip_code, phone, latitude, longitude,
+                new_id, STORE_NAME, address, CITY, zip_code, phone, latitude, longitude,
             )
             retailer_id = str(new_row["id"])
             print(f"Created ma_retailers row #{retailer_id}: {STORE_NAME}")
