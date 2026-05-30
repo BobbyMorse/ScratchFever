@@ -1185,13 +1185,26 @@
               </div>
               <div class="cf-tickets-card">
                 <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-bottom:.4rem">
-                  <input type="text" id="cfStoresSearch" placeholder="Search by name or city…" oninput="renderStoresPicker()" style="flex:1;min-width:180px" />
+                  <div style="display:inline-flex;border:1px solid var(--border);border-radius:6px;overflow:hidden">
+                    <button type="button" class="btn cf-view-btn cf-view-active" id="cfViewListBtn" onclick="setStoresView('list')" style="font-size:.74rem;padding:.28rem .7rem;border-radius:0;border:none">List</button>
+                    <button type="button" class="btn cf-view-btn" id="cfViewMapBtn" onclick="setStoresView('map')" style="font-size:.74rem;padding:.28rem .7rem;border-radius:0;border:none;border-left:1px solid var(--border)">Map</button>
+                  </div>
+                  <input type="text" id="cfStoresSearch" placeholder="Search by name or city…" oninput="renderStoresPicker()" style="flex:1;min-width:160px" />
                   <button type="button" class="btn" id="cfSelectTopBtn" onclick="selectTopNStores()" style="font-size:.74rem;padding:.28rem .65rem;white-space:nowrap">Select top
                     <input type="number" id="cfSelectTopN" value="100" min="1" max="500" onclick="event.stopPropagation()" style="width:54px;margin:0 .25rem;padding:.1rem .25rem;font-size:.74rem" />
                   </button>
                   <button type="button" class="btn" onclick="selectNoStores()" style="font-size:.74rem;padding:.28rem .65rem;white-space:nowrap">Clear</button>
                 </div>
                 <div id="cfStoresList" class="cf-tickets-list" style="max-height:340px;overflow-y:auto">— Pick a state first —</div>
+                <div id="cfStoresMap" style="display:none;height:480px;border-radius:6px;overflow:hidden;background:#eef2f7"></div>
+                <div id="cfStoresMapLegend" style="display:none;font-size:.72rem;color:var(--text-muted);margin-top:.4rem;display:none;flex-wrap:wrap;gap:.9rem">
+                  <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#22c55e;margin-right:.25rem"></span>Selected</span>
+                  <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#94a3b8;margin-right:.25rem"></span>Not selected</span>
+                  <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f59e0b;margin-right:.25rem"></span>Called ever</span>
+                  <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ef4444;margin-right:.25rem"></span>Within recall window</span>
+                  <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#6366f1;margin-right:.25rem"></span>Inventory updated</span>
+                  <span style="margin-left:auto">Click a marker to toggle. Click a cluster to zoom in.</span>
+                </div>
               </div>
               <div style="font-size:.75rem;color:var(--text-muted);margin-top:.35rem">
                 Stores are dialed top-to-bottom in the order shown (highest score first). Checked stores are dispatched as one batch.
