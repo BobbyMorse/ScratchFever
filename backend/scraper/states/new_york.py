@@ -98,7 +98,7 @@ class NewYorkScraper(BaseScraper):
             prize = parse_prize_amount(raw_prize)
             for_life = None
             if not prize or prize <= 0:
-                for_life = _parse_for_life_tier(raw_prize)
+                for_life = parse_for_life_tier(raw_prize)
                 if not for_life:
                     continue
                 prize = for_life[0]  # face per-period payment
