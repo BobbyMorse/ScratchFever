@@ -1203,11 +1203,17 @@ function rebuildBigWinsGameDropdown() {
   const sel = document.getElementById("bigwinsGameFilter");
   if (!sel) return;
   const prev = sel.value;
-  // Group by game (use source_game_name as key) with win counts.
   const counts = new Map();
-  for (const w of bigwinsReportedWins) {
-    const key = (w.source_game_name || "").trim() || "(unknown)";
-    counts.set(key, (counts.get(key) || 0) + 1);
+  if (bigwinsView === "map") {
+    for (const w of bigwinsReportedWins) {
+      const key = (w.source_game_name || "").trim() || "(unknown)";
+      counts.set(key, (counts.get(key) || 0) + 1);
+    }
+  } else {
+    for (const c of allBigWins) {
+      const key = (c.game_name || "").trim() || "(unknown)";
+      counts.set(key, (counts.get(key) || 0) + 1);
+    }
   }
   const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
   sel.innerHTML = '<option value="">All Tickets</option>' +
