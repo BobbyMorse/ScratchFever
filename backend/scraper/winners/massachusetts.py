@@ -41,6 +41,7 @@ class MassachusettsWinnersScraper(WinnersScraper):
                 "count": PAGE_SIZE,
                 "date_from": date_from,
                 "date_to": date_to,
+                "prize_amounts": PRIZE_BUCKETS_10K_PLUS,
             }
             resp = self.get(API_URL, params=params, headers={
                 "Referer": "https://www.masslottery.com/tools/winners",
@@ -56,7 +57,7 @@ class MassachusettsWinnersScraper(WinnersScraper):
                 if norm:
                     out.append(norm)
             start += PAGE_SIZE
-            if start >= total or start >= 5000:  # safety cap
+            if start >= total or start >= 50000:  # safety cap covers 3+ years of MA
                 break
         return out
 
