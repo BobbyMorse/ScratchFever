@@ -542,18 +542,24 @@
     <div class="r-section" id="section-posts">
       <div class="r-section-header">
         <div>
-          <div class="r-section-title">Marketing Posts</div>
-          <div class="r-section-sub">Post updates for customers — promotions, new stock arrivals, or anything you want to share.</div>
+          <div class="r-section-title">Promotions &amp; Announcements</div>
+          <div class="r-section-sub">Anything you post here appears on your public store page. Big winners, fresh packs, restocks, and in-store deals all drive players in.</div>
         </div>
       </div>
 
       <div class="r-card">
-        <div class="r-card-title">New Post</div>
+        <div class="r-card-title">New Announcement</div>
         <div class="post-form">
-          <input type="text" class="post-input" id="postTitle" placeholder="Title — e.g. Just restocked 300X!" maxlength="200" />
-          <textarea class="post-input" id="postBody" placeholder="Optional details — hours, quantities, special events…" rows="3" maxlength="2000"></textarea>
+          <input type="text" class="post-input" id="postTitle" placeholder="Headline — e.g. Just opened a fresh $30 300X pack" maxlength="200" />
+          <textarea class="post-input" id="postBody" placeholder="Details — e.g. Bin 3, 200 tickets in the book, no top prize hit yet. Open till 11pm." rows="3" maxlength="2000"></textarea>
+          <div class="post-quick">
+            <span class="post-quick-label">Quick start:</span>
+            <button type="button" class="btn-ghost" onclick="prefillPost('fresh')">Fresh pack opened</button>
+            <button type="button" class="btn-ghost" onclick="prefillPost('winner')">Big winner here</button>
+            <button type="button" class="btn-ghost" onclick="prefillPost('restock')">Restocked top-prize game</button>
+          </div>
           <div class="post-actions">
-            <button class="btn-primary" onclick="submitPost()">Publish Post</button>
+            <button class="btn-primary" onclick="submitPost()">Publish to my public page</button>
           </div>
         </div>
         <div id="postMsg"></div>
