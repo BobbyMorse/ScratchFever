@@ -475,15 +475,7 @@ async def upsert_reported_wins(conn, state_code: str, wins: list[dict]) -> int:
         games_by_id[r["game_id"]] = r["id"]
         games_by_name[_norm_game_name(r["name"])] = r["id"]
 
-    retailers = await conn.fetch(
-        """SELECT name, city, latitude, longitude FROM state_retailers
-           WHERE state_code = $1 AND latitude IS NOT NULL AND longitude IS NOT NULL""",
-        state_code,
-    )
-    retailer_lookup: dict[tuple[str, str], tuple[float, float]] = {}
-    for r in retailers:
-        key = (_norm_retailer_name(r["name"]), (r["city"] or "").lower().strip())
-        retailer_lookup[key] = (r["latitude"], r["longitude"])
+    retailer_lookup, retailer_substr = await _load_retailer_geo_index(conn, state_code)
 
     saved = 0
     for w in wins:
