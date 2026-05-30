@@ -50,9 +50,6 @@ class BaseScraper(ABC):
                    start_date: str = None,
                    has_second_chance: bool = False,
                    second_chance_url: str = None) -> dict:
-        # If the top tier is flagged is_annuity but the scraper hasn't filled cash_value /
-        # annuity_annual+years, apply a name-based annuity heuristic so EV math reflects it.
-        _apply_annuity_heuristic(name, tiers)
         ev_data = calculate_ev(price, tiers, tickets_remaining)
         top_prize, top_prize_remaining = find_top_prize(tiers)
         jackpot_odds = calculate_jackpot_odds(tiers, tickets_remaining)
