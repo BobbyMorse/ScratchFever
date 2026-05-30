@@ -1078,6 +1078,11 @@ async function loadPrizeClaims() {
 
 let bigwinsLoaded = false;
 let allBigWins = [];
+let bigwinsView = "list";          // "list" | "map"
+let bigwinsReportedWins = [];      // structured wins (with retailer location) for the map
+let bigwinsReportedLoaded = false;
+let bigwinsMap = null;
+let bigwinsMapMarkers = null;
 
 async function loadBigWins() {
   try {
