@@ -1354,8 +1354,8 @@
         <section class="bigwins-page">
           <div class="bigwins-page-header">
             <div>
-              <h2 class="bigwins-page-title">🏆 Big Wins — Last 7 Days</h2>
-              <p class="bigwins-page-sub">Top prizes over $10,000 claimed nationwide</p>
+              <h2 class="bigwins-page-title">🏆 Big Wins</h2>
+              <p class="bigwins-page-sub" id="bigwinsPageSub">Top prizes over $10,000 — claimed list (recent) or 3-year map of winning retailers</p>
             </div>
             <div class="bigwins-header-right">
               <div class="bigwins-view-toggle" role="tablist" aria-label="Big wins view">
@@ -1366,8 +1366,22 @@
                         role="tab" aria-selected="false"
                         onclick="setBigWinsView('map')">Map</button>
               </div>
+              <select id="bigwinsRangeFilter" class="bigwins-state-filter"
+                      onchange="onBigWinsRangeChange()" title="Time range"
+                      style="display:none">
+                <option value="7">Last 7 days</option>
+                <option value="30" selected>Last 30 days</option>
+                <option value="90">Last 90 days</option>
+                <option value="365">Last 1 year</option>
+                <option value="1095">Last 3 years</option>
+              </select>
               <select id="bigwinsStateFilter" class="bigwins-state-filter" onchange="filterBigWins()">
                 <option value="">All States</option>
+              </select>
+              <select id="bigwinsGameFilter" class="bigwins-state-filter"
+                      onchange="filterBigWins()" title="Filter by ticket"
+                      style="display:none">
+                <option value="">All Tickets</option>
               </select>
               <span class="bigwins-page-count" id="bigwinsCount"></span>
             </div>
