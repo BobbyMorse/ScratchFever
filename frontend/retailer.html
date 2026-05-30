@@ -1128,11 +1128,11 @@
       document.getElementById("activityStats").innerHTML = `
         <div class="r-stat-card teal">
           <div class="r-stat-value">${d.community_reports_7d}</div>
-          <div class="r-stat-label">Community Checks (7d)</div>
+          <div class="r-stat-label">Player Reports (7d)</div>
         </div>
         <div class="r-stat-card">
           <div class="r-stat-value">${d.community_reports_total}</div>
-          <div class="r-stat-label">Total Community Reports</div>
+          <div class="r-stat-label">All-Time Player Reports</div>
         </div>
         <div class="r-stat-card green">
           <div class="r-stat-value">${d.own_updates_total}</div>
@@ -1140,9 +1140,11 @@
         </div>
         <div class="r-stat-card orange">
           <div class="r-stat-value">${d.post_count}</div>
-          <div class="r-stat-label">Marketing Posts</div>
+          <div class="r-stat-label">Announcements</div>
         </div>
       `;
+      const ov7 = document.getElementById("ovStatComm7d");
+      if (ov7) ov7.textContent = String(d.community_reports_7d ?? 0);
 
       const recent = d.recent_community || [];
       const actEl = document.getElementById("activityTable");
