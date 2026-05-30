@@ -112,6 +112,10 @@ class MichiganWinnersScraper(WinnersScraper):
         if is_draw_game(self.state_code, game_name):
             return None
         retailer = (w.get("retailerName") or "").strip() or None
+        # MI's iLottery / online sales surface as retailer="Online" with the winner's
+        # home city — no physical store to map.
+        if retailer and retailer.strip().lower() in {"online", "ilottery", "internet"}:
+            return None
         retailer_city = (w.get("retailerCity") or "").strip() or None
         winner = (w.get("playerName") or "").strip() or None
 
