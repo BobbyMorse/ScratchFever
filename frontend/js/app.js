@@ -4221,7 +4221,11 @@ function storeProfileHtml(retailerId) {
     ? `<span style="color:var(--mint)">●</span> ${inCount} in &ensp;<span style="color:var(--red)">●</span> ${outCount} out`
     : `No reports yet`;
 
+  // Defer the owner-profile fetch so the panel paints instantly.
+  setTimeout(() => loadOwnerProfile(retailerId), 0);
+
   return `<div class="inv-panel">
+    ${ownerMount}
     <div class="inv-panel-hd">
       <span class="inv-panel-title">Update Inventory</span>
       <span class="inv-summary">${summaryHtml}</span>
@@ -4236,6 +4240,77 @@ function storeProfileHtml(retailerId) {
     <div class="inv-game-list">
       ${games.length ? gameRows : '<div class="inv-no-games">No games tracked for this state yet.</div>'}
     </div>
+    ${claimCta}
+  </div>`;
+}
+
+async function loadOwnerProfile(retailerId) {
+  const mount = document.querySelector(`.store-owner-mount[data-rid="${CSS.escape(String(retailerId))}"]`);
+  if (!mount || mount.dataset.loaded === '1') return;
+  mount.dataset.loaded = '1';
+
+  let profile = null;
+  let posts = [];
+  try {
+    const [pRes, postsRes] = await Promise.all([
+      fetch(`/api/public/retailer/${encodeURIComponent(retailerId)}/profile`),
+      fetch(`/api/public/retailer/${encodeURIComponent(retailerId)}/posts?limit=3`),
+    ]);
+    if (pRes.ok) profile = (await pRes.json()).profile;
+    if (postsRes.ok) posts = (await postsRes.json()).posts || [];
+  } catch (_) { return; }
+
+  if (!profile && !posts.length) {
+    // Hide the empty CTA — if there's neither, we hide the claim block too
+    // by hiding the parent CTA section.
+    mount.remove();
+    return;
+  }
+
+  const verifiedBadge = profile?.verified
+    ? `<span class="store-verified-pill">✓ Verified by owner</span>` : '';
+  const bannerHtml = profile?.banner_text
+    ? `<div class="store-fresh-banner">
+         <span class="store-fresh-banner-tag">FRESH</span>
+         <span>${escHtml(profile.banner_text)}</span>
+       </div>` : '';
+  const metaBits = [];
+  if (profile?.hours_text) metaBits.push(`<span>🕐 ${escHtml(profile.hours_text)}</span>`);
+  if (profile?.phone)      metaBits.push(`<span>📞 ${escHtml(profile.phone)}</span>`);
+  if (profile?.website)    metaBits.push(`<a href="${escHtml(profile.website)}" target="_blank" rel="noopener">🌐 Visit website</a>`);
+  const metaHtml = metaBits.length
+    ? `<div class="store-owner-meta">${metaBits.join('')}</div>` : '';
+  const descHtml = profile?.description
+    ? `<div class="store-owner-desc">${escHtml(profile.description)}</div>` : '';
+  const photoHtml = profile?.photo_url
+    ? `<img class="store-owner-photo" src="${escHtml(profile.photo_url)}" alt="" loading="lazy" />` : '';
+  const postsHtml = posts.length
+    ? `<div class="store-owner-posts">
+         <div class="store-owner-posts-title">Latest from the store</div>
+         ${posts.map(p => `
+           <div class="store-owner-post">
+             <div class="store-owner-post-title">${escHtml(p.title)}</div>
+             ${p.body ? `<div class="store-owner-post-body">${escHtml(p.body)}</div>` : ''}
+             <div class="store-owner-post-meta">${timeAgo(new Date(p.created_at))}</div>
+           </div>`).join('')}
+       </div>` : '';
+
+  if (!profile && posts.length) {
+    mount.innerHTML = `<div class="store-owner-card">${postsHtml}</div>`;
+    return;
+  }
+
+  mount.innerHTML = `<div class="store-owner-card">
+    ${bannerHtml}
+    <div class="store-owner-card-hd">
+      ${photoHtml}
+      <div class="store-owner-card-body">
+        <div class="store-owner-card-title">From the store ${verifiedBadge}</div>
+        ${descHtml}
+        ${metaHtml}
+      </div>
+    </div>
+    ${postsHtml}
   </div>`;
 }
 
