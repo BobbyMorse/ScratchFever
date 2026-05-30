@@ -2814,11 +2814,14 @@ function renderStoresPicker() {
   const cooldownDays = parseInt(document.getElementById("cfCooldownDays").value) || 7;
 
   let rows = _storeCandidates;
+  if (_showSelectedOnly) {
+    rows = rows.filter(c => _selectedStores.has(c.external_id));
+  }
   if (search) {
     rows = rows.filter(c => (c.name || "").toLowerCase().includes(search) || (c.city || "").toLowerCase().includes(search));
   }
   // Sink already-called rows when the skip toggle is on (still visible, just last).
-  if (skipCalled) {
+  if (skipCalled && !_showSelectedOnly) {
     const fresh = rows.filter(c => !c.last_called_at && !c.called_within_window);
     const called = rows.filter(c =>  c.last_called_at ||  c.called_within_window);
     rows = [...fresh, ...called];
