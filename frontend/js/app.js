@@ -5629,7 +5629,7 @@ function toggleVtMap() {
   sec.style.display = vtMapVisible ? "" : "none";
   if (vtMapVisible) {
     if (!vtMap) initVtMap();
-    else vtMap.invalidateSize();
+    setTimeout(() => vtMap && vtMap.invalidateSize(), 50);
     renderVtMapLayers(getVtFilteredRows());
   }
 }
