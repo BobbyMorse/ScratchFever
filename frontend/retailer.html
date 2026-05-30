@@ -775,6 +775,8 @@
     }
 
     renderProfile();
+    renderOverview();
+    fillProfileForm();
     await Promise.allSettled([loadInventory(), loadPosts(), loadActivity()]);
   }
 
@@ -795,6 +797,60 @@
       badge.textContent = "Pending Verification";
     }
     document.title = `${p.store_name} — ScratchFever Retailer`;
+
+    // Public-page links — open the consumer index with this store's profile expanded.
+    const publicUrl = `/?store=${encodeURIComponent(p.retailer_id)}`;
+    const pub1 = document.getElementById("navPublicLink");
+    const pub2 = document.getElementById("ovPublicBtn");
+    const pub3 = document.getElementById("pfPublicBtn");
+    if (pub1) pub1.href = publicUrl;
+    if (pub2) pub2.href = publicUrl;
+    if (pub3) pub3.href = publicUrl;
+  }
+
+  function renderOverview() {
+    const p = _profile;
+    const nameSpan = document.getElementById("ovOwnerName");
+    if (nameSpan) nameSpan.textContent = "";  // placeholder for future personalization
+
+    // Active banner card
+    const card = document.getElementById("ovBannerCard");
+    const preview = document.getElementById("ovBannerPreview");
+    const bannerActive = !!p.banner_text &&
+      (!p.banner_until || new Date(p.banner_until) > new Date());
+    if (bannerActive) {
+      const expiryTxt = p.banner_until
+        ? `Expires ${new Date(p.banner_until).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}`
+        : "No expiry";
+      preview.innerHTML = `<div class="banner-preview">
+        <span class="tag">FRESH</span>
+        <span>${escHtml(p.banner_text)}</span>
+        <span class="expiry">${expiryTxt}</span>
+      </div>`;
+      card.style.display = "";
+    } else {
+      card.style.display = "none";
+    }
+
+    // Overview stats — quick at-a-glance numbers; full stats load with loadActivity
+    document.getElementById("overviewStats").innerHTML = `
+      <div class="r-stat-card teal">
+        <div class="r-stat-value" id="ovStatInStock">—</div>
+        <div class="r-stat-label">Games marked in stock</div>
+      </div>
+      <div class="r-stat-card orange">
+        <div class="r-stat-value" id="ovStatPosts">—</div>
+        <div class="r-stat-label">Active announcements</div>
+      </div>
+      <div class="r-stat-card green">
+        <div class="r-stat-value" id="ovStatComm7d">—</div>
+        <div class="r-stat-label">Player reports (7d)</div>
+      </div>
+      <div class="r-stat-card">
+        <div class="r-stat-value">${p.verified ? '✓' : '…'}</div>
+        <div class="r-stat-label">${p.verified ? 'Verified by ScratchFever' : 'Verification pending'}</div>
+      </div>
+    `;
   }
 
   /* ── Section nav ───────────────────────────────────── */
@@ -802,7 +858,9 @@
     document.querySelectorAll(".r-section").forEach(s => s.classList.remove("active"));
     document.querySelectorAll(".r-nav-item").forEach(b => b.classList.remove("active"));
     document.getElementById("section-" + name).classList.add("active");
-    document.getElementById("nav" + name.charAt(0).toUpperCase() + name.slice(1)).classList.add("active");
+    const navBtn = document.getElementById("nav" + name.charAt(0).toUpperCase() + name.slice(1));
+    if (navBtn) navBtn.classList.add("active");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   /* ── INVENTORY ─────────────────────────────────────── */
