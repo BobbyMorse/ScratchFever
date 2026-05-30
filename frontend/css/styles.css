@@ -1289,7 +1289,11 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
 
 @media (max-width: 700px) {
   .plays-log-section, .plays-chart-section { margin-left: 1rem; margin-right: 1rem; }
-  .plays-log-row { flex-direction: column; }
+  .plays-log-row { flex-direction: column; padding-right: 0; }
+  .pl-remove-btn { position: static; align-self: flex-end; margin-top: .3rem; }
+  .plays-log-header { flex-direction: column; align-items: stretch; }
+  .plays-log-actions { justify-content: stretch; }
+  .plays-log-actions .btn { flex: 1; }
 }
 
 /* ── Footer ───────────────────────────────────────── */
