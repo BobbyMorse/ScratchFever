@@ -491,10 +491,20 @@ async def upsert_reported_wins(conn, state_code: str, wins: list[dict]) -> int:
         lat = w.get("retailer_lat")
         lng = w.get("retailer_lng")
         if lat is None or lng is None:
-            key = (_norm_retailer_name(w.get("retailer_name") or ""),
-                   (w.get("retailer_city") or "").lower().strip())
-            if key[0] and key in retailer_lookup:
-                lat, lng = retailer_lookup[key]
+            norm_name = _norm_retailer_name(w.get("retailer_name") or "")
+            norm_city = (w.get("retailer_city") or "").lower().strip()
+            if norm_name and norm_city:
+                hit = retailer_lookup.get((norm_name, norm_city))
+                if not hit:
+                    # substring match within same city: try winner-name as substring
+                    # of retailer-table-name, or vice versa.
+                    candidates = retailer_substr.get(norm_city) or []
+                    for cand_name, cand_lat, cand_lng in candidates:
+                        if norm_name in cand_name or cand_name in norm_name:
+                            hit = (cand_lat, cand_lng)
+                            break
+                if hit:
+                    lat, lng = hit
 
         try:
             await conn.execute("""
