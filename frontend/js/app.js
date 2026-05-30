@@ -4146,7 +4146,6 @@ function getRiFilteredRows() {
   const city          = (document.getElementById("riCityInput")?.value   || "").toLowerCase().trim();
   const invFilter     = document.getElementById("riInvFilter")?.value  || "";
   const dateFilter    = document.getElementById("riDateFilter")?.value || "";
-  const showUnchecked = document.getElementById("riShowUnchecked")?.checked ?? true;
 
   riMapReportFilter = (invFilter === "in" || invFilter === "out") ? invFilter : "all";
 
