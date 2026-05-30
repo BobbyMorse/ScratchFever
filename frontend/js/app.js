@@ -2093,6 +2093,7 @@ function initMaMap() {
     attribution: "&copy; OpenStreetMap contributors",
     maxZoom: 19,
   }).addTo(maMap);
+  setupMapAutoResize(maMap);
 }
 
 function renderMapLayers(retailers) {
