@@ -117,6 +117,56 @@ def _apply_annuity_heuristic(name: str, tiers: list[dict]) -> None:
         return
 
 
+# Game names that the annuity heuristic should match. Used by the sanity
+# checker to flag for-life-named games that ended up with no annuity tier.
+_FOR_LIFE_NAME_HINT_RE = re.compile(
+    r"\b(?:for\s+life|a\s+(?:week|month|year|day)\s+for\s+life)\b",
+    re.I,
+)
+
+
+def _warn_if_suspect(state_code: str, name: str, price: float, tiers: list[dict],
+                     ev_data: dict, tickets_remaining: int | None,
+                     top_tier: dict) -> None:
+    """Loud post-build sanity checks. Each warning corresponds to a bug class
+    we've seen ship to production. Catching them at scrape-time means the
+    scraper logs surface the problem before users see broken numbers."""
+    rp = ev_data.get("return_pct")
+
+    # 1. Outlier return %. Late-stage games with big remaining prizes legitimately
+    #    push EV high; the threshold is set above realistic late-stage values so
+    #    the warning means "the math broke," not "this game is hot."
+    if rp is not None and rp > 300:
+        logger.warning(
+            "[%s] %r return_pct=%.1f%% looks impossibly high (price=$%s, "
+            "tickets_remaining=%s). Likely a dropped/mis-typed tier.",
+            state_code, name, rp, price, tickets_remaining,
+        )
+
+    # 2. Game name implies for-life but no tier is annuity-marked. Means either
+    #    (a) the for-life tier was silently dropped (NY/FL/GA-class bug), or
+    #    (b) the heuristic ratio guard fired (which itself implies the for-life
+    #    tier was dropped — the cash tier's face was too far below the implied NPV).
+    if name and _FOR_LIFE_NAME_HINT_RE.search(name):
+        if not any(t.get("is_annuity") for t in tiers):
+            logger.warning(
+                "[%s] %r looks like a for-life game but no annuity tier was "
+                "found. The for-life prize may be encoded in an unrecognized "
+                "format — add a fixture and extend parse_for_life_tier.",
+                state_code, name,
+            )
+
+    # 3. EV per ticket > ticket price by more than 5x. Same signal as (1) but
+    #    independent of tickets_remaining; catches bugs where prize_pool_left
+    #    is inflated regardless of denominator.
+    ev = ev_data.get("ev")
+    if ev is not None and price and ev > 5 * price:
+        logger.warning(
+            "[%s] %r ev=$%.2f > 5×price=$%.2f. Check tier prize_amounts.",
+            state_code, name, ev, price,
+        )
+
+
 def _sum_prize_pool(tiers: list[dict]) -> float | None:
     """Sum of effective_prize_value × prizes_remaining across tiers. Uses cash_value for
     annuity tiers so for-life games show real lump-sum exposure, not face × remaining."""
