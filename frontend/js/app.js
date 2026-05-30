@@ -2063,6 +2063,38 @@ function renderMapLayers(retailers) {
   debounceMapRender("ma", () => updateInventoryMapLayer(retailers), 180);
 }
 
+// ── Lazy row rendering (shared by every state hunt table) ────────────────────
+// Renders an initial chunk, then lazy-appends more as the user scrolls toward
+// the bottom of the table's scroll container. Keeps the DOM small instead of
+// materializing 30k rows up front — that was the source of the laggy scroll.
+function lazyRenderRows({ tbody, rows, rowFn, getStaleFlag, chunk = 200, cols = 6 }) {
+  if (tbody._lazyIO) { tbody._lazyIO.disconnect(); tbody._lazyIO = null; }
+  const initial = Math.min(chunk, rows.length);
+  tbody.innerHTML = rows.slice(0, initial).map((r, i) => rowFn(r, i + 1)).join("");
+  updateReportBadges();
+  if (initial >= rows.length) return;
+  const sentinel = document.createElement("tr");
+  sentinel.className = "lazy-sentinel";
+  sentinel.innerHTML = `<td colspan="${cols}" style="height:1px;padding:0;border:0"></td>`;
+  tbody.appendChild(sentinel);
+  const scrollRoot = tbody.closest(".table-scroll") || null;
+  let offset = initial;
+  const io = new IntersectionObserver((entries) => {
+    if (getStaleFlag && getStaleFlag()) { io.disconnect(); tbody._lazyIO = null; return; }
+    if (!entries.some(e => e.isIntersecting)) return;
+    if (offset >= rows.length) { io.disconnect(); sentinel.remove(); tbody._lazyIO = null; return; }
+    const end = Math.min(offset + chunk, rows.length);
+    const tmp = document.createElement("tbody");
+    tmp.innerHTML = rows.slice(offset, end).map((r, i) => rowFn(r, offset + i + 1)).join("");
+    while (tmp.firstChild) tbody.insertBefore(tmp.firstChild, sentinel);
+    offset = end;
+    updateReportBadges();
+    if (offset >= rows.length) { io.disconnect(); sentinel.remove(); tbody._lazyIO = null; }
+  }, { root: scrollRoot, rootMargin: "600px 0px" });
+  io.observe(sentinel);
+  tbody._lazyIO = io;
+}
+
 // ── MA Hunt data loading ──────────────────────────────────────────────────────
 async function loadMaRetailers() {
   try {
