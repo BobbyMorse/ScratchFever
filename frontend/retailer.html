@@ -368,6 +368,73 @@
     .inv-loading { padding: 2rem; text-align: center; color: var(--text-muted); }
     .empty-state { text-align: center; color: var(--text-muted); padding: 2.5rem 1rem; font-size: .88rem; }
 
+    /* ── Profile edit grid ─────────────────────────── */
+    .pf-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    }
+    .pf-grid label {
+      display: flex; flex-direction: column; gap: .35rem;
+      font-size: .78rem; font-weight: 700;
+      color: var(--text);
+    }
+    .pf-grid label .post-input { font-weight: 400; }
+    .pf-full { grid-column: 1 / -1; }
+    @media (max-width: 600px) { .pf-grid { grid-template-columns: 1fr; } }
+
+    /* ── Overview tips ─────────────────────────────── */
+    .ov-tips {
+      list-style: none; counter-reset: tip;
+      display: flex; flex-direction: column; gap: .85rem;
+    }
+    .ov-tips li {
+      counter-increment: tip;
+      position: relative;
+      padding-left: 2.2rem;
+      font-size: .87rem; line-height: 1.5;
+    }
+    .ov-tips li::before {
+      content: counter(tip);
+      position: absolute; left: 0; top: 0;
+      width: 1.55rem; height: 1.55rem;
+      border-radius: 50%;
+      background: var(--teal-dim); color: var(--teal);
+      font-weight: 800; font-size: .82rem;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .ov-tips li strong { color: var(--text); }
+    .ov-tips li a {
+      color: var(--teal); font-weight: 600; text-decoration: none;
+      margin-left: .25rem; white-space: nowrap;
+    }
+    .ov-tips li a:hover { text-decoration: underline; }
+
+    /* ── Banner preview ─────────────────────────────── */
+    .banner-preview {
+      display: flex; align-items: center; gap: .55rem;
+      padding: .65rem 1rem;
+      background: linear-gradient(90deg, #14b8a6 0%, #0ea5e9 100%);
+      color: #fff; font-size: .9rem; font-weight: 600;
+      border-radius: var(--radius-sm);
+    }
+    .banner-preview .tag {
+      font-size: .62rem; font-weight: 800; letter-spacing: .12em;
+      padding: .12rem .45rem; border-radius: 4px;
+      background: rgba(255,255,255,0.22);
+    }
+    .banner-preview .expiry {
+      margin-left: auto; font-size: .72rem; opacity: .85; font-weight: 500;
+    }
+
+    /* ── Post quick-fill buttons ────────────────────── */
+    .post-quick {
+      display: flex; align-items: center; gap: .4rem; flex-wrap: wrap;
+      padding: .35rem 0;
+    }
+    .post-quick-label {
+      font-size: .73rem; color: var(--text-muted); margin-right: .15rem;
+    }
+    .post-quick .btn-ghost { padding: .28rem .65rem; font-size: .74rem; }
+
     /* ── Responsive ──────────────────────────────────── */
     @media (max-width: 700px) {
       .r-sidebar { display: none; }
