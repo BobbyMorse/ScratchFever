@@ -83,6 +83,8 @@ class MassachusettsWinnersScraper(WinnersScraper):
 
         identifier = (w.get("identifier") or "").strip() or None
         game_name = (w.get("name") or "").strip()
+        if is_draw_game(self.state_code, game_name):
+            return None
         retailer = (w.get("retailer") or "").strip() or None
         retailer_city = (w.get("retailer_location") or "").strip() or None
 
