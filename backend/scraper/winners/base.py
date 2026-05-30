@@ -25,6 +25,34 @@ logger = logging.getLogger(__name__)
 RETRY_STATUSES = {429, 500, 502, 503, 504}
 MAX_RETRIES = 5
 
+# Per-state draw-game blocklist. The big wins map is scratch-only; everything
+# in this set is filtered at scrape time and during query (for historical rows).
+# Matching is case-insensitive substring against source_game_name.
+DRAW_GAME_PATTERNS: dict[str, tuple[str, ...]] = {
+    "MA": (
+        "keno", "mass cash", "powerball", "mega millions", "lucky for life",
+        "numbers game", "megabucks", "all or nothing", "lucky for live",
+    ),
+    "MI": (
+        "keno", "daily 3", "daily 4", "fantasy 5", "lotto 47", "mega millions",
+        "powerball", "lucky for life", "poker lotto", "michigan cash drop",
+        "fast cash", "pull tab",
+    ),
+    "RI": (
+        "keno", "powerball", "mega millions", "lucky for life",
+        "wild money", "the numbers", "millionaire for life",
+    ),
+}
+
+
+def is_draw_game(state_code: str, game_name: str | None) -> bool:
+    """True if game_name matches any draw-game pattern for the given state."""
+    patterns = DRAW_GAME_PATTERNS.get(state_code, ())
+    if not patterns:
+        return False
+    name = (game_name or "").lower()
+    return any(p in name for p in patterns)
+
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
