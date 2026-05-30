@@ -392,7 +392,48 @@ function syncHeaderHeight() {
   loadPrizeClaims();
   setInterval(() => { loadStatus(); loadPrizeClaims(); }, 30_000);
   setInterval(() => { if (_currentUser && currentTab === "ma") loadCommunityReports(); }, 60_000);
+
+  // Deep-link: /?store=<id>&state=<code> — open that store's profile inline.
+  // Used by the retailer dashboard's "View public page" link.
+  openStoreFromUrl();
 })();
+
+async function openStoreFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const storeId = params.get("store");
+  const stateCode = (params.get("state") || "MA").toUpperCase();
+  if (!storeId) return;
+
+  // Switch to the Hunt tab (where retailer rows live) and target the right state.
+  try { switchTab("ma"); } catch (_) {}
+  try { selectHuntState(stateCode); } catch (_) {}
+
+  // Wait until that state's retailer array is populated (load is async).
+  const stateArrays = {
+    MA: () => allRetailers,
+    AZ: () => allAzRetailers, RI: () => allRiRetailers,
+    FL: () => allFlRetailers, GA: () => allGaRetailers,
+    NY: () => allNyRetailers, VA: () => allVaRetailers,
+    DC: () => allDcRetailers, VT: () => allVtRetailers,
+  };
+  const getArr = stateArrays[stateCode] || stateArrays.MA;
+  const deadline = Date.now() + 15_000;  // 15s cap so we never spin forever
+  while (Date.now() < deadline) {
+    const arr = getArr();
+    if (arr && arr.length && arr.some(r => String(r.id) === String(storeId))) break;
+    await new Promise(r => setTimeout(r, 250));
+  }
+
+  // Render is also async (lazy table). Try a couple times.
+  for (let i = 0; i < 8; i++) {
+    if (typeof openStoreInventoryFromMap === "function") {
+      try { openStoreInventoryFromMap(storeId); } catch (_) {}
+    }
+    // openStoreInventoryFromMap calls toggleStoreProfile which flips _openProfileId
+    if (typeof _openProfileId !== "undefined" && _openProfileId === String(storeId)) return;
+    await new Promise(r => setTimeout(r, 300));
+  }
+}
 
 async function loadGameCounts() {
   try {
