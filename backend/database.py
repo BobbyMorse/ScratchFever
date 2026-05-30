@@ -470,13 +470,138 @@ async def get_game_detail(conn, game_db_id: int):
                g.top_prize, g.top_prize_remaining, g.total_tickets, g.tickets_remaining,
                g.prize_pool_left, g.is_active, g.detail_url, g.image_url, g.scraped_at,
                g.how_to_play, COALESCE(g.ev_approximate, FALSE) AS ev_approximate,
-               pt.prize_amount, pt.odds_one_in, pt.prizes_total, pt.prizes_remaining
+               g.start_date,
+               COALESCE(g.top_prize_is_annuity, FALSE) AS top_prize_is_annuity,
+               g.top_prize_cash_value, g.top_prize_annuity_years, g.top_prize_annuity_annual,
+               COALESCE(g.has_second_chance, FALSE) AS has_second_chance,
+               g.second_chance_url,
+               pt.prize_amount, pt.odds_one_in, pt.prizes_total, pt.prizes_remaining,
+               pt.last_claimed_at
         FROM games g
         LEFT JOIN prize_tiers pt ON pt.game_db_id = g.id
         WHERE g.id = $1
         ORDER BY pt.prize_amount DESC
     """, game_db_id)
     return [tuple(r) for r in rows]
+
+
+async def upsert_weekly_sales(conn, state_code: str, rows: list[dict]) -> int:
+    """rows: list of {game_id, week_ending (date|str), tickets_sold?, dollars_sold?, source_url?}."""
+    if not rows:
+        return 0
+    games_by_id = {}
+    g_rows = await conn.fetch(
+        "SELECT id, game_id FROM games WHERE state_code=$1",
+        state_code,
+    )
+    for r in g_rows:
+        games_by_id[r["game_id"]] = r["id"]
+    saved = 0
+    for r in rows:
+        we = r.get("week_ending")
+        if isinstance(we, str):
+            try:
+                we = dt.date.fromisoformat(we)
+            except ValueError:
+                continue
+        if we is None:
+            continue
+        gid = str(r.get("game_id") or "")
+        if not gid:
+            continue
+        game_db_id = games_by_id.get(gid)
+        try:
+            await conn.execute("""
+                INSERT INTO game_weekly_sales
+                    (state_code, game_id, game_db_id, week_ending, tickets_sold, dollars_sold, source_url)
+                VALUES ($1, $2, $3, $4, $5, $6, $7)
+                ON CONFLICT (state_code, game_id, week_ending) DO UPDATE SET
+                    tickets_sold = EXCLUDED.tickets_sold,
+                    dollars_sold = EXCLUDED.dollars_sold,
+                    source_url = COALESCE(EXCLUDED.source_url, game_weekly_sales.source_url),
+                    game_db_id = COALESCE(EXCLUDED.game_db_id, game_weekly_sales.game_db_id),
+                    scraped_at = NOW()
+            """, state_code, gid, game_db_id, we,
+                r.get("tickets_sold"), r.get("dollars_sold"), r.get("source_url"))
+            saved += 1
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning("weekly_sales insert failed %s/%s: %s", state_code, gid, e)
+    return saved
+
+
+async def get_weekly_sales(conn, state_code: str, game_id: str, limit: int = 52):
+    rows = await conn.fetch("""
+        SELECT week_ending, tickets_sold, dollars_sold, source_url
+        FROM game_weekly_sales
+        WHERE state_code=$1 AND game_id=$2
+        ORDER BY week_ending DESC
+        LIMIT $3
+    """, state_code, game_id, limit)
+    return [dict(zip(["week_ending", "tickets_sold", "dollars_sold", "source_url"], r)) for r in rows]
+
+
+async def upsert_second_chance(conn, state_code: str, drawings: list[dict]) -> int:
+    """drawings: list of {drawing_id, drawing_name?, drawing_date?, prize_description?,
+                          prize_pool?, game_ids? (list), detail_url?}."""
+    if not drawings:
+        return 0
+    saved = 0
+    for d in drawings:
+        did = str(d.get("drawing_id") or "")
+        if not did:
+            continue
+        dd = d.get("drawing_date")
+        if isinstance(dd, str):
+            try:
+                dd = dt.date.fromisoformat(dd)
+            except ValueError:
+                dd = None
+        try:
+            await conn.execute("""
+                INSERT INTO second_chance_drawings
+                    (state_code, drawing_id, drawing_name, drawing_date,
+                     prize_description, prize_pool, game_ids, detail_url)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+                ON CONFLICT (state_code, drawing_id) DO UPDATE SET
+                    drawing_name = COALESCE(EXCLUDED.drawing_name, second_chance_drawings.drawing_name),
+                    drawing_date = COALESCE(EXCLUDED.drawing_date, second_chance_drawings.drawing_date),
+                    prize_description = COALESCE(EXCLUDED.prize_description, second_chance_drawings.prize_description),
+                    prize_pool = COALESCE(EXCLUDED.prize_pool, second_chance_drawings.prize_pool),
+                    game_ids = COALESCE(EXCLUDED.game_ids, second_chance_drawings.game_ids),
+                    detail_url = COALESCE(EXCLUDED.detail_url, second_chance_drawings.detail_url),
+                    scraped_at = NOW()
+            """, state_code, did, d.get("drawing_name"), dd,
+                d.get("prize_description"), d.get("prize_pool"),
+                d.get("game_ids"), d.get("detail_url"))
+            saved += 1
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning("second_chance insert failed %s/%s: %s", state_code, did, e)
+    return saved
+
+
+async def get_second_chance(conn, state_code: str | None = None, upcoming_only: bool = True, limit: int = 100):
+    conditions = []
+    params: list = []
+    if state_code:
+        params.append(state_code.upper())
+        conditions.append(f"state_code = ${len(params)}")
+    if upcoming_only:
+        conditions.append("(drawing_date IS NULL OR drawing_date >= CURRENT_DATE)")
+    params.append(limit)
+    where = f"WHERE {' AND '.join(conditions)}" if conditions else ""
+    rows = await conn.fetch(f"""
+        SELECT id, state_code, drawing_id, drawing_name, drawing_date,
+               prize_description, prize_pool, game_ids, detail_url
+        FROM second_chance_drawings
+        {where}
+        ORDER BY drawing_date NULLS LAST, scraped_at DESC
+        LIMIT ${len(params)}
+    """, *params)
+    cols = ["id", "state_code", "drawing_id", "drawing_name", "drawing_date",
+            "prize_description", "prize_pool", "game_ids", "detail_url"]
+    return [dict(zip(cols, r)) for r in rows]
 
 
 async def get_states_summary(conn):
