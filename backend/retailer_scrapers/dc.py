@@ -6,6 +6,7 @@ Static HTML table — no JS required. ~326 retailers.
 from __future__ import annotations
 import logging
 import re
+from urllib.parse import unquote
 
 from bs4 import BeautifulSoup
 from .base import make_external_id, safe_get, upsert_retailers
@@ -15,6 +16,18 @@ logger = logging.getLogger(__name__)
 URL = "https://dclottery.com/player-resources/where-to-play"
 
 _ZIP_RE = re.compile(r"^\d{5}(?:-\d{4})?$")
+
+
+def _clean_phone(raw: str) -> str:
+    if not raw:
+        return ""
+    s = unquote(raw).strip()
+    digits = re.sub(r"\D", "", s)
+    if len(digits) == 10:
+        return f"({digits[:3]}) {digits[3:6]}-{digits[6:]}"
+    if len(digits) == 11 and digits.startswith("1"):
+        return f"({digits[1:4]}) {digits[4:7]}-{digits[7:]}"
+    return s
 
 
 def _parse_from_table(table) -> list[dict]:
