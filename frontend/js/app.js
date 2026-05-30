@@ -1246,7 +1246,10 @@ function renderBigWinsMap() {
   bigwinsMapMarkers.clearLayers();
 
   const state = document.getElementById("bigwinsStateFilter")?.value || "";
-  const wins = state ? bigwinsReportedWins.filter(w => w.state_code === state) : bigwinsReportedWins;
+  const game = document.getElementById("bigwinsGameFilter")?.value || "";
+  let wins = bigwinsReportedWins;
+  if (state) wins = wins.filter(w => w.state_code === state);
+  if (game)  wins = wins.filter(w => (w.source_game_name || "").trim() === game);
 
   const empty = document.getElementById("bigwinsMapEmpty");
   const stats = document.getElementById("bigwinsMapStats");
