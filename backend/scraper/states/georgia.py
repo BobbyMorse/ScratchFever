@@ -151,23 +151,43 @@ class GeorgiaScraper(BaseScraper):
         tiers = []
         total_prizes_printed = 0
         total_prizes_remaining = 0
+        for_life = _ga_for_life_from_name(name)
 
         for t in tiers_raw:
             prize_cents = t.get("prizeAmount") or 0
             prize = prize_cents / 10000.0
             total = int(t.get("winningTickets") or 0)
             paid = int(t.get("paidTickets") or 0)
-            if prize <= 0 or total <= 0:
+            if total <= 0:
                 continue
+
+            annuity_annual = annuity_years = cash_value = None
+            if prize <= 0:
+                # GA encodes for-life and (sometimes) very-high cash top prizes as 0.
+                # Reconstruct from the game name when it implies a for-life payout
+                # and the count is small enough to plausibly be the annuity tier.
+                if for_life and total <= _GA_FOR_LIFE_MAX_TOTAL:
+                    per_period, annuity_annual, cash_value = for_life
+                    prize = per_period
+                    annuity_years = _GA_FOR_LIFE_DEFAULT_YEARS
+                else:
+                    continue
+
             remaining = max(0, total - paid)
             total_prizes_printed += total
             total_prizes_remaining += remaining
-            tiers.append({
+            tier = {
                 "prize_amount":     prize,
                 "odds_one_in":      None,
                 "prizes_total":     total,
                 "prizes_remaining": remaining,
-            })
+            }
+            if cash_value is not None:
+                tier["is_annuity"] = True
+                tier["annuity_annual"] = annuity_annual
+                tier["annuity_years"] = annuity_years
+                tier["cash_value"] = round(cash_value, 2)
+            tiers.append(tier)
 
         if not tiers:
             return None
