@@ -117,6 +117,7 @@ class BaseScraper(ABC):
         top_prize, top_prize_remaining = find_top_prize(tiers)
         jackpot_odds = calculate_jackpot_odds(tiers, tickets_remaining)
         top_tier = max(tiers, key=lambda t: t.get("prize_amount", 0)) if tiers else {}
+        prize_pool_left = _sum_prize_pool(tiers)
         return {
             "game_id": str(game_id),
             "name": name,
@@ -129,6 +130,7 @@ class BaseScraper(ABC):
             "jackpot_odds_one_in": jackpot_odds,
             "total_tickets": total_tickets,
             "tickets_remaining": tickets_remaining,
+            "prize_pool_left": prize_pool_left,
             "detail_url": detail_url,
             "image_url": image_url,
             "end_date": end_date,
