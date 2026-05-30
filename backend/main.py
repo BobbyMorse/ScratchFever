@@ -516,10 +516,22 @@ async def api_status_states():
         retailer_rows = await conn.fetch(
             "SELECT state_code, last_scraped_at FROM retailer_scrape_log"
         )
+        winner_rows = await conn.fetch("""
+            SELECT state_code,
+                   COUNT(*) AS wins,
+                   MAX(claim_date) AS latest,
+                   SUM(CASE WHEN retailer_lat IS NOT NULL THEN 1 ELSE 0 END) AS geocoded
+            FROM reported_wins
+            GROUP BY state_code
+        """)
 
     games_by_state = {r["state_code"]: r for r in game_rows}
     log_by_state = {r["state_code"]: r for r in log_rows}
     retailer_by_state = {r["state_code"]: r for r in retailer_rows}
+    winners_by_state = {r["state_code"]: r for r in winner_rows}
+
+    from backend.scraper.winners.runner import ALL_WINNERS_SCRAPERS
+    winners_scraper_set = {cls.state_code for cls in ALL_WINNERS_SCRAPERS}
 
     states = []
     for state_code in sorted(all_known, key=lambda c: all_known[c]):
