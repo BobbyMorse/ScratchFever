@@ -4125,6 +4125,33 @@ function getPerGameStatuses(retailerId) {
   return result;
 }
 
+function _findRetailerAcrossStates(retailerId) {
+  const buckets = [
+    [allRetailers, 'MA'], [allAzRetailers, 'AZ'], [allRiRetailers, 'RI'],
+    [allFlRetailers, 'FL'], [allGaRetailers, 'GA'], [allNyRetailers, 'NY'],
+    [allVaRetailers, 'VA'], [allDcRetailers, 'DC'], [allVtRetailers, 'VT'],
+  ];
+  for (const [arr, code] of buckets) {
+    if (!arr) continue;
+    const r = arr.find(x => String(x.id) === String(retailerId));
+    if (r) return { retailer: r, state_code: code };
+  }
+  return { retailer: null, state_code: getRetailerState(retailerId) };
+}
+
+function _claimUrl(retailerId) {
+  const { retailer, state_code } = _findRetailerAcrossStates(retailerId);
+  const qs = new URLSearchParams({
+    retailer_id: String(retailerId),
+    state_code:  state_code || '',
+    store_name:  retailer?.name || '',
+    city:        retailer?.city || '',
+    zip:         retailer?.zip_code || retailer?.zip || '',
+    phone:       retailer?.phone || '',
+  });
+  return `/claim.html?${qs.toString()}`;
+}
+
 function storeProfileHtml(retailerId) {
   const games = getGamesForRetailer(retailerId);
   const perGameStatuses = getPerGameStatuses(retailerId);
@@ -4141,6 +4168,21 @@ function storeProfileHtml(retailerId) {
     : '';
 
   const rid = escHtml(retailerId);
+
+  // Async-loaded owner info (fresh-pack banner, hours, description, etc.).
+  // Filled by loadOwnerProfile(rid) after the panel is rendered.
+  const ownerMount = `<div class="store-owner-mount" data-rid="${rid}"></div>`;
+
+  // "Claim this store" CTA — visible to everyone; the click target itself
+  // gates on auth. Cheap, high-value for owners discovering the product.
+  const claimCta = `<div class="store-claim-cta">
+    <span class="store-claim-cta-icon">🏪</span>
+    <div class="store-claim-cta-body">
+      <div class="store-claim-cta-title">Own this store?</div>
+      <div class="store-claim-cta-sub">Claim your free dashboard to manage inventory, post promotions, and drive foot traffic.</div>
+    </div>
+    <a class="btn btn-claim" href="${_claimUrl(retailerId)}">Claim this store</a>
+  </div>`;
 
   const gameRows = games.map(g => {
     const key = (g.name || '').toLowerCase();
