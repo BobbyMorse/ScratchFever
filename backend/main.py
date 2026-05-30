@@ -410,20 +410,71 @@ async def api_game_detail(game_id: int):
         "total_tickets", "tickets_remaining",
         "prize_pool_left", "is_active", "detail_url", "image_url", "scraped_at",
         "how_to_play", "ev_approximate",
+        "start_date", "top_prize_is_annuity", "top_prize_cash_value",
+        "top_prize_annuity_years", "top_prize_annuity_annual",
+        "has_second_chance", "second_chance_url",
     ]
-    tier_cols = ["prize_amount", "odds_one_in", "prizes_total", "prizes_remaining"]
-    all_cols = game_cols + tier_cols
+    tier_cols = ["prize_amount", "odds_one_in", "prizes_total", "prizes_remaining", "last_claimed_at"]
 
     game = dict(zip(game_cols, rows[0][:len(game_cols)]))
     tiers = []
     for row in rows:
         tier_vals = row[len(game_cols):]
         if tier_vals[0] is not None:
-            tiers.append(dict(zip(tier_cols, tier_vals)))
+            tier = dict(zip(tier_cols, tier_vals))
+            if tier.get("last_claimed_at"):
+                tier["last_claimed_at"] = tier["last_claimed_at"].isoformat()
+            tiers.append(tier)
 
     tiers.sort(key=lambda t: t["prize_amount"] or 0, reverse=True)
     game["prize_tiers"] = tiers
+
+    sd = game.get("start_date")
+    tt = game.get("total_tickets")
+    tr = game.get("tickets_remaining")
+    if sd and tt and tr is not None and tt > tr:
+        today = datetime.date.today()
+        days = max(1, (today - sd).days)
+        game["days_on_sale"] = days
+        game["tickets_sold_per_day"] = round((tt - tr) / days)
+        if game["tickets_sold_per_day"] > 0:
+            game["estimated_days_to_sellout"] = round(tr / game["tickets_sold_per_day"])
+
+    async with get_pool().acquire() as conn:
+        sales = await get_weekly_sales(conn, game["state_code"], game["game_id"], limit=26)
+    game["weekly_sales"] = [
+        {**s, "week_ending": s["week_ending"].isoformat() if s.get("week_ending") else None}
+        for s in sales
+    ]
     return game
+
+
+@app.get("/api/games/{game_id}/sales")
+async def api_game_sales(game_id: int, weeks: int = Query(52, le=260)):
+    async with get_pool().acquire() as conn:
+        meta = await conn.fetchrow(
+            "SELECT state_code, game_id FROM games WHERE id=$1", game_id,
+        )
+        if not meta:
+            raise HTTPException(status_code=404, detail="Game not found")
+        sales = await get_weekly_sales(conn, meta["state_code"], meta["game_id"], limit=weeks)
+    return {
+        "game_id": game_id,
+        "weekly_sales": [
+            {**s, "week_ending": s["week_ending"].isoformat() if s.get("week_ending") else None}
+            for s in sales
+        ],
+    }
+
+
+@app.get("/api/second-chance")
+async def api_second_chance(state: Optional[str] = Query(None), upcoming_only: bool = Query(True), limit: int = Query(100, le=500)):
+    async with get_pool().acquire() as conn:
+        rows = await get_second_chance(conn, state_code=state, upcoming_only=upcoming_only, limit=limit)
+    for r in rows:
+        if r.get("drawing_date"):
+            r["drawing_date"] = r["drawing_date"].isoformat()
+    return {"drawings": rows, "count": len(rows)}
 
 
 @app.get("/api/states")
