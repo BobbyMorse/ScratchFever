@@ -159,7 +159,7 @@ class WestVirginiaScraper(BaseScraper):
         # Supplement: rendered listing pages (catches games not yet in sitemap)
         for listing_url in LISTING_URLS:
             try:
-                page.goto(listing_url, wait_until="networkidle", timeout=30_000)
+                page.goto(listing_url, wait_until="domcontentloaded", timeout=30_000)
                 try:
                     page.wait_for_selector(
                         'a[href*="/games/scratch-offs/"], a[href*="/games/instants/"]',
