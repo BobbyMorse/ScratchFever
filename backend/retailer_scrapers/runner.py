@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 SCRAPERS: list[str] = [
     "MA", "AZ", "NY", "NJ", "GA", "CA", "NH", "CT", "IL", "DC", "VT", "VA",
     # Added scrapers
-    "ME", "OR", "CO", "SC", "WA", "TX",
+    "ME", "OR", "CO", "SC", "WA", "TX", "MI",
 ]
 
 
