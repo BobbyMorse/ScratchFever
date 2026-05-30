@@ -65,9 +65,14 @@ class NewYorkScraper(BaseScraper):
             return None
 
         overall_odds = parse_odds(str(row.get("overall_odds") or ""))
-        # API's `alias` field returns /node/{nid} which 404s across the entire NY site,
-        # so fall back to the working scratch-off games listing.
-        detail_url = f"{BASE_URL}/scratch-off-games/"
+        # API's `alias` field returns /node/{nid} which 404s site-wide;
+        # the working per-game URL is keyed off `game_number`.
+        game_number = row.get("game_number")
+        detail_url = (
+            f"{BASE_URL}/scratch-off-game/?game={game_number}"
+            if game_number
+            else f"{BASE_URL}/scratch-off-games/"
+        )
 
         # art[0].uri is the full ticket image; cropped_art.uri is a pre-resized webp
         image_url = None
