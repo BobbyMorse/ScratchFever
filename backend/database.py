@@ -445,7 +445,14 @@ async def get_all_games(conn, state=None, min_price=None, max_price=None,
                COALESCE(g.prize_pool_left, (SELECT SUM(pt.prize_amount * pt.prizes_remaining)
                 FROM prize_tiers pt WHERE pt.game_db_id = g.id)) AS prize_pool_remaining,
                g.jackpot_odds_one_in,
-               COALESCE(g.ev_approximate, FALSE) AS ev_approximate
+               COALESCE(g.ev_approximate, FALSE) AS ev_approximate,
+               g.start_date,
+               COALESCE(g.top_prize_is_annuity, FALSE) AS top_prize_is_annuity,
+               g.top_prize_cash_value,
+               g.top_prize_annuity_years,
+               g.top_prize_annuity_annual,
+               COALESCE(g.has_second_chance, FALSE) AS has_second_chance,
+               g.second_chance_url
         FROM games g
         WHERE {" AND ".join(conditions)}
         ORDER BY g.{sort_by} {direction}
