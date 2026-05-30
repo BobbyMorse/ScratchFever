@@ -4269,6 +4269,7 @@ function initRiMap() {
     attribution: "&copy; OpenStreetMap contributors",
     maxZoom: 19,
   }).addTo(riMap);
+  setupMapAutoResize(riMap);
 }
 
 function renderRiMapLayers(retailers) {
