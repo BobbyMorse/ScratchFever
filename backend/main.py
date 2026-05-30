@@ -546,6 +546,7 @@ async def api_status_states():
         else:
             status = "never"
         ret = retailer_by_state.get(state_code)
+        w = winners_by_state.get(state_code)
         states.append({
             "state_code": state_code,
             "state_name": state_name,
@@ -558,6 +559,10 @@ async def api_status_states():
             "prizes_pct": int(g["prizes_pct"] or 0) if g else 0,
             "has_retailer_scraper": state_code in retailer_state_set,
             "retailer_last_scraped": ret["last_scraped_at"].isoformat() if ret else None,
+            "has_winners_scraper": state_code in winners_scraper_set,
+            "winners_count": int(w["wins"]) if w else 0,
+            "winners_latest": w["latest"].isoformat() if (w and w["latest"]) else None,
+            "winners_geocoded_pct": int(round(100 * w["geocoded"] / w["wins"])) if (w and w["wins"]) else 0,
         })
 
     return {
