@@ -887,6 +887,12 @@
       return;
     }
     renderInvList();
+    // Feed the overview "Games marked in stock" stat
+    const ovInStock = document.getElementById("ovStatInStock");
+    if (ovInStock) {
+      const inCount = Object.values(_invStatus).filter(s => s.has_stock === true).length;
+      ovInStock.textContent = String(inCount);
+    }
   }
 
   let _invFilterState = "all";
