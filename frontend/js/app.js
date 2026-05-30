@@ -2040,7 +2040,7 @@ function toggleMaMap() {
   sec.style.display = maMapVisible ? "" : "none";
   if (maMapVisible) {
     if (!maMap) initMaMap();
-    else maMap.invalidateSize();
+    setTimeout(() => maMap && maMap.invalidateSize(), 50);
     renderMapLayers(getFilteredRows());
   }
 }
