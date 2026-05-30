@@ -148,6 +148,7 @@ class MaineScraper(BaseScraper):
         top_prize = 0.0
         top_prize_remaining = None
         jackpot_odds = None
+        prize_pool_left = None
 
         if unclaimed_data:
             for amt, cnt in unclaimed_data["top_tiers"]:
