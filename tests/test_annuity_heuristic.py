@@ -26,9 +26,10 @@ class TestHeuristicApplies:
         assert top["cash_value"] == pytest.approx(70_669.7, rel=1e-3)
 
     def test_k_suffix_in_name(self):
-        """'$10K A WEEK FOR LIFE' is a real GA name format (after we extended
-        the regex). Must extract per-period $10,000 and compute NPV."""
-        tiers = [{"prize_amount": 100_000, "prizes_total": 1, "prizes_remaining": 1}]
+        """'$10K A WEEK FOR LIFE' must extract per-period $10,000 and compute NPV.
+        Face is the lifetime nominal payout (~NPV scale) so the ratio guard
+        doesn't fire — same shape as MA's real face/NPV relationship."""
+        tiers = [{"prize_amount": 10_000_000, "prizes_total": 1, "prizes_remaining": 1}]
         _apply_annuity_heuristic("$10K A WEEK FOR LIFE", tiers)
         assert tiers[0]["is_annuity"] is True
         assert tiers[0]["annuity_annual"] == 10_000 * 52
