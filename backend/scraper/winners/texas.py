@@ -73,16 +73,17 @@ class TexasWinnersScraper(WinnersScraper):
                 city = mt.group(1).strip().title() if mt else None
             if not city:
                 continue
+            # TX press-releases cover both scratch and draw wins. We only want
+            # scratch (instant) tickets — the title must say "SCRATCH TICKET".
+            if "SCRATCH TICKET" not in title.upper() and "SCRATCH-OFF" not in title.upper():
+                continue
             # Pull amount from title — first $-marker is the prize
             ma = re.search(r'\$([\d,.]+)\s*(MILLION|M|THOUSAND|K)?', title, re.IGNORECASE)
             prize = _parse_amount(ma.group(1), ma.group(2)) if ma else None
             if not prize or prize < self.min_prize:
                 continue
-            # Extract game name from filename slug
-            # Slug looks like "Leander_20M_Powerball_Jackpot_Claimed_-_News_Release"
             game = self._extract_game_from_slug(slug)
-            is_scratch = "SCRATCH" in title.upper()
-            if not is_scratch and is_draw_game(self.state_code, game):
+            if is_draw_game(self.state_code, game):
                 continue
             sid_parts = [date_raw, city, f"{int(prize)}", game]
             source_id = "|".join(sid_parts)
