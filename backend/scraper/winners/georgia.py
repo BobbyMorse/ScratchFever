@@ -79,13 +79,17 @@ class GeorgiaWinnersScraper(WinnersScraper):
             return None
 
         game_raw = (w.get("game") or "").strip().upper()
-        if not game_raw:
-            return None
-        # SCRATCHER is the only scratch game type in GA's gallery; everything
-        # else (MEGAMILLIONS, POWERBALL, DIGGI digital-instant, etc.) we skip.
-        if game_raw != "SCRATCHER":
+        # GA's gallery groups entries by `game`:
+        #   SCRATCHER  → weekly aggregate totals (no individual winner) — skip
+        #   DIGGI, ONLINE → individual digital-instant winners (scratch-like) — keep
+        #   MEGAMILLIONS, POWERBALL, FANTASY5 → draw games — skip
+        if game_raw not in ("DIGGI", "ONLINE", ""):
             return None
         if is_draw_game(self.state_code, game_raw):
+            return None
+        # Skip weekly-aggregate names like "Week of March 10, 2024"
+        winner_name_raw = (w.get("winnername") or "").strip()
+        if winner_name_raw.lower().startswith("week of"):
             return None
 
         date_str = (w.get("windate") or "").strip()
