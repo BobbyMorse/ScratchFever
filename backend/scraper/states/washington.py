@@ -45,15 +45,16 @@ def _parse_date(text: str) -> str | None:
 
 
 def _parse_prize_text(text: str) -> float | None:
-    """Handle WA prize description formats beyond plain dollar amounts."""
+    """Handle WA prize description formats beyond plain dollar amounts.
+    Note: returns face per-period value for "$X / WEEK / LIFE"-style strings
+    so the caller can mark the tier as is_annuity (handled in _parse_top_prizes).
+    Without that, dropping the tier outright lets the base annuity heuristic
+    mis-apply NPV to the next-best (non-annuity) tier — see NY/GA fix."""
     t = text.strip()
     if not t:
         return None
     # Strip surrounding parentheses: "($50 x 10)" → "$50 x 10"
     t = re.sub(r"^\((.+)\)$", r"\1", t).strip()
-    # Life annuity — not calculable
-    if re.search(r"\blife\b", t, re.I):
-        return None
     # "$40,000/yr/25 years" → nominal total
     m = re.match(r"\$?([\d,]+)/yr/(\d+)\s*years?", t, re.I)
     if m:
