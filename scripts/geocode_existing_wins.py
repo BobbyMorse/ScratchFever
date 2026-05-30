@@ -24,6 +24,7 @@ load_dotenv()
 from backend.database import (  # noqa: E402
     init_db, get_pool, _norm_retailer_name, _load_retailer_geo_index,
 )
+from backend.scraper.winners.city_geocoder import geocode_city  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger("geocode_wins")
