@@ -6,9 +6,70 @@ from abc import ABC, abstractmethod
 import requests
 from bs4 import BeautifulSoup
 
-from backend.ev_calculator import calculate_ev, calculate_jackpot_odds, find_top_prize, parse_prize_amount, parse_odds
+from backend.ev_calculator import (
+    annuity_present_value,
+    calculate_ev,
+    calculate_jackpot_odds,
+    find_top_prize,
+    parse_prize_amount,
+    parse_odds,
+)
 
 logger = logging.getLogger(__name__)
+
+# Name patterns → (periods_per_year, default_years).
+# default_years=None means the year count is captured from the regex (group 2).
+_ANNUITY_PATTERNS = [
+    (re.compile(r"(\$?[\d,]+)\s*(?:a|per)?\s*week\s+for\s+life", re.I), 52, 20),
+    (re.compile(r"(\$?[\d,]+)\s*(?:a|per)?\s*year\s+for\s+life", re.I), 1, 20),
+    (re.compile(r"(\$?[\d,]+)\s*(?:a|per)?\s*month\s+for\s+life", re.I), 12, 20),
+    (re.compile(r"(\$?[\d,]+)\s*(?:a|per)?\s*day\s+for\s+life", re.I), 365, 20),
+    (re.compile(r"(\$?[\d,]+)\s*(?:a|per)?\s*week\s+for\s+(\d+)\s*year", re.I), 52, None),
+    (re.compile(r"(\$?[\d,]+)\s*(?:a|per)?\s*year\s+for\s+(\d+)\s*year", re.I), 1, None),
+]
+
+
+def _parse_money(s: str) -> float | None:
+    if not s:
+        return None
+    s = s.replace("$", "").replace(",", "").strip()
+    try:
+        return float(s)
+    except ValueError:
+        return None
+
+
+def _apply_annuity_heuristic(name: str, tiers: list[dict]) -> None:
+    """For "FOR LIFE" games like "$10,000 A WEEK FOR LIFE", the prize-table top tier
+    ($10,000) is the per-period payment, not the lump sum a winner receives. We assume
+    winners always take the cash option, so populate the top tier with cash_value =
+    PV of the 20-year guaranteed-minimum stream at 4% (matches state lotteries' published
+    cash options within a few %). Face prize_amount is preserved for display continuity
+    with the lottery's prize table; scraper-supplied cash_value is never overwritten.
+    """
+    if not tiers or not name:
+        return
+    top = max(tiers, key=lambda t: t.get("prize_amount", 0))
+    if top.get("cash_value"):
+        return
+    for pattern, periods_per_year, default_years in _ANNUITY_PATTERNS:
+        m = pattern.search(name)
+        if not m:
+            continue
+        per_period = _parse_money(m.group(1))
+        if not per_period:
+            continue
+        years = default_years if default_years is not None else int(m.group(2))
+        annual = per_period * periods_per_year
+        cash = annuity_present_value(annual, years)
+        if cash <= 0:
+            return
+        top["is_annuity"] = True
+        top["annuity_annual"] = annual
+        top["annuity_years"] = years
+        top["cash_value"] = round(cash, 2)
+        return
+
 
 HEADERS = {
     "User-Agent": (
