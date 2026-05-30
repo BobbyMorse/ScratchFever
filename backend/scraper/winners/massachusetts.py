@@ -19,6 +19,8 @@ logger = logging.getLogger(__name__)
 
 API_URL = "https://www.masslottery.com/api/v1/winners/query"
 PAGE_SIZE = 100
+# MA accepts five fixed prize buckets — comma-joined gives us every $10K+ win.
+PRIZE_BUCKETS_10K_PLUS = "10000-24999,25000-49999,50000-99999,100000-999999,1000000-"
 
 
 class MassachusettsWinnersScraper(WinnersScraper):
