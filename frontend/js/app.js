@@ -4885,6 +4885,7 @@ function initGaMap() {
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: "&copy; OpenStreetMap contributors", maxZoom: 19,
   }).addTo(gaMap);
+  setupMapAutoResize(gaMap);
 }
 
 function renderGaMapLayers(retailers) {
