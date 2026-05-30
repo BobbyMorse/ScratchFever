@@ -1143,28 +1143,19 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
   border-style: solid;
 }
 
-.modal-find-chase {
-  display: block;
-  width: 100%;
-  margin: .25rem 0 .85rem;
-  padding: .7rem .95rem;
-  background: var(--orange-dim);
-  border: 1px solid var(--orange);
-  border-radius: var(--radius-sm);
+.modal-chase-link-row {
+  margin: 0 0 .9rem;
+}
+.modal-chase-link {
   color: var(--orange);
-  font-family: inherit;
-  font-size: .88rem;
-  font-weight: 700;
-  text-align: center;
-  cursor: pointer;
-  transition: background .12s, color .12s, transform .08s;
+  font-size: .85rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color .12s;
 }
-.modal-find-chase:hover {
-  background: var(--orange);
-  color: #fff;
-}
-.modal-find-chase:active {
-  transform: translateY(1px);
+.modal-chase-link:hover {
+  border-bottom-color: var(--orange);
 }
 
 .store-profile-tr td { padding: 0; background: var(--bg) !important; }
