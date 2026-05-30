@@ -176,6 +176,32 @@ async def init_db():
             )
         """)
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_plays_user ON user_plays(user_id, played_at DESC)")
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS reported_wins (
+                id SERIAL PRIMARY KEY,
+                state_code TEXT NOT NULL,
+                source_game_id TEXT,
+                source_game_name TEXT,
+                game_db_id INTEGER REFERENCES games(id) ON DELETE SET NULL,
+                prize_amount REAL NOT NULL,
+                claim_date DATE,
+                winner_city TEXT,
+                retailer_name TEXT,
+                retailer_address TEXT,
+                retailer_city TEXT,
+                retailer_zip TEXT,
+                retailer_lat REAL,
+                retailer_lng REAL,
+                source_url TEXT,
+                source_id TEXT NOT NULL,
+                scraped_at TIMESTAMPTZ DEFAULT NOW(),
+                UNIQUE(state_code, source_id)
+            )
+        """)
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_rw_state_date ON reported_wins(state_code, claim_date DESC)")
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_rw_prize ON reported_wins(prize_amount DESC, claim_date DESC)")
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_rw_game ON reported_wins(game_db_id)")
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_rw_geo ON reported_wins(retailer_lat, retailer_lng) WHERE retailer_lat IS NOT NULL")
 
 
 async def init_retailer_db():
