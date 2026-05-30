@@ -137,7 +137,7 @@ class BaseScraper(ABC):
         ev_data = calculate_ev(price, tiers, tickets_remaining)
         top_prize, top_prize_remaining = find_top_prize(tiers)
         jackpot_odds = calculate_jackpot_odds(tiers, tickets_remaining)
-        top_tier = max(tiers, key=lambda t: t.get("prize_amount", 0)) if tiers else {}
+        top_tier = find_top_tier(tiers) if tiers else {}
         prize_pool_left = _sum_prize_pool(tiers)
         return {
             "game_id": str(game_id),
