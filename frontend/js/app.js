@@ -4799,7 +4799,6 @@ function getGaFilteredRows() {
   const city          = (document.getElementById("gaCityInput")?.value   || "").toLowerCase().trim();
   const invFilter     = document.getElementById("gaInvFilter")?.value  || "";
   const dateFilter    = document.getElementById("gaDateFilter")?.value || "";
-  const showUnchecked = document.getElementById("gaShowUnchecked")?.checked ?? true;
 
   gaMapReportFilter = (invFilter === "in" || invFilter === "out") ? invFilter : "all";
 
