@@ -132,9 +132,14 @@ class NewYorkScraper(BaseScraper):
         any_remaining_data = False
 
         for t in tiers_raw:
-            prize = parse_prize_amount(str(t.get("prize_amount") or ""))
+            raw_prize = str(t.get("prize_amount") or "")
+            prize = parse_prize_amount(raw_prize)
+            for_life = None
             if not prize or prize <= 0:
-                continue
+                for_life = _parse_for_life_tier(raw_prize)
+                if not for_life:
+                    continue
+                prize = for_life[0]  # face per-period payment
 
             tier_odds = parse_odds(str(t.get("overall_odds") or ""))
             raw_remaining = t.get("prizes_remaining")
@@ -153,12 +158,19 @@ class NewYorkScraper(BaseScraper):
             total_prizes_printed += total
             total_prizes_remaining += remaining
 
-            tiers.append({
+            tier = {
                 "prize_amount":     prize,
                 "odds_one_in":      tier_odds,
                 "prizes_total":     total,
                 "prizes_remaining": remaining,
-            })
+            }
+            if for_life:
+                _, annual, cash = for_life
+                tier["is_annuity"] = True
+                tier["annuity_annual"] = annual
+                tier["annuity_years"] = _FOR_LIFE_DEFAULT_YEARS
+                tier["cash_value"] = round(cash, 2)
+            tiers.append(tier)
 
         if not tiers:
             return None
