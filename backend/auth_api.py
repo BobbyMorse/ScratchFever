@@ -42,7 +42,7 @@ async def register(body: RegisterBody):
         raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
     username = body.username.strip()
     if not _USERNAME_RE.match(username):
-        raise HTTPException(status_code=400, detail="Username must be 3–20 characters: letters, numbers, underscores only")
+        raise HTTPException(status_code=400, detail="Username must be 3–64 characters: letters, numbers, or . _ - + @")
     try:
         user = await create_user(body.email.strip(), body.password, role="member", username=username)
     except ValueError as exc:
