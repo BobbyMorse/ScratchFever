@@ -1120,6 +1120,163 @@
     if (name === "inventory" && !_invLoaded) {
       loadInventory();
     }
+    if (name === "claims" && !_claimsLoaded) {
+      loadClaims();
+    }
+  }
+
+  // ── Claims tab ──────────────────────────────────────────────────────────
+  let _claimsLoaded = false;
+  let _claims = [];
+  let _claimsFilter = "pending";
+
+  function setClaimsFilter(f) {
+    _claimsFilter = f;
+    document.querySelectorAll(".claims-filter-btn").forEach(b => {
+      b.classList.toggle("active", b.dataset.cstat === f);
+    });
+    loadClaims();
+  }
+
+  async function loadClaims() {
+    const root = document.getElementById("claimsList");
+    root.innerHTML = `<div class="loading-row" style="padding:2rem;text-align:center;color:var(--text-muted)">Loading…</div>`;
+    const qs = new URLSearchParams({ limit: "200" });
+    if (_claimsFilter !== "all") qs.set("status", _claimsFilter);
+    try {
+      const res = await fetch(`/api/admin/claims?${qs}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.status === 401 || res.status === 403) { showLogin(); return; }
+      const data = await res.json();
+      _claims = data.claims || [];
+      _claimsLoaded = true;
+      renderClaims();
+      refreshClaimsBadge();
+    } catch (e) {
+      root.innerHTML = `<div class="claim-empty" style="color:var(--red)">Failed to load claims: ${escHtml(e.message)}</div>`;
+    }
+  }
+
+  async function refreshClaimsBadge() {
+    // Lightweight: count pending in the current set; if filter is "pending",
+    // we know the exact count. Otherwise we fire a tiny separate request.
+    let pendingCount = 0;
+    if (_claimsFilter === "pending") {
+      pendingCount = _claims.filter(c => c.status === "pending").length;
+    } else {
+      try {
+        const res = await fetch(`/api/admin/claims?status=pending&limit=1`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          // We only need to know if there's *any* pending; full count needs limit=500
+          // but a 1-row check is enough to surface the badge.
+          if ((data.claims || []).length) {
+            const fullRes = await fetch(`/api/admin/claims?status=pending&limit=500`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            if (fullRes.ok) {
+              const fullData = await fullRes.json();
+              pendingCount = (fullData.claims || []).length;
+            }
+          }
+        }
+      } catch {}
+    }
+    const badge = document.getElementById("claimsPendingBadge");
+    if (pendingCount > 0) {
+      badge.textContent = pendingCount;
+      badge.style.display = "";
+    } else {
+      badge.style.display = "none";
+    }
+  }
+
+  function renderClaims() {
+    const root = document.getElementById("claimsList");
+    if (!_claims.length) {
+      const word = _claimsFilter === "all" ? "" : ` ${_claimsFilter}`;
+      root.innerHTML = `<div class="claim-empty">No${word} claims yet.</div>`;
+      return;
+    }
+    root.innerHTML = _claims.map(c => {
+      const isPending = c.status === "pending";
+      const detail = `
+        <div class="claim-detail-grid">
+          <div class="lbl">Claimed by</div>
+          <div class="val">${escHtml(c.user_username || c.user_email)}<br>
+            <span style="font-size:.74rem;color:var(--text-muted)">${escHtml(c.user_email)}</span>
+          </div>
+          <div class="lbl">Their role</div>
+          <div class="val">${escHtml(c.claimant_role || "—")}</div>
+          <div class="lbl">Contact</div>
+          <div class="val">${escHtml(c.claimant_name || "—")}${c.claimant_phone ? ` · ${escHtml(c.claimant_phone)}` : ""}</div>
+          <div class="lbl">Store phone</div>
+          <div class="val">${escHtml(c.phone || "—")}</div>
+          <div class="lbl">Retailer ID</div>
+          <div class="val mono" style="font-family:'JetBrains Mono',monospace;font-size:.78rem">${escHtml(c.retailer_id)}</div>
+          <div class="lbl">ZIP</div>
+          <div class="val">${escHtml(c.zip || "—")}</div>
+        </div>
+        ${c.notes ? `<div class="claim-notes">"${escHtml(c.notes)}"</div>` : ""}
+        ${c.review_notes ? `<div class="claim-notes" style="border-left-color:${c.status === 'rejected' ? 'var(--red)' : 'var(--green)'}"><strong style="font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)">Admin note:</strong><br>${escHtml(c.review_notes)}</div>` : ""}
+      `;
+      const actions = isPending
+        ? `<div class="claim-actions">
+            <button class="claim-btn claim-btn-approve" onclick="reviewClaim(${c.id}, 'approve')">Approve</button>
+            <button class="claim-btn claim-btn-reject" onclick="reviewClaim(${c.id}, 'reject')">Reject</button>
+          </div>`
+        : `<div class="claim-review-meta">
+            Reviewed ${c.reviewed_at ? timeAgo(c.reviewed_at) : "—"}
+          </div>`;
+      return `<div class="claim-card ${c.status}">
+        <div>
+          <div class="claim-hd">
+            <span class="claim-store">${escHtml(c.store_name)}</span>
+            <span class="claim-status-pill ${c.status}">${c.status}</span>
+          </div>
+          <div class="claim-meta">
+            <span>${escHtml(c.city || "—")} · ${escHtml(c.state_code)}</span>
+            <span>Submitted ${timeAgo(c.created_at)}</span>
+          </div>
+          ${detail}
+        </div>
+        ${actions}
+      </div>`;
+    }).join("");
+  }
+
+  async function reviewClaim(id, action) {
+    const c = _claims.find(x => x.id === id);
+    if (!c) return;
+    let prompt_msg;
+    if (action === "approve") {
+      prompt_msg = `Approve "${c.store_name}"?\n\nThis will:\n• Create a verified retailer profile for ${c.user_email}\n• Promote them to the 'retailer' role\n• Give them access to /retailer.html dashboard\n\nOptional note (blank to skip):`;
+    } else {
+      prompt_msg = `Reject "${c.store_name}"?\n\nReason (will be visible to the claimant):`;
+    }
+    const note = window.prompt(prompt_msg, "");
+    if (note === null) return;  // cancelled
+
+    const url = `/api/admin/claims/${id}/${action}`;
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ review_notes: note || null }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        showToast(`${action === "approve" ? "Approval" : "Rejection"} failed: ${data.detail || res.status}`);
+        return;
+      }
+      showToast(`Claim ${action === "approve" ? "approved" : "rejected"}.`);
+      await loadClaims();
+    } catch (e) {
+      showToast(`Failed: ${e.message}`);
+    }
   }
 
   // ── Inventory tab ───────────────────────────────────────────────────────
