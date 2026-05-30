@@ -1988,6 +1988,24 @@ function renderInventoryCluster(map, layerKey, opts) {
     showCoverageOnHover: false,
     spiderfyOnMaxZoom: true,
     disableClusteringAtZoom: 16,
+    // Color clusters by inventory status, not by count. Green when any child
+    // has in-stock inventory marked; otherwise neutral grey.
+    iconCreateFunction: (c) => {
+      const children = c.getAllChildMarkers();
+      let hasInStock = false;
+      for (const m of children) {
+        if (m.options.sfStockState === "in") { hasInStock = true; break; }
+      }
+      const bg = hasInStock ? "rgba(0,204,68,0.85)" : "rgba(120,120,120,0.75)";
+      const inner = hasInStock ? "rgba(0,204,68,1)" : "rgba(150,150,150,0.9)";
+      const count = children.length;
+      return L.divIcon({
+        html: `<div style="background:${inner}"><span>${count}</span></div>`,
+        className: `sf-cluster ${hasInStock ? "sf-cluster-instock" : "sf-cluster-neutral"}`,
+        iconSize: L.point(40, 40),
+        bgPos: bg, // unused by leaflet but harmless
+      });
+    },
   });
 
   const batch = [];
@@ -1999,7 +2017,8 @@ function renderInventoryCluster(map, layerKey, opts) {
     if (!isFinite(lat) || !isFinite(lng)) continue;
     const status = retailerLatestStatus[r.id];
     const color = status ? (status.has_stock ? "#00cc44" : "#cc2200") : "#4a9eff";
-    const m = L.marker([lat, lng], { icon: _dotIcon(color, 10) });
+    const stockState = status ? (status.has_stock ? "in" : "out") : "unchecked";
+    const m = L.marker([lat, lng], { icon: _dotIcon(color, 10), sfStockState: stockState });
     // Lazy popup: HTML is only built when the marker is clicked.
     m.bindPopup(() => _popupHtmlRetailer(r, status));
     batch.push(m);
@@ -2016,7 +2035,7 @@ function renderInventoryCluster(map, layerKey, opts) {
 
   for (const r of reports) {
     const color = r.has_stock ? "#00cc44" : "#cc2200";
-    const m = L.marker([r.lat, r.lng], { icon: _dotIcon(color, 12) });
+    const m = L.marker([r.lat, r.lng], { icon: _dotIcon(color, 12), sfStockState: r.has_stock ? "in" : "out" });
     m.bindPopup(() => _popupHtmlReport(r));
     batch.push(m);
   }
