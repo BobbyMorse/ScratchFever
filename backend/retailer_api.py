@@ -16,24 +16,22 @@ public_router = APIRouter(prefix="/api/public", tags=["public"])
 admin_router = APIRouter(prefix="/api/admin", tags=["admin-retailer"])
 
 
-def require_retailer(user: dict = Depends(require_member)) -> dict:
+async def require_retailer(user: dict = Depends(require_member)) -> dict:
     """
-    Allow if the user has the 'retailer' or 'admin' role token claim,
-    OR (fallback for legacy tokens issued before the role bump) they have
-    an approved retailer_profiles row. The DB is the source of truth.
+    Pass if the token role is retailer/admin, OR (fallback) the user already
+    has a retailer_profiles row. The DB fallback exists because tokens live
+    30 days and aren't re-issued when admin approves a claim — without it,
+    a freshly approved user would be locked out until their next login.
     """
-    # Hot path — token claim is enough for retailers and admins.
     if user.get("role") in ("retailer", "admin"):
         return user
-    return user  # the route's own profile lookup will 404 if no profile exists
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Hardening note: the original implementation raised 403 for any non-retailer
-# token, but we don't auto-refresh tokens after admin approval, so a user who
-# was just approved would stay locked out for up to 30 days. Profile presence
-# is the real gate everywhere downstream.
-# ─────────────────────────────────────────────────────────────────────────────
+    async with get_pool().acquire() as conn:
+        row = await conn.fetchval(
+            "SELECT 1 FROM retailer_profiles WHERE user_id=$1", user["uid"]
+        )
+    if not row:
+        raise HTTPException(status_code=403, detail="Retailer access required")
+    return user
 
 
 # ── Games (all active, no EV filter) ──────────────────────────────────────────
