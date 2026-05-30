@@ -1881,6 +1881,108 @@ function getFilteredRows() {
   return rows;
 }
 
+// ── Shared map-cluster helpers ────────────────────────────────────────────────
+// Marker clustering, lazy popups, and per-map debouncing for all state maps.
+function _dotIcon(color, size) {
+  const s = size || 10;
+  return L.divIcon({
+    className: "sf-dot",
+    html: `<span style="display:block;width:${s}px;height:${s}px;border-radius:50%;background:${color};border:1.5px solid #fff;box-shadow:0 0 2px rgba(0,0,0,.45)"></span>`,
+    iconSize: [s, s],
+    iconAnchor: [s / 2, s / 2],
+  });
+}
+
+function _popupHtmlRetailer(r, status) {
+  const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
+  const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
+  const rid = r.id || r.retailer_id || "";
+  return `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br>` +
+    `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · ` +
+    `<a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${rid}'); return false;" style="font-size:.85rem">📋 Inventory</a>`;
+}
+
+function _popupHtmlReport(r) {
+  const time = r.reported_at ? timeAgo(parseReportedAt(r.reported_at)) : "";
+  const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}`;
+  const rid = r.id || r.retailer_id || "";
+  return `<b>${escHtml(r.retailer_name || "")}</b><br>` +
+    `${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>` +
+    `${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br>` +
+    `<span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br>` +
+    `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · ` +
+    `<a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${rid}'); return false;" style="font-size:.85rem">📋 Inventory</a>`;
+}
+
+// Build (or rebuild) a marker-cluster layer of retailers + community reports on `map`.
+// Replaces any prior layer stored at window[layerKey].
+function renderInventoryCluster(map, layerKey, opts) {
+  if (!map) return;
+  const o = opts || {};
+  const retailers = o.retailers || [];
+  const allReports = o.reports || [];
+  const scopeIds = o.scopeIds || null;
+  const selectedGame = o.selectedGame || null;
+  const reportFilter = o.reportFilter || "all";
+
+  // Remove previous layer if present.
+  const prev = window[layerKey];
+  if (prev) { map.removeLayer(prev); window[layerKey] = null; }
+
+  const cluster = L.markerClusterGroup({
+    chunkedLoading: true,
+    chunkInterval: 150,
+    chunkDelay: 40,
+    maxClusterRadius: 55,
+    showCoverageOnHover: false,
+    spiderfyOnMaxZoom: true,
+    disableClusteringAtZoom: 16,
+  });
+
+  const batch = [];
+
+  for (const r of retailers) {
+    if (!r.latitude || !r.longitude) continue;
+    const lat = parseFloat(r.latitude), lng = parseFloat(r.longitude);
+    if (!isFinite(lat) || !isFinite(lng)) continue;
+    const status = retailerLatestStatus[r.id];
+    const color = status ? (status.has_stock ? "#00cc44" : "#cc2200") : "#4a9eff";
+    const m = L.marker([lat, lng], { icon: _dotIcon(color, 10) });
+    // Lazy popup: HTML is only built when the marker is clicked.
+    m.bindPopup(() => _popupHtmlRetailer(r, status));
+    batch.push(m);
+  }
+
+  let reports = allReports.filter(r => r.lat && r.lng);
+  if (scopeIds) reports = reports.filter(r => scopeIds.has(String(r.retailer_id)));
+  if (selectedGame) reports = reports.filter(r => r.game_name && r.game_name.toLowerCase() === selectedGame.name.toLowerCase());
+  if (reportFilter === "in")  reports = reports.filter(r =>  r.has_stock);
+  if (reportFilter === "out") reports = reports.filter(r => !r.has_stock);
+
+  for (const r of reports) {
+    const color = r.has_stock ? "#00cc44" : "#cc2200";
+    const m = L.marker([r.lat, r.lng], { icon: _dotIcon(color, 12) });
+    m.bindPopup(() => _popupHtmlReport(r));
+    batch.push(m);
+  }
+
+  if (batch.length) {
+    cluster.addLayers(batch);
+    cluster.addTo(map);
+    window[layerKey] = cluster;
+  }
+}
+
+// Per-key debouncer: collapses repeated calls (e.g. typing in a search box) into one render.
+const _mapRenderTimers = {};
+function debounceMapRender(key, fn, ms) {
+  if (_mapRenderTimers[key]) clearTimeout(_mapRenderTimers[key]);
+  _mapRenderTimers[key] = setTimeout(() => {
+    _mapRenderTimers[key] = null;
+    fn();
+  }, ms == null ? 180 : ms);
+}
+
 function toggleMaMap() {
   const sec = document.getElementById("maMapSection");
   maMapVisible = !maMapVisible;
