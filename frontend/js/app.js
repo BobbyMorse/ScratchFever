@@ -1393,9 +1393,13 @@ function buildBigWinsPopup(g) {
     })
     .join("");
   const moreNote = g.wins.length > 12 ? `<li class="bp-date">…and ${g.wins.length - 12} more</li>` : "";
+  const headerLine = g.isHome
+    ? `<div class="bp-retailer">Winners from ${escHtml(g.city || "this area")}</div>
+       <div class="bp-city">${escHtml(g.state || "")} · ${g.wins.length} win${g.wins.length !== 1 ? "s" : ""} · home-city pin</div>`
+    : `<div class="bp-retailer">${escHtml(g.retailer || "Unknown retailer")}</div>
+       <div class="bp-city">${escHtml(g.city || "")}${g.state ? ", " + escHtml(g.state) : ""} · ${g.wins.length} win${g.wins.length !== 1 ? "s" : ""}</div>`;
   return `<div class="bigwins-popup">
-    <div class="bp-retailer">${escHtml(g.retailer || "Unknown retailer")}</div>
-    <div class="bp-city">${escHtml(g.city || "")}${g.state ? ", " + escHtml(g.state) : ""} · ${g.wins.length} win${g.wins.length !== 1 ? "s" : ""}</div>
+    ${headerLine}
     <ul>${items}${moreNote}</ul>
   </div>`;
 }
