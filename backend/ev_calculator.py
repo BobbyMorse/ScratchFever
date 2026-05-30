@@ -16,9 +16,43 @@ Return % = (EV + price) / price * 100
 from __future__ import annotations
 
 
+ANNUITY_DISCOUNT_RATE = 0.04
+ANNUITY_DEFAULT_CASH_RATIO = 0.6
+
+
+def annuity_present_value(annual: float, years: int, rate: float = ANNUITY_DISCOUNT_RATE) -> float:
+    """PV of an annuity-immediate: annual × (1 - (1+r)^-n) / r."""
+    if not annual or annual <= 0 or not years or years <= 0:
+        return 0.0
+    if rate <= 0:
+        return annual * years
+    return annual * (1 - (1 + rate) ** -years) / rate
+
+
+def effective_prize_value(tier: dict) -> float:
+    """The cash-equivalent value used for EV math.
+    Honors explicit cash_value, then PV of (annuity_annual, annuity_years),
+    then a default ratio for is_annuity flag, else face prize_amount."""
+    face = tier.get("prize_amount") or 0
+    if not tier.get("is_annuity"):
+        return face
+    cv = tier.get("cash_value")
+    if cv and cv > 0:
+        return cv
+    annual = tier.get("annuity_annual")
+    years = tier.get("annuity_years")
+    if annual and years:
+        pv = annuity_present_value(annual, years)
+        if pv > 0:
+            return pv
+    return face * ANNUITY_DEFAULT_CASH_RATIO if face else 0
+
+
 def calculate_ev(price: float, tiers: list[dict], tickets_remaining: int = None) -> dict:
     """
-    tiers: list of {prize_amount, odds_one_in, prizes_remaining, prizes_total}
+    tiers: list of {prize_amount, odds_one_in, prizes_remaining, prizes_total,
+                    is_annuity?, cash_value?, annuity_annual?, annuity_years?}
+    Annuity-marked tiers use effective_prize_value (cash equivalent), not face.
     Returns {ev, return_pct}
     """
     if not tiers or price <= 0:
@@ -32,7 +66,7 @@ def calculate_ev(price: float, tiers: list[dict], tickets_remaining: int = None)
 
     total_ev = 0.0
     for tier in tiers:
-        prize = tier.get("prize_amount", 0)
+        prize = effective_prize_value(tier)
         if not prize or prize <= 0:
             continue
 
