@@ -2086,6 +2086,7 @@ function renderMapLayers(retailers) {
 // materializing 30k rows up front — that was the source of the laggy scroll.
 function lazyRenderRows({ tbody, rows, rowFn, getStaleFlag, chunk = 200, cols = 6 }) {
   if (tbody._lazyIO) { tbody._lazyIO.disconnect(); tbody._lazyIO = null; }
+  tbody._lazyFlush = null;
   const initial = Math.min(chunk, rows.length);
   tbody.innerHTML = rows.slice(0, initial).map((r, i) => rowFn(r, i + 1)).join("");
   updateReportBadges();
@@ -2110,6 +2111,21 @@ function lazyRenderRows({ tbody, rows, rowFn, getStaleFlag, chunk = 200, cols = 
   }, { root: scrollRoot, rootMargin: "600px 0px" });
   io.observe(sentinel);
   tbody._lazyIO = io;
+  // Synchronously render any rows still pending — used when an off-screen row needs to exist
+  // in the DOM right now (e.g. opening a store profile from a map popup).
+  tbody._lazyFlush = () => {
+    if (offset >= rows.length) return;
+    if (getStaleFlag && getStaleFlag()) return;
+    const tmp = document.createElement("tbody");
+    tmp.innerHTML = rows.slice(offset, rows.length).map((r, i) => rowFn(r, offset + i + 1)).join("");
+    while (tmp.firstChild) tbody.insertBefore(tmp.firstChild, sentinel);
+    offset = rows.length;
+    updateReportBadges();
+    io.disconnect();
+    sentinel.remove();
+    tbody._lazyIO = null;
+    tbody._lazyFlush = null;
+  };
 }
 
 // ── MA Hunt data loading ──────────────────────────────────────────────────────
