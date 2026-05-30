@@ -1907,7 +1907,6 @@ function getFilteredRows() {
   if (q)    rows = rows.filter(r => r.name.toLowerCase().includes(q));
   if (city) rows = rows.filter(r => r.city.toLowerCase().includes(city));
 
-  if (!showUnchecked) rows = rows.filter(r => !!retailerLatestStatus[r.id]);
 
   if (invFilter) {
     rows = rows.filter(r => {
@@ -4156,7 +4155,6 @@ function getRiFilteredRows() {
   if (q)    rows = rows.filter(r => r.name.toLowerCase().includes(q));
   if (city) rows = rows.filter(r => r.city.toLowerCase().includes(city));
 
-  if (!showUnchecked) rows = rows.filter(r => !!retailerLatestStatus[r.id]);
 
   if (invFilter) {
     rows = rows.filter(r => {
@@ -4467,7 +4465,6 @@ function getAzFilteredRows() {
   if (q)    rows = rows.filter(r => r.name.toLowerCase().includes(q));
   if (city) rows = rows.filter(r => r.city.toLowerCase().includes(city));
 
-  if (!showUnchecked) rows = rows.filter(r => !!retailerLatestStatus[r.id]);
 
   if (invFilter) {
     rows = rows.filter(r => {
@@ -4632,7 +4629,6 @@ function getFlFilteredRows() {
   let rows = allFlRetailers;
   if (q)    rows = rows.filter(r => r.name.toLowerCase().includes(q));
   if (city) rows = rows.filter(r => r.city.toLowerCase().includes(city));
-  if (!showUnchecked) rows = rows.filter(r => !!retailerLatestStatus[r.id]);
   if (invFilter) {
     rows = rows.filter(r => {
       const s = retailerLatestStatus[r.id];
@@ -4814,7 +4810,6 @@ function getGaFilteredRows() {
   let rows = allGaRetailers;
   if (q)    rows = rows.filter(r => r.name.toLowerCase().includes(q));
   if (city) rows = rows.filter(r => r.city.toLowerCase().includes(city));
-  if (!showUnchecked) rows = rows.filter(r => !!retailerLatestStatus[r.id]);
   if (invFilter) {
     rows = rows.filter(r => {
       const s = retailerLatestStatus[r.id];
@@ -4996,7 +4991,6 @@ function getNyFilteredRows() {
   let rows = allNyRetailers;
   if (q)    rows = rows.filter(r => r.name.toLowerCase().includes(q));
   if (city) rows = rows.filter(r => r.city.toLowerCase().includes(city));
-  if (!showUnchecked) rows = rows.filter(r => !!retailerLatestStatus[r.id]);
   if (invFilter) {
     rows = rows.filter(r => {
       const s = retailerLatestStatus[r.id];
@@ -5178,7 +5172,6 @@ function getVaFilteredRows() {
   let rows = allVaRetailers;
   if (q)    rows = rows.filter(r => r.name.toLowerCase().includes(q));
   if (city) rows = rows.filter(r => r.city.toLowerCase().includes(city));
-  if (!showUnchecked) rows = rows.filter(r => !!retailerLatestStatus[r.id]);
   if (invFilter) {
     rows = rows.filter(r => {
       const s = retailerLatestStatus[r.id];
@@ -5360,7 +5353,6 @@ function getDcFilteredRows() {
   let rows = allDcRetailers;
   if (q)    rows = rows.filter(r => r.name.toLowerCase().includes(q));
   if (city) rows = rows.filter(r => r.city.toLowerCase().includes(city));
-  if (!showUnchecked) rows = rows.filter(r => !!retailerLatestStatus[r.id]);
   if (invFilter) {
     rows = rows.filter(r => {
       const s = retailerLatestStatus[r.id];
@@ -5542,7 +5534,6 @@ function getVtFilteredRows() {
   let rows = allVtRetailers;
   if (q)    rows = rows.filter(r => r.name.toLowerCase().includes(q));
   if (city) rows = rows.filter(r => r.city.toLowerCase().includes(city));
-  if (!showUnchecked) rows = rows.filter(r => !!retailerLatestStatus[r.id]);
   if (invFilter) {
     rows = rows.filter(r => {
       const s = retailerLatestStatus[r.id];
