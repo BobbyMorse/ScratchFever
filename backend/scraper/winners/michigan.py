@@ -109,6 +109,8 @@ class MichiganWinnersScraper(WinnersScraper):
                 pass
 
         game_name = (w.get("gameName") or "").strip()
+        if is_draw_game(self.state_code, game_name):
+            return None
         retailer = (w.get("retailerName") or "").strip() or None
         retailer_city = (w.get("retailerCity") or "").strip() or None
         winner = (w.get("playerName") or "").strip() or None
