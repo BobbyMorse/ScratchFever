@@ -6050,48 +6050,14 @@ function showPlMsg(msg, isErr) {
   el.style.border = isErr ? "1px solid rgba(239,68,68,.3)" : "1px solid rgba(34,197,94,.3)";
 }
 
-function searchPlaysGame() {
-  const q = document.getElementById("plGameName").value.trim().toLowerCase();
-  const dd = document.getElementById("plGameDropdown");
-  if (q.length < 1) { dd.style.display = "none"; return; }
-  const matches = (allGames || []).filter(g =>
-    g.name.toLowerCase().includes(q)
-  ).slice(0, 8);
-  if (!matches.length) { dd.style.display = "none"; return; }
-  dd.innerHTML = matches.map(g =>
-    `<div class="store-dropdown-item" onclick="selectPlaysGame(${g.id},${JSON.stringify(g.name)},${JSON.stringify(g.price)},${JSON.stringify(g.state_code)})">
-      <strong>${escHtml(g.name)}</strong>
-      <span style="color:var(--text-muted);font-size:.8rem;margin-left:.4rem">${escHtml(g.state_code)} · $${g.price}</span>
-    </div>`
-  ).join("");
-  dd.style.display = "";
-}
-
-function selectPlaysGame(id, name, price, state) {
-  document.getElementById("plGameName").value  = name;
-  document.getElementById("plGameDbId").value  = id;
-  document.getElementById("plGameState").value = state;
-  if (!document.getElementById("plPrice").value) {
-    document.getElementById("plPrice").value = price;
-  }
-  document.getElementById("plGameDropdown").style.display = "none";
-}
-
-document.addEventListener("click", function(e) {
-  const dd = document.getElementById("plGameDropdown");
-  const wrap = document.getElementById("plGameName");
-  if (dd && wrap && !wrap.contains(e.target) && !dd.contains(e.target)) {
-    dd.style.display = "none";
-  }
-});
-
-// Pre-fill today's date on tab open
+// Init form on first plays-tab open
 (function() {
   const orig = window.switchTab;
   window.switchTab = function(name) {
     if (name === "plays") {
-      const d = document.getElementById("plDate");
-      if (d && !d.value) d.value = new Date().toISOString().slice(0, 10);
+      initPlStateSelect();
+      const rows = document.getElementById("plRows");
+      if (rows && rows.children.length === 0) addPlRow();
     }
     return orig(name);
   };
