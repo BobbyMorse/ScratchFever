@@ -111,20 +111,22 @@ class GeorgiaWinnersScraper(WinnersScraper):
         if not winner_city:
             return None
 
-        winner_name = (w.get("winnername") or "").strip()
         # GA's winnername is often "Name - March 18, 2024" — keep as-is for uniqueness.
         sid_parts = [
             date_str[:10] if date_str else "",
-            winner_name,
+            winner_name_raw,
             winner_city,
             f"{int(prize)}",
         ]
         source_id = "|".join(sid_parts)
 
+        # Game-name field: use the GA category as a stand-in since exact game isn't published.
+        game_display = "Digital Instant" if game_raw == "DIGGI" else (game_raw.title() or "Instant")
+
         return {
             "source_id": source_id,
             "source_game_id": None,
-            "source_game_name": "Scratcher",  # GA does not name specific scratch games here
+            "source_game_name": game_display,
             "prize_amount": prize,
             "claim_date": claim_date,
             "retailer_name": None,
