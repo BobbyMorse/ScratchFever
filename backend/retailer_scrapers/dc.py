@@ -70,7 +70,7 @@ def _parse_from_table(table) -> list[dict]:
             address = cells[1].get_text(strip=True) if len(cells) > 1 else ""
             zip_    = cells[2].get_text(strip=True) if len(cells) > 2 else ""
             tel     = cells[3].find("a", href=re.compile(r"^tel:")) if len(cells) > 3 else None
-            phone   = (tel["href"].replace("tel:", "").strip() if tel
+            phone   = _clean_phone(tel["href"].replace("tel:", "") if tel
                        else (cells[3].get_text(strip=True) if len(cells) > 3 else ""))
 
         if not name:
