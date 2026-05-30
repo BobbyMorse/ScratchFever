@@ -92,7 +92,8 @@ class FloridaScraper(BaseScraper):
         any_remaining_data = False
 
         for t in tiers_raw:
-            prize = parse_prize_amount(str(t.get("PrizeAmount") or ""))
+            raw_prize = str(t.get("PrizeAmount") or "")
+            prize = parse_prize_amount(raw_prize)
             odds = parse_odds(str(t.get("WinningOdds") or ""))
             total = int(t.get("TotalPrizes") or 0)
             raw_remaining = t.get("PrizesRemaining")
@@ -100,7 +101,16 @@ class FloridaScraper(BaseScraper):
             if raw_remaining is not None and remaining > 0:
                 any_remaining_data = True
 
-            if not prize or prize <= 0 or total <= 0:
+            for_life = None
+            if not prize or prize <= 0:
+                # FL encodes for-life prizes as e.g. "$10,000/WK/LIFE",
+                # "$2,500 WK/LIFE", "$50,000YR/LIFE" — non-numeric, drops silently
+                # without targeted parsing.
+                for_life = parse_for_life_tier(raw_prize)
+                if not for_life:
+                    continue
+                prize = for_life[0]
+            if total <= 0:
                 continue
 
             key = (prize, total)
@@ -111,12 +121,19 @@ class FloridaScraper(BaseScraper):
             total_prizes_printed += total
             total_prizes_remaining += remaining
 
-            tiers.append({
+            tier = {
                 "prize_amount":     prize,
                 "odds_one_in":      odds,
                 "prizes_total":     total,
                 "prizes_remaining": remaining,
-            })
+            }
+            if for_life:
+                _, annual, cash = for_life
+                tier["is_annuity"] = True
+                tier["annuity_annual"] = annual
+                tier["annuity_years"] = FOR_LIFE_DEFAULT_YEARS
+                tier["cash_value"] = round(cash, 2)
+            tiers.append(tier)
 
         if not tiers:
             return None
