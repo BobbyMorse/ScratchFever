@@ -4218,7 +4218,7 @@ function toggleRiMap() {
   sec.style.display = riMapVisible ? "" : "none";
   if (riMapVisible) {
     if (!riMap) initRiMap();
-    else riMap.invalidateSize();
+    setTimeout(() => riMap && riMap.invalidateSize(), 50);
     renderRiMapLayers(getRiFilteredRows());
   }
 }
