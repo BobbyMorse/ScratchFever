@@ -463,8 +463,59 @@
   <!-- Main content -->
   <main class="r-main" id="rMain">
 
+    <!-- ── OVERVIEW SECTION ─────────────────────── -->
+    <div class="r-section active" id="section-overview">
+      <div class="r-section-header">
+        <div>
+          <div class="r-section-title">Welcome back<span id="ovOwnerName"></span></div>
+          <div class="r-section-sub" id="ovSubLine">Here's what's happening at your store today.</div>
+        </div>
+        <a id="ovPublicBtn" href="#" target="_blank" class="btn-ghost" style="text-decoration:none">
+          See how your store looks to players ↗
+        </a>
+      </div>
+
+      <div class="r-stats-row" id="overviewStats">
+        <div class="r-loading"><div class="r-spin"></div></div>
+      </div>
+
+      <div class="r-card" id="ovBannerCard" style="display:none">
+        <div class="r-card-title">Currently announcing</div>
+        <div id="ovBannerPreview"></div>
+        <div style="display:flex;gap:.6rem;margin-top:.7rem">
+          <button class="btn-ghost" onclick="showSection('profile'); setTimeout(()=>document.getElementById('pfBannerText').focus(),100)">Edit announcement</button>
+          <button class="btn-ghost" onclick="clearBanner()">Clear it</button>
+        </div>
+      </div>
+
+      <div class="r-card">
+        <div class="r-card-title">How to get more lottery foot traffic this week</div>
+        <ol class="ov-tips">
+          <li>
+            <strong>Post when you open a fresh pack of a top-prize game.</strong>
+            ScratchFever players hunt for fresh packs — a single post can pull customers in within hours.
+            <a href="javascript:void(0)" onclick="showSection('posts')">Post now →</a>
+          </li>
+          <li>
+            <strong>Keep inventory marks current.</strong>
+            Players filter for stores that have the game they want; "Out of Stock" is the silent #1 reason they pick another store.
+            <a href="javascript:void(0)" onclick="showSection('inventory')">Update inventory →</a>
+          </li>
+          <li>
+            <strong>Finish your Store Profile.</strong>
+            A photo, hours, and a one-line "what makes us a lucky store" line consistently lifts visit-rate.
+            <a href="javascript:void(0)" onclick="showSection('profile')">Edit profile →</a>
+          </li>
+          <li>
+            <strong>Brag about your winners.</strong>
+            When a big prize hits at your store, post it. "Lucky store" reputation compounds — players intentionally come back.
+          </li>
+        </ol>
+      </div>
+    </div>
+
     <!-- ── INVENTORY SECTION ───────────────────── -->
-    <div class="r-section active" id="section-inventory">
+    <div class="r-section" id="section-inventory">
       <div class="r-section-header">
         <div>
           <div class="r-section-title">Inventory</div>
