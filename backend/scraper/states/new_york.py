@@ -130,7 +130,7 @@ class NewYorkScraper(BaseScraper):
                 _, annual, cash = for_life
                 tier["is_annuity"] = True
                 tier["annuity_annual"] = annual
-                tier["annuity_years"] = _FOR_LIFE_DEFAULT_YEARS
+                tier["annuity_years"] = FOR_LIFE_DEFAULT_YEARS
                 tier["cash_value"] = round(cash, 2)
             tiers.append(tier)
 
