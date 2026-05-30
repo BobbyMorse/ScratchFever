@@ -61,6 +61,14 @@ def _apply_annuity_heuristic(name: str, tiers: list[dict]) -> None:
         cash = annuity_present_value(annual, years)
         if cash <= 0:
             return
+        # Sanity guard: when a scraper silently drops the real for-life tier
+        # (because the prize was a non-numeric string the parser couldn't read),
+        # `top` is actually a regular cash tier with a much smaller face. Applying
+        # the NPV to it explodes EV. MA-style for-life games have face within ~2x
+        # of NPV; anything beyond 10x is the wrong tier.
+        face = top.get("prize_amount") or 0
+        if face > 0 and cash / face > 10:
+            return
         top["is_annuity"] = True
         top["annuity_annual"] = annual
         top["annuity_years"] = years
