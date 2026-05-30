@@ -399,6 +399,98 @@
     .tab-pane { display: none; }
     .tab-pane.active { display: block; }
 
+    /* ── Claims tab ── */
+    .claims-badge {
+      display: inline-block; margin-left: .35rem; padding: 1px 6px;
+      background: var(--red); color: #fff;
+      border-radius: 10px; font-size: .68rem; font-weight: 700;
+      vertical-align: 1px;
+    }
+    .claims-filter { display: inline-flex; gap: .25rem; }
+    .claims-filter-btn {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; padding: .35rem .8rem;
+      font-family: inherit; font-size: .78rem; font-weight: 600;
+      color: var(--text-muted); cursor: pointer;
+      transition: .12s;
+    }
+    .claims-filter-btn.active {
+      background: var(--orange); border-color: var(--orange); color: #fff;
+    }
+    .claim-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.3rem;
+      margin-bottom: .75rem;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 1rem;
+    }
+    .claim-card.pending { border-left: 4px solid var(--orange); }
+    .claim-card.approved { border-left: 4px solid var(--green); opacity: .85; }
+    .claim-card.rejected { border-left: 4px solid var(--red); opacity: .7; }
+    .claim-hd { display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; }
+    .claim-store { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+    .claim-status-pill {
+      font-size: .62rem; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; padding: .15rem .55rem; border-radius: 10px;
+    }
+    .claim-status-pill.pending  { background: var(--yellow-dim); color: #b45309; }
+    .claim-status-pill.approved { background: var(--green-dim);  color: #166534; }
+    .claim-status-pill.rejected { background: var(--red-dim);    color: #991b1b; }
+    .claim-meta {
+      font-size: .82rem; color: var(--text-muted); margin-top: .35rem;
+      display: flex; gap: 1rem; flex-wrap: wrap;
+    }
+    .claim-meta .mono { font-family: 'JetBrains Mono', monospace; font-size: .77rem; }
+    .claim-detail-grid {
+      display: grid; grid-template-columns: repeat(2, minmax(180px, 1fr));
+      gap: .35rem .75rem;
+      margin-top: .8rem;
+      font-size: .82rem;
+    }
+    .claim-detail-grid .lbl {
+      font-weight: 600; color: var(--text-muted);
+      font-size: .72rem; text-transform: uppercase; letter-spacing: .04em;
+    }
+    .claim-detail-grid .val { color: var(--text); }
+    .claim-notes {
+      margin-top: .65rem; padding: .55rem .75rem;
+      background: #f9fafb; border-radius: 6px;
+      font-size: .82rem; color: var(--text);
+      border-left: 2px solid var(--border);
+      white-space: pre-wrap;
+    }
+    .claim-actions {
+      display: flex; flex-direction: column; gap: .4rem; align-items: stretch;
+      min-width: 130px;
+    }
+    .claim-btn {
+      padding: .5rem .85rem; border-radius: 6px;
+      font-family: inherit; font-size: .82rem; font-weight: 600;
+      border: 1px solid transparent; cursor: pointer;
+      transition: .12s;
+    }
+    .claim-btn-approve { background: var(--green); color: #fff; border-color: var(--green); }
+    .claim-btn-approve:hover { opacity: .88; }
+    .claim-btn-reject  { background: var(--card); color: var(--red); border-color: var(--red); }
+    .claim-btn-reject:hover  { background: var(--red); color: #fff; }
+    .claim-btn:disabled { opacity: .5; cursor: default; }
+    .claim-review-meta {
+      font-size: .73rem; color: var(--text-muted); margin-top: .25rem;
+      align-self: center; text-align: right;
+    }
+    .claim-empty {
+      padding: 2.5rem 1rem; text-align: center;
+      color: var(--text-muted); font-size: .9rem;
+      background: var(--card); border-radius: var(--radius);
+      border: 1px dashed var(--border);
+    }
+    @media (max-width: 700px) {
+      .claim-card { grid-template-columns: 1fr; }
+      .claim-actions { flex-direction: row; min-width: 0; }
+    }
+
     /* ── Inventory tab ── */
     .inv-toolbar {
       display: flex;
