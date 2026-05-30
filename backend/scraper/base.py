@@ -21,24 +21,15 @@ logger = logging.getLogger(__name__)
 
 # Name patterns → (periods_per_year, default_years).
 # default_years=None means the year count is captured from the regex (group 2).
+# Amount group accepts K/M/B suffixes ("$10K A WEEK FOR LIFE") via parse_prize_amount.
 _ANNUITY_PATTERNS = [
-    (re.compile(r"(\$?[\d,]+)\s*(?:a|per)?\s*week\s+for\s+life", re.I), 52, 20),
-    (re.compile(r"(\$?[\d,]+)\s*(?:a|per)?\s*year\s+for\s+life", re.I), 1, 20),
-    (re.compile(r"(\$?[\d,]+)\s*(?:a|per)?\s*month\s+for\s+life", re.I), 12, 20),
-    (re.compile(r"(\$?[\d,]+)\s*(?:a|per)?\s*day\s+for\s+life", re.I), 365, 20),
-    (re.compile(r"(\$?[\d,]+)\s*(?:a|per)?\s*week\s+for\s+(\d+)\s*year", re.I), 52, None),
-    (re.compile(r"(\$?[\d,]+)\s*(?:a|per)?\s*year\s+for\s+(\d+)\s*year", re.I), 1, None),
+    (re.compile(r"(\$?[\d,.]+\s*[KMB]?)\s*(?:a|per)?\s*week\s+for\s+life", re.I), 52, 20),
+    (re.compile(r"(\$?[\d,.]+\s*[KMB]?)\s*(?:a|per)?\s*year\s+for\s+life", re.I), 1, 20),
+    (re.compile(r"(\$?[\d,.]+\s*[KMB]?)\s*(?:a|per)?\s*month\s+for\s+life", re.I), 12, 20),
+    (re.compile(r"(\$?[\d,.]+\s*[KMB]?)\s*(?:a|per)?\s*day\s+for\s+life", re.I), 365, 20),
+    (re.compile(r"(\$?[\d,.]+\s*[KMB]?)\s*(?:a|per)?\s*week\s+for\s+(\d+)\s*year", re.I), 52, None),
+    (re.compile(r"(\$?[\d,.]+\s*[KMB]?)\s*(?:a|per)?\s*year\s+for\s+(\d+)\s*year", re.I), 1, None),
 ]
-
-
-def _parse_money(s: str) -> float | None:
-    if not s:
-        return None
-    s = s.replace("$", "").replace(",", "").strip()
-    try:
-        return float(s)
-    except ValueError:
-        return None
 
 
 def _apply_annuity_heuristic(name: str, tiers: list[dict]) -> None:
