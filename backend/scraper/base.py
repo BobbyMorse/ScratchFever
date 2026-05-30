@@ -31,6 +31,47 @@ _ANNUITY_PATTERNS = [
     (re.compile(r"(\$?[\d,.]+\s*[KMB]?)\s*(?:a|per)?\s*year\s+for\s+(\d+)\s*year", re.I), 1, None),
 ]
 
+# Per-tier "for-life" prize strings encountered in state APIs. These strings
+# don't parse as a numeric amount, so without targeted handling the tier
+# silently drops and the base annuity heuristic mis-applies NPV to the
+# next-best (regular cash) tier — exploding EV. Separator between amount and
+# period is permissive: "/", whitespace, or nothing (FL has "$50,000YR/LIFE").
+# Examples handled:
+#   NY: "$10K/Wk/Life", "$10,000/WEEK/LIFE"
+#   FL: "$10,000/WK/LIFE", "$2,500 WK/LIFE", "$50,000YR/LIFE"
+FOR_LIFE_TIER_RE = re.compile(
+    r"(\$?[\d,.]+\s*[KMB]?)\s*[/\s]?\s*(WK|WEEK|MO|MONTH|YR|YEAR|DAY)\s*/\s*LIFE",
+    re.I,
+)
+_FOR_LIFE_PERIODS_PER_YEAR = {
+    "WK": 52, "WEEK": 52,
+    "MO": 12, "MONTH": 12,
+    "YR": 1, "YEAR": 1,
+    "DAY": 365,
+}
+FOR_LIFE_DEFAULT_YEARS = 20
+
+
+def parse_for_life_tier(raw: str) -> tuple[float, float, float] | None:
+    """Parse a state-API per-tier for-life prize string. Returns
+    (per_period_amount, annual, cash_value_NPV) or None."""
+    if not raw:
+        return None
+    m = FOR_LIFE_TIER_RE.search(raw)
+    if not m:
+        return None
+    per_period = parse_prize_amount(m.group(1))
+    if not per_period or per_period <= 0:
+        return None
+    periods = _FOR_LIFE_PERIODS_PER_YEAR.get(m.group(2).upper())
+    if not periods:
+        return None
+    annual = per_period * periods
+    cash = annuity_present_value(annual, FOR_LIFE_DEFAULT_YEARS)
+    if cash <= 0:
+        return None
+    return per_period, annual, cash
+
 
 def _apply_annuity_heuristic(name: str, tiers: list[dict]) -> None:
     """For "FOR LIFE" games like "$10,000 A WEEK FOR LIFE", the prize-table top tier
