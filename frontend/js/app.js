@@ -3508,7 +3508,7 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
   const normGame = normalizeGameName(gameName);
   const allReports = communityReports.filter(r => normalizeGameName(r.game_name) === normGame);
   const addBtn = `<button class="btn btn-report" onclick="openReportModalForGame(${JSON.stringify(gameName)},${gamePrice != null ? gamePrice : "null"})" style="font-size:.78rem;padding:.3rem .75rem">+ Add Report</button>`;
-  const chaseHref = `onclick="viewGameInChase(${JSON.stringify(gameName)},${JSON.stringify(stateCode || "")})"`;
+  const chaseHref = `onclick="viewGameInChase(${escHtml(JSON.stringify(gameName))},${escHtml(JSON.stringify(stateCode || ""))})"`;
 
   // --- Retailer-confirmed section ---
   const latestByRetailer = {};
