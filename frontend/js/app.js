@@ -936,7 +936,7 @@ async function loadStateHealth() {
   const tbody = document.getElementById("dsGrid");
   const banner = document.getElementById("dsScraperStatus");
   if (!tbody) return;
-  tbody.innerHTML = `<tr><td colspan="9" class="ds-loading">Loading…</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="10" class="ds-loading">Loading…</td></tr>`;
   try {
     const res = await fetch("/api/status/states");
     if (!res.ok) throw new Error(res.status);
