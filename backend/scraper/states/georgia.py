@@ -34,6 +34,48 @@ _API_HEADERS = {
 _DETAIL_CONCURRENCY = 10
 _DETAIL_TIMEOUT = 15
 
+# GA encodes top-tier prizes as prizeAmount=0 in the API (likely an int-overflow
+# convention). For "for-life" games this strips out the headline prize entirely.
+# We reconstruct the per-period payment from the game name. The name is also
+# sometimes truncated at ~28 chars ("MONOPOLY $1,000 A WEEK FOR LI"), so we
+# require "A {period}" but not "FOR LIFE".
+_GA_PERIODIC_RE = re.compile(
+    r"(\$?[\d,.]+\s*[KMB]?)\s+(?:A|PER)\s+(WEEK|WK|MONTH|MO|YEAR|YR|DAY)\b",
+    re.I,
+)
+_GA_PERIODS_PER_YEAR = {
+    "WK": 52, "WEEK": 52,
+    "MO": 12, "MONTH": 12,
+    "YR": 1, "YEAR": 1,
+    "DAY": 365,
+}
+_GA_FOR_LIFE_DEFAULT_YEARS = 20
+# Real for-life prizes are scarce (1-20 winners). Anything beyond this is
+# almost certainly a non-annuity top prize that we just can't recover from the
+# API (e.g. "MILLION DOLLAR GIVEAWAY!" zero tier with 19 prizes — still leave
+# dropped rather than risk a false-positive annuity conversion).
+_GA_FOR_LIFE_MAX_TOTAL = 50
+
+
+def _ga_for_life_from_name(name: str) -> tuple[float, float, float] | None:
+    """If `name` looks like '$X a {period} for life', return (per_period, annual, NPV)."""
+    if not name:
+        return None
+    m = _GA_PERIODIC_RE.search(name)
+    if not m:
+        return None
+    per_period = parse_prize_amount(m.group(1))
+    if not per_period or per_period <= 0:
+        return None
+    periods = _GA_PERIODS_PER_YEAR.get(m.group(2).upper())
+    if not periods:
+        return None
+    annual = per_period * periods
+    cash = annuity_present_value(annual, _GA_FOR_LIFE_DEFAULT_YEARS)
+    if cash <= 0:
+        return None
+    return per_period, annual, cash
+
 
 def _fetch_overall_odds(game_id: str) -> float | None:
     url = f"{BASE_URL}/en-us/games/scratchers/{game_id}.html"
