@@ -11,7 +11,7 @@ Images: fetched from AEM CMS endpoint which returns teaserImage paths per game I
 from __future__ import annotations
 import logging
 from datetime import date
-from backend.scraper.base import BaseScraper
+from backend.scraper.base import BaseScraper, FOR_LIFE_DEFAULT_YEARS, parse_for_life_tier
 from backend.ev_calculator import parse_prize_amount, parse_odds
 
 logger = logging.getLogger(__name__)
