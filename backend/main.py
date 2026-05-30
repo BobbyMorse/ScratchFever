@@ -235,6 +235,13 @@ async def claim_page():
     return FileResponse(os.path.join(FRONTEND_DIR, "claim.html"))
 
 
+@app.get("/store/{retailer_id}", include_in_schema=False)
+async def store_page(retailer_id: str):
+    # Public store page — the retailer_id is parsed client-side from window.location.
+    # We just serve the same HTML for every store id.
+    return FileResponse(os.path.join(FRONTEND_DIR, "store.html"))
+
+
 # ── Admin: create retailer account ────────────────────────────────────────────
 
 class CreateRetailerBody(BaseModel):
