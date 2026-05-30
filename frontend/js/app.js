@@ -1317,17 +1317,22 @@ function renderBigWinsMap() {
   }
   if (empty) empty.style.display = "none";
 
-  // Group wins by retailer (lat/lng key)
+  // Group wins by location. Retailer wins group by exact lat/lng (one pin per
+  // store); winner-home wins group by city (one pin per city, no specific store).
   const groups = new Map();
   for (const w of wins) {
-    const key = `${w.retailer_lat.toFixed(5)}|${w.retailer_lng.toFixed(5)}`;
+    const isHome = !w.retailer_name;
+    const key = isHome
+      ? `home|${w.state_code}|${(w.winner_city || '').toLowerCase()}`
+      : `ret|${w.retailer_lat.toFixed(5)}|${w.retailer_lng.toFixed(5)}`;
     if (!groups.has(key)) {
       groups.set(key, {
         lat: w.retailer_lat,
         lng: w.retailer_lng,
         retailer: w.retailer_name,
-        city: w.retailer_city,
+        city: w.retailer_city || w.winner_city,
         state: w.state_code,
+        isHome,
         wins: [],
         total: 0,
       });
