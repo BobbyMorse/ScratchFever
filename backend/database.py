@@ -717,14 +717,14 @@ async def upsert_reported_wins(conn, state_code: str, wins: list[dict]) -> int:
                             break
                 if hit:
                     lat, lng = hit
-        # If we still have no retailer location but the win has a winner_city,
-        # fall back to the winner's home-city centroid. Distinguished downstream
-        # by retailer_name IS NULL.
-        if (lat is None or lng is None) and not w.get("retailer_name"):
-            wcity = w.get("winner_city")
-            if wcity:
-                from backend.scraper.winners.city_geocoder import geocode_city
-                hit = geocode_city(wcity, state_code)
+        # Geocoding fallbacks when we couldn't match a specific retailer:
+        #   1. If retailer_city is set, use that city's centroid.
+        #   2. Otherwise fall back to winner_city (home-city pin).
+        if lat is None or lng is None:
+            from backend.scraper.winners.city_geocoder import geocode_city
+            fallback_city = w.get("retailer_city") or w.get("winner_city")
+            if fallback_city:
+                hit = geocode_city(fallback_city, state_code)
                 if hit:
                     lat, lng = hit
 
