@@ -4579,6 +4579,7 @@ function initAzMap() {
     attribution: "&copy; OpenStreetMap contributors",
     maxZoom: 19,
   }).addTo(azMap);
+  setupMapAutoResize(azMap);
 }
 
 function renderAzMapLayers(retailers) {
