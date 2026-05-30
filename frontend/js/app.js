@@ -5438,7 +5438,7 @@ function toggleDcMap() {
   sec.style.display = dcMapVisible ? "" : "none";
   if (dcMapVisible) {
     if (!dcMap) initDcMap();
-    else dcMap.invalidateSize();
+    setTimeout(() => dcMap && dcMap.invalidateSize(), 50);
     renderDcMapLayers(getDcFilteredRows());
   }
 }
