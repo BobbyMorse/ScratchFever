@@ -4456,7 +4456,6 @@ function getAzFilteredRows() {
   const city          = (document.getElementById("azCityInput")?.value   || "").toLowerCase().trim();
   const invFilter     = document.getElementById("azInvFilter")?.value  || "";
   const dateFilter    = document.getElementById("azDateFilter")?.value || "";
-  const showUnchecked = document.getElementById("azShowUnchecked")?.checked ?? true;
 
   azMapReportFilter = (invFilter === "in" || invFilter === "out") ? invFilter : "all";
 
