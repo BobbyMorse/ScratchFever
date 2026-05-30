@@ -3877,7 +3877,7 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
 
   if (!_currentUser) {
     return `<div class="modal-community-section">
-      <div class="modal-community-title">📍 Member Sightings</div>
+      <div class="modal-community-title">📍 Inventory</div>
       <div class="modal-community-gate">
         <span>In stock at ${count} member-reported location${count > 1 ? "s" : ""}.</span>
         <button class="btn btn-login" onclick="closeModal();openAuthModal('login')" style="font-size:.78rem;padding:.3rem .75rem">Log In to See</button>
