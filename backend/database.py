@@ -534,6 +534,49 @@ async def upsert_reported_wins(conn, state_code: str, wins: list[dict]) -> int:
     return saved
 
 
+_PER_STATE_RETAILER_TABLES = {
+    "MA": "ma_retailers",
+    "AZ": "az_retailers",
+    "FL": "fl_retailers",
+    "GA": "ga_retailers",
+    "RI": "ri_retailers",
+}
+
+
+async def _load_retailer_geo_index(conn, state_code: str):
+    """
+    Returns (exact_map, by_city) where:
+      exact_map: {(norm_name, lower_city): (lat, lng)}
+      by_city:   {lower_city: [(norm_name, lat, lng), ...]}  for substring fallback
+    Pulls from the per-state retailer table when one exists, else state_retailers.
+    """
+    exact: dict[tuple[str, str], tuple[float, float]] = {}
+    by_city: dict[str, list[tuple[str, float, float]]] = {}
+    table = _PER_STATE_RETAILER_TABLES.get(state_code.upper())
+    try:
+        if table:
+            rows = await conn.fetch(
+                f"SELECT name, city, latitude, longitude FROM {table} "
+                f"WHERE latitude IS NOT NULL AND longitude IS NOT NULL"
+            )
+        else:
+            rows = await conn.fetch(
+                """SELECT name, city, latitude, longitude FROM state_retailers
+                   WHERE state_code = $1 AND latitude IS NOT NULL AND longitude IS NOT NULL""",
+                state_code,
+            )
+    except Exception:
+        rows = []
+    for r in rows:
+        nname = _norm_retailer_name(r["name"])
+        ncity = (r["city"] or "").lower().strip()
+        if not nname:
+            continue
+        exact[(nname, ncity)] = (r["latitude"], r["longitude"])
+        by_city.setdefault(ncity, []).append((nname, r["latitude"], r["longitude"]))
+    return exact, by_city
+
+
 def _norm_game_name(s: str) -> str:
     if not s:
         return ""
