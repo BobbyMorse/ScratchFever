@@ -511,6 +511,7 @@ async def api_status(
 async def api_trigger_scrape(
     background_tasks: BackgroundTasks,
     state: Optional[str] = Query(None, description="Scrape a single state (e.g. TX), or all if omitted"),
+    user: dict = Depends(require_admin),
 ):
     if scrape_status["running"]:
         return {"message": "Scrape already in progress", "running": True}
