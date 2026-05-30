@@ -4502,64 +4502,18 @@ function initAzMap() {
 
 function renderAzMapLayers(retailers) {
   if (!azMap) return;
-  azMap.eachLayer(layer => { if (!(layer instanceof L.TileLayer)) azMap.removeLayer(layer); });
-  window._azInventoryLayer = null;
-  updateAzInventoryMapLayer(retailers);
+  debounceMapRender("az", () => updateAzInventoryMapLayer(retailers), 180);
 }
 
 function updateAzInventoryMapLayer(visibleRetailers) {
-  if (!azMap) return;
-
-  if (window._azInventoryLayer) {
-    azMap.removeLayer(window._azInventoryLayer);
-    window._azInventoryLayer = null;
-  }
-
-  const retailers = visibleRetailers || getAzFilteredRows();
-
-  const retailerMarkers = retailers
-    .filter(r => r.latitude && r.longitude)
-    .map(r => {
-      const status = retailerLatestStatus[r.id];
-      const color = status
-        ? (status.has_stock ? "#00cc44" : "#cc2200")
-        : "#4a9eff";
-      const statusTxt = status
-        ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock")
-        : "Not yet checked";
-      const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
-      return L.circleMarker([parseFloat(r.latitude), parseFloat(r.longitude)], { radius: 4, fillColor: color, fillOpacity: 1, color: '#fff', weight: 1.5 })
-        .bindPopup(
-          `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br>` +
-          `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
-        );
-    });
-
-  // Community report dots filtered to AZ retailers
-  const azIds = new Set(allAzRetailers.map(r => String(r.id)));
-  let reports = communityReports.filter(r => r.lat && r.lng && azIds.has(String(r.retailer_id)));
-  if (selectedAzGame) reports = reports.filter(r => r.game_name?.toLowerCase() === selectedAzGame.name.toLowerCase());
-  if (azMapReportFilter === "in")  reports = reports.filter(r =>  r.has_stock);
-  if (azMapReportFilter === "out") reports = reports.filter(r => !r.has_stock);
-
-  const reportMarkers = reports.map(r => {
-    const color = r.has_stock ? "#00cc44" : "#cc2200";
-    const time = r.reported_at
-      ? timeAgo(parseReportedAt(r.reported_at))
-      : "";
-    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}`;
-    return L.circleMarker([r.lat, r.lng], { radius: 5, fillColor: color, fillOpacity: 1, color: '#fff', weight: 2 }).bindPopup(
-      `<b>${escHtml(r.retailer_name || "")}</b><br>` +
-      `${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>` +
-      `${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br>` +
-      `<span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br>` +
-      `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
-    );
+  renderInventoryCluster(azMap, "_azInventoryLayer", {
+    retailers: visibleRetailers || getAzFilteredRows(),
+    reports: communityReports,
+    scopeIds: new Set(allAzRetailers.map(r => String(r.id))),
+    selectedGame: selectedAzGame,
+    reportFilter: azMapReportFilter,
   });
-
-  const allMarkers = [...retailerMarkers, ...reportMarkers];
-  if (allMarkers.length) {
-    window._azInventoryLayer = L.layerGroup(allMarkers).addTo(azMap);
+  return; // legacy stub guard — original closing braces follow
   }
 }
 
