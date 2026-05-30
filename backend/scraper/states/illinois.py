@@ -38,7 +38,7 @@ class IllinoisScraper(PlaywrightScraper):
     def scrape(self) -> list[dict]:
         soup = self.pw_soup(
             PRIZES_URL,
-            wait_for="networkidle",
+            wait_for="domcontentloaded",
             selector=".unclaimed-prizes-table__row",
             timeout=60_000,
             extra_wait_ms=2000,
