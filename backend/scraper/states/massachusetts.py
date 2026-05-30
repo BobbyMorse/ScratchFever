@@ -209,6 +209,7 @@ class MassachusettsScraper(BaseScraper):
             "jackpot_odds_one_in":  jackpot_odds,
             "total_tickets":        total_tickets,
             "tickets_remaining":    tickets_remaining,
+            "prize_pool_left":      _sum_prize_pool(tiers),
             "detail_url":           f"{DETAIL_BASE}/{slug}",
             "image_url":            image_url,
             "start_date":           start_date,
