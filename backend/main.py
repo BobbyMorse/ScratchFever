@@ -570,6 +570,7 @@ async def api_status_states():
             "winners_count": int(w["wins"]) if w else 0,
             "winners_latest": w["latest"].isoformat() if (w and w["latest"]) else None,
             "winners_geocoded_pct": int(round(100 * w["geocoded"] / w["wins"])) if (w and w["wins"]) else 0,
+            "winners_has_retailer": bool(w and w["with_retailer"] and w["with_retailer"] > 0),
         })
 
     return {
