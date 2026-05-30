@@ -42,6 +42,65 @@ DRAW_GAME_PATTERNS: dict[str, tuple[str, ...]] = {
         "keno", "powerball", "mega millions", "lucky for life",
         "wild money", "the numbers", "millionaire for life",
     ),
+    "TX": (
+        "powerball", "mega millions", "lotto texas", "texas two step",
+        "cash five", "pick 3", "all or nothing", "daily 4",
+    ),
+    "PA": (
+        "powerball", "mega millions", "cash 5", "cash4life", "pick 2", "pick 3",
+        "pick 4", "pick 5", "treasure hunt", "match 6", "millionaire raffle",
+    ),
+    "WI": (
+        "powerball", "mega millions", "badger 5", "supercash", "pick 3",
+        "pick 4", "all or nothing",
+    ),
+    "OK": (
+        "powerball", "mega millions", "lotto america", "lucky for life",
+        "pick 3", "cash 5",
+    ),
+    "VT": (
+        "powerball", "mega millions", "lucky for life", "megabucks",
+        "tri-state", "gimme 5", "pick 3", "pick 4",
+    ),
+    "MO": (
+        "powerball", "mega millions", "show me cash", "lucky for life",
+        "lotto", "pick 3", "pick 4", "club keno", "millionaire raffle",
+    ),
+    "AR": (
+        "powerball", "mega millions", "lotto", "natural state jackpot",
+        "cash 3", "cash 4", "lucky for life",
+    ),
+    "MN": (
+        "powerball", "mega millions", "lotto america", "lucky for life",
+        "gopher 5", "daily 3", "northstar cash",
+    ),
+    "LA": (
+        "powerball", "mega millions", "lotto", "easy 5", "pick 3", "pick 4",
+        "lucky for life",
+    ),
+    "IN": (
+        "powerball", "mega millions", "hoosier lotto", "cash5", "cash 5",
+        "lucky for life", "daily 3", "daily 4", "quick draw",
+    ),
+    "DE": (
+        "powerball", "mega millions", "multi-win lotto", "play 3", "play 4",
+        "lucky for life", "lotto america", "keno",
+    ),
+    "NM": (
+        "powerball", "mega millions", "roadrunner cash", "pick 3", "pick 4",
+        "lotto america",
+    ),
+    "MS": (
+        "powerball", "mega millions", "match 5", "cash pop",
+    ),
+    "GA": (
+        "powerball", "mega millions", "fantasy 5", "georgia 5", "cash 3",
+        "cash 4", "jumbo bucks lotto", "cash pop",
+    ),
+    "CT": (
+        "powerball", "mega millions", "lucky for life", "cash5", "cash 5",
+        "play 3", "play 4", "keno", "lotto",
+    ),
 }
 
 
