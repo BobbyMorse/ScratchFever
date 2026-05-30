@@ -116,10 +116,18 @@ def calculate_jackpot_odds(tiers: list[dict], tickets_remaining: int = None) -> 
         return round(1 / total_prob, 1)
 
 
-def find_top_prize(tiers: list[dict]) -> tuple[float, int]:
+def find_top_tier(tiers: list[dict]) -> dict:
+    """The headline tier — ranked by cash-equivalent value so for-life prizes
+    win ties against same-face cash tiers (e.g. NY's $10K/Wk/Life vs. $10K cash)."""
     if not tiers:
+        return {}
+    return max(tiers, key=effective_prize_value)
+
+
+def find_top_prize(tiers: list[dict]) -> tuple[float, int]:
+    top = find_top_tier(tiers)
+    if not top:
         return 0, None
-    top = max(tiers, key=lambda t: t.get("prize_amount", 0))
     return top.get("prize_amount", 0), top.get("prizes_remaining")
 
 
