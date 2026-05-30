@@ -15,6 +15,12 @@ logger = logging.getLogger(__name__)
 API_URL = "https://www.michiganlottery.com/api"
 QUERY = "{retailers{id retailerNumber name address city postalCode latitude longitude}}"
 
+# MI bounding box (with small buffer). MI's API occasionally returns the sentinel
+# (34.0, -115.0) — Mojave Desert — for retailers it can't geocode; anything outside
+# this box is junk.
+MI_LAT_RANGE = (41.5, 48.5)
+MI_LNG_RANGE = (-90.5, -82.0)
+
 
 def _parse_retailer(item: dict) -> dict | None:
     name = (item.get("name") or "").strip()
@@ -28,6 +34,10 @@ def _parse_retailer(item: dict) -> dict | None:
         lng = float(item["longitude"]) if item.get("longitude") not in (None, "") else None
     except (ValueError, TypeError):
         lat, lng = None, None
+    if lat is not None and lng is not None:
+        if not (MI_LAT_RANGE[0] <= lat <= MI_LAT_RANGE[1]
+                and MI_LNG_RANGE[0] <= lng <= MI_LNG_RANGE[1]):
+            lat, lng = None, None
     return {
         "external_id": external_id,
         "name": name,
