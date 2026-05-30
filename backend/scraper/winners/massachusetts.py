@@ -39,7 +39,6 @@ class MassachusettsWinnersScraper(WinnersScraper):
                 "count": PAGE_SIZE,
                 "date_from": date_from,
                 "date_to": date_to,
-                "sort": "DATE_DESC",
             }
             resp = self.get(API_URL, params=params, headers={
                 "Referer": "https://www.masslottery.com/tools/winners",
