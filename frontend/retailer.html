@@ -574,8 +574,8 @@
     <div class="r-section" id="section-activity">
       <div class="r-section-header">
         <div>
-          <div class="r-section-title">Activity</div>
-          <div class="r-section-sub">See how ScratchFever members are engaging with your store.</div>
+          <div class="r-section-title">Customer Activity</div>
+          <div class="r-section-sub">Players using ScratchFever near your store report what's in stock and what's not. Use these to spot restock needs before customers complain.</div>
         </div>
       </div>
 
@@ -584,10 +584,66 @@
       </div>
 
       <div class="r-card">
-        <div class="r-card-title">Recent Community Reports About Your Store</div>
+        <div class="r-card-title">Recent Reports From Players At Your Store</div>
         <div id="activityTable">
           <div class="r-loading"><div class="r-spin"></div></div>
         </div>
+      </div>
+    </div>
+
+    <!-- ── PROFILE SECTION ────────────────────── -->
+    <div class="r-section" id="section-profile">
+      <div class="r-section-header">
+        <div>
+          <div class="r-section-title">Store Profile</div>
+          <div class="r-section-sub">This is what ScratchFever players see when they tap on your store. The more complete, the more visits.</div>
+        </div>
+        <a id="pfPublicBtn" href="#" target="_blank" class="btn-ghost" style="text-decoration:none">
+          See public page ↗
+        </a>
+      </div>
+
+      <div class="r-card">
+        <div class="r-card-title">Fresh Pack / Promo Banner</div>
+        <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:.7rem">
+          Shows up at the top of your public page in a bright "FRESH" banner.
+          Best for: "Just opened a $30 300X pack" or "Win a free coffee with any $10+ ticket today."
+        </div>
+        <input type="text" class="post-input" id="pfBannerText" placeholder="e.g. Just opened a fresh $30 300X pack — top prize still in!" maxlength="200" />
+        <div style="display:flex;gap:.6rem;align-items:center;margin-top:.65rem;flex-wrap:wrap">
+          <label style="font-size:.8rem;color:var(--text-muted)">Expires:</label>
+          <select id="pfBannerExpiry" class="post-input" style="max-width:170px;padding:.4rem .7rem">
+            <option value="3">3 hours</option>
+            <option value="24" selected>24 hours</option>
+            <option value="72">3 days</option>
+            <option value="168">1 week</option>
+            <option value="0">No expiry</option>
+          </select>
+          <button class="btn-primary" onclick="saveBanner()">Set banner</button>
+          <button class="btn-ghost" onclick="clearBanner()">Clear</button>
+        </div>
+        <div id="pfBannerMsg"></div>
+      </div>
+
+      <div class="r-card">
+        <div class="r-card-title">Public Listing</div>
+        <div class="pf-grid">
+          <label>Store name<input type="text" class="post-input" id="pfStoreName" maxlength="120" /></label>
+          <label>Store phone<input type="tel"  class="post-input" id="pfPhone" maxlength="30" placeholder="(617) 555-1212" /></label>
+          <label>Website<input type="text" class="post-input" id="pfWebsite" maxlength="300" placeholder="example.com" /></label>
+          <label>Owner contact email<input type="email" class="post-input" id="pfEmail" maxlength="200" placeholder="owner@example.com" /></label>
+          <label class="pf-full">Hours<input type="text" class="post-input" id="pfHours" maxlength="500" placeholder="Mon–Sat 6am–11pm · Sun 7am–10pm" /></label>
+          <label class="pf-full">Photo URL <span style="color:var(--text-muted);font-weight:400;font-size:.78rem">(storefront — paste an image URL for now)</span>
+            <input type="text" class="post-input" id="pfPhoto" maxlength="500" placeholder="https://..." />
+          </label>
+          <label class="pf-full">Description / what makes you a great lottery stop
+            <textarea class="post-input" id="pfDesc" rows="3" maxlength="1000" placeholder="Family-owned since 1992. We carry all $30 games, $1M+ winner in 2024. Coffee, scratch tickets, friendly staff."></textarea>
+          </label>
+        </div>
+        <div style="display:flex;gap:.6rem;margin-top:1rem">
+          <button class="btn-primary" onclick="saveProfile()">Save profile</button>
+        </div>
+        <div id="pfMsg"></div>
       </div>
     </div>
 
