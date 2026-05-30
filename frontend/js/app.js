@@ -1078,9 +1078,12 @@ async function loadPrizeClaims() {
 
 let bigwinsLoaded = false;
 let allBigWins = [];
+let allBigWinsStates = [];         // states present in the prize_claims list view
 let bigwinsView = "list";          // "list" | "map"
 let bigwinsReportedWins = [];      // structured wins (with retailer location) for the map
-let bigwinsReportedLoaded = false;
+let bigwinsReportedDays = null;    // days the loaded set covers (for cache invalidation)
+let bigwinsReportedStates = [];    // states present in the map data
+let bigwinsReportedLoading = null; // in-flight promise to dedupe concurrent loads
 let bigwinsMap = null;
 let bigwinsMapMarkers = null;
 
