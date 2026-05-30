@@ -1138,11 +1138,16 @@ function bigwinsRangeLabel() {
 function filterBigWins() {
   if (bigwinsView === "map") { renderBigWinsMap(); return; }
   const state = document.getElementById("bigwinsStateFilter")?.value || "";
+  const game = document.getElementById("bigwinsGameFilter")?.value || "";
   const list = document.getElementById("bigwinsList");
   const countEl = document.getElementById("bigwinsCount");
-  const filtered = state ? allBigWins.filter(c => c.state_code === state) : allBigWins;
+  let filtered = allBigWins;
+  if (state) filtered = filtered.filter(c => c.state_code === state);
+  if (game)  filtered = filtered.filter(c => (c.game_name || "").trim() === game);
   if (filtered.length === 0) {
-    list.innerHTML = '<div style="color:var(--text-muted);padding:2rem 1rem">No big wins for this state in the last 7 days.</div>';
+    const range = bigwinsRangeLabel();
+    const scope = [state, game].filter(Boolean).join(" · ");
+    list.innerHTML = `<div style="color:var(--text-muted);padding:2rem 1rem">No big wins${scope ? ` for ${escHtml(scope)}` : ""} in the ${range}.</div>`;
     countEl.textContent = "";
     return;
   }
