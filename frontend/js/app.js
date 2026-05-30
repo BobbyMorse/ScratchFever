@@ -253,8 +253,8 @@ function _setUser(user) {
 
 function populateAccountTab() {
   if (!_currentUser) return;
-  document.getElementById("accountDisplayName").textContent = _currentUser.username || _currentUser.email;
-  document.getElementById("accountEmailFull").textContent = _currentUser.email || "";
+  document.getElementById("accountDisplayName").textContent = _currentUser.username || "—";
+  document.getElementById("accountEmailFull").textContent = _currentUser.email || "—";
   const roleEl = document.getElementById("accountRoleBadge");
   const roleLabel = _currentUser.role === "admin" ? "Admin" : _currentUser.role === "retailer" ? "Retailer" : "Member";
   roleEl.textContent = roleLabel;
