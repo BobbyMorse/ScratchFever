@@ -19,6 +19,7 @@ from datetime import datetime, timezone
 import requests
 
 from backend.scraper.base import BaseScraper, HEADERS
+from backend.ev_calculator import annuity_present_value, parse_prize_amount
 
 logger = logging.getLogger(__name__)
 
