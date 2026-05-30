@@ -101,7 +101,7 @@ class MassachusettsScraper(BaseScraper):
             return None
 
     def _fetch_active_games(self) -> dict:
-        """Returns {identifier: {odds: float}} for active scratch games."""
+        """Returns {identifier: {odds, image_url, start_date}} for active scratch games."""
         try:
             resp = self.get(GAMES_URL, headers=_HEADERS)
             result = {}
@@ -115,7 +115,18 @@ class MassachusettsScraper(BaseScraper):
                 icon_url = g.get("icon", {}).get("url", "") or ""
                 if icon_url.startswith("//"):
                     icon_url = "https:" + icon_url
-                result[slug] = {"odds": odds, "image_url": icon_url or None}
+                # MA API field names vary; try common ones for launch date.
+                start_date = None
+                for k in ("startDate", "releaseDate", "launchDate", "saleStartDate", "created", "publishedAt"):
+                    v = g.get(k)
+                    if v:
+                        start_date = str(v)[:10]
+                        break
+                result[slug] = {
+                    "odds": odds,
+                    "image_url": icon_url or None,
+                    "start_date": start_date,
+                }
             return result
         except Exception as e:
             logger.warning("MA could not fetch active games list: %s — including all", e)
