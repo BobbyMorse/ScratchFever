@@ -727,7 +727,7 @@ async def api_reported_wins(
 async def api_scrape_winners(
     background: BackgroundTasks,
     state: Optional[str] = Query(None),
-    days: int = Query(14, le=90),
+    days: int = Query(14, le=7300),
     user = Depends(require_admin),
 ):
     async def _run():
