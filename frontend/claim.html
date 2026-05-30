@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Claim Your Store — ScratchFever</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --chrome:        #0d1117;
+      --chrome2:       #141d2c;
+      --bg:            #edf0f7;
+      --card:          #ffffff;
+      --border:        #e2e7f0;
+      --text:          #111827;
+      --text-muted:    #6b7280;
+      --teal:          #14b8a6;
+      --teal-dim:      rgba(20,184,166,0.12);
+      --red:           #ef4444;
+      --red-dim:       rgba(239,68,68,0.10);
+      --green:         #22c55e;
+      --green-dim:     rgba(34,197,94,0.12);
+      --radius:        12px;
+      --radius-sm:     8px;
+    }
+    html { font-size: 15px; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'Outfit', -apple-system, sans-serif;
+      min-height: 100vh; line-height: 1.5;
+    }
+    .top {
+      background:
+        repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(255,255,255,0.009) 8px, rgba(255,255,255,0.009) 16px),
+        radial-gradient(ellipse 45% 160% at 4% 50%, rgba(20,184,166,0.1) 0%, transparent 100%),
+        var(--chrome);
+      border-bottom: 1px solid rgba(20,184,166,0.18);
+      padding: 1rem 1.5rem;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .top a {
+      color: var(--teal); text-decoration: none;
+      font-size: .72rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase; opacity: .85;
+    }
+    .top span { color: rgba(255,255,255,0.5); font-size: .85rem; }
+
+    .wrap {
+      max-width: 640px; margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+    h1 {
+      font-size: 1.6rem; font-weight: 900; letter-spacing: -.01em;
+      margin-bottom: .35rem;
+    }
+    .sub {
+      font-size: .92rem; color: var(--text-muted);
+      margin-bottom: 1.75rem; max-width: 480px;
+    }
+
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .store-strip {
+      background: var(--teal-dim); border: 1px solid rgba(20,184,166,0.3);
+      border-radius: var(--radius-sm);
+      padding: .9rem 1.1rem; margin-bottom: 1.5rem;
+    }
+    .store-strip-label {
+      font-size: .7rem; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--teal);
+    }
+    .store-strip-name { font-size: 1.05rem; font-weight: 700; margin-top: .15rem; }
+    .store-strip-meta { font-size: .82rem; color: var(--text-muted); margin-top: .15rem; }
+
+    label {
+      display: block; font-size: .78rem; font-weight: 700;
+      color: var(--text); margin-bottom: .35rem; margin-top: 1rem;
+      letter-spacing: .02em;
+    }
+    label:first-of-type { margin-top: 0; }
+    label .req { color: var(--red); margin-left: .15rem; }
+    label .hint { color: var(--text-muted); font-weight: 400; font-size: .76rem; margin-left: .35rem; }
+
+    input[type=text], input[type=email], input[type=tel], select, textarea {
+      width: 100%; font-family: inherit; font-size: .92rem;
+      padding: .6rem .85rem; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text);
+      background: #fff; transition: border-color .15s;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none; border-color: var(--teal);
+    }
+    textarea { resize: vertical; min-height: 90px; }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 540px) { .row { grid-template-columns: 1fr; } }
+
+    .submit-row {
+      display: flex; align-items: center; gap: 1rem;
+      margin-top: 1.5rem; flex-wrap: wrap;
+    }
+    .btn-primary {
+      padding: .7rem 1.5rem; border-radius: 24px;
+      font-family: inherit; font-size: .95rem; font-weight: 700;
+      cursor: pointer; border: none; background: var(--teal); color: #fff;
+      transition: opacity .15s, transform .1s;
+    }
+    .btn-primary:hover:not(:disabled) { opacity: .88; }
+    .btn-primary:active { transform: scale(.97); }
+    .btn-primary:disabled { opacity: .4; cursor: default; }
+    .btn-ghost {
+      padding: .55rem 1.1rem; border-radius: 24px;
+      font-family: inherit; font-size: .88rem; font-weight: 600;
+      cursor: pointer; background: none; border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+    .btn-ghost:hover { border-color: var(--text-muted); color: var(--text); }
+
+    .msg {
+      margin-top: 1rem; padding: .65rem 1rem;
+      border-radius: var(--radius-sm); font-size: .88rem; font-weight: 500;
+    }
+    .msg.ok  { background: var(--green-dim); color: #16a34a; }
+    .msg.err { background: var(--red-dim);   color: #dc2626; }
+
+    .auth-gate {
+      text-align: center; padding: 2.5rem 1rem;
+    }
+    .auth-gate h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: .5rem; }
+    .auth-gate p { color: var(--text-muted); margin-bottom: 1.5rem; }
+
+    .what-you-get {
+      margin-top: 2rem; padding: 1.25rem 1.5rem;
+      background: #f8fafc; border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .what-you-get h3 {
+      font-size: .78rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .08em;
+      color: var(--text-muted); margin-bottom: .8rem;
+    }
+    .what-you-get ul {
+      list-style: none; display: flex; flex-direction: column; gap: .55rem;
+    }
+    .what-you-get li {
+      display: flex; align-items: flex-start; gap: .55rem;
+      font-size: .87rem;
+    }
+    .what-you-get li::before {
+      content: "✓"; color: var(--teal); font-weight: 800; flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+<header class="top">
+  <a href="/">ScratchFever</a>
+  <span>Claim your store</span>
+</header>
+
+<main class="wrap">
+  <h1>Claim Your Store</h1>
+  <div class="sub">Verify you operate this store and unlock a free dashboard to mark live inventory, post promotions, and reply to ScratchFever members.</div>
+
+  <div id="content"></div>
+
+  <div class="what-you-get">
+    <h3>What you'll get once approved</h3>
+    <ul>
+      <li>A free store dashboard with live inventory controls</li>
+      <li>Post fresh-pack announcements and promotions to ScratchFever members</li>
+      <li>See real-time community reports about your shelves</li>
+      <li>A verified badge on your store's public page</li>
+    </ul>
+  </div>
+</main>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const PREFILL = {
+    retailer_id: params.get("retailer_id") || "",
+    state_code:  (params.get("state_code") || "").toUpperCase(),
+    store_name:  params.get("store_name") || "",
+    city:        params.get("city") || "",
+    zip:         params.get("zip") || "",
+    phone:       params.get("phone") || "",
+  };
+
+  function getToken() { return localStorage.getItem("sf_token") || ""; }
+  function escHtml(s) {
+    return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  async function authFetch(url, opts = {}) {
+    const t = getToken();
+    const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
+    if (t) headers["Authorization"] = "Bearer " + t;
+    return fetch(url, { ...opts, headers });
+  }
+
+  async function init() {
+    const root = document.getElementById("content");
+    const t = getToken();
+    if (!t) {
+      root.innerHTML = `<div class="card auth-gate">
+        <h2>Log in or create an account</h2>
+        <p>You'll need a ScratchFever account to submit a claim. It's free.</p>
+        <a class="btn-primary" style="text-decoration:none" href="/?retailer_redirect=1">Log in / sign up</a>
+      </div>`;
+      return;
+    }
+    let me = null;
+    try {
+      const r = await authFetch("/api/auth/me");
+      if (r.ok) me = await r.json();
+    } catch {}
+    if (!me) {
+      localStorage.removeItem("sf_token");
+      root.innerHTML = `<div class="card auth-gate">
+        <h2>Session expired</h2>
+        <p>Please log in again to submit your claim.</p>
+        <a class="btn-primary" style="text-decoration:none" href="/?retailer_redirect=1">Log in</a>
+      </div>`;
+      return;
+    }
+
+    // Block if user already owns a store
+    try {
+      const profRes = await authFetch("/api/retailer/me");
+      if (profRes.ok) {
+        root.innerHTML = `<div class="card">
+          <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:.5rem">You already own a store</h2>
+          <p style="color:var(--text-muted);margin-bottom:1.25rem">This account is linked to a store. To claim a second location, email
+            <a href="mailto:support@scratchfever.app" style="color:var(--teal)">support@scratchfever.app</a>.</p>
+          <a class="btn-primary" style="text-decoration:none" href="/retailer.html">Open your dashboard</a>
+        </div>`;
+        return;
+      }
+    } catch {}
+
+    // Check existing pending claims, optional UX nicety
+    let myClaims = [];
+    try {
+      const r = await authFetch("/api/retailer/my-claims");
+      if (r.ok) { myClaims = (await r.json()).claims || []; }
+    } catch {}
+
+    renderForm(root, me, myClaims);
+  }
+
+  function renderForm(root, me, myClaims) {
+    const dup = myClaims.find(c =>
+      c.status === "pending" &&
+      c.retailer_id === PREFILL.retailer_id &&
+      c.state_code === PREFILL.state_code
+    );
+    const pendingBanner = dup ? `
+      <div class="msg ok" style="margin-bottom:1rem">
+        You already submitted a claim for this store on ${new Date(dup.created_at).toLocaleDateString()}. We'll email you when it's reviewed.
+      </div>` : "";
+
+    const storeStrip = PREFILL.store_name ? `
+      <div class="store-strip">
+        <div class="store-strip-label">You're claiming</div>
+        <div class="store-strip-name">${escHtml(PREFILL.store_name)}</div>
+        <div class="store-strip-meta">
+          ${PREFILL.city ? escHtml(PREFILL.city) + " · " : ""}${escHtml(PREFILL.state_code)}
+        </div>
+      </div>` : "";
+
+    root.innerHTML = `<div class="card">
+      ${pendingBanner}
+      ${storeStrip}
+      <form id="claimForm">
+        <label>Store name <span class="req">*</span></label>
+        <input type="text" id="storeName" required maxlength="120"
+               value="${escHtml(PREFILL.store_name)}" placeholder="e.g. Joe's Variety" />
+
+        <div class="row">
+          <div>
+            <label>State <span class="req">*</span></label>
+            <input type="text" id="stateCode" required maxlength="2"
+                   value="${escHtml(PREFILL.state_code)}" placeholder="MA"
+                   style="text-transform:uppercase" />
+          </div>
+          <div>
+            <label>City</label>
+            <input type="text" id="city" maxlength="120" value="${escHtml(PREFILL.city)}" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>ZIP</label>
+            <input type="text" id="zip" maxlength="20" value="${escHtml(PREFILL.zip)}" />
+          </div>
+          <div>
+            <label>Store phone</label>
+            <input type="tel" id="phone" maxlength="30" value="${escHtml(PREFILL.phone)}" />
+          </div>
+        </div>
+
+        <label>Your role at this store <span class="req">*</span></label>
+        <select id="role" required>
+          <option value="">Select…</option>
+          <option value="owner">Owner</option>
+          <option value="manager">Manager</option>
+          <option value="employee">Employee with owner permission</option>
+          <option value="other">Other</option>
+        </select>
+
+        <div class="row">
+          <div>
+            <label>Your name</label>
+            <input type="text" id="yourName" maxlength="120" value="${escHtml(me.username || '')}" />
+          </div>
+          <div>
+            <label>Your phone <span class="hint">for verification</span></label>
+            <input type="tel" id="yourPhone" maxlength="30" />
+          </div>
+        </div>
+
+        <label>Anything we should know? <span class="hint">optional</span></label>
+        <textarea id="notes" maxlength="1000" placeholder="e.g. We have 4 lottery bins, vending machine in front, primarily $5–$30 tickets."></textarea>
+
+        <input type="hidden" id="retailerId" value="${escHtml(PREFILL.retailer_id)}" />
+
+        <div class="submit-row">
+          <button type="submit" class="btn-primary" id="submitBtn">Submit Claim</button>
+          <a href="/" class="btn-ghost" style="text-decoration:none">Cancel</a>
+        </div>
+        <div id="msgBox"></div>
+      </form>
+    </div>`;
+
+    document.getElementById("claimForm").addEventListener("submit", onSubmit);
+  }
+
+  async function onSubmit(e) {
+    e.preventDefault();
+    const btn = document.getElementById("submitBtn");
+    const msg = document.getElementById("msgBox");
+    msg.innerHTML = "";
+
+    const retailerId = (document.getElementById("retailerId").value || "").trim();
+    if (!retailerId) {
+      msg.innerHTML = `<div class="msg err">This claim is missing a retailer ID. Please claim the store from its page on ScratchFever.</div>`;
+      return;
+    }
+
+    const body = {
+      retailer_id:    retailerId,
+      state_code:     document.getElementById("stateCode").value.trim().toUpperCase(),
+      store_name:     document.getElementById("storeName").value.trim(),
+      city:           document.getElementById("city").value.trim() || null,
+      zip:            document.getElementById("zip").value.trim() || null,
+      phone:          document.getElementById("phone").value.trim() || null,
+      claimant_role:  document.getElementById("role").value || null,
+      claimant_name:  document.getElementById("yourName").value.trim() || null,
+      claimant_phone: document.getElementById("yourPhone").value.trim() || null,
+      notes:          document.getElementById("notes").value.trim() || null,
+    };
+
+    btn.disabled = true; btn.textContent = "Submitting…";
+    try {
+      const res = await authFetch("/api/retailer/claim", {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.detail || `Submit failed (${res.status})`);
+      msg.innerHTML = `<div class="msg ok">
+        Claim submitted. We'll review and email you within 1–2 business days.
+        <div style="margin-top:.6rem"><a href="/" style="color:var(--teal);font-weight:600">Back to ScratchFever</a></div>
+      </div>`;
+      document.getElementById("submitBtn").style.display = "none";
+    } catch (e) {
+      msg.innerHTML = `<div class="msg err">${escHtml(e.message)}</div>`;
+      btn.disabled = false; btn.textContent = "Submit Claim";
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
