@@ -4152,7 +4152,7 @@ function _claimUrl(retailerId) {
     zip:         retailer?.zip_code || retailer?.zip || '',
     phone:       retailer?.phone || '',
   });
-  return `/claim.html?${qs.toString()}`;
+  return `/claim?${qs.toString()}`;
 }
 
 function storeProfileHtml(retailerId) {
