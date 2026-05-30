@@ -56,7 +56,8 @@ class MassachusettsScraper(BaseScraper):
                 meta = active_games.get(slug, {})
                 official_odds = meta.get("odds")
                 image_url = meta.get("image_url")
-                game = self._parse_item(item, official_odds, image_url)
+                start_date = meta.get("start_date")
+                game = self._parse_item(item, official_odds, image_url, start_date)
                 if game:
                     game["how_to_play"] = self._fetch_how_to_play(slug)
                     time.sleep(0.3)  # polite rate limit
