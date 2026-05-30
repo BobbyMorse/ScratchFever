@@ -3877,7 +3877,7 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
 
   if (!_currentUser) {
     return `<div class="modal-community-section">
-      <div class="modal-community-title">📍 Community Reports</div>
+      <div class="modal-community-title">📍 Member Sightings</div>
       <div class="modal-community-gate">
         <span>In stock at ${count} member-reported location${count > 1 ? "s" : ""}.</span>
         <button class="btn btn-login" onclick="closeModal();openAuthModal('login')" style="font-size:.78rem;padding:.3rem .75rem">Log In to See</button>
@@ -3891,7 +3891,7 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
   const addBtn = `<button class="btn btn-report" onclick="openReportModalForGame(${JSON.stringify(gameName)},${gamePrice != null ? gamePrice : "null"})" style="font-size:.78rem;padding:.3rem .75rem">+ Add Report</button>`;
   const chaseHref = `onclick="viewGameInChase(${escHtml(JSON.stringify(gameName))},${escHtml(JSON.stringify(stateCode || ""))})"`;
 
-  // --- Retailer-confirmed section ---
+  // --- Retailer-confirmed section (summary only) ---
   const latestByRetailer = {};
   for (const r of allReports) {
     if (r.source !== "retailer") continue;
@@ -3900,8 +3900,7 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
       latestByRetailer[r.retailer_id] = r;
     }
   }
-  const retailerConfirmed = Object.values(latestByRetailer)
-    .sort((a, b) => new Date(b.reported_at) - new Date(a.reported_at));
+  const retailerConfirmed = Object.values(latestByRetailer);
 
   let retailerSection = "";
   if (retailerConfirmed.length) {
@@ -3918,83 +3917,44 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
       const rIn  = retailerConfirmed.filter(r => r.has_stock).length;
       const rOut = retailerConfirmed.length - rIn;
       const summary = `<span style="color:var(--text-muted);font-weight:400;font-size:.82rem">${retailerConfirmed.length} store${retailerConfirmed.length > 1 ? "s" : ""} · <span style="color:var(--green);font-weight:600">${rIn} in</span> · <span style="color:var(--red);font-weight:600">${rOut} out</span></span>`;
-      const shown = retailerConfirmed.slice(0, MODAL_REPORTS_LIMIT);
-      const hiddenCount = retailerConfirmed.length - shown.length;
-      const rows = shown.map(r => {
-        const inStock = r.has_stock;
-        const time = r.reported_at ? timeAgo(parseReportedAt(r.reported_at)) : "—";
-        return `<div class="retailer-stock-row" onclick="goToStoreFromModal(${JSON.stringify(String(r.retailer_id))})" style="cursor:pointer">
-          <span class="retailer-stock-dot ${inStock ? "dot-in" : "dot-out"}"></span>
-          <span class="retailer-stock-name">${escHtml(r.retailer_name || "Store")}${r.retailer_city ? ` <span class="retailer-stock-city">${escHtml(r.retailer_city)}</span>` : ""}</span>
-          <span class="retailer-stock-status ${inStock ? "status-in" : "status-out"}">${inStock ? "In Stock" : "Out of Stock"}</span>
-          <span class="retailer-stock-time">${time}</span>
-        </div>`;
-      }).join("");
-      const viewAll = hiddenCount > 0
-        ? `<button class="modal-view-all-chase" ${chaseHref}>View all ${retailerConfirmed.length} in The Chase →</button>`
-        : "";
       retailerSection = `<div class="modal-retailer-section">
         <div class="modal-community-title" style="margin-bottom:.55rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
           <span>🏪 Retailer-Confirmed</span>${summary}
         </div>
-        <div class="retailer-stock-list">${rows}</div>
-        ${viewAll}
+        <button class="modal-view-all-chase" ${chaseHref}>View ${retailerConfirmed.length} retailer-confirmed store${retailerConfirmed.length > 1 ? "s" : ""} in The Chase →</button>
       </div>`;
     }
   }
 
-  // --- Community reports section ---
+  // --- Member sightings section (summary only) ---
   const reports = allReports.filter(r => r.source !== "retailer");
 
   if (!reports.length && !retailerSection) {
     return `<div class="modal-community-section">
       <div class="modal-community-title" style="display:flex;align-items:center;justify-content:space-between">
-        <span>📍 Community Reports</span>${addBtn}
+        <span>📍 Member Sightings</span>${addBtn}
       </div>
-      <div class="profile-no-reports">No member reports yet for this game in ${stateCode || "your state"}.</div>
+      <div class="profile-no-reports">No member sightings yet for this game in ${stateCode || "your state"}.</div>
     </div>`;
   }
 
   const cIn  = reports.filter(r => r.has_stock).length;
   const cOut = reports.length - cIn;
   const cSummary = reports.length
-    ? `<span style="color:var(--text-muted);font-weight:400;font-size:.82rem">${reports.length} report${reports.length > 1 ? "s" : ""} · <span style="color:var(--green);font-weight:600">${cIn} in</span> · <span style="color:var(--red);font-weight:600">${cOut} out</span></span>`
-    : "";
-  const shownReports = reports.slice(0, MODAL_REPORTS_LIMIT);
-  const hiddenReports = reports.length - shownReports.length;
-
-  const items = shownReports.map(r => {
-    const stock = r.has_stock
-      ? '<span style="color:var(--green);font-weight:600">✅ In Stock</span>'
-      : '<span style="color:var(--red)">❌ Out of Stock</span>';
-    const who = r.source === "caller" ? "📞 Call" : (r.reporter_username ? `@${escHtml(r.reporter_username)}` : "👤");
-    const time = r.reported_at ? timeAgo(parseReportedAt(r.reported_at)) : "—";
-    const mapsUrl = r.lat && r.lng
-      ? `https://www.google.com/maps/search/?api=1&query=${r.lat},${r.lng}`
-      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((r.retailer_name || "") + ", " + (r.retailer_city || "") + ", " + (stateCode || ""))}`;
-    return `<div class="profile-report-item">
-      <span class="profile-report-game"><a href="${mapsUrl}" target="_blank" rel="noopener" class="report-location-link">${escHtml(r.retailer_name || "")}</a> <span style="color:var(--text-muted);font-weight:400;font-size:.77rem">${escHtml(r.retailer_city || "")}</span></span>
-      <span>${stock}</span>
-      <span class="profile-report-meta">${who} · ${time}${r.notes ? ` · <em>${escHtml(r.notes)}</em>` : ""}</span>
-    </div>`;
-  }).join("");
-
-  const viewAllCommunity = hiddenReports > 0
-    ? `<button class="modal-view-all-chase" ${chaseHref}>View all ${reports.length} in The Chase →</button>`
+    ? `<span style="color:var(--text-muted);font-weight:400;font-size:.82rem">${reports.length} sighting${reports.length > 1 ? "s" : ""} · <span style="color:var(--green);font-weight:600">${cIn} in</span> · <span style="color:var(--red);font-weight:600">${cOut} out</span></span>`
     : "";
 
   const communitySection = reports.length ? `<div class="modal-community-section">
     <div class="modal-community-title" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
-      <span>📍 Community Reports <span style="color:var(--text-muted);font-weight:400;font-size:.82rem">(${stateCode || ""})</span></span>
+      <span>📍 Member Sightings <span style="color:var(--text-muted);font-weight:400;font-size:.82rem">(${stateCode || ""})</span></span>
       <span style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">${cSummary}${addBtn}</span>
     </div>
-    <div class="profile-reports-list">${items}</div>
-    ${viewAllCommunity}
+    <button class="modal-view-all-chase" ${chaseHref}>View ${reports.length} sighting${reports.length > 1 ? "s" : ""} in The Chase →</button>
   </div>` : `<div class="modal-community-section">
     <div class="modal-community-title" style="display:flex;align-items:center;justify-content:space-between">
-      <span>📍 Community Reports</span>${addBtn}
+      <span>📍 Member Sightings</span>${addBtn}
     </div>
-    <div class="profile-no-reports">No community reports yet for this game in ${stateCode || "your state"}.</div>
+    <div class="profile-no-reports">No member sightings yet for this game in ${stateCode || "your state"}.</div>
   </div>`;
 
   return retailerSection + communitySection;
