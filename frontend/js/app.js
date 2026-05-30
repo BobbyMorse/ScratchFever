@@ -4979,7 +4979,6 @@ function getNyFilteredRows() {
   const city          = (document.getElementById("nyCityInput")?.value   || "").toLowerCase().trim();
   const invFilter     = document.getElementById("nyInvFilter")?.value  || "";
   const dateFilter    = document.getElementById("nyDateFilter")?.value || "";
-  const showUnchecked = document.getElementById("nyShowUnchecked")?.checked ?? true;
 
   nyMapReportFilter = (invFilter === "in" || invFilter === "out") ? invFilter : "all";
 
