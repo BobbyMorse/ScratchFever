@@ -12,6 +12,7 @@ from backend.ev_calculator import (
     calculate_jackpot_odds,
     effective_prize_value,
     find_top_prize,
+    find_top_tier,
     parse_prize_amount,
     parse_odds,
 )
