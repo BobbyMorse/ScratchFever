@@ -1194,9 +1194,10 @@
                     <input type="number" id="cfSelectTopN" value="100" min="1" max="500" onclick="event.stopPropagation()" style="width:54px;margin:0 .25rem;padding:.1rem .25rem;font-size:.74rem" />
                   </button>
                   <button type="button" class="btn" onclick="selectNoStores()" style="font-size:.74rem;padding:.28rem .65rem;white-space:nowrap">Clear</button>
+                  <button type="button" class="btn" id="cfRegionSelectBtn" onclick="toggleRegionSelect()" style="display:none;font-size:.74rem;padding:.28rem .65rem;white-space:nowrap">Select region</button>
                 </div>
                 <div id="cfStoresList" class="cf-tickets-list" style="max-height:340px;overflow-y:auto">— Pick a state first —</div>
-                <div id="cfStoresMap" style="display:none;height:480px;border-radius:6px;overflow:hidden;background:#eef2f7"></div>
+                <div id="cfStoresMap" style="display:none;height:480px;border-radius:6px;overflow:hidden;background:#eef2f7;position:relative"></div>
                 <div id="cfStoresMapLegend" style="display:none;font-size:.72rem;color:var(--text-muted);margin-top:.4rem;flex-wrap:wrap;gap:.9rem">
                   <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#22c55e;margin-right:.25rem"></span>Selected</span>
                   <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#94a3b8;margin-right:.25rem"></span>Not selected</span>
