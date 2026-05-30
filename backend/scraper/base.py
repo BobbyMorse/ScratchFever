@@ -53,7 +53,7 @@ def _apply_annuity_heuristic(name: str, tiers: list[dict]) -> None:
         m = pattern.search(name)
         if not m:
             continue
-        per_period = _parse_money(m.group(1))
+        per_period = parse_prize_amount(m.group(1))
         if not per_period:
             continue
         years = default_years if default_years is not None else int(m.group(2))
