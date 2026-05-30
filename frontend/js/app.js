@@ -4637,39 +4637,17 @@ function initFlMap() {
 
 function renderFlMapLayers(retailers) {
   if (!flMap) return;
-  flMap.eachLayer(layer => { if (!(layer instanceof L.TileLayer)) flMap.removeLayer(layer); });
-  window._flInventoryLayer = null;
-  updateFlInventoryMapLayer(retailers);
+  debounceMapRender("fl", () => updateFlInventoryMapLayer(retailers), 180);
 }
 
 function updateFlInventoryMapLayer(visibleRetailers) {
-  if (!flMap) return;
-  if (window._flInventoryLayer) { flMap.removeLayer(window._flInventoryLayer); window._flInventoryLayer = null; }
-  const retailers = visibleRetailers || getFlFilteredRows();
-  const retailerMarkers = retailers.filter(r => r.latitude && r.longitude).map(r => {
-    const status = retailerLatestStatus[r.id];
-    const color = status ? (status.has_stock ? "#00cc44" : "#cc2200") : "#4a9eff";
-    const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
-    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
-    return L.circleMarker([parseFloat(r.latitude), parseFloat(r.longitude)], { radius: 4, fillColor: color, fillOpacity: 1, color: '#fff', weight: 1.5 }).bindPopup(
-      `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
-    );
+  renderInventoryCluster(flMap, "_flInventoryLayer", {
+    retailers: visibleRetailers || getFlFilteredRows(),
+    reports: communityReports,
+    scopeIds: new Set(allFlRetailers.map(r => String(r.id))),
+    selectedGame: selectedFlGame,
+    reportFilter: flMapReportFilter,
   });
-  const flIds = new Set(allFlRetailers.map(r => String(r.id)));
-  let reports = communityReports.filter(r => r.lat && r.lng && flIds.has(String(r.retailer_id)));
-  if (selectedFlGame) reports = reports.filter(r => r.game_name?.toLowerCase() === selectedFlGame.name.toLowerCase());
-  if (flMapReportFilter === "in")  reports = reports.filter(r =>  r.has_stock);
-  if (flMapReportFilter === "out") reports = reports.filter(r => !r.has_stock);
-  const reportMarkers = reports.map(r => {
-    const color = r.has_stock ? "#00cc44" : "#cc2200";
-    const time = r.reported_at ? timeAgo(parseReportedAt(r.reported_at)) : "";
-    const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}`;
-    return L.circleMarker([r.lat, r.lng], { radius: 5, fillColor: color, fillOpacity: 1, color: '#fff', weight: 2 }).bindPopup(
-      `<b>${escHtml(r.retailer_name || "")}</b><br>${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br><span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br><a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · <a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${r.id || r.retailer_id || ''}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
-    );
-  });
-  const allMarkers = [...retailerMarkers, ...reportMarkers];
-  if (allMarkers.length) window._flInventoryLayer = L.layerGroup(allMarkers).addTo(flMap);
 }
 
 function searchFlGameFilter() {
