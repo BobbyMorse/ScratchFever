@@ -3530,8 +3530,16 @@ function goToStoreFromModal(retailerId) {
 }
 
 function openStoreInventoryFromMap(retailerId) {
-  const tr = document.querySelector(`tr[data-retailer-id="${CSS.escape(String(retailerId))}"]`);
-  if (!tr) return;
+  let tr = document.querySelector(`tr[data-retailer-id="${CSS.escape(String(retailerId))}"]`);
+  if (!tr) {
+    // Row hasn't been lazy-rendered yet — flush the state's table so it exists in the DOM.
+    const state = getRetailerState(retailerId);
+    const tbodyId = state ? `${state.toLowerCase()}TableBody` : null;
+    const tbody = tbodyId ? document.getElementById(tbodyId) : null;
+    if (tbody && typeof tbody._lazyFlush === 'function') tbody._lazyFlush();
+    tr = document.querySelector(`tr[data-retailer-id="${CSS.escape(String(retailerId))}"]`);
+    if (!tr) return;
+  }
   if (_openProfileId !== String(retailerId)) toggleStoreProfile(tr);
   tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
