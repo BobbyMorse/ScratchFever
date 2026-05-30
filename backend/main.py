@@ -526,7 +526,8 @@ async def api_status_states():
             SELECT state_code,
                    COUNT(*) AS wins,
                    MAX(claim_date) AS latest,
-                   SUM(CASE WHEN retailer_lat IS NOT NULL THEN 1 ELSE 0 END) AS geocoded
+                   SUM(CASE WHEN retailer_lat IS NOT NULL THEN 1 ELSE 0 END) AS geocoded,
+                   SUM(CASE WHEN retailer_name IS NOT NULL THEN 1 ELSE 0 END) AS with_retailer
             FROM reported_wins
             GROUP BY state_code
         """)
