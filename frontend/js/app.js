@@ -2692,8 +2692,12 @@ function toggleTranscript(queueId) {
 }
 
 // ── Store picker ──────────────────────────────────────────────────────────────
-let _storeCandidates = [];        // [{external_id, name, city, phone, score, last_called_at, last_talked, called_within_window}, ...]
+let _storeCandidates = [];        // [{external_id, name, city, phone, score, latitude, longitude, last_called_at, last_talked, called_within_window, inventory_updated}, ...]
 let _selectedStores  = new Set(); // set of external_id
+let _storesView      = "list";    // "list" | "map"
+let _storesMap       = null;      // Leaflet map instance (lazy)
+let _storesCluster   = null;      // L.markerClusterGroup
+let _storesMarkers   = new Map(); // external_id → L.Marker
 
 async function loadStoreCandidates() {
   const state = document.getElementById("cfStateSelect").value;
