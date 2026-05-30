@@ -587,6 +587,87 @@ async def vapi_dispatch_campaign(body: CampaignBody, _user: dict = Depends(requi
     }
 
 
+@router.get("/candidates")
+async def vapi_candidates(
+    _user: dict = Depends(require_admin),
+    state: str = Query(..., min_length=2, max_length=2),
+    cooldown_hours: int = Query(168, ge=0, le=8760),
+    limit: int = Query(500, ge=1, le=2000),
+):
+    """All callable retailers for `state` (score-sorted), each annotated with
+    last_called_at / last_talked / called_within_window so the UI can show
+    'Called ever' and 'Called within recall window' badges."""
+    candidates = await _all_scored_candidates(state.upper())
+    annotated  = await _annotate_candidates(candidates, cooldown_hours)
+    return {
+        "state":          state.upper(),
+        "cooldown_hours": cooldown_hours,
+        "total":          len(annotated),
+        "candidates":     annotated[:limit],
+    }
+
+
+class DispatchSelectedBody(BaseModel):
+    state: str = Field(..., min_length=2, max_length=2)
+    selected_external_ids: list[str] = Field(..., min_length=1, max_length=MAX_BATCH)
+    tickets: list[TicketSpec] = Field(..., min_length=1, max_length=20)
+    dry_run: bool = False
+
+
+@router.post("/dispatch_selected")
+async def vapi_dispatch_selected(body: DispatchSelectedBody, _user: dict = Depends(require_admin)):
+    """Dispatch to an explicitly-chosen, explicitly-ordered list of retailers
+    identified by their `external_id` (the same key used as VAPI `store_id`).
+    Order in `selected_external_ids` is the dial order."""
+    env = _vapi_env()
+    if not body.dry_run and not all(env.values()):
+        missing = [k for k, v in env.items() if not v]
+        raise HTTPException(status_code=400, detail=f"VAPI not configured — missing env: {', '.join(missing)}")
+
+    candidates = await _all_scored_candidates(body.state.upper())
+    by_id = {c["external_id"]: c for c in candidates}
+    targets: list[dict] = []
+    missing_ids: list[str] = []
+    for eid in body.selected_external_ids:
+        c = by_id.get(eid)
+        if c:
+            targets.append(c)
+        else:
+            missing_ids.append(eid)
+    if not targets:
+        raise HTTPException(status_code=404, detail="No matching retailers found for the selected IDs")
+
+    tickets = [t.model_dump() for t in body.tickets]
+    if body.dry_run:
+        preview = [{
+            "external_id": t["external_id"],
+            "name":        t["name"],
+            "city":        t["city"],
+            "score":       t.get("score"),
+            "phone":       t["phone"],
+        } for t in targets[:25]]
+        return {
+            "dry_run":      True,
+            "selected":     len(targets),
+            "would_call":   sum(1 for t in targets if _to_e164(t.get("phone"))),
+            "missing_ids":  missing_ids,
+            "tickets_text": _build_tickets_text(tickets),
+            "preview":      preview,
+        }
+
+    results, skipped = await _dispatch_calls(targets, tickets, env)
+    success = sum(1 for r in results if r["ok"])
+    return {
+        "selected":     len(targets),
+        "dispatched":   success,
+        "failed":       len(results) - success,
+        "skipped":      skipped,
+        "missing_ids":  missing_ids,
+        "tickets_text": _build_tickets_text(tickets),
+        "results":      results[:50],
+    }
+
+
 class TestCallBody(BaseModel):
     phone: str
     tickets: list[TicketSpec] = Field(..., min_length=1, max_length=20)
