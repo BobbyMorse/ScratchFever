@@ -78,4 +78,11 @@ async def register(body: RegisterBody):
 
 @router.get("/api/auth/me")
 async def get_me(user: dict = Depends(require_member)):
-    return {"email": user["email"], "username": user.get("username"), "role": user["role"]}
+    pro = await is_user_pro(user["uid"])
+    return {
+        "id": user["uid"],
+        "email": user["email"],
+        "username": user.get("username"),
+        "role": user["role"],
+        "is_pro": pro,
+    }
