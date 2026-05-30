@@ -1356,6 +1356,14 @@
               <p class="bigwins-page-sub">Top prizes over $10,000 claimed nationwide</p>
             </div>
             <div class="bigwins-header-right">
+              <div class="bigwins-view-toggle" role="tablist" aria-label="Big wins view">
+                <button id="bigwinsViewListBtn" class="bigwins-view-btn is-active"
+                        role="tab" aria-selected="true"
+                        onclick="setBigWinsView('list')">List</button>
+                <button id="bigwinsViewMapBtn" class="bigwins-view-btn"
+                        role="tab" aria-selected="false"
+                        onclick="setBigWinsView('map')">Map</button>
+              </div>
               <select id="bigwinsStateFilter" class="bigwins-state-filter" onchange="filterBigWins()">
                 <option value="">All States</option>
               </select>
@@ -1364,6 +1372,11 @@
           </div>
           <div class="bigwins-loading" id="bigwinsLoading">Loading…</div>
           <div class="claims-list bigwins-list" id="bigwinsList"></div>
+          <div id="bigwinsMapWrap" class="bigwins-map-wrap" style="display:none">
+            <div id="bigwinsMapStats" class="bigwins-map-stats"></div>
+            <div id="bigwinsMap" class="bigwins-map"></div>
+            <div id="bigwinsMapEmpty" class="bigwins-map-empty" style="display:none"></div>
+          </div>
         </section>
       </div><!-- /tab-bigwins -->
 
