@@ -133,12 +133,20 @@ class MassachusettsScraper(BaseScraper):
             logger.warning("MA could not fetch active games list: %s — including all", e)
             return {}
 
-    def _parse_item(self, item: dict, official_odds: float | None, image_url: str | None = None) -> dict | None:
+    def _parse_item(self, item: dict, official_odds: float | None, image_url: str | None = None,
+                    start_date: str | None = None) -> dict | None:
         game_id   = str(item.get("massGameID", ""))
         name      = item.get("gameName", "")
         slug      = item.get("gameIdentifier", "")
         price     = float(item.get("ticketCost") or 0)
         tiers_raw = item.get("prizeTiers") or []
+        # Fall back to start_date on the prize item if the active-games list didn't carry one.
+        if not start_date:
+            for k in ("startDate", "releaseDate", "launchDate", "saleStartDate"):
+                v = item.get(k)
+                if v:
+                    start_date = str(v)[:10]
+                    break
 
         if not name or not price or not tiers_raw:
             return None
