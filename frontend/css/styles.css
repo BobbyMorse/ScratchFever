@@ -1232,7 +1232,7 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
 .link-btn { background: none; border: none; color: var(--orange); cursor: pointer; font-size: .81rem; font-family: inherit; text-decoration: underline; padding: 0; }
 .link-btn:hover { color: var(--orange-dark); }
 
-.ma-map-section { margin-bottom: 1rem; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.ma-map-section { margin-bottom: 1rem; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; position: relative; z-index: 0; isolation: isolate; }
 #maMap, #azMap, #flMap, #riMap, #gaMap, #nyMap, #vaMap, #dcMap, #vtMap { height: 400px; }
 
 /* ── My Plays ─────────────────────────────────────── */
