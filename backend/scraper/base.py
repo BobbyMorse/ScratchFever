@@ -72,6 +72,22 @@ def _apply_annuity_heuristic(name: str, tiers: list[dict]) -> None:
         return
 
 
+def _sum_prize_pool(tiers: list[dict]) -> float | None:
+    """Sum of effective_prize_value × prizes_remaining across tiers. Uses cash_value for
+    annuity tiers so for-life games show real lump-sum exposure, not face × remaining."""
+    if not tiers:
+        return None
+    total = 0.0
+    saw_any = False
+    for t in tiers:
+        remaining = t.get("prizes_remaining")
+        if remaining is None:
+            continue
+        saw_any = True
+        total += effective_prize_value(t) * remaining
+    return round(total, 2) if saw_any else None
+
+
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
