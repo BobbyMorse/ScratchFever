@@ -230,6 +230,11 @@ async def admin_page():
     return FileResponse(os.path.join(FRONTEND_DIR, "admin.html"))
 
 
+@app.get("/claim", include_in_schema=False)
+async def claim_page():
+    return FileResponse(os.path.join(FRONTEND_DIR, "claim.html"))
+
+
 # ── Admin: create retailer account ────────────────────────────────────────────
 
 class CreateRetailerBody(BaseModel):
