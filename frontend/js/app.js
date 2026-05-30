@@ -2721,6 +2721,9 @@ async function loadStoreCandidates() {
     _selectedStores  = new Set();
     autoSelectStores();
     renderStoresPicker();
+    // If map was already initialized (e.g. user switches state while in map view),
+    // rebuild markers for the new state. Otherwise it builds on first switch.
+    if (_storesView === "map" && _storesMap) renderStoresMap();
   } catch (e) {
     if (listEl) listEl.innerHTML = `<div class="cf-tickets-empty" style="color:var(--danger)">Failed to load stores: ${escHtml(e.message)}</div>`;
   }
