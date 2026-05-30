@@ -5247,7 +5247,7 @@ function toggleVaMap() {
   sec.style.display = vaMapVisible ? "" : "none";
   if (vaMapVisible) {
     if (!vaMap) initVaMap();
-    else vaMap.invalidateSize();
+    setTimeout(() => vaMap && vaMap.invalidateSize(), 50);
     renderVaMapLayers(getVaFilteredRows());
   }
 }
