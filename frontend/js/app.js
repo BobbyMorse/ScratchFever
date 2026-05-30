@@ -1355,11 +1355,15 @@ function renderBigWinsMap() {
   const bounds = [];
   for (const g of groups.values()) {
     const radius = Math.max(7, Math.min(28, Math.sqrt(g.total) / 30));
-    const color = g.wins.length > 1 ? "#e85d04" : "#f48c06";
+    // Distinct color for winner-home pins (city centroid, not a specific store).
+    const color = g.isHome
+      ? (g.wins.length > 1 ? "#3b82f6" : "#60a5fa")
+      : (g.wins.length > 1 ? "#e85d04" : "#f48c06");
+    const stroke = g.isHome ? "#1e40af" : "#7a2a00";
     const marker = L.circleMarker([g.lat, g.lng], {
       radius,
       fillColor: color,
-      color: "#7a2a00",
+      color: stroke,
       weight: 1.5,
       opacity: 0.9,
       fillOpacity: 0.7,
