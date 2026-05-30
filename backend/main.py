@@ -694,7 +694,7 @@ _REPORTED_WINS_TTL = 120
 
 @app.get("/api/reported-wins")
 async def api_reported_wins(
-    days: int = Query(30, le=180),
+    days: int = Query(30, le=1825),
     min_prize: float = Query(10000, ge=0),
     state: Optional[str] = Query(None, description="2-letter state code filter"),
     has_location: bool = Query(False, description="Only wins with lat/lng"),
