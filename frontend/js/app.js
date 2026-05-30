@@ -2004,12 +2004,8 @@ function initMaMap() {
 
 function renderMapLayers(retailers) {
   if (!maMap) return;
-
-  maMap.eachLayer(layer => { if (!(layer instanceof L.TileLayer)) maMap.removeLayer(layer); });
   if (maLayerControl) { maLayerControl.remove(); maLayerControl = null; }
-  window._inventoryLayer = null;
-
-  updateInventoryMapLayer(retailers);
+  debounceMapRender("ma", () => updateInventoryMapLayer(retailers), 180);
 }
 
 // ── MA Hunt data loading ──────────────────────────────────────────────────────
