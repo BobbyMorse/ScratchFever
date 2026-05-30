@@ -905,6 +905,16 @@ function _renderDsGrid() {
     const avgRet = s.avg_return
       ? `<span class="${s.avg_return >= 100 ? 'ds-pct-hi' : s.avg_return >= 80 ? 'ds-pct-mid' : 'ds-pct-lo'}">${s.avg_return}%</span>`
       : `<span class="ds-muted">—</span>`;
+    const winCell = (() => {
+      if (s.winners_count > 0) {
+        const geoCls = s.winners_geocoded_pct >= 80 ? 'ds-pct-hi'
+                     : s.winners_geocoded_pct >= 40 ? 'ds-pct-mid'
+                     : 'ds-pct-lo';
+        return `<span class="${geoCls}" title="${s.winners_geocoded_pct}% geocoded · latest ${s.winners_latest || '—'}">${s.winners_count.toLocaleString()}</span>`;
+      }
+      if (s.has_winners_scraper) return `<span class="ds-pct-lo">Pending</span>`;
+      return `<span class="ds-muted">—</span>`;
+    })();
     return `<tr class="ds-state-row${isActive ? " ds-state-active" : ""}">
       <td><span class="${dotCls}"></span></td>
       <td><span class="ds-state-code">${s.state_code}</span> <span class="ds-state-name">${s.state_name}</span></td>
@@ -914,11 +924,12 @@ function _renderDsGrid() {
       <td class="ds-col-num">${_pctBar(s.image_pct)}</td>
       <td class="ds-col-num">${avgRet}</td>
       <td class="ds-col-num">${_pctBar(s.prizes_pct)}</td>
+      <td class="ds-col-num">${winCell}</td>
       <td class="ds-col-num">${_retCell(s)}</td>
     </tr>`;
   }).join("");
 
-  tbody.innerHTML = html || `<tr><td colspan="9" class="ds-loading ds-muted">No states match filter.</td></tr>`;
+  tbody.innerHTML = html || `<tr><td colspan="10" class="ds-loading ds-muted">No states match filter.</td></tr>`;
 }
 
 async function loadStateHealth() {
