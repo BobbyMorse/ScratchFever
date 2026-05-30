@@ -112,7 +112,7 @@ def _parse_from_rows(soup: BeautifulSoup) -> list[dict]:
 
         name    = texts[0]
         address = texts[1] if len(texts) > 1 else ""
-        phone   = tel_link["href"].replace("tel:", "").strip() if tel_link else (texts[3] if len(texts) > 3 else "")
+        phone   = _clean_phone(tel_link["href"].replace("tel:", "") if tel_link else (texts[3] if len(texts) > 3 else ""))
 
         key = (name, address)
         if not name or key in seen:
