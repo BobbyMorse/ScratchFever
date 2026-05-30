@@ -1058,6 +1058,8 @@
       const data = await res.json();
       _posts = data.posts || [];
       renderPosts();
+      const ovPosts = document.getElementById("ovStatPosts");
+      if (ovPosts) ovPosts.textContent = String(_posts.length);
     } catch {
       document.getElementById("postsList").innerHTML =
         `<div class="empty-state">Failed to load posts.</div>`;
