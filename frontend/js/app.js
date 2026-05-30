@@ -1991,6 +1991,7 @@ function renderInventoryCluster(map, layerKey, opts) {
   });
 
   const batch = [];
+  const renderedRetailerIds = new Set();
 
   for (const r of retailers) {
     if (!r.latitude || !r.longitude) continue;
@@ -2002,6 +2003,7 @@ function renderInventoryCluster(map, layerKey, opts) {
     // Lazy popup: HTML is only built when the marker is clicked.
     m.bindPopup(() => _popupHtmlRetailer(r, status));
     batch.push(m);
+    if (r.id != null) renderedRetailerIds.add(String(r.id));
   }
 
   let reports = allReports.filter(r => r.lat && r.lng);
@@ -2009,6 +2011,8 @@ function renderInventoryCluster(map, layerKey, opts) {
   if (selectedGame) reports = reports.filter(r => r.game_name && r.game_name.toLowerCase() === selectedGame.name.toLowerCase());
   if (reportFilter === "in")  reports = reports.filter(r =>  r.has_stock);
   if (reportFilter === "out") reports = reports.filter(r => !r.has_stock);
+  // Don't double-count: a report at an already-rendered retailer would inflate the cluster badge.
+  reports = reports.filter(r => !renderedRetailerIds.has(String(r.retailer_id)));
 
   for (const r of reports) {
     const color = r.has_stock ? "#00cc44" : "#cc2200";
