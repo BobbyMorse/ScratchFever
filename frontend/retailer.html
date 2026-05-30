@@ -799,7 +799,7 @@
     document.title = `${p.store_name} — ScratchFever Retailer`;
 
     // Public-page links — open the consumer index with this store's profile expanded.
-    const publicUrl = `/?store=${encodeURIComponent(p.retailer_id)}`;
+    const publicUrl = `/?store=${encodeURIComponent(p.retailer_id)}&state=${encodeURIComponent(p.state_code)}`;
     const pub1 = document.getElementById("navPublicLink");
     const pub2 = document.getElementById("ovPublicBtn");
     const pub3 = document.getElementById("pfPublicBtn");
