@@ -1370,7 +1370,7 @@ function renderModal(g) {
     ${g.image_url ? `<img src="${escHtml(g.image_url)}" alt="${escHtml(g.name)}" class="modal-ticket-img" onerror="this.style.display='none'">` : ""}
     <div class="modal-title">${escHtml(g.name)}</div>
     <div class="modal-state">${g.state_name} • $${g.price} ticket</div>
-    ${CHASE_HANDLERS[g.state_code] ? `<div class="modal-chase-link-row"><a class="modal-chase-link" href="javascript:void(0)" onclick="viewGameInChase(${escAttr(JSON.stringify(g.name))},${escAttr(JSON.stringify(g.state_code || ""))})">Find this ticket in The Chase →</a></div>` : ""}
+    ${CHASE_HANDLERS[g.state_code] ? `<div class="modal-chase-link-row"><a class="modal-chase-link" href="javascript:void(0)" onclick="viewGameInChase(${escHtml(JSON.stringify(g.name))},${escHtml(JSON.stringify(g.state_code || ""))})">Find this ticket in The Chase →</a></div>` : ""}
     ${g.scraped_at ? `<div style="font-size:.78rem;color:var(--text-muted);margin:.25rem 0 .5rem;letter-spacing:.01em">State lottery data as of ${fmtDate(g.scraped_at)} &nbsp;·&nbsp; ${timeAgo(parseReportedAt(g.scraped_at))}</div>` : ""}
     ${noSalesData ? `<div style="background:rgba(255,200,0,.12);border:1px solid rgba(255,200,0,.3);border-radius:8px;padding:.6rem .85rem;margin:.75rem 0;font-size:.82rem;color:#c8a800">
       <strong>Limited data</strong> — ${g.state_name} does not publish ticket sales figures, so Est. Tickets Left, Tickets Sold, and EV calculations are based on prize table odds only.
