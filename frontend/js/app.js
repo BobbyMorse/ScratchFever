@@ -1899,7 +1899,6 @@ function getFilteredRows() {
   const city         = (document.getElementById("maCityInput").value   || "").toLowerCase().trim();
   const invFilter    = document.getElementById("maInvFilter")?.value  || "";
   const dateFilter   = document.getElementById("maDateFilter")?.value || "";
-  const showUnchecked = document.getElementById("maShowUnchecked")?.checked ?? true;
 
   mapReportFilter = (invFilter === "in" || invFilter === "out") ? invFilter : "all";
 
