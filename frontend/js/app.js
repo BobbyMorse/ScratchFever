@@ -1237,6 +1237,7 @@ function initBigWinsMap() {
     maxZoom: 19,
   }).addTo(bigwinsMap);
   bigwinsMapMarkers = L.layerGroup().addTo(bigwinsMap);
+  setupMapAutoResize(bigwinsMap);
 }
 
 function renderBigWinsMap() {
