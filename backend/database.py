@@ -717,6 +717,16 @@ async def upsert_reported_wins(conn, state_code: str, wins: list[dict]) -> int:
                             break
                 if hit:
                     lat, lng = hit
+        # If we still have no retailer location but the win has a winner_city,
+        # fall back to the winner's home-city centroid. Distinguished downstream
+        # by retailer_name IS NULL.
+        if (lat is None or lng is None) and not w.get("retailer_name"):
+            wcity = w.get("winner_city")
+            if wcity:
+                from backend.scraper.winners.city_geocoder import geocode_city
+                hit = geocode_city(wcity, state_code)
+                if hit:
+                    lat, lng = hit
 
         rows_to_insert.append((
             state_code, sgi, w.get("source_game_name"), game_db_id,
