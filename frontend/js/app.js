@@ -912,7 +912,10 @@ function _renderDsGrid() {
         const geoCls = s.winners_geocoded_pct >= 80 ? 'ds-pct-hi'
                      : s.winners_geocoded_pct >= 40 ? 'ds-pct-mid'
                      : 'ds-pct-lo';
-        return `<span class="${geoCls}" title="${s.winners_geocoded_pct}% geocoded · latest ${s.winners_latest || '—'}">${s.winners_count.toLocaleString()}</span>`;
+        const detailTag = s.winners_has_retailer
+          ? `<span class="ds-detail-tag ds-detail-store" title="Wins include the specific retailer where the ticket was sold">store</span>`
+          : `<span class="ds-detail-tag ds-detail-city" title="Wins only have the winner's home city (no retailer info)">city</span>`;
+        return `<span class="${geoCls}" title="${s.winners_geocoded_pct}% geocoded · latest ${s.winners_latest || '—'}">${s.winners_count.toLocaleString()}</span> ${detailTag}`;
       }
       if (s.has_winners_scraper) return `<span class="ds-pct-lo">Pending</span>`;
       return `<span class="ds-muted">—</span>`;
