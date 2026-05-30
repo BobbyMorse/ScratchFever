@@ -48,6 +48,11 @@ class WinnersScraper(ABC):
         resp.raise_for_status()
         return resp
 
+    def post(self, url: str, **kwargs) -> requests.Response:
+        resp = self.session.post(url, timeout=30, **kwargs)
+        resp.raise_for_status()
+        return resp
+
     @abstractmethod
     def scrape(self, days: int = 14) -> list[dict]:
         """Return list of normalized win dicts."""
