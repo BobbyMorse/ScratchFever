@@ -2998,6 +2998,7 @@ function initDetailMap(queue) {
     attribution: "© OpenStreetMap contributors",
     maxZoom: 18,
   }).addTo(_detailMap);
+  setupMapAutoResize(_detailMap);
 
   withCoords.forEach(q => {
     const color = q.status === "pending" ? "#00e5ff"
