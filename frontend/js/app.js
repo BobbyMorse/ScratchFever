@@ -1289,8 +1289,12 @@ function renderBigWinsMap() {
   }
 
   const totalPrize = wins.reduce((s, w) => s + (w.prize_amount || 0), 0);
+  const days = parseInt(document.getElementById("bigwinsRangeFilter")?.value || "30", 10);
+  const rangeLabel = days >= 365 ? `last ${Math.round(days / 365)} year${days >= 730 ? "s" : ""}` : `last ${days} days`;
   if (stats) {
-    stats.innerHTML = `<strong>${wins.length}</strong> wins across <strong>${groups.size}</strong> retailers · <strong>${fmtClaimPrize(totalPrize)}</strong> total prizes · last 30 days${state ? ` · ${state}` : ""}`;
+    const stateSeg = state ? ` · ${state}` : "";
+    const gameSeg = game ? ` · ${escHtml(game)}` : "";
+    stats.innerHTML = `<strong>${wins.length}</strong> wins across <strong>${groups.size}</strong> retailers · <strong>${fmtClaimPrize(totalPrize)}</strong> total prizes · ${rangeLabel}${stateSeg}${gameSeg}`;
   }
   if (countEl) countEl.textContent = `${wins.length} mapped win${wins.length !== 1 ? "s" : ""}`;
 
