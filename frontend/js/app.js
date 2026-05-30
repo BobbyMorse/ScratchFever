@@ -1181,10 +1181,11 @@ function setBigWinsView(view) {
     listBtn?.setAttribute("aria-selected", "true");
     if (mapWrap) mapWrap.style.display = "none";
     if (listEl) listEl.style.display = "";
-    if (rangeSel) rangeSel.style.display = "none";
-    if (gameSel) gameSel.style.display = "none";
+    if (rangeSel) rangeSel.style.display = "";
+    if (gameSel) gameSel.style.display = "";
     rebuildBigWinsStateDropdown();
-    filterBigWins();
+    rebuildBigWinsGameDropdown();
+    loadBigWins().then(() => filterBigWins());
   }
 }
 
