@@ -184,10 +184,14 @@ class MassachusettsScraper(BaseScraper):
         for t in tiers:
             t["odds_one_in"] = round(total_tickets / t["prizes_total"], 2) if t["prizes_total"] else None
 
+        # Apply name-based annuity heuristic so the top tier can carry cash_value / annuity
+        # metadata before EV math runs. Honors any scraper-supplied annuity fields.
+        _apply_annuity_heuristic(name, tiers)
+
         if tickets_remaining and tickets_remaining > 0:
-            prize_pool_remaining = sum(t["prize_amount"] * t["prizes_remaining"] for t in tiers)
-            ev         = round(prize_pool_remaining / tickets_remaining - price, 4)
-            return_pct = round(prize_pool_remaining / tickets_remaining / price * 100, 2)
+            ev_data = calculate_ev(price, tiers, tickets_remaining)
+            ev = ev_data["ev"]
+            return_pct = ev_data["return_pct"]
         else:
             ev = None
             return_pct = None
@@ -209,5 +213,13 @@ class MassachusettsScraper(BaseScraper):
             "tickets_remaining":    tickets_remaining,
             "detail_url":           f"{DETAIL_BASE}/{slug}",
             "image_url":            image_url,
+            "start_date":           start_date,
+            "top_prize_is_annuity": bool(top_tier.get("is_annuity")),
+            "top_prize_cash_value": top_tier.get("cash_value"),
+            "top_prize_annuity_years": top_tier.get("annuity_years"),
+            "top_prize_annuity_annual": top_tier.get("annuity_annual"),
+            # MA runs second-chance via My VIP Club for many scratch games.
+            "has_second_chance":    True,
+            "second_chance_url":    "https://www.masslottery.com/win-stations/my-vip-club",
             "tiers":                tiers,
         }
