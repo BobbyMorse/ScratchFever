@@ -22,9 +22,9 @@ for g in games:
     if rp is not None and rp > 100:
         reasons.append(f"return_pct={rp}")
     if ev is not None and price > 0 and ev > price:
-        reasons.append(f"ev={ev} > price={price}")
-    if ppl and tr and price > 0 and face_outstanding > 0 and ppl > face_outstanding * 3:
-        reasons.append(f"prize_pool_left={ppl:.0f} > 3x face_outstanding={face_outstanding:.0f}")
+        reasons.append(f"ev=${ev:.2f} > price=${price:.2f}")
+    if ppl and tr and price > 0 and face_outstanding > 0 and ppl > face_outstanding * 5:
+        reasons.append(f"prize_pool_left=${ppl/1e6:.1f}M > 5x face_outstanding=${face_outstanding/1e6:.1f}M")
     if tr is not None and total is not None and total > 0 and tr > total:
         reasons.append(f"tr={tr} > total={total}")
 
@@ -32,9 +32,17 @@ for g in games:
         flagged.append((g, reasons))
 
 print(f"Flagged: {len(flagged)}\n")
-for g, reasons in sorted(flagged, key=lambda x: -(x[0].get("return_pct") or 0)):
-    print(f"[{g.get('state_code')}] {g.get('name')!r} (${g.get('price')})")
+flagged.sort(key=lambda x: -(x[0].get("return_pct") or 0))
+for g, reasons in flagged:
+    name_life = "LIFE" in (g.get("name") or "").upper()
+    print(f"[{g.get('state_code')}] {g.get('name')!r} (${g.get('price')}) {'<for-life>' if name_life else ''}")
     for r in reasons:
         print(f"    {r}")
-    print(f"    top_prize={g.get('top_prize')} is_annuity={g.get('top_prize_is_annuity')} cash_value={g.get('top_prize_cash_value')}")
+    print(f"    top_prize=${g.get('top_prize')} is_ann={g.get('top_prize_is_annuity')} cash=${g.get('top_prize_cash_value')}")
     print()
+
+# also break down by state
+from collections import Counter
+print("\nBy state (flagged count):")
+for state, count in Counter(g.get("state_code") for g, _ in flagged).most_common():
+    print(f"   {state}: {count}")
