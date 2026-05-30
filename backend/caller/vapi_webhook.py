@@ -330,7 +330,7 @@ async def vapi_webhook(
 
 
 @router.get("/recent")
-async def vapi_recent(limit: int = 50):
+async def vapi_recent(limit: int = 50, _user: dict = Depends(require_admin)):
     import json as _json
     limit = max(1, min(limit, 500))
     calls = await recent_vapi_calls(limit=limit)
