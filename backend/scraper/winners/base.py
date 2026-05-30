@@ -16,10 +16,14 @@ Common base for winners scrapers. Each subclass returns a list of dicts with:
 """
 from __future__ import annotations
 import logging
+import time
 from abc import ABC, abstractmethod
 import requests
 
 logger = logging.getLogger(__name__)
+
+RETRY_STATUSES = {429, 500, 502, 503, 504}
+MAX_RETRIES = 5
 
 HEADERS = {
     "User-Agent": (
