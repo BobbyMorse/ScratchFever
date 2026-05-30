@@ -4674,7 +4674,7 @@ function toggleFlMap() {
   sec.style.display = flMapVisible ? "" : "none";
   if (flMapVisible) {
     if (!flMap) initFlMap();
-    else flMap.invalidateSize();
+    setTimeout(() => flMap && flMap.invalidateSize(), 50);
     renderFlMapLayers(getFlFilteredRows());
   }
 }
