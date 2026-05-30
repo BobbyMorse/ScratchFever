@@ -191,3 +191,14 @@ def require_admin(authorization: str = Header(None)) -> dict:
     if user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
     return user
+
+
+async def require_pro(authorization: str = Header(None)) -> dict:
+    """Pro-only endpoint guard. Authorizes off server-side pro_until,
+    not anything in the token — RevenueCat is the source of truth."""
+    user = require_member(authorization)
+    if user.get("role") == "admin":
+        return user
+    if not await is_user_pro(user["uid"]):
+        raise HTTPException(status_code=403, detail="Pro subscription required")
+    return user
