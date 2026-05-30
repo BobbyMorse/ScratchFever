@@ -448,6 +448,140 @@ async def get_recent_prize_claims(conn, days: int = 7, limit: int = 200, min_pri
     return [dict(zip(cols, r)) for r in rows]
 
 
+async def upsert_reported_wins(conn, state_code: str, wins: list[dict]) -> int:
+    """
+    Upsert reported wins for a state. Each win dict must include source_id (unique
+    within state_code). Returns count of rows inserted or updated.
+
+    Game-link strategy:
+      1. If source_game_id is set, look up games.game_id for that state.
+      2. Otherwise (fallback for states without a stable game id), fuzzy-match by
+         normalized game name.
+
+    Retailer-geo strategy:
+      If retailer_lat/lng are None and a state_retailers row exists matching
+      name + city, fill them in from there.
+    """
+    if not wins:
+        return 0
+
+    games_by_id = {}
+    games_by_name = {}
+    rows = await conn.fetch(
+        "SELECT id, game_id, name FROM games WHERE state_code = $1 AND is_active = TRUE",
+        state_code,
+    )
+    for r in rows:
+        games_by_id[r["game_id"]] = r["id"]
+        games_by_name[_norm_game_name(r["name"])] = r["id"]
+
+    retailers = await conn.fetch(
+        """SELECT name, city, latitude, longitude FROM state_retailers
+           WHERE state_code = $1 AND latitude IS NOT NULL AND longitude IS NOT NULL""",
+        state_code,
+    )
+    retailer_lookup: dict[tuple[str, str], tuple[float, float]] = {}
+    for r in retailers:
+        key = (_norm_retailer_name(r["name"]), (r["city"] or "").lower().strip())
+        retailer_lookup[key] = (r["latitude"], r["longitude"])
+
+    saved = 0
+    for w in wins:
+        game_db_id = None
+        sgi = w.get("source_game_id")
+        if sgi and sgi in games_by_id:
+            game_db_id = games_by_id[sgi]
+        else:
+            normname = _norm_game_name(w.get("source_game_name") or "")
+            if normname and normname in games_by_name:
+                game_db_id = games_by_name[normname]
+
+        lat = w.get("retailer_lat")
+        lng = w.get("retailer_lng")
+        if lat is None or lng is None:
+            key = (_norm_retailer_name(w.get("retailer_name") or ""),
+                   (w.get("retailer_city") or "").lower().strip())
+            if key[0] and key in retailer_lookup:
+                lat, lng = retailer_lookup[key]
+
+        try:
+            await conn.execute("""
+                INSERT INTO reported_wins
+                    (state_code, source_game_id, source_game_name, game_db_id,
+                     prize_amount, claim_date, winner_city,
+                     retailer_name, retailer_address, retailer_city, retailer_zip,
+                     retailer_lat, retailer_lng, source_url, source_id, scraped_at)
+                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,NOW())
+                ON CONFLICT (state_code, source_id) DO UPDATE SET
+                    game_db_id = COALESCE(EXCLUDED.game_db_id, reported_wins.game_db_id),
+                    retailer_lat = COALESCE(EXCLUDED.retailer_lat, reported_wins.retailer_lat),
+                    retailer_lng = COALESCE(EXCLUDED.retailer_lng, reported_wins.retailer_lng),
+                    scraped_at = NOW()
+            """,
+                state_code, sgi, w.get("source_game_name"), game_db_id,
+                w.get("prize_amount"), w.get("claim_date"), w.get("winner_city"),
+                w.get("retailer_name"), w.get("retailer_address"),
+                w.get("retailer_city"), w.get("retailer_zip"),
+                lat, lng, w.get("source_url"), w["source_id"],
+            )
+            saved += 1
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning("reported_wins insert failed for %s/%s: %s",
+                                                state_code, w.get("source_id"), e)
+    return saved
+
+
+def _norm_game_name(s: str) -> str:
+    if not s:
+        return ""
+    import re
+    s = s.lower().strip()
+    s = re.sub(r'[\$,]', '', s)
+    s = re.sub(r'\s+', ' ', s)
+    return s
+
+
+def _norm_retailer_name(s: str) -> str:
+    if not s:
+        return ""
+    import re
+    s = s.lower().strip()
+    s = re.sub(r'\b(inc|llc|corp|co|the|&)\b', '', s)
+    s = re.sub(r'[^a-z0-9 ]', ' ', s)
+    s = re.sub(r'\s+', ' ', s).strip()
+    return s
+
+
+async def get_reported_wins(conn, days: int = 30, min_prize: float = 10000,
+                             state: str | None = None, has_location: bool = False,
+                             limit: int = 1000):
+    conditions = ["claim_date >= CURRENT_DATE - make_interval(days => $1)",
+                  "prize_amount >= $2"]
+    params: list = [days, min_prize]
+    if state:
+        params.append(state.upper())
+        conditions.append(f"state_code = ${len(params)}")
+    if has_location:
+        conditions.append("retailer_lat IS NOT NULL AND retailer_lng IS NOT NULL")
+    params.append(limit)
+    rows = await conn.fetch(f"""
+        SELECT id, state_code, source_game_id, source_game_name, game_db_id,
+               prize_amount, claim_date, winner_city,
+               retailer_name, retailer_address, retailer_city, retailer_zip,
+               retailer_lat, retailer_lng, source_url, scraped_at
+        FROM reported_wins
+        WHERE {' AND '.join(conditions)}
+        ORDER BY claim_date DESC, prize_amount DESC
+        LIMIT ${len(params)}
+    """, *params)
+    cols = ["id", "state_code", "source_game_id", "source_game_name", "game_db_id",
+            "prize_amount", "claim_date", "winner_city",
+            "retailer_name", "retailer_address", "retailer_city", "retailer_zip",
+            "retailer_lat", "retailer_lng", "source_url", "scraped_at"]
+    return [dict(zip(cols, r)) for r in rows]
+
+
 async def get_recent_inventory_reports(conn, limit: int = 200,
                                         retailer_id: str = None, game_name: str = None):
     conditions = []
