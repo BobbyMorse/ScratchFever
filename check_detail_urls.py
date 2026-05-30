@@ -7,27 +7,37 @@ from collections import defaultdict
 import httpx
 
 API = "https://scratchfever.app/api/games?limit=5000"
-TIMEOUT = 15
-CONCURRENCY = 24
-UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+TIMEOUT = 30
+CONCURRENCY = 12
+BROWSER_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    "Sec-Fetch-Site": "none",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-User": "?1",
+    "Sec-Fetch-Dest": "document",
+    "Upgrade-Insecure-Requests": "1",
+}
 
 
 async def check(client: httpx.AsyncClient, url: str, sem: asyncio.Semaphore) -> tuple[str, int | str]:
     async with sem:
-        for method in ("HEAD", "GET"):
+        # GET only (HEAD triggers different bot-detection paths on many lottery sites).
+        # Retry once on transient failure.
+        for attempt in (1, 2):
             try:
-                r = await client.request(
-                    method, url, follow_redirects=True, timeout=TIMEOUT,
-                    headers={"User-Agent": UA, "Accept": "text/html,*/*"},
+                r = await client.get(
+                    url, follow_redirects=True, timeout=TIMEOUT, headers=BROWSER_HEADERS,
                 )
-                # Some servers reject HEAD with 4xx but serve GET fine, so retry on bad HEAD.
-                if method == "HEAD" and r.status_code in (403, 405, 501):
-                    continue
                 return url, r.status_code
             except httpx.TimeoutException:
-                return url, "TIMEOUT"
+                if attempt == 2:
+                    return url, "TIMEOUT"
             except httpx.RequestError as e:
-                return url, f"ERR:{type(e).__name__}"
+                if attempt == 2:
+                    return url, f"ERR:{type(e).__name__}"
         return url, "ERR:unreachable"
 
 
