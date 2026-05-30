@@ -374,8 +374,24 @@ async def api_games(
         "total_tickets", "tickets_remaining",
         "detail_url", "image_url", "scraped_at",
         "prize_pool_remaining", "jackpot_odds_one_in", "ev_approximate",
+        "start_date", "top_prize_is_annuity", "top_prize_cash_value",
+        "top_prize_annuity_years", "top_prize_annuity_annual",
+        "has_second_chance", "second_chance_url",
     ]
-    games = [dict(zip(cols, row)) for row in rows]
+    games = []
+    today = datetime.date.today()
+    for row in rows:
+        g = dict(zip(cols, row))
+        sd = g.get("start_date")
+        tt = g.get("total_tickets")
+        tr = g.get("tickets_remaining")
+        if sd and tt and tr is not None and tt > tr:
+            days = max(1, (today - sd).days)
+            g["days_on_sale"] = days
+            g["tickets_sold_per_day"] = round((tt - tr) / days)
+            if g["tickets_sold_per_day"] > 0:
+                g["estimated_days_to_sellout"] = round(tr / g["tickets_sold_per_day"])
+        games.append(g)
     return {"games": games, "count": len(games)}
 
 
