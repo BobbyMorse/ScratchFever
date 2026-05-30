@@ -195,6 +195,7 @@ class MaineScraper(BaseScraper):
             "jackpot_odds_one_in":  jackpot_odds,
             "total_tickets":        total_tickets,
             "tickets_remaining":    tickets_remaining,
+            "prize_pool_left":      prize_pool_left,
             "detail_url":           detail_url,
             "image_url":            image_url,
             "end_date":             None,
