@@ -1502,9 +1502,17 @@
                 <circle cx="12" cy="7" r="4"/>
               </svg>
             </div>
-            <div class="account-name" id="accountDisplayName"></div>
-            <div class="account-email-full" id="accountEmailFull"></div>
             <span class="user-chip-role" id="accountRoleBadge"></span>
+            <div class="account-fields">
+              <div class="account-field">
+                <div class="account-field-label">Username</div>
+                <div class="account-field-value" id="accountDisplayName"></div>
+              </div>
+              <div class="account-field">
+                <div class="account-field-label">Contact</div>
+                <div class="account-field-value" id="accountEmailFull"></div>
+              </div>
+            </div>
             <button class="btn account-logout-btn" onclick="logout()">Log out</button>
           </div>
         </div>
