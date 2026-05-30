@@ -5056,7 +5056,7 @@ function toggleNyMap() {
   sec.style.display = nyMapVisible ? "" : "none";
   if (nyMapVisible) {
     if (!nyMap) initNyMap();
-    else nyMap.invalidateSize();
+    setTimeout(() => nyMap && nyMap.invalidateSize(), 50);
     renderNyMapLayers(getNyFilteredRows());
   }
 }
