@@ -1226,10 +1226,15 @@ function escAttr(s) {
 }
 
 function onBigWinsRangeChange() {
-  // Force a reload; this only matters in map mode.
-  bigwinsReportedDays = null;
-  bigwinsReportedWins = [];
-  loadBigWinsReported().then(() => renderBigWinsMap());
+  if (bigwinsView === "map") {
+    bigwinsReportedDays = null;
+    bigwinsReportedWins = [];
+    loadBigWinsReported().then(() => renderBigWinsMap());
+  } else {
+    allBigWinsDays = null;
+    allBigWins = [];
+    loadBigWins();
+  }
 }
 
 async function loadBigWinsReported() {
