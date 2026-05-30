@@ -833,6 +833,7 @@ function _dsSortValue(s, col) {
     case 'img':       return s.image_pct ?? -1;
     case 'avgret':    return s.avg_return ?? 0;
     case 'prizes':    return s.prizes_pct ?? -1;
+    case 'winners':   return s.winners_count ?? -1;
     case 'retailers': return s.retailer_last_scraped ? new Date(s.retailer_last_scraped).getTime() : 0;
     default:          return 0;
   }
