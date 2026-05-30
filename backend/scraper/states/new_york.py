@@ -132,6 +132,24 @@ class NewYorkScraper(BaseScraper):
             if any_remaining_data:
                 tickets_remaining = round(overall_odds * total_prizes_remaining)
 
+        start_date = None
+        for k in ("release_date", "field_release_date", "start_date",
+                  "field_start_date", "launch_date", "created", "changed", "field_launch_date"):
+            v = row.get(k)
+            if v:
+                # NY exposes ISO timestamps and sometimes unix epochs as strings.
+                v = str(v)
+                if v.isdigit() and len(v) == 10:
+                    import datetime as _dt
+                    try:
+                        start_date = _dt.date.fromtimestamp(int(v)).isoformat()
+                    except (ValueError, OSError):
+                        start_date = None
+                else:
+                    start_date = v[:10]
+                if start_date:
+                    break
+
         return self.build_game(
             game_id=game_id or name,
             name=name,
@@ -142,4 +160,7 @@ class NewYorkScraper(BaseScraper):
             tickets_remaining=tickets_remaining,
             detail_url=detail_url,
             image_url=image_url,
+            start_date=start_date,
+            has_second_chance=True,
+            second_chance_url="https://nylottery.ny.gov/players-club",
         )
