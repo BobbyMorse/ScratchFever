@@ -1138,6 +1138,8 @@ function setBigWinsView(view) {
   const mapBtn = document.getElementById("bigwinsViewMapBtn");
   const listEl = document.getElementById("bigwinsList");
   const mapWrap = document.getElementById("bigwinsMapWrap");
+  const rangeSel = document.getElementById("bigwinsRangeFilter");
+  const gameSel = document.getElementById("bigwinsGameFilter");
   if (view === "map") {
     listBtn?.classList.remove("is-active");
     mapBtn?.classList.add("is-active");
@@ -1145,6 +1147,9 @@ function setBigWinsView(view) {
     mapBtn?.setAttribute("aria-selected", "true");
     if (listEl) listEl.style.display = "none";
     if (mapWrap) mapWrap.style.display = "";
+    if (rangeSel) rangeSel.style.display = "";
+    if (gameSel) gameSel.style.display = "";
+    rebuildBigWinsStateDropdown();
     loadBigWinsReported().then(() => renderBigWinsMap());
   } else {
     mapBtn?.classList.remove("is-active");
@@ -1153,34 +1158,75 @@ function setBigWinsView(view) {
     listBtn?.setAttribute("aria-selected", "true");
     if (mapWrap) mapWrap.style.display = "none";
     if (listEl) listEl.style.display = "";
+    if (rangeSel) rangeSel.style.display = "none";
+    if (gameSel) gameSel.style.display = "none";
+    rebuildBigWinsStateDropdown();
     filterBigWins();
   }
 }
 
-async function loadBigWinsReported() {
-  if (bigwinsReportedLoaded) return;
-  try {
-    const res = await fetch("/api/reported-wins?days=30&min_prize=10000&has_location=true&limit=3000");
-    if (!res.ok) { bigwinsReportedLoaded = true; return; }
-    const data = await res.json();
-    bigwinsReportedWins = data.wins || [];
-    bigwinsReportedLoaded = true;
-    const sel = document.getElementById("bigwinsStateFilter");
-    if (sel) {
-      const existing = new Set([...sel.options].map(o => o.value));
-      (data.states_with_data || []).forEach(sc => {
-        if (!existing.has(sc)) {
-          const opt = document.createElement("option");
-          opt.value = sc;
-          opt.textContent = sc;
-          sel.appendChild(opt);
-        }
-      });
-    }
-  } catch (e) {
-    console.error("loadBigWinsReported:", e);
-    bigwinsReportedLoaded = true;
+function rebuildBigWinsStateDropdown() {
+  const sel = document.getElementById("bigwinsStateFilter");
+  if (!sel) return;
+  const prev = sel.value;
+  const source = bigwinsView === "map" ? bigwinsReportedStates : allBigWinsStates;
+  sel.innerHTML = '<option value="">All States</option>' +
+    source.map(sc => `<option value="${sc}">${sc}</option>`).join("");
+  if (source.includes(prev)) sel.value = prev;
+}
+
+function rebuildBigWinsGameDropdown() {
+  const sel = document.getElementById("bigwinsGameFilter");
+  if (!sel) return;
+  const prev = sel.value;
+  // Group by game (use source_game_name as key) with win counts.
+  const counts = new Map();
+  for (const w of bigwinsReportedWins) {
+    const key = (w.source_game_name || "").trim() || "(unknown)";
+    counts.set(key, (counts.get(key) || 0) + 1);
   }
+  const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  sel.innerHTML = '<option value="">All Tickets</option>' +
+    sorted.map(([name, n]) => `<option value="${escAttr(name)}">${escHtml(name)} (${n})</option>`).join("");
+  if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
+}
+
+function escAttr(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+}
+
+function onBigWinsRangeChange() {
+  // Force a reload; this only matters in map mode.
+  bigwinsReportedDays = null;
+  bigwinsReportedWins = [];
+  loadBigWinsReported().then(() => renderBigWinsMap());
+}
+
+async function loadBigWinsReported() {
+  const days = parseInt(document.getElementById("bigwinsRangeFilter")?.value || "30", 10);
+  if (bigwinsReportedDays === days && bigwinsReportedWins.length) return;
+  if (bigwinsReportedLoading) return bigwinsReportedLoading;
+  const statsEl = document.getElementById("bigwinsMapStats");
+  if (statsEl) statsEl.textContent = "Loading…";
+  bigwinsReportedLoading = (async () => {
+    try {
+      const url = `/api/reported-wins?days=${days}&min_prize=10000&has_location=true&limit=5000`;
+      const res = await fetch(url);
+      if (!res.ok) { bigwinsReportedDays = days; return; }
+      const data = await res.json();
+      bigwinsReportedWins = data.wins || [];
+      bigwinsReportedStates = data.states_with_data || [];
+      bigwinsReportedDays = days;
+      rebuildBigWinsStateDropdown();
+      rebuildBigWinsGameDropdown();
+    } catch (e) {
+      console.error("loadBigWinsReported:", e);
+      bigwinsReportedDays = days;
+    } finally {
+      bigwinsReportedLoading = null;
+    }
+  })();
+  return bigwinsReportedLoading;
 }
 
 function initBigWinsMap() {
