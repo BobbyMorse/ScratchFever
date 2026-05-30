@@ -39,7 +39,7 @@ class WestVirginiaScraper(BaseScraper):
     state_code = "WV"
     state_name = "West Virginia"
     base_url = BASE_URL
-    scraper_timeout = 600
+    scraper_timeout = 900
 
     def scrape(self) -> list[dict]:
         try:
