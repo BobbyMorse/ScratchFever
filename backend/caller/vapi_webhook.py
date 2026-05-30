@@ -37,9 +37,10 @@ import os
 import re
 from typing import Any, Optional
 
-from fastapi import APIRouter, Header, HTTPException, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 
 from backend.database import add_inventory_report, get_pool
+from backend.users import require_admin
 from backend.caller.vapi_db import (
     find_retailer_by_phone,
     insert_vapi_call,
