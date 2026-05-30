@@ -53,8 +53,8 @@ class WisconsinWinnersScraper(WinnersScraper):
             if not cards:
                 break
             stale_count = 0
-            for game, prize_raw, winner, dateloc_html in cards:
-                norm = self._normalize(game, prize_raw, winner, dateloc_html)
+            for game, prize_raw, winner, retailer, city, date_str in cards:
+                norm = self._normalize(game, prize_raw, winner, retailer, city, date_str)
                 if not norm:
                     continue
                 if norm["claim_date"] and norm["claim_date"] < cutoff:
