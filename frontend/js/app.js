@@ -472,6 +472,7 @@ function onCallerStateSelect() {
   if (searchEl) searchEl.value = "";
   renderTicketsPicker();
   populateTestRetailerSelect(state);
+  loadStoreCandidates();
 }
 
 let _selectedTickets = new Set();
