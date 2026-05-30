@@ -31,6 +31,35 @@ async def main():
 
     conn = await asyncpg.connect(db_url, statement_cache_size=0)
     try:
+        # 0. Make sure the schema additions from this PR exist before we INSERT
+        # rows that reference them. App startup also runs these, but seeding
+        # against a freshly-deployed prod DB may race the lifespan handler.
+        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS description TEXT")
+        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS website TEXT")
+        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS contact_email TEXT")
+        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS hours_text TEXT")
+        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS photo_url TEXT")
+        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS banner_text TEXT")
+        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS banner_until TIMESTAMPTZ")
+        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW()")
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS retailer_claims (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                retailer_id TEXT NOT NULL,
+                state_code TEXT NOT NULL,
+                store_name TEXT NOT NULL,
+                city TEXT, zip TEXT, phone TEXT,
+                claimant_role TEXT, claimant_name TEXT, claimant_phone TEXT,
+                notes TEXT,
+                status TEXT NOT NULL DEFAULT 'pending',
+                created_at TIMESTAMPTZ DEFAULT NOW(),
+                reviewed_at TIMESTAMPTZ,
+                reviewed_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+                review_notes TEXT
+            )
+        """)
+
         # 1. Find user
         user = await conn.fetchrow(
             "SELECT id, email, username, role FROM users WHERE email=$1",
