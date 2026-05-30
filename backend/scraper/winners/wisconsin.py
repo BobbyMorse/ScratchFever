@@ -71,7 +71,7 @@ class WisconsinWinnersScraper(WinnersScraper):
         return out
 
     def _normalize(self, game_raw: str, prize_raw: str, winner: str,
-                   dateloc_html: str) -> dict | None:
+                   retailer_raw: str, city_raw: str, date_str: str) -> dict | None:
         try:
             prize = float(prize_raw.replace(",", ""))
         except ValueError:
@@ -85,11 +85,9 @@ class WisconsinWinnersScraper(WinnersScraper):
         if is_draw_game(self.state_code, game_name):
             return None
 
-        # date-loc contains three <div>s: retailer, city, date (MM/DD/YYYY).
-        lines = LINE_RE.findall(dateloc_html)
-        retailer = lines[0].strip() if len(lines) >= 1 else None
-        city = lines[1].strip() if len(lines) >= 2 else None
-        date_str = lines[2].strip() if len(lines) >= 3 else None
+        retailer = (retailer_raw or "").strip() or None
+        city = (city_raw or "").strip() or None
+        date_str = (date_str or "").strip()
 
         claim_date = None
         if date_str:
