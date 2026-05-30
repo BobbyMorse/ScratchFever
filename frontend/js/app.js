@@ -732,6 +732,10 @@ async function loadAllGamesUnfiltered() {
     allGames = applyClientFilters(raw);
     renderTable();
     populateGameFilterSelect();
+    if (document.getElementById("plState")) {
+      initPlStateSelect();
+      onPlStateChange();
+    }
   } catch (_) {}
 }
 
