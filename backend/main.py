@@ -609,6 +609,57 @@ async def api_prize_claims(days: int = Query(7, le=30), min_prize: float = Query
     return result
 
 
+_reported_wins_cache: dict = {}
+_REPORTED_WINS_TTL = 120
+
+
+@app.get("/api/reported-wins")
+async def api_reported_wins(
+    days: int = Query(30, le=180),
+    min_prize: float = Query(10000, ge=0),
+    state: Optional[str] = Query(None, description="2-letter state code filter"),
+    has_location: bool = Query(False, description="Only wins with lat/lng"),
+    limit: int = Query(1000, le=5000),
+):
+    cache_key = (days, min_prize, state, has_location, limit)
+    cached = _reported_wins_cache.get(cache_key)
+    if cached and (datetime.datetime.utcnow().timestamp() - cached[0]) < _REPORTED_WINS_TTL:
+        return cached[1]
+    async with get_pool().acquire() as conn:
+        wins = await get_reported_wins(conn, days=days, min_prize=min_prize,
+                                        state=state, has_location=has_location,
+                                        limit=limit)
+    for w in wins:
+        if w.get("claim_date"):
+            w["claim_date"] = w["claim_date"].isoformat()
+        if w.get("scraped_at"):
+            w["scraped_at"] = w["scraped_at"].isoformat()
+    result = {
+        "wins": wins,
+        "count": len(wins),
+        "states_with_data": sorted({w["state_code"] for w in wins}),
+        "fetched_at": datetime.datetime.utcnow().isoformat() + "Z",
+    }
+    _reported_wins_cache[cache_key] = (datetime.datetime.utcnow().timestamp(), result)
+    return result
+
+
+@app.post("/api/admin/scrape-winners")
+async def api_scrape_winners(
+    background: BackgroundTasks,
+    state: Optional[str] = Query(None),
+    days: int = Query(14, le=90),
+    user = Depends(require_admin),
+):
+    async def _run():
+        from backend.scraper.winners.runner import run_all
+        results = await run_all(state_filter=state, days=days)
+        logger.info("winners scrape complete: %s", results)
+        _reported_wins_cache.clear()
+    background.add_task(_run)
+    return {"started": True, "state": state, "days": days}
+
+
 @app.get("/api/az/retailers")
 async def api_az_retailers(
     search: Optional[str] = Query(None, description="Name / city search"),
