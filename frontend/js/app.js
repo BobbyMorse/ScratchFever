@@ -2045,6 +2045,26 @@ function renderInventoryCluster(map, layerKey, opts) {
   }
 }
 
+// Reacts to any container size change (window resize, sidebar toggle, tab switch)
+// by calling invalidateSize. Without this, Leaflet's internal pixel coords go stale
+// and tiles render as misaligned chunks when you zoom or pan.
+function setupMapAutoResize(map) {
+  if (!map || !map._container || map._autoResizeAttached) return;
+  map._autoResizeAttached = true;
+  let raf = 0;
+  const kick = () => {
+    if (raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(() => { raf = 0; if (map._container) map.invalidateSize(); });
+  };
+  if (window.ResizeObserver) {
+    const ro = new ResizeObserver(kick);
+    ro.observe(map._container);
+    map._autoResizeObserver = ro;
+  }
+  window.addEventListener("resize", kick);
+  map._autoResizeKick = kick;
+}
+
 // Per-key debouncer: collapses repeated calls (e.g. typing in a search box) into one render.
 const _mapRenderTimers = {};
 function debounceMapRender(key, fn, ms) {
