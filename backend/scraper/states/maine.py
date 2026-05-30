@@ -166,6 +166,7 @@ class MaineScraper(BaseScraper):
 
             percent_unsold = unclaimed_data["percent_unsold"]
             total_unclaimed = unclaimed_data["total_unclaimed"]
+            prize_pool_left = total_unclaimed
 
             if total_tickets and percent_unsold is not None:
                 tickets_remaining = int(round(total_tickets * percent_unsold / 100))
