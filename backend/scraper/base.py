@@ -46,10 +46,17 @@ class BaseScraper(ABC):
                    tickets_remaining: int = None, total_tickets: int = None,
                    detail_url: str = None, overall_odds: float = None,
                    image_url: str = None, end_date: str = None,
-                   ev_approximate: bool = False) -> dict:
+                   ev_approximate: bool = False,
+                   start_date: str = None,
+                   has_second_chance: bool = False,
+                   second_chance_url: str = None) -> dict:
+        # If the top tier is flagged is_annuity but the scraper hasn't filled cash_value /
+        # annuity_annual+years, apply a name-based annuity heuristic so EV math reflects it.
+        _apply_annuity_heuristic(name, tiers)
         ev_data = calculate_ev(price, tiers, tickets_remaining)
         top_prize, top_prize_remaining = find_top_prize(tiers)
         jackpot_odds = calculate_jackpot_odds(tiers, tickets_remaining)
+        top_tier = max(tiers, key=lambda t: t.get("prize_amount", 0)) if tiers else {}
         return {
             "game_id": str(game_id),
             "name": name,
@@ -65,7 +72,14 @@ class BaseScraper(ABC):
             "detail_url": detail_url,
             "image_url": image_url,
             "end_date": end_date,
+            "start_date": start_date,
             "ev_approximate": ev_approximate,
+            "top_prize_is_annuity": bool(top_tier.get("is_annuity")),
+            "top_prize_cash_value": top_tier.get("cash_value"),
+            "top_prize_annuity_years": top_tier.get("annuity_years"),
+            "top_prize_annuity_annual": top_tier.get("annuity_annual"),
+            "has_second_chance": bool(has_second_chance),
+            "second_chance_url": second_chance_url,
             "tiers": tiers,
         }
 
