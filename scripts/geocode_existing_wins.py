@@ -35,11 +35,9 @@ BATCH = 1000
 async def backfill_state(conn, state_code: str) -> tuple[int, int]:
     exact, substr = await _load_retailer_geo_index(conn, state_code)
     logger.info("%s: %d exact-match retailers loaded", state_code, len(exact))
-    if not exact:
-        return 0, 0
 
     rows = await conn.fetch(
-        """SELECT id, retailer_name, retailer_city
+        """SELECT id, retailer_name, retailer_city, winner_city
            FROM reported_wins
            WHERE state_code = $1 AND retailer_lat IS NULL""",
         state_code,
@@ -49,18 +47,23 @@ async def backfill_state(conn, state_code: str) -> tuple[int, int]:
     updates: list[tuple[float, float, int]] = []
     miss = 0
     for r in rows:
+        hit = None
+        # 1. Exact retailer-name + city match against state_retailers
         norm_name = _norm_retailer_name(r["retailer_name"] or "")
         norm_city = (r["retailer_city"] or "").lower().strip()
-        if not norm_name or not norm_city:
-            miss += 1
-            continue
-        hit = exact.get((norm_name, norm_city))
+        if norm_name and norm_city and exact:
+            hit = exact.get((norm_name, norm_city))
+            if not hit:
+                candidates = substr.get(norm_city) or []
+                for cand_name, cand_lat, cand_lng in candidates:
+                    if norm_name in cand_name or cand_name in norm_name:
+                        hit = (cand_lat, cand_lng)
+                        break
+        # 2. City centroid fallback: retailer_city OR winner_city
         if not hit:
-            candidates = substr.get(norm_city) or []
-            for cand_name, cand_lat, cand_lng in candidates:
-                if norm_name in cand_name or cand_name in norm_name:
-                    hit = (cand_lat, cand_lng)
-                    break
+            fallback_city = r["retailer_city"] or r["winner_city"]
+            if fallback_city:
+                hit = geocode_city(fallback_city, state_code)
         if not hit:
             miss += 1
             continue
