@@ -616,12 +616,13 @@ function clearGameFilter() {
   applyGameFilter();
 }
 
-// hide dropdown when focus leaves
+// hide any open .store-dropdown when the click is outside its filter-group
 document.addEventListener("click", e => {
-  const wrap = document.getElementById("gameFilterInput");
-  if (wrap && !wrap.closest(".filter-group").contains(e.target)) {
-    document.getElementById("gameFilterDropdown").style.display = "none";
-  }
+  document.querySelectorAll(".store-dropdown").forEach(dd => {
+    if (dd.style.display === "none") return;
+    const group = dd.closest(".filter-group");
+    if (group && !group.contains(e.target)) dd.style.display = "none";
+  });
 });
 
 async function loadRetailerCounts() {
