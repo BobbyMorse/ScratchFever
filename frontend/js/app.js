@@ -2867,10 +2867,12 @@ function setStoresView(mode) {
   const legendEl = document.getElementById("cfStoresMapLegend");
   const listBtn = document.getElementById("cfViewListBtn");
   const mapBtn  = document.getElementById("cfViewMapBtn");
+  const regionBtn = document.getElementById("cfRegionSelectBtn");
   if (mode === "map") {
     listEl.style.display = "none";
     mapEl.style.display  = "block";
     if (legendEl) legendEl.style.display = "flex";
+    if (regionBtn) regionBtn.style.display = "";
     listBtn.classList.remove("cf-view-active");
     mapBtn.classList.add("cf-view-active");
     renderStoresMap();
@@ -2878,9 +2880,100 @@ function setStoresView(mode) {
     listEl.style.display = "";
     mapEl.style.display  = "none";
     if (legendEl) legendEl.style.display = "none";
+    if (regionBtn) regionBtn.style.display = "none";
+    if (_regionSelectActive) toggleRegionSelect();
     mapBtn.classList.remove("cf-view-active");
     listBtn.classList.add("cf-view-active");
   }
+}
+
+// ── Region select on the stores map ──────────────────────────────────────────
+let _regionSelectActive = false;
+let _regionRect = null;
+let _regionStart = null;
+
+function toggleRegionSelect() {
+  if (!_storesMap) return;
+  _regionSelectActive = !_regionSelectActive;
+  const btn = document.getElementById("cfRegionSelectBtn");
+  const mapEl = document.getElementById("cfStoresMap");
+  if (_regionSelectActive) {
+    if (btn) { btn.textContent = "Cancel region"; btn.classList.add("cf-view-active"); }
+    _storesMap.dragging.disable();
+    _storesMap.boxZoom.disable();
+    _storesMap.doubleClickZoom.disable();
+    let overlay = document.getElementById("cfRegionOverlay");
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.id = "cfRegionOverlay";
+      overlay.style.cssText = "position:absolute;inset:0;cursor:crosshair;z-index:900;background:transparent";
+      mapEl.appendChild(overlay);
+    }
+    overlay.style.display = "";
+    overlay.addEventListener("mousedown", _regionMouseDown);
+  } else {
+    if (btn) { btn.textContent = "Select region"; btn.classList.remove("cf-view-active"); }
+    _storesMap.dragging.enable();
+    _storesMap.boxZoom.enable();
+    _storesMap.doubleClickZoom.enable();
+    const overlay = document.getElementById("cfRegionOverlay");
+    if (overlay) {
+      overlay.removeEventListener("mousedown", _regionMouseDown);
+      overlay.remove();
+    }
+    document.removeEventListener("mousemove", _regionMouseMove);
+    document.removeEventListener("mouseup", _regionMouseUp);
+    if (_regionRect) { _storesMap.removeLayer(_regionRect); _regionRect = null; }
+    _regionStart = null;
+  }
+}
+
+function _regionPointToLatLng(clientX, clientY) {
+  const mapEl = document.getElementById("cfStoresMap");
+  const rect = mapEl.getBoundingClientRect();
+  return _storesMap.containerPointToLatLng([clientX - rect.left, clientY - rect.top]);
+}
+
+function _regionMouseDown(e) {
+  e.preventDefault();
+  _regionStart = _regionPointToLatLng(e.clientX, e.clientY);
+  if (_regionRect) _storesMap.removeLayer(_regionRect);
+  _regionRect = L.rectangle([_regionStart, _regionStart], {
+    color: "#22c55e", weight: 2, fillColor: "#22c55e", fillOpacity: 0.12, interactive: false,
+  }).addTo(_storesMap);
+  document.addEventListener("mousemove", _regionMouseMove);
+  document.addEventListener("mouseup", _regionMouseUp);
+}
+
+function _regionMouseMove(e) {
+  if (!_regionStart || !_regionRect) return;
+  _regionRect.setBounds([_regionStart, _regionPointToLatLng(e.clientX, e.clientY)]);
+}
+
+function _regionMouseUp(e) {
+  document.removeEventListener("mousemove", _regionMouseMove);
+  document.removeEventListener("mouseup", _regionMouseUp);
+  if (!_regionStart) { if (_regionSelectActive) toggleRegionSelect(); return; }
+  const end = _regionPointToLatLng(e.clientX, e.clientY);
+  const bounds = L.latLngBounds(_regionStart, end);
+  let added = 0;
+  _storeCandidates.forEach(c => {
+    const lat = parseFloat(c.latitude);
+    const lng = parseFloat(c.longitude);
+    if (!isFinite(lat) || !isFinite(lng)) return;
+    if (!bounds.contains([lat, lng])) return;
+    if (_selectedStores.has(c.external_id)) return;
+    _selectedStores.add(c.external_id);
+    added++;
+    const m = _storesMarkers.get(c.external_id);
+    if (m) m.setIcon(_storeMarkerIcon(c));
+  });
+  _regionStart = null;
+  if (_regionRect) { _storesMap.removeLayer(_regionRect); _regionRect = null; }
+  toggleRegionSelect(); // exit region mode
+  updateStoresCount();
+  if (_storesView === "list") renderStoresPicker();
+  if (added > 0 && typeof showToast === "function") showToast(`Added ${added} store${added === 1 ? "" : "s"} to call list`);
 }
 
 function _storeMarkerColor(c) {
