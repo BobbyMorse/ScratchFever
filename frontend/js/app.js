@@ -1996,14 +1996,12 @@ function renderInventoryCluster(map, layerKey, opts) {
       for (const m of children) {
         if (m.options.sfStockState === "in") { hasInStock = true; break; }
       }
-      const bg = hasInStock ? "rgba(0,204,68,0.85)" : "rgba(120,120,120,0.75)";
       const inner = hasInStock ? "rgba(0,204,68,1)" : "rgba(150,150,150,0.9)";
       const count = children.length;
       return L.divIcon({
         html: `<div style="background:${inner}"><span>${count}</span></div>`,
         className: `sf-cluster ${hasInStock ? "sf-cluster-instock" : "sf-cluster-neutral"}`,
         iconSize: L.point(40, 40),
-        bgPos: bg, // unused by leaflet but harmless
       });
     },
   });
