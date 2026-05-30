@@ -4619,7 +4619,6 @@ function getFlFilteredRows() {
   const city          = (document.getElementById("flCityInput")?.value   || "").toLowerCase().trim();
   const invFilter     = document.getElementById("flInvFilter")?.value  || "";
   const dateFilter    = document.getElementById("flDateFilter")?.value || "";
-  const showUnchecked = document.getElementById("flShowUnchecked")?.checked ?? true;
 
   flMapReportFilter = (invFilter === "in" || invFilter === "out") ? invFilter : "all";
 
