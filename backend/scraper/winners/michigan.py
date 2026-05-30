@@ -84,8 +84,8 @@ class MichiganWinnersScraper(WinnersScraper):
                     seen_ids.add(norm["source_id"])
                     out.append(norm)
             start += PAGE_SIZE
-            # Safety cap: MI exposes ~1.4M records total; 500K covers any sane backfill.
-            if start >= total or start >= 500_000:
+            # Safety cap: MI exposes ~1.5M records total; 2M is the hard ceiling.
+            if start >= total or start >= 2_000_000:
                 break
         return out
 
