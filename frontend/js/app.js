@@ -3481,7 +3481,7 @@ function viewGameInChase(gameName, stateCode) {
   setTimeout(() => {
     try {
       const invEl = document.getElementById(h.inv);
-      if (invEl) invEl.value = "in";
+      if (invEl) invEl.value = "";
       const selectFn = window[h.select];
       if (typeof selectFn === "function") selectFn(gameName);
       const renderFn = window[h.render];
