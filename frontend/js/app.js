@@ -3926,35 +3926,35 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
     }
   }
 
-  // --- Member sightings section (summary only) ---
+  // --- Member inventory section (summary only) ---
   const reports = allReports.filter(r => r.source !== "retailer");
 
   if (!reports.length && !retailerSection) {
     return `<div class="modal-community-section">
       <div class="modal-community-title" style="display:flex;align-items:center;justify-content:space-between">
-        <span>📍 Member Sightings</span>${addBtn}
+        <span>📍 Inventory</span>${addBtn}
       </div>
-      <div class="profile-no-reports">No member sightings yet for this game in ${stateCode || "your state"}.</div>
+      <div class="profile-no-reports">No inventory data yet for this game in ${stateCode || "your state"}.</div>
     </div>`;
   }
 
   const cIn  = reports.filter(r => r.has_stock).length;
   const cOut = reports.length - cIn;
   const cSummary = reports.length
-    ? `<span style="color:var(--text-muted);font-weight:400;font-size:.82rem">${reports.length} sighting${reports.length > 1 ? "s" : ""} · <span style="color:var(--green);font-weight:600">${cIn} in</span> · <span style="color:var(--red);font-weight:600">${cOut} out</span></span>`
+    ? `<span style="color:var(--text-muted);font-weight:400;font-size:.82rem">${reports.length} store${reports.length > 1 ? "s" : ""} · <span style="color:var(--green);font-weight:600">${cIn} in</span> · <span style="color:var(--red);font-weight:600">${cOut} out</span></span>`
     : "";
 
   const communitySection = reports.length ? `<div class="modal-community-section">
     <div class="modal-community-title" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
-      <span>📍 Member Sightings <span style="color:var(--text-muted);font-weight:400;font-size:.82rem">(${stateCode || ""})</span></span>
+      <span>📍 Inventory <span style="color:var(--text-muted);font-weight:400;font-size:.82rem">(${stateCode || ""})</span></span>
       <span style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">${cSummary}${addBtn}</span>
     </div>
-    <button class="modal-view-all-chase" ${chaseHref}>View ${reports.length} sighting${reports.length > 1 ? "s" : ""} in The Chase →</button>
+    <button class="modal-view-all-chase" ${chaseHref}>View ${reports.length} store${reports.length > 1 ? "s" : ""} in The Chase →</button>
   </div>` : `<div class="modal-community-section">
     <div class="modal-community-title" style="display:flex;align-items:center;justify-content:space-between">
-      <span>📍 Member Sightings</span>${addBtn}
+      <span>📍 Inventory</span>${addBtn}
     </div>
-    <div class="profile-no-reports">No member sightings yet for this game in ${stateCode || "your state"}.</div>
+    <div class="profile-no-reports">No inventory data yet for this game in ${stateCode || "your state"}.</div>
   </div>`;
 
   return retailerSection + communitySection;
