@@ -179,6 +179,8 @@ class BaseScraper(ABC):
         jackpot_odds = calculate_jackpot_odds(tiers, tickets_remaining)
         top_tier = find_top_tier(tiers) if tiers else {}
         prize_pool_left = _sum_prize_pool(tiers)
+        _warn_if_suspect(self.state_code, name, price, tiers, ev_data,
+                         tickets_remaining, top_tier)
         return {
             "game_id": str(game_id),
             "name": name,
