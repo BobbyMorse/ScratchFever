@@ -2755,8 +2755,7 @@ function selectNoStores() {
 }
 
 function onSkipCalledToggle() {
-  // Re-run auto-selection respecting the new toggle state.
-  autoSelectStores();
+  // Toggle is cosmetic + affects bulk "Select top N"; doesn't touch manual picks.
   refreshStoresViews();
 }
 
