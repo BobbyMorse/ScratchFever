@@ -264,6 +264,15 @@ async def init_retailer_db():
                 created_at TIMESTAMPTZ DEFAULT NOW()
             )
         """)
+        # Owner-editable profile fields, added incrementally so existing prod rows stay intact.
+        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS description TEXT")
+        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS website TEXT")
+        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS contact_email TEXT")
+        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS hours_text TEXT")
+        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS photo_url TEXT")
+        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS banner_text TEXT")
+        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS banner_until TIMESTAMPTZ")
+        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW()")
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS retailer_posts (
                 id SERIAL PRIMARY KEY,
@@ -277,6 +286,33 @@ async def init_retailer_db():
         """)
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_rprofile_user ON retailer_profiles(user_id)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_rposts_retailer ON retailer_posts(retailer_id)")
+
+        # Claim requests — a user submits, an admin approves/rejects.
+        # On approve we create the retailer_profiles row and bump the user's role to 'retailer'.
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS retailer_claims (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                retailer_id TEXT NOT NULL,
+                state_code TEXT NOT NULL,
+                store_name TEXT NOT NULL,
+                city TEXT,
+                zip TEXT,
+                phone TEXT,
+                claimant_role TEXT,
+                claimant_name TEXT,
+                claimant_phone TEXT,
+                notes TEXT,
+                status TEXT NOT NULL DEFAULT 'pending',
+                created_at TIMESTAMPTZ DEFAULT NOW(),
+                reviewed_at TIMESTAMPTZ,
+                reviewed_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+                review_notes TEXT
+            )
+        """)
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_rclaims_user ON retailer_claims(user_id, created_at DESC)")
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_rclaims_status ON retailer_claims(status, created_at DESC)")
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_rclaims_retailer ON retailer_claims(state_code, retailer_id)")
 
 
 def get_pool() -> asyncpg.Pool:
