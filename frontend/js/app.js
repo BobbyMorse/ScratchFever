@@ -4513,8 +4513,6 @@ function updateAzInventoryMapLayer(visibleRetailers) {
     selectedGame: selectedAzGame,
     reportFilter: azMapReportFilter,
   });
-  return; // legacy stub guard — original closing braces follow
-  }
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
