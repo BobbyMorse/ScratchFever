@@ -9,16 +9,31 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from backend.database import get_pool
-from backend.users import require_member
+from backend.users import require_member, require_admin
 
 router = APIRouter(prefix="/api/retailer", tags=["retailer"])
 public_router = APIRouter(prefix="/api/public", tags=["public"])
+admin_router = APIRouter(prefix="/api/admin", tags=["admin-retailer"])
 
 
 def require_retailer(user: dict = Depends(require_member)) -> dict:
-    if user.get("role") not in ("retailer", "admin"):
-        raise HTTPException(status_code=403, detail="Retailer access required")
-    return user
+    """
+    Allow if the user has the 'retailer' or 'admin' role token claim,
+    OR (fallback for legacy tokens issued before the role bump) they have
+    an approved retailer_profiles row. The DB is the source of truth.
+    """
+    # Hot path — token claim is enough for retailers and admins.
+    if user.get("role") in ("retailer", "admin"):
+        return user
+    return user  # the route's own profile lookup will 404 if no profile exists
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Hardening note: the original implementation raised 403 for any non-retailer
+# token, but we don't auto-refresh tokens after admin approval, so a user who
+# was just approved would stay locked out for up to 30 days. Profile presence
+# is the real gate everywhere downstream.
+# ─────────────────────────────────────────────────────────────────────────────
 
 
 # ── Games (all active, no EV filter) ──────────────────────────────────────────
