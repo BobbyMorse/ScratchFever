@@ -2726,7 +2726,7 @@ async function loadStoreCandidates() {
   const cooldownDays = parseInt(document.getElementById("cfCooldownDays").value);
   const cooldownHrs = (isNaN(cooldownDays) ? 7 : cooldownDays) * 24;
   try {
-    const res = await callerFetch(`/api/vapi/candidates?state=${encodeURIComponent(state)}&cooldown_hours=${cooldownHrs}&limit=500`);
+    const res = await callerFetch(`/api/vapi/candidates?state=${encodeURIComponent(state)}&cooldown_hours=${cooldownHrs}&limit=10000`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     _storeCandidates = data.candidates || [];
