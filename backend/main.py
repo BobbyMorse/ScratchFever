@@ -675,13 +675,17 @@ _prize_claims_cache: dict = {}  # key -> (timestamp, payload)
 _PRIZE_CLAIMS_TTL = 120  # seconds
 
 @app.get("/api/prize-claims")
-async def api_prize_claims(days: int = Query(7, le=30), min_prize: float = Query(0, ge=0)):
-    cache_key = (days, min_prize)
+async def api_prize_claims(
+    days: int = Query(7, le=7300),
+    min_prize: float = Query(0, ge=0),
+    limit: int = Query(200, ge=1, le=2000),
+):
+    cache_key = (days, min_prize, limit)
     cached = _prize_claims_cache.get(cache_key)
     if cached and (datetime.datetime.utcnow().timestamp() - cached[0]) < _PRIZE_CLAIMS_TTL:
         return cached[1]
     async with get_pool().acquire() as conn:
-        claims = await get_recent_prize_claims(conn, days=days, min_prize=min_prize)
+        claims = await get_recent_prize_claims(conn, days=days, min_prize=min_prize, limit=limit)
     for c in claims:
         if c.get("detected_at"):
             c["detected_at"] = c["detected_at"].isoformat()
