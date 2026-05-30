@@ -731,48 +731,6 @@ async def api_scrape_status():
     }
 
 
-@app.get("/api/debug/fetch")
-async def api_debug_fetch(url: str = Query(...)):
-    """Temp debug: fetch a URL and return link counts to diagnose scraper issues."""
-    import requests as _req
-    from bs4 import BeautifulSoup as _BS
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    }
-    r = _req.get(url, headers=headers, timeout=30)
-    soup = _BS(r.text, "lxml")
-    all_links = soup.find_all("a", href=True)
-    scratch_links = [a["href"] for a in all_links if "scratch" in a.get("href","").lower()]
-
-    # Inspect first data-game-id element
-    game_id_els = soup.select("[data-game-id]")
-    game_id_info = []
-    for el in game_id_els[:2]:
-        child_classes = [" ".join(c.get("class", [])) for c in el.find_all(True)[:8]]
-        headings = [h.get_text(strip=True) for h in el.find_all(["h2","h3","h4","h5","h6"])[:3]]
-        prices = [p.get_text(strip=True) for p in el.find_all(["p","span","div"]) if "$" in p.get_text()][:3]
-        game_id_info.append({
-            "data-game-id": el.get("data-game-id"),
-            "tag": el.name,
-            "classes": " ".join(el.get("class", [])),
-            "child_classes_sample": child_classes,
-            "headings": headings,
-            "price_texts": prices,
-            "text_snippet": el.get_text(" ", strip=True)[:200],
-        })
-
-    return {
-        "status": r.status_code,
-        "total_links": len(all_links),
-        "scratch_links": len(scratch_links),
-        "sample_scratch_hrefs": scratch_links[:5],
-        "page_length": len(r.text),
-        "game_id_elements_found": len(game_id_els),
-        "game_id_sample": game_id_info,
-    }
-
-
 # ── Community inventory reports ───────────────────────────────────────────────
 
 class InventoryReportBody(BaseModel):
