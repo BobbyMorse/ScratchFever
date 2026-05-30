@@ -35,9 +35,9 @@ HEADERS = {
 class WinnersScraper(ABC):
     state_code: str = ""
     state_name: str = ""
-    # Storage floor. 0 stores every win the source publishes.
-    # API/UI applies its own display threshold on top.
-    min_prize: float = 0.0
+    # Storage floor — we keep "large prize" wins long-term to power the
+    # 3-year distribution map. Sub-$10K wins are skipped to keep table size sane.
+    min_prize: float = 10000.0
 
     def __init__(self):
         self.session = requests.Session()
