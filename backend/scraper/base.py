@@ -10,59 +10,6 @@ from backend.ev_calculator import calculate_ev, calculate_jackpot_odds, find_top
 
 logger = logging.getLogger(__name__)
 
-_ANNUITY_PATTERNS = [
-    (re.compile(r"(\$?[\d,]+)\s*(?:a|per)?\s*week\s+for\s+life", re.I), "week", "life"),
-    (re.compile(r"(\$?[\d,]+)\s*(?:a|per)?\s*year\s+for\s+life", re.I), "year", "life"),
-    (re.compile(r"(\$?[\d,]+)\s*(?:a|per)?\s*month\s+for\s+life", re.I), "month", "life"),
-    (re.compile(r"(\$?[\d,]+)\s*(?:a|per)?\s*day\s+for\s+life", re.I), "day", "life"),
-    (re.compile(r"(\$?[\d,]+)\s*(?:a|per)?\s*week\s+for\s+(\d+)\s*year", re.I), "week", "years"),
-    (re.compile(r"(\$?[\d,]+)\s*(?:a|per)?\s*year\s+for\s+(\d+)\s*year", re.I), "year", "years"),
-]
-
-# Average expected payout years for "for life" annuities (state lotteries assume ~20-30 yr life
-# expectancy of a typical winner). 25 is the IRS / actuarial midpoint used by most state lotteries.
-_LIFE_YEARS = 25
-
-
-def _parse_money(s: str) -> float | None:
-    if not s:
-        return None
-    s = s.replace("$", "").replace(",", "").strip()
-    try:
-        return float(s)
-    except ValueError:
-        return None
-
-
-def _apply_annuity_heuristic(name: str, tiers: list[dict]) -> None:
-    """If game name like '$1,000 A WEEK FOR LIFE' AND top tier is_annuity is unset but face
-    prize >> typical (suggests face is annuity total, not cash), flag top tier as annuity.
-
-    Does not override scraper-supplied annuity metadata. Only fills in defaults so EV math
-    can apply the cash-value discount."""
-    if not tiers:
-        return
-    top = max(tiers, key=lambda t: t.get("prize_amount", 0))
-    if top.get("is_annuity") or top.get("cash_value"):
-        return
-    if not name:
-        return
-    for pattern, period, term in _ANNUITY_PATTERNS:
-        m = pattern.search(name)
-        if not m:
-            continue
-        amt = _parse_money(m.group(1))
-        if not amt:
-            continue
-        weeks_per_year = {"week": 52, "year": 1, "month": 12, "day": 365}.get(period, 0)
-        annual = amt * weeks_per_year
-        years = _LIFE_YEARS if term == "life" else int(m.group(2))
-        top["is_annuity"] = True
-        top["annuity_annual"] = annual
-        top["annuity_years"] = years
-        return
-
-
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
