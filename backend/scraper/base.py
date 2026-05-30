@@ -51,6 +51,10 @@ def _apply_annuity_heuristic(name: str, tiers: list[dict]) -> None:
     """
     if not tiers or not name:
         return
+    # Scrapers that decode for-life tiers themselves (e.g. NY's "$10K/Wk/Life")
+    # mark them with is_annuity. Don't double-apply.
+    if any(t.get("is_annuity") for t in tiers):
+        return
     top = max(tiers, key=lambda t: t.get("prize_amount", 0))
     if top.get("cash_value"):
         return
