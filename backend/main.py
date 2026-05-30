@@ -181,6 +181,7 @@ app.include_router(vapi_router)
 app.include_router(vapi_dispatch_router)
 app.include_router(retailer_router)
 app.include_router(retailer_public_router)
+app.include_router(retailer_admin_router)
 app.include_router(plays_router)
 app.include_router(revenuecat_router)
 
