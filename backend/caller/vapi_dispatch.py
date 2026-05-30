@@ -123,48 +123,18 @@ async def _last_call_lookup() -> dict[str, dict]:
     }
 
 
-async def _select_scored_retailers(
-    state: str,
-    max_stores: int,
-    cooldown_hours: int = 168,  # 7 days default
-) -> tuple[list[dict], int]:
-    """For MA/AZ use the scorer (highest score first). Other states fall back
-    to state_retailers in unspecified order.
-
-    Filters out retailers we've successfully talked to within `cooldown_hours`.
-    Annotates each pick with last_called_at / last_talked from history.
-
-    Returns (selected, excluded_count).
-    """
+async def _all_scored_candidates(state: str) -> list[dict]:
+    """Return ALL callable candidates for `state`, score-sorted (desc) for
+    MA/AZ, city/name for others. Phone-required. No cooldown filtering."""
     state = state.upper()
-    cooldown_phones = await _recently_contacted_phones(cooldown_hours)
-    last_call_map   = await _last_call_lookup()
-
-    def _enrich_and_filter(candidates: list[dict]) -> tuple[list[dict], int]:
-        out: list[dict] = []
-        excluded = 0
-        for r in candidates:
-            ph10 = _last10(r.get("phone"))
-            if ph10 and ph10 in cooldown_phones:
-                excluded += 1
-                continue
-            hist = last_call_map.get(ph10 or "")
-            out.append({
-                **r,
-                "last_called_at": hist["last_called_at"].isoformat() if hist and hist["last_called_at"] else None,
-                "last_talked":    bool(hist["last_talked"]) if hist else False,
-            })
-            if max_stores and len(out) >= max_stores:
-                break
-        return out, excluded
 
     if state == "MA":
         from backend.ma_scorer import load_and_score_async
         async with get_pool().acquire() as conn:
             scored = await load_and_score_async(conn)
         scored = [r for r in scored if r.get("phone")]
-        scored.sort(key=lambda r: r.get("score", 0), reverse=True)
-        candidates = [{
+        scored.sort(key=lambda r: r.get("score", 0) or 0, reverse=True)
+        return [{
             "external_id": str(r["id"]),
             "state_code":  "MA",
             "name":        r.get("name") or "",
@@ -172,7 +142,6 @@ async def _select_scored_retailers(
             "phone":       r.get("phone"),
             "score":       r.get("score"),
         } for r in scored]
-        return _enrich_and_filter(candidates)
 
     if state == "AZ":
         from backend.az_scorer import load_and_score_async
@@ -180,7 +149,7 @@ async def _select_scored_retailers(
             scored = await load_and_score_async(conn)
         scored = [r for r in scored if r.get("phone")]
         scored.sort(key=lambda r: r.get("score", 0) or 0, reverse=True)
-        candidates = [{
+        return [{
             "external_id": str(r["id"]),
             "state_code":  "AZ",
             "name":        r.get("name") or "",
@@ -188,23 +157,59 @@ async def _select_scored_retailers(
             "phone":       r.get("phone"),
             "score":       r.get("score"),
         } for r in scored]
-        return _enrich_and_filter(candidates)
 
-    # Generic fallback: pull a generous pool so cooldown exclusions still
-    # leave us with max_stores actual targets.
-    pool_size = max(max_stores * 3, 200) if max_stores else 500
     async with get_pool().acquire() as conn:
         rows = await conn.fetch(
             """SELECT external_id, state_code, name, city, phone
                FROM state_retailers
                WHERE state_code = $1 AND is_active = TRUE
                  AND phone IS NOT NULL AND phone <> ''
-               ORDER BY city NULLS LAST, name
-               LIMIT $2""",
-            state, pool_size,
+               ORDER BY city NULLS LAST, name""",
+            state,
         )
-    candidates = [dict(r) | {"score": None} for r in rows]
-    return _enrich_and_filter(candidates)
+    return [dict(r) | {"score": None} for r in rows]
+
+
+async def _annotate_candidates(
+    candidates: list[dict],
+    cooldown_hours: int,
+) -> list[dict]:
+    """Add last_called_at / last_talked / called_within_window to each candidate.
+    `called_within_window` reflects only the cooldown_hours window; `last_called_at`
+    is the most-recent call ever (used for the 'Called ever' badge)."""
+    cooldown_phones = await _recently_contacted_phones(cooldown_hours) if cooldown_hours > 0 else set()
+    last_call_map   = await _last_call_lookup()
+    out: list[dict] = []
+    for r in candidates:
+        ph10 = _last10(r.get("phone"))
+        hist = last_call_map.get(ph10 or "")
+        out.append({
+            **r,
+            "last_called_at":       hist["last_called_at"].isoformat() if hist and hist["last_called_at"] else None,
+            "last_talked":          bool(hist["last_talked"]) if hist else False,
+            "called_within_window": bool(ph10 and ph10 in cooldown_phones),
+        })
+    return out
+
+
+async def _select_scored_retailers(
+    state: str,
+    max_stores: int,
+    cooldown_hours: int = 168,  # 7 days default
+) -> tuple[list[dict], int]:
+    """Top-N selection with cooldown filtering. Returns (selected, excluded_count)."""
+    candidates = await _all_scored_candidates(state)
+    annotated  = await _annotate_candidates(candidates, cooldown_hours)
+    out: list[dict] = []
+    excluded = 0
+    for r in annotated:
+        if r["called_within_window"]:
+            excluded += 1
+            continue
+        out.append(r)
+        if max_stores and len(out) >= max_stores:
+            break
+    return out, excluded
 
 
 def _format_price(price) -> str:
