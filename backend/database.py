@@ -359,9 +359,21 @@ async def upsert_prize_tiers(conn: asyncpg.Connection, game_db_id: int, tiers: l
 
     await conn.execute("DELETE FROM prize_tiers WHERE game_db_id=$1", game_db_id)
     if tiers:
+        rows = []
+        for t in tiers:
+            raw_lc = t.get("last_claimed_at")
+            if isinstance(raw_lc, str):
+                try:
+                    raw_lc = dt.datetime.fromisoformat(raw_lc.replace("Z", "+00:00"))
+                except ValueError:
+                    raw_lc = None
+            rows.append((
+                game_db_id, t.get("prize_amount"), t.get("odds_one_in"),
+                t.get("prizes_total"), t.get("prizes_remaining"), raw_lc,
+            ))
         await conn.executemany(
-            "INSERT INTO prize_tiers (game_db_id, prize_amount, odds_one_in, prizes_total, prizes_remaining) VALUES ($1, $2, $3, $4, $5)",
-            [(game_db_id, t.get("prize_amount"), t.get("odds_one_in"), t.get("prizes_total"), t.get("prizes_remaining")) for t in tiers],
+            "INSERT INTO prize_tiers (game_db_id, prize_amount, odds_one_in, prizes_total, prizes_remaining, last_claimed_at) VALUES ($1, $2, $3, $4, $5, $6)",
+            rows,
         )
 
     if not old_big or not tiers:
