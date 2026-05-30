@@ -690,7 +690,8 @@ async def upsert_reported_wins(conn, state_code: str, wins: list[dict]) -> int:
 
     retailer_lookup, retailer_substr = await _load_retailer_geo_index(conn, state_code)
 
-    saved = 0
+    # Resolve per-row lookups in Python, then batch-insert via executemany.
+    rows_to_insert: list[tuple] = []
     for w in wins:
         game_db_id = None
         sgi = w.get("source_game_id")
@@ -709,8 +710,6 @@ async def upsert_reported_wins(conn, state_code: str, wins: list[dict]) -> int:
             if norm_name and norm_city:
                 hit = retailer_lookup.get((norm_name, norm_city))
                 if not hit:
-                    # substring match within same city: try winner-name as substring
-                    # of retailer-table-name, or vice versa.
                     candidates = retailer_substr.get(norm_city) or []
                     for cand_name, cand_lat, cand_lng in candidates:
                         if norm_name in cand_name or cand_name in norm_name:
@@ -719,31 +718,49 @@ async def upsert_reported_wins(conn, state_code: str, wins: list[dict]) -> int:
                 if hit:
                     lat, lng = hit
 
+        rows_to_insert.append((
+            state_code, sgi, w.get("source_game_name"), game_db_id,
+            w.get("prize_amount"), w.get("claim_date"), w.get("winner_city"),
+            w.get("retailer_name"), w.get("retailer_address"),
+            w.get("retailer_city"), w.get("retailer_zip"),
+            lat, lng, w.get("source_url"), w["source_id"],
+        ))
+
+    if not rows_to_insert:
+        return 0
+
+    sql = """
+        INSERT INTO reported_wins
+            (state_code, source_game_id, source_game_name, game_db_id,
+             prize_amount, claim_date, winner_city,
+             retailer_name, retailer_address, retailer_city, retailer_zip,
+             retailer_lat, retailer_lng, source_url, source_id, scraped_at)
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,NOW())
+        ON CONFLICT (state_code, source_id) DO UPDATE SET
+            game_db_id = COALESCE(EXCLUDED.game_db_id, reported_wins.game_db_id),
+            retailer_lat = COALESCE(EXCLUDED.retailer_lat, reported_wins.retailer_lat),
+            retailer_lng = COALESCE(EXCLUDED.retailer_lng, reported_wins.retailer_lng),
+            scraped_at = NOW()
+    """
+    BATCH = 1000
+    saved = 0
+    import logging as _logging
+    _log = _logging.getLogger(__name__)
+    for i in range(0, len(rows_to_insert), BATCH):
+        chunk = rows_to_insert[i:i + BATCH]
         try:
-            await conn.execute("""
-                INSERT INTO reported_wins
-                    (state_code, source_game_id, source_game_name, game_db_id,
-                     prize_amount, claim_date, winner_city,
-                     retailer_name, retailer_address, retailer_city, retailer_zip,
-                     retailer_lat, retailer_lng, source_url, source_id, scraped_at)
-                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,NOW())
-                ON CONFLICT (state_code, source_id) DO UPDATE SET
-                    game_db_id = COALESCE(EXCLUDED.game_db_id, reported_wins.game_db_id),
-                    retailer_lat = COALESCE(EXCLUDED.retailer_lat, reported_wins.retailer_lat),
-                    retailer_lng = COALESCE(EXCLUDED.retailer_lng, reported_wins.retailer_lng),
-                    scraped_at = NOW()
-            """,
-                state_code, sgi, w.get("source_game_name"), game_db_id,
-                w.get("prize_amount"), w.get("claim_date"), w.get("winner_city"),
-                w.get("retailer_name"), w.get("retailer_address"),
-                w.get("retailer_city"), w.get("retailer_zip"),
-                lat, lng, w.get("source_url"), w["source_id"],
-            )
-            saved += 1
+            await conn.executemany(sql, chunk)
+            saved += len(chunk)
         except Exception as e:
-            import logging
-            logging.getLogger(__name__).warning("reported_wins insert failed for %s/%s: %s",
-                                                state_code, w.get("source_id"), e)
+            _log.warning("reported_wins batch %d-%d failed (%s) — falling back to per-row",
+                         i, i + len(chunk), e)
+            for params in chunk:
+                try:
+                    await conn.execute(sql, *params)
+                    saved += 1
+                except Exception as inner:
+                    _log.warning("reported_wins row insert failed for %s/%s: %s",
+                                 state_code, params[14], inner)
     return saved
 
 
