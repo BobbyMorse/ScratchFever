@@ -4821,24 +4821,13 @@ function renderGaTable() {
     tbody.innerHTML = `<tr><td colspan="6" class="loading-cell">No retailers match.</td></tr>`;
     return;
   }
-  const CHUNK = 100;
-  tbody.innerHTML = rows.slice(0, CHUNK).map((r, i) => _stateRow(r, i + 1, "GA")).join("");
-  updateReportBadges();
   if (gaMapVisible) renderGaMapLayers(rows);
-  if (rows.length > CHUNK) {
-    let offset = CHUNK;
-    const appendNext = () => {
-      if (myGen !== gaRenderGen) return;
-      if (offset >= rows.length) return;
-      const end = Math.min(offset + CHUNK, rows.length);
-      const tmp = document.createElement("tbody");
-      tmp.innerHTML = rows.slice(offset, end).map((r, i) => _stateRow(r, offset + i + 1, "GA")).join("");
-      while (tmp.firstChild) tbody.appendChild(tmp.firstChild);
-      offset = end;
-      requestAnimationFrame(appendNext);
-    };
-    requestAnimationFrame(appendNext);
-  }
+  lazyRenderRows({
+    tbody,
+    rows,
+    rowFn: (r, rank) => _stateRow(r, rank, "GA"),
+    getStaleFlag: () => myGen !== gaRenderGen,
+  });
 }
 
 function downloadGaCsv() {
