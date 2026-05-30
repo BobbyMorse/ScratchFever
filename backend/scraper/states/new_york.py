@@ -7,51 +7,13 @@ API: https://nylottery.ny.gov/drupal-api/api/scratch_off_games?_format=json&page
 """
 from __future__ import annotations
 import logging
-import re
-from backend.scraper.base import BaseScraper
-from backend.ev_calculator import annuity_present_value, parse_prize_amount, parse_odds
+from backend.scraper.base import BaseScraper, FOR_LIFE_DEFAULT_YEARS, parse_for_life_tier
+from backend.ev_calculator import parse_prize_amount, parse_odds
 
 logger = logging.getLogger(__name__)
 
 API_URL = "https://nylottery.ny.gov/drupal-api/api/scratch_off_games?_format=json"
 BASE_URL = "https://nylottery.ny.gov"
-
-# NY encodes for-life prize tiers in the prize_amount string itself
-# (e.g. "$10K/Wk/Life", "$1,000/WEEK/LIFE", "$5K/WK/LIFE") rather than as a numeric
-# amount. parse_prize_amount can't read these, so without special handling the tier
-# silently drops and the annuity heuristic latches onto the next-best (regular cash)
-# tier, exploding EV.
-_FOR_LIFE_TIER_RE = re.compile(
-    r"(\$?[\d,.]+\s*[KMB]?)\s*/\s*(WK|WEEK|MO|MONTH|YR|YEAR|DAY)\s*/\s*LIFE",
-    re.I,
-)
-_FOR_LIFE_PERIODS_PER_YEAR = {
-    "WK": 52, "WEEK": 52,
-    "MO": 12, "MONTH": 12,
-    "YR": 1, "YEAR": 1,
-    "DAY": 365,
-}
-_FOR_LIFE_DEFAULT_YEARS = 20
-
-
-def _parse_for_life_tier(raw: str) -> tuple[float, int, float] | None:
-    """Returns (per_period_amount, annual, cash_value_NPV) or None."""
-    if not raw:
-        return None
-    m = _FOR_LIFE_TIER_RE.search(raw)
-    if not m:
-        return None
-    per_period = parse_prize_amount(m.group(1))
-    if not per_period or per_period <= 0:
-        return None
-    periods = _FOR_LIFE_PERIODS_PER_YEAR.get(m.group(2).upper())
-    if not periods:
-        return None
-    annual = per_period * periods
-    cash = annuity_present_value(annual, _FOR_LIFE_DEFAULT_YEARS)
-    if cash <= 0:
-        return None
-    return per_period, annual, cash
 
 _HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
