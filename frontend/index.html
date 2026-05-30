@@ -1355,34 +1355,21 @@
         <!-- Quick-log form -->
         <section class="plays-log-section">
           <div class="plays-log-card">
-            <h2 class="plays-log-title">Log a Ticket</h2>
-            <div class="plays-log-row">
-              <div class="filter-group" style="flex:2;min-width:160px;position:relative">
-                <label>Game *</label>
-                <input type="text" id="plGameName" placeholder="e.g. 300X, Wild Cash…" oninput="searchPlaysGame()" onfocus="searchPlaysGame()" autocomplete="off">
-                <div id="plGameDropdown" class="store-dropdown" style="display:none"></div>
-                <input type="hidden" id="plGameDbId">
-                <input type="hidden" id="plGameState">
+            <div class="plays-log-header">
+              <h2 class="plays-log-title">Log Tickets</h2>
+              <div class="plays-log-state">
+                <label for="plState">State</label>
+                <select id="plState" onchange="onPlStateChange()">
+                  <option value="">Select state…</option>
+                </select>
               </div>
-              <div class="filter-group" style="width:90px">
-                <label>Price ($)</label>
-                <input type="number" id="plPrice" placeholder="30" min="1" max="100" step="1">
-              </div>
-              <div class="filter-group" style="width:110px">
-                <label>Prize Won ($)</label>
-                <input type="number" id="plPrize" placeholder="0" min="0" step="1" value="0">
-              </div>
-              <div class="filter-group" style="flex:1;min-width:130px">
-                <label>Store <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
-                <input type="text" id="plStore" placeholder="Store name…">
-              </div>
-              <div class="filter-group" style="width:130px">
-                <label>Date</label>
-                <input type="date" id="plDate">
-              </div>
-              <div class="filter-group" style="justify-content:flex-end;align-items:flex-end">
-                <button class="btn btn-call-create" id="plLogBtn" onclick="logPlay()">+ Log Ticket</button>
-              </div>
+            </div>
+
+            <div id="plRows"></div>
+
+            <div class="plays-log-actions">
+              <button type="button" class="btn btn-ghost" id="plAddRowBtn" onclick="addPlRow()">+ Add Another Ticket</button>
+              <button type="button" class="btn btn-call-create" id="plLogBtn" onclick="logPlays()">+ Log Tickets</button>
             </div>
             <div id="plMsg" class="caller-msg" style="display:none;margin-top:.5rem"></div>
           </div>
