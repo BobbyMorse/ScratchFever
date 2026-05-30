@@ -4538,7 +4538,7 @@ function toggleAzMap() {
   sec.style.display = azMapVisible ? "" : "none";
   if (azMapVisible) {
     if (!azMap) initAzMap();
-    else azMap.invalidateSize();
+    setTimeout(() => azMap && azMap.invalidateSize(), 50);
     renderAzMapLayers(getAzFilteredRows());
   }
 }
