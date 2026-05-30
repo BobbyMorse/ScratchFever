@@ -1258,9 +1258,10 @@ function renderBigWinsMap() {
   if (!wins.length) {
     if (empty) {
       empty.style.display = "";
-      empty.textContent = state
-        ? `No mapped wins for ${state} in the last 30 days.`
-        : "No mapped wins yet. (Currently only MA publishes retailer-level winners.)";
+      const filterDesc = [state, game].filter(Boolean).join(" · ");
+      empty.textContent = filterDesc
+        ? `No mapped wins for ${filterDesc} in this time range.`
+        : "No mapped wins yet for this time range.";
     }
     if (stats) stats.textContent = "";
     if (countEl) countEl.textContent = "";
