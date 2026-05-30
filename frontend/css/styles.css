@@ -1839,3 +1839,96 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 .sf-cluster span { line-height: 30px; font-weight: 600; }
 .sf-cluster-instock { background-color: rgba(0, 204, 68, 0.35); }
 .sf-cluster-neutral { background-color: rgba(120, 120, 120, 0.30); }
+
+/* ── Store profile owner-info card (consumer-side, fetched async) ─────────── */
+.store-owner-card {
+  background: linear-gradient(180deg, #fafbff 0%, var(--card) 60%);
+  border-bottom: 1px solid var(--border);
+  padding: 0;
+}
+.store-fresh-banner {
+  display: flex; align-items: center; gap: .55rem;
+  padding: .55rem 1rem;
+  background: linear-gradient(90deg, #14b8a6 0%, #0ea5e9 100%);
+  color: #fff; font-size: .85rem; font-weight: 600;
+}
+.store-fresh-banner-tag {
+  font-size: .62rem; font-weight: 800; letter-spacing: .12em;
+  padding: .12rem .45rem; border-radius: 4px;
+  background: rgba(255,255,255,0.22); color: #fff;
+}
+.store-owner-card-hd {
+  display: flex; gap: .85rem; padding: .85rem 1rem;
+  align-items: flex-start;
+}
+.store-owner-photo {
+  width: 64px; height: 64px; flex-shrink: 0;
+  border-radius: 8px; object-fit: cover;
+  border: 1px solid var(--border);
+}
+.store-owner-card-body { flex: 1; min-width: 0; }
+.store-owner-card-title {
+  font-size: .72rem; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--text-muted);
+  margin-bottom: .25rem; display: flex; align-items: center; gap: .5rem;
+  flex-wrap: wrap;
+}
+.store-verified-pill {
+  font-size: .64rem; font-weight: 700; letter-spacing: .04em;
+  padding: .12rem .45rem; border-radius: 10px;
+  background: rgba(20,184,166,0.12); color: #0d9488;
+  text-transform: none;
+}
+.store-owner-desc {
+  font-size: .86rem; color: var(--text); line-height: 1.45;
+  margin-bottom: .4rem;
+}
+.store-owner-meta {
+  display: flex; gap: .85rem; flex-wrap: wrap;
+  font-size: .77rem; color: var(--text-muted);
+}
+.store-owner-meta a { color: var(--mint); text-decoration: none; }
+.store-owner-meta a:hover { text-decoration: underline; }
+.store-owner-posts {
+  padding: .6rem 1rem .85rem;
+  border-top: 1px dashed var(--border);
+}
+.store-owner-posts-title {
+  font-size: .68rem; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--text-muted);
+  margin-bottom: .45rem;
+}
+.store-owner-post {
+  padding: .45rem 0;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.store-owner-post:last-child { border-bottom: none; padding-bottom: 0; }
+.store-owner-post-title { font-size: .85rem; font-weight: 700; color: var(--text); }
+.store-owner-post-body { font-size: .8rem; color: var(--text-muted); margin-top: .1rem; white-space: pre-wrap; }
+.store-owner-post-meta { font-size: .7rem; color: var(--text-muted); margin-top: .2rem; }
+
+/* ── "Claim this store" CTA at the bottom of the profile panel ─────────────── */
+.store-claim-cta {
+  display: flex; align-items: center; gap: .85rem;
+  padding: .8rem 1rem;
+  border-top: 1px dashed var(--border);
+  background: #f8fafc;
+  flex-wrap: wrap;
+}
+.store-claim-cta-icon {
+  font-size: 1.4rem; line-height: 1; flex-shrink: 0;
+}
+.store-claim-cta-body { flex: 1; min-width: 180px; }
+.store-claim-cta-title { font-size: .82rem; font-weight: 700; color: var(--text); }
+.store-claim-cta-sub { font-size: .74rem; color: var(--text-muted); margin-top: .1rem; line-height: 1.35; }
+.btn-claim {
+  text-decoration: none;
+  padding: .42rem .95rem;
+  border-radius: 20px;
+  background: var(--mint, #14b8a6); color: #fff;
+  font-size: .78rem; font-weight: 700;
+  white-space: nowrap;
+  border: none; cursor: pointer;
+  transition: opacity .15s;
+}
+.btn-claim:hover { opacity: .88; }
