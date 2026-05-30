@@ -3838,8 +3838,6 @@ function normalizeGameName(name) {
   return (name || "").toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, " ").trim();
 }
 
-const MODAL_REPORTS_LIMIT = 5;
-
 const CHASE_HANDLERS = {
   MA: { select: "selectGameFilter",   inv: "maInvFilter", render: "renderMaTable" },
   AZ: { select: "selectAzGameFilter", inv: "azInvFilter", render: "renderAzTable" },
