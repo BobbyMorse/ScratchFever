@@ -1094,33 +1094,45 @@ let bigwinsMap = null;
 let bigwinsMapMarkers = null;
 
 async function loadBigWins() {
-  try {
-    const loadingEl = document.getElementById("bigwinsLoading");
-    const list = document.getElementById("bigwinsList");
-    if (loadingEl) loadingEl.style.display = "";
-    const res = await fetch("/api/prize-claims?min_prize=10000&days=7&limit=500");
-    if (loadingEl) loadingEl.style.display = "none";
-    if (!res.ok) {
+  const days = parseInt(document.getElementById("bigwinsRangeFilter")?.value || "30", 10);
+  if (allBigWinsDays === days && allBigWins.length) return;
+  if (allBigWinsLoading) return allBigWinsLoading;
+  const loadingEl = document.getElementById("bigwinsLoading");
+  const list = document.getElementById("bigwinsList");
+  if (loadingEl) loadingEl.style.display = "";
+  allBigWinsLoading = (async () => {
+    try {
+      const res = await fetch(`/api/prize-claims?min_prize=10000&days=${days}&limit=1000`);
+      if (!res.ok) {
+        if (list) list.innerHTML = '<div style="color:var(--text-muted);padding:2rem 1rem">Failed to load wins. Try refreshing.</div>';
+        return;
+      }
+      const data = await res.json();
+      allBigWins = data.claims || [];
+      allBigWinsStates = [...new Set(allBigWins.map(c => c.state_code))].sort();
+      allBigWinsDays = days;
+      rebuildBigWinsStateDropdown();
+      rebuildBigWinsGameDropdown();
+      filterBigWins();
+    } catch (e) {
       if (list) list.innerHTML = '<div style="color:var(--text-muted);padding:2rem 1rem">Failed to load wins. Try refreshing.</div>';
-      return;
+      console.error("loadBigWins:", e);
+    } finally {
+      if (loadingEl) loadingEl.style.display = "none";
+      allBigWinsLoading = null;
     }
-    const data = await res.json();
-    if (!data.claims || data.claims.length === 0) {
-      list.innerHTML = '<div style="color:var(--text-muted);padding:2rem 1rem">No big wins in the last 7 days.</div>';
-      document.getElementById("bigwinsCount").textContent = "";
-      return;
-    }
-    allBigWins = data.claims;
-    allBigWinsStates = [...new Set(data.claims.map(c => c.state_code))].sort();
-    rebuildBigWinsStateDropdown();
-    filterBigWins();
-  } catch (e) {
-    const loadingEl = document.getElementById("bigwinsLoading");
-    const list = document.getElementById("bigwinsList");
-    if (loadingEl) loadingEl.style.display = "none";
-    if (list) list.innerHTML = '<div style="color:var(--text-muted);padding:2rem 1rem">Failed to load wins. Try refreshing.</div>';
-    console.error("loadBigWins:", e);
+  })();
+  return allBigWinsLoading;
+}
+
+function bigwinsRangeLabel() {
+  const days = parseInt(document.getElementById("bigwinsRangeFilter")?.value || "30", 10);
+  if (days >= 7300) return "all time";
+  if (days >= 365) {
+    const yrs = Math.round(days / 365);
+    return `last ${yrs} year${yrs > 1 ? "s" : ""}`;
   }
+  return `last ${days} days`;
 }
 
 function filterBigWins() {
