@@ -4865,7 +4865,7 @@ function toggleGaMap() {
   sec.style.display = gaMapVisible ? "" : "none";
   if (gaMapVisible) {
     if (!gaMap) initGaMap();
-    else gaMap.invalidateSize();
+    setTimeout(() => gaMap && gaMap.invalidateSize(), 50);
     renderGaMapLayers(getGaFilteredRows());
   }
 }
