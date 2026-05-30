@@ -192,20 +192,22 @@ async def _annotate_candidates(
     candidates: list[dict],
     cooldown_hours: int,
 ) -> list[dict]:
-    """Add last_called_at / last_talked / called_within_window to each candidate.
-    `called_within_window` reflects only the cooldown_hours window; `last_called_at`
-    is the most-recent call ever (used for the 'Called ever' badge)."""
+    """Add last_called_at / last_talked / called_within_window / inventory_updated
+    to each candidate."""
     cooldown_phones = await _recently_contacted_phones(cooldown_hours) if cooldown_hours > 0 else set()
     last_call_map   = await _last_call_lookup()
+    inv_updated_ids = await _inventory_updated_ids("")
     out: list[dict] = []
     for r in candidates:
         ph10 = _last10(r.get("phone"))
         hist = last_call_map.get(ph10 or "")
+        eid  = r.get("external_id")
         out.append({
             **r,
             "last_called_at":       hist["last_called_at"].isoformat() if hist and hist["last_called_at"] else None,
             "last_talked":          bool(hist["last_talked"]) if hist else False,
             "called_within_window": bool(ph10 and ph10 in cooldown_phones),
+            "inventory_updated":    bool(eid and eid in inv_updated_ids),
         })
     return out
 
