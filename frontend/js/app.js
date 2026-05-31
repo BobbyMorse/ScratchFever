@@ -5326,6 +5326,7 @@ async function loadFlRetailers() {
     const el = document.getElementById("flStatTotal");
     if (el) el.textContent = allFlRetailers.length.toLocaleString();
     renderFlTable();
+    if (!flMapVisible) toggleFlMap();
   } catch (e) {
     const tbody = document.getElementById("flTableBody");
     if (tbody) tbody.innerHTML =
