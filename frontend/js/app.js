@@ -6364,6 +6364,7 @@ async function loadVtRetailers() {
     const el = document.getElementById("vtStatTotal");
     if (el) el.textContent = allVtRetailers.length.toLocaleString();
     renderVtTable();
+    if (vtMapVisible) renderVtMapLayers(getVtFilteredRows());
   } catch (e) {
     const tbody = document.getElementById("vtTableBody");
     if (tbody) tbody.innerHTML =
