@@ -29,6 +29,8 @@ from backend.scraper.winners.new_mexico import NewMexicoWinnersScraper
 from backend.scraper.winners.mississippi import MississippiWinnersScraper
 from backend.scraper.winners.arizona import ArizonaWinnersScraper
 from backend.scraper.winners.new_hampshire import NewHampshireWinnersScraper
+from backend.scraper.winners.florida import FloridaWinnersScraper
+from backend.scraper.winners.new_york import NewYorkWinnersScraper
 
 logger = logging.getLogger(__name__)
 
