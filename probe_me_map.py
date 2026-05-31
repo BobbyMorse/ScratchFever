@@ -18,6 +18,11 @@ with sync_playwright() as pw:
     page.goto(URL, wait_until="networkidle", timeout=30_000)
     time.sleep(2)
 
+    # Navigate to Hunt tab (Big Win)
+    print("Navigating to Hunt tab ...")
+    page.evaluate("typeof showTab === 'function' ? showTab('ma') : null")
+    time.sleep(1)
+
     # Open state dropdown and click ME
     print("Selecting ME ...")
     page.evaluate("selectHuntState('ME')")
