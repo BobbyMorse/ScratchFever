@@ -35,6 +35,11 @@ class DelawareScraper(BaseScraper):
             logger.warning("DE: no entries parsed from PDF")
             return []
 
+        # Map game_number -> image_url from the Instant-Games landing page,
+        # whose cards expose data-gamenumber + data-image attributes.
+        image_map = self._fetch_image_map()
+        logger.info("DE: %d image URLs from Instant-Games page", len(image_map))
+
         games = []
         seen_ids: set[str] = set()
 
@@ -68,10 +73,29 @@ class DelawareScraper(BaseScraper):
                 name=e["name"],
                 price=e["price"],
                 tiers=tiers,
+                image_url=image_map.get(e["game_num"]),
             ))
 
         logger.info("DE: %d games from PDF", len(games))
         return games
+
+    def _fetch_image_map(self) -> dict[str, str]:
+        try:
+            soup = self.soup("https://www.delottery.com/Instant-Games")
+        except Exception as exc:
+            logger.warning("DE: failed to fetch Instant-Games page: %s", exc)
+            return {}
+
+        out: dict[str, str] = {}
+        for el in soup.find_all(attrs={"data-gamenumber": True}):
+            gn = (el.get("data-gamenumber") or "").strip()
+            img = (el.get("data-image") or "").strip()
+            if not gn or not img:
+                continue
+            if img.startswith("/"):
+                img = BASE_URL + img
+            out.setdefault(gn, img)
+        return out
 
     # ── PDF discovery + download ───────────────────────────────────────────────
 
