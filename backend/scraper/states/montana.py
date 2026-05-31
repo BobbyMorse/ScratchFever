@@ -22,9 +22,10 @@ class MontanaScraper(BaseScraper):
     state_code = "MT"
     state_name = "Montana"
     base_url = BASE_URL
+    disabled = True  # site only publishes starting odds, no remaining counts — EV would be static face-value, not depletion-adjusted
 
     def scrape(self) -> list[dict]:
-        return []  # site only publishes starting odds, no remaining counts — EV would be static face-value, not depletion-adjusted
+        return []
         games = []
         seen = set()
 
