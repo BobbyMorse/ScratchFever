@@ -1163,10 +1163,16 @@ let allBigWinsStates = [];         // states present in the prize_claims list vi
 let allBigWinsDays = null;         // days range the loaded list set covers
 let allBigWinsLoading = null;      // in-flight promise to dedupe concurrent loads
 let bigwinsView = "list";          // "list" | "map"
-let bigwinsReportedWins = [];      // structured wins (with retailer location) for the map
-let bigwinsReportedDays = null;    // days the loaded set covers (for cache invalidation)
-let bigwinsReportedStates = [];    // states present in the map data
-let bigwinsReportedLoading = null; // in-flight promise to dedupe concurrent loads
+// Map view uses pre-aggregated location groups from /api/reported-wins/map.
+// We no longer hold the per-win list — the server does the heavy lifting so
+// state-flooding can't silently truncate small states off the map.
+let bigwinsMapGroups = [];         // [{lat, lng, state_code, is_home, win_count, total_prize, games, top_wins, ...}]
+let bigwinsMapStates = [];         // states present in the loaded set (for the dropdown)
+let bigwinsMapGameCounts = [];     // [{name, count}] precomputed for the dropdown
+let bigwinsMapTotalWins = 0;
+let bigwinsMapTotalPrize = 0;
+let bigwinsMapKey = null;          // cache key: stringified (days, min_prize)
+let bigwinsMapLoading = null;
 let bigwinsMap = null;
 let bigwinsMapMarkers = null;
 
