@@ -6227,6 +6227,7 @@ async function loadVtRetailers() {
     if (el) el.textContent = allVtRetailers.length.toLocaleString();
     renderVtTable();
     if (vtMapVisible) renderVtMapLayers(getVtFilteredRows());
+    if (!vtMapVisible) toggleVtMap();
   } catch (e) {
     const tbody = document.getElementById("vtTableBody");
     if (tbody) tbody.innerHTML =
