@@ -450,11 +450,69 @@
     }
     .post-quick .btn-ghost { padding: .28rem .65rem; font-size: .74rem; }
 
+    /* ── Why-lottery benefits card ──────────────────── */
+    .why-card {
+      position: relative;
+      background:
+        radial-gradient(ellipse 60% 130% at 100% 0%, rgba(20,184,166,0.08) 0%, transparent 60%),
+        var(--chrome);
+      color: #e2e8f0;
+      border: 1px solid rgba(20,184,166,0.22);
+      border-radius: var(--radius);
+      padding: 1.6rem 1.7rem 1.5rem;
+      margin-bottom: 1rem;
+      overflow: hidden;
+    }
+    .why-card::before {
+      content: ""; position: absolute; inset: 0;
+      background: repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(255,255,255,0.012) 8px, rgba(255,255,255,0.012) 16px);
+      pointer-events: none;
+    }
+    .why-card > * { position: relative; }
+    .why-eyebrow {
+      font-size: .66rem; font-weight: 800; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--teal);
+      margin-bottom: .65rem;
+    }
+    .why-headline {
+      font-size: 1.05rem; font-weight: 700; color: #f8fafc;
+      line-height: 1.35; margin-bottom: 1.1rem; max-width: 460px;
+    }
+    .why-hero {
+      display: flex; align-items: baseline; gap: .55rem;
+      padding-bottom: 1rem; margin-bottom: 1.1rem;
+      border-bottom: 1px dashed rgba(255,255,255,0.08);
+    }
+    .why-hero-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2.4rem; font-weight: 700; color: var(--teal);
+      line-height: 1; letter-spacing: -.02em;
+    }
+    .why-hero-unit { font-size: .82rem; color: #94a3b8; font-weight: 500; }
+    .why-list {
+      list-style: none; display: grid; gap: .55rem;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+    .why-list li {
+      display: flex; align-items: flex-start; gap: .55rem;
+      font-size: .87rem; color: #cbd5e1; line-height: 1.4;
+    }
+    .why-list svg { flex-shrink: 0; margin-top: .15rem; color: var(--teal); }
+    .why-source {
+      font-size: .72rem; color: #64748b;
+      margin-top: 1.1rem; padding-top: .8rem;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .why-source a { color: var(--teal); text-decoration: none; font-weight: 600; }
+    .why-source a:hover { text-decoration: underline; }
+
     /* ── Responsive ──────────────────────────────────── */
     @media (max-width: 700px) {
       .r-sidebar { display: none; }
       .r-main { margin-left: 0; padding: 1rem; }
       .r-header-store em { display: none; }
+      .why-card { padding: 1.25rem; }
+      .why-hero-num { font-size: 2rem; }
     }
   </style>
 </head>
