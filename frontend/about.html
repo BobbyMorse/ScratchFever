@@ -287,8 +287,11 @@
       "Tennessee":"TN","Texas":"TX","Utah":"UT","Vermont":"VT","Virginia":"VA",
       "Washington":"WA","West Virginia":"WV","Wisconsin":"WI","Wyoming":"WY",
     };
-    // No state lottery / no scratch product
-    const NO_SCRATCH = new Set(["AK","HI","ND","WY","NV","UT","AL"]);
+    // Confirmed: no state scratch-off product available.
+    //  AK, HI, NV, UT: no state lottery at all
+    //  ND, WY: state lottery exists but draw games only
+    //  (AL excluded — status in flux)
+    const NO_SCRATCH = new Set(["AK","HI","NV","UT","ND","WY"]);
 
     function evCategory(s) {
       if (!s) return "none";
