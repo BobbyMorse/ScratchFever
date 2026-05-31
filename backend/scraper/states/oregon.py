@@ -114,8 +114,14 @@ class OregonScraper(BaseScraper):
             page.on("request", on_request)
             page.on("response", on_response)
 
+            # Race the navigation against the API response so we don't return
+            # early if networkidle fires before the JSON endpoint finishes.
             try:
-                page.goto(LISTING_URL, wait_until="networkidle", timeout=60_000)
+                with page.expect_response(
+                    lambda r: "osl-gameinfo-sys-api" in r.url and "count=1000" in r.url,
+                    timeout=45_000,
+                ):
+                    page.goto(LISTING_URL, wait_until="domcontentloaded", timeout=45_000)
             except Exception as e:
                 logger.warning("OR: listing page load: %s", e)
 
