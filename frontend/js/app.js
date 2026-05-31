@@ -6427,6 +6427,10 @@ function _currentGenGames() { return currentGenState ? (genGames[currentGenState
 async function loadGenRetailers(code) {
   currentGenState = code;
   selectedGenGame = null;
+  if (genMapVisible && genMap) {
+    const cfg = GEN_STATES[code];
+    if (cfg) genMap.setView(cfg.center, cfg.zoom);
+  }
   // Reset filter inputs when switching states
   ["genGameFilterInput", "genSearchInput", "genCityInput"].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = "";
