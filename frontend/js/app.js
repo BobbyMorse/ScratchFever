@@ -1317,9 +1317,9 @@ function escAttr(s) {
 
 function onBigWinsRangeChange() {
   if (bigwinsView === "map") {
-    bigwinsReportedDays = null;
-    bigwinsReportedWins = [];
-    loadBigWinsReported().then(() => renderBigWinsMap());
+    bigwinsMapKey = null;
+    bigwinsMapGroups = [];
+    loadBigWinsMap().then(() => renderBigWinsMap());
   } else {
     allBigWinsDays = null;
     allBigWins = [];
@@ -1327,31 +1327,39 @@ function onBigWinsRangeChange() {
   }
 }
 
-async function loadBigWinsReported() {
-  const days = parseInt(document.getElementById("bigwinsRangeFilter")?.value || "30", 10);
-  if (bigwinsReportedDays === days && bigwinsReportedWins.length) return;
-  if (bigwinsReportedLoading) return bigwinsReportedLoading;
+async function loadBigWinsMap() {
+  const days = parseInt(document.getElementById("bigwinsRangeFilter")?.value || "1095", 10);
+  const minPrize = parseFloat(document.getElementById("bigwinsPrizeFilter")?.value || "0") || 10000;
+  // min_prize gates server-side aggregation, so it's part of the cache key.
+  // state and game filters apply client-side off the loaded groups.
+  const effectiveMin = Math.max(minPrize, 10000);
+  const key = `${days}|${effectiveMin}`;
+  if (bigwinsMapKey === key && bigwinsMapGroups.length) return;
+  if (bigwinsMapLoading) return bigwinsMapLoading;
   const statsEl = document.getElementById("bigwinsMapStats");
   if (statsEl) statsEl.textContent = "Loading…";
-  bigwinsReportedLoading = (async () => {
+  bigwinsMapLoading = (async () => {
     try {
-      const url = `/api/reported-wins?days=${days}&min_prize=10000&has_location=true&limit=5000`;
+      const url = `/api/reported-wins/map?days=${days}&min_prize=${effectiveMin}`;
       const res = await fetch(url);
-      if (!res.ok) { bigwinsReportedDays = days; return; }
+      if (!res.ok) { bigwinsMapKey = key; return; }
       const data = await res.json();
-      bigwinsReportedWins = data.wins || [];
-      bigwinsReportedStates = data.states_with_data || [];
-      bigwinsReportedDays = days;
+      bigwinsMapGroups = data.groups || [];
+      bigwinsMapStates = data.states_with_data || [];
+      bigwinsMapGameCounts = data.game_counts || [];
+      bigwinsMapTotalWins = data.total_wins || 0;
+      bigwinsMapTotalPrize = data.total_prize || 0;
+      bigwinsMapKey = key;
       rebuildBigWinsStateDropdown();
       rebuildBigWinsGameDropdown();
     } catch (e) {
-      console.error("loadBigWinsReported:", e);
-      bigwinsReportedDays = days;
+      console.error("loadBigWinsMap:", e);
+      bigwinsMapKey = key;
     } finally {
-      bigwinsReportedLoading = null;
+      bigwinsMapLoading = null;
     }
   })();
-  return bigwinsReportedLoading;
+  return bigwinsMapLoading;
 }
 
 function initBigWinsMap() {
