@@ -563,7 +563,7 @@ async def api_status_states():
         """)
         log_rows = await conn.fetch("""
             SELECT DISTINCT ON (state_code)
-                state_code, success, ran_at
+                state_code, success, ran_at, error_msg
             FROM scrape_log
             ORDER BY state_code, ran_at DESC
         """)

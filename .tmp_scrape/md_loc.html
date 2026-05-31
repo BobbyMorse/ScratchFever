@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-MW7L3DK');</script>
+<!-- End Google Tag Manager -->
+            
+  <title>Maryland Lottery</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1,maximum-scale=1">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="stylesheet" href="/v/4.20.7/d/css/bootstrap.css" type="text/css" media="all">
+<link rel="stylesheet" href="/v/4.20.7/d/css/fontawesome-6.2/css/all.min.css" type="text/css" media="all">
+<link rel="stylesheet" href="/v/4.20.7/d/css/jquery-ui-1.13.2/jquery-ui.css" type="text/css" media="all">
+<link rel="stylesheet" href="/php/public/CHOCOLATE/css/ilottery/playslip.css" type="text/css" media="all">
+<link rel="stylesheet" href="/php/public/CHOCOLATE/css/ilottery/drawbasket.css.php" type="text/css" media="all">
+<!--[if IE 9]><link rel="stylesheet" href="/v/4.20.7/d/css/ilottery/drawbasket.ie9.css" type="text/css" media="all"><![endif]-->
+<link rel="stylesheet" href="/v/4.20.7/d/css/pfdsweepstyles.css.php" type="text/css" media="all">
+<link rel="stylesheet" href="/v/4.20.7/b/css/styles.css.php" type="text/css" media="all">
+<!--[if IE]><link rel="stylesheet" href="/v/4.20.7/b/css/styles.ie.css.php" type="text/css" media="all"><![endif]-->
+<link rel="stylesheet" href="/v/4.20.7/d/css/coupon.css.php" type="text/css" media="all">
+<link rel="stylesheet" href="/php/public/CHOCOLATE/css/flyout.css.php" type="text/css" media="all">
+<link rel="stylesheet" href="/php/public/CHOCOLATE/css/rewardstyles.css.php" type="text/css" media="all">
+<link rel="stylesheet" href="/php/public/CHOCOLATE/css/print.css" type="text/css" media="all">
+<link rel="stylesheet" href="/v/4.20.7/d/css/ajaxloadspinner.css" type="text/css" media="all">
+  
+  <link href="https://fonts.googleapis.com/css?family=Shrikhand|Work+Sans:200,400,700,900" rel="stylesheet"> 
+
+  <link rel="shortcut icon" href="/b/i/favicon.ico"/>
+    
+  <script src="/v/4.20.7/d/js/jquery-3.7.1.min.js"></script>
+<script src="/v/4.20.7/d/js/jquery.validate-1.19.5.min.js"></script>
+<script src="/v/4.20.7/d/js/jquery.cookie.js"></script>
+<script src="/v/4.20.7/d/js/modaljs.js"></script>
+  <script src="/v/4.20.7/d/js/jquery.ui.map.full.min.js"></script>
+<script src="/v/4.20.7/d/js/sanitizeHtml.js"></script>
+</head>
+<body>
+  <!-- DEV tag -->
+
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MW7L3DK"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+            
+
+  <header class="bg-header">
+  <div class="container">
+    <div class="row align-items-center">
+          	  <div class="col-md-5">
+          <div id="logoContainer" class="row justify-content-center justify-content-md-start py-3">
+            <a href="/" class="d-inline-block pr-3 mr-2 mlr-logo logo">
+              <img src="/v/4.20.7/b/i/MLR_logo.svg"  alt="My Lottery Rewards" width="60">            </a>
+            <a href="https://www.mdlottery.com" class="d-inline-block mdl-logo logo">
+              <img src="/v/4.20.7/b/i/MDL_logo.svg"  alt="Maryland Lottery" width="150">            </a>
+          </div>
+    	  </div><!-- END col-lg-8 -->
+            
+  <div class="col-md-6 my-3 text-center text-lg-right">
+    <a href="/login" class="badge badge-pill badge-green py-2 px-5">Login</a>
+    <a href="/register" class="badge badge-pill badge-yellow py-2 px-5">Register</a>
+  </div>
+ 
+    </div><!-- END row -->
+  </div><!-- END container -->
+</header><!--END header -->
+
+<script>
+
+function GenericUiModal( title, content, closeCallback, okCallback )
+{
+  $('#dialogTitle').html( title );
+  $('.generic-modal-content').text(content);
+  $( "#generic-dialog" ).modal('show');
+
+  if (typeof okCallback !== 'function')
+  { okCallback = function(){}; }
+
+  if (typeof closeCallback !== 'function')
+  { closeCallback = function(){}; }
+
+  $('#generic-ok-btn').on('click', function (e) {
+    okCallback();
+    $( "#generic-dialog" ).modal('hide');
+  });
+
+  $('#generic-close-btn').on('click', function (e) {
+    closeCallback();
+    $( "#generic-dialog" ).modal('hide');
+  });
+
+}
+
+</script>
+
+<div class="modal" tabindex="-1" role="dialog" id="generic-dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fa-solid fa-triangle-exclamation"></i><span id="dialogTitle">Alert</span></h5>
+      </div>
+      <div class="modal-body generic-modal-content">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" id="generic-ok-btn">Ok</button>
+        <button type="button" class="btn btn-secondary" id="generic-close-btn">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<nav class="navbar navbar-expand-md bg-nav">
+  <div class="container position-relative">
+
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarCollapse">
+        <ul class="navbar-nav">
+          <li class="nav-item ">
+            <a class="nav-link" href="/pia">Enter Tickets</a>
+          </li>
+          <li class="nav-item ">
+            <a class="nav-link" href="/myrewards">My Rewards</a>
+          </li>
+          <li class="nav-item ">
+            <a class="nav-link" href="/promotions">Promotions</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a href="#" id="dropdownStore" class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Redeem Points
+            </a>
+            <div class="dropdown-menu" aria-labelledby="dropdownStore">
+              <a class="dropdown-item" href="https://redeem.mdlottery.com">Points for Prizes</a>
+              <a class="dropdown-item" href="/points-for-drawings">Points for Drawings</a>
+            </div>
+          </li>
+          <li class="nav-item dropdown ">
+            <a href="#" id="dropdownDrawings" class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Drawings &amp; Winners</a>
+            <div class="dropdown-menu" aria-labelledby="dropdownDrawings">
+              <a class="dropdown-item " href="/drawings/past">Past Drawings</a>
+              <a class="dropdown-item " href="/drawings/current">Current Drawings</a>
+            </div>
+          </li>
+          <li class="nav-item dropdown active">
+            <a href="#" id="dropdownHelp" class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Help</a>
+            <div class="dropdown-menu" aria-labelledby="dropdownHelp">
+              <a class="dropdown-item " href="/help">Troubleshooting</a>
+              <a class="dropdown-item " href="/rules">Rules</a>
+              <a class="dropdown-item " href="/howitworks">How it Works</a>
+              <a class="dropdown-item " href="/faq">FAQs</a>
+              <a class="dropdown-item active" href="https://rewards.mdlottery.com/retail/locator">Find a Retailer</a>
+              <a class="dropdown-item " href="/helpform">Member Feedback</a>
+              <a class="dropdown-item" href="https://www.mdlottery.com/about-us/responsible-play">Responsible Play</a>
+              <a class="dropdown-item " href="/contactus">Contact Us</a>
+            </div>
+          </li>
+          <li class="nav-item dropdown ">
+            <a href="#" id="dropdownSubscriptions" class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Subscriptions</a>
+            <div class="dropdown-menu" aria-labelledby="dropdownSubscriptions">
+              <a class="dropdown-item " href="/lotto/landing">Create Subscription</a>
+              <a class="dropdown-item " href="/lotto/extendsubscriptions?filterExpiringSoon=1">Extend Subscriptions</a>
+              <a class="dropdown-item " href="/lotto/lottohistory">My Subscriptions</a>
+              <a class="dropdown-item " href="/transactionhistory">Transaction History</a>
+              <a class="dropdown-item " href="/lotto/tickethistory">My Results</a>
+              <a class="dropdown-item " href="/groups">My Groups</a>
+            </div>
+          </li>
+        </ul><!-- END navbar-nav mx-auto -->
+      </div><!-- END collapse navbar-collapse -->
+        
+    
+  </div><!-- END container -->
+</nav><!-- END nav -->
+  <div class="container" id="retailLocator">
+   <h1 class="display-3">
+           Find a Retailer        </h1>
+  <div class="viewRow">
+    <div id="mapError" class="error"></div>
+
+    <div id="locatorformwrap" class="clearfix">
+      <form id="RetailLocator" class="form-inline" name="RetailLocator" action="https://rewards.mdlottery.com/retail/locator" method="post">
+        <input type="hidden" name="Longitude" id="Longitude" value="0" />
+        <input type="hidden" name="Latitude" id="Latitude" value="0" />
+        <div class="hidden">
+          <label for="Radius" class="Radius hidden" >Radius(miles):</label>
+          <input type="hidden" name="Radius" id="Radius"  value="" />
+        </div>
+
+        <div class="form-group d-block d-md-flex Input mx-auto mx-md-0">
+          <span class="RetailTitleText d-block d-md-inline-block mx-auto mx-md-0">
+            Find Lottery Retailers Near You
+          </span>
+          <label class="d-none" for="Zipcode">Zip Code</label>
+           <input
+             type="text"
+             class="d-block d-md-inline-block DefaultTextActive required ValidateName form-control mx-auto mx-md-2"
+             size="16"
+             name="Zipcode"
+             id="Zipcode"
+             maxlength="120"
+             value="Zip Code" />
+          <input id="mapsubmit" type="submit" class="d-block d-md-inline-block btn-primary mx-auto mt-3 mt-md-0" value="Search" />
+          <div class="d-block d-md-inline-block or mx-auto mx-md-1 text-center">-or-</div>
+          <input type="button" id="usegeo" class="btn btn-primary d-block d-md-inline-block mx-auto mx-md-1" value="Use My Location" />
+        </div><!-- form-group -->
+      </form>
+    </div><!-- locatorformwrap -->
+  </div><!-- viewRow -->
+  <div id="mapwrap" class="row mt-3">
+    <div id="generateLink" class="hidden">Generate markers</div>
+    <div id="resultslist" class="col-12 col-md-3">
+      <ol id="sideContainer" type="A" class="list-unstyled my-3">
+        <li>Enter a zip code or search using your location.</li>
+      </ol>
+    </div><!-- END resultslist -->
+    <div id="mapContainer" class="col-12 col-md-9"></div><!-- END mapContainer -->
+  </div><!-- mapwrap -->
+</div><!-- container -->
+
+
+      <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBxakDXAQwTTlDSwET2GqaFSqYLZ932dhI"></script>
+    
+<script type="text/javascript">
+var shadow = new google.maps.MarkerImage(
+     '//maps.google.com/mapfiles/ms/micons/msmarker.shadow.png',
+     new google.maps.Size(59, 32),    // size
+     new google.maps.Point(0,0), // origin
+     new google.maps.Point(16, 32)    // anchor
+);
+
+var RetailLocator = {
+  TheMap: null,
+  mapContainer: $( '#mapContainer' ),
+  sideContainer: $( '#sideContainer' ),
+  generateLink: $( '#generateLink' ),
+  locationData: [],
+  markers: [],
+
+  generateTriggerCallback: function(object, eventType) {
+    return function() {
+      object.triggerEvent( eventType );
+    };
+  },
+
+  openInfoWindow: function() {
+    return function() {
+      $('#mapContainer').gmap( 'openInfoWindow', {'content':this.infoWindow}, this );
+      ( RetailLocator.locationChosen( this.locationData ) )();
+      $( '.SelectedLocation' ).removeClass( 'SelectedLocation' );
+      $( '.marker'+this.markerId ).addClass( 'SelectedLocation' );
+
+      var container = $( '#resultslist' );
+      var scrollTo = $( '.marker'+this.markerId );
+      container.animate({
+        scrollTop: scrollTo.offset().top - container.offset().top + container.scrollTop()
+      });
+    };
+  },
+
+  locationChosen: function( locationData ) {
+    return function() {
+      $( document ).trigger( 'RetailerChosen', locationData );
+    }
+  },
+
+  clearMarkers: function() {
+    $( '#mapContainer' ).gmap( 'find', 'markers', {}, function(marker){ marker.setMap( null ); } );
+    this.sideContainer.html('');
+  },
+
+  setLocations: function( Data ){ this.locationData = Data; },
+  getLocations: function(){ return this.locationData; },
+  clearLocations: function(){ this.locationData = []; },
+
+  generateMarkers: function( center, locations ) {
+    // Create side bar.
+    var MarkerList = RetailLocator.sideContainer;
+
+    // Clear list and map markers.
+    MarkerList.html('');
+    RetailLocator.clearMarkers();
+
+    var bounds = new google.maps.LatLngBounds();
+
+    var count = 0;
+    for( var i=0; i < locations.length; i++ )
+    {
+      var jAddress = locations[i];
+      var displayPhone;
+      var attrPhone;
+      var regexObj = /^(?:\+?1[-. ]?)?(?:\(?([0-9]{3})\)?[-. ]?)?([0-9]{3})[-. ]?([0-9]{4})$/;
+      // Only display the first five digits of a zip code.
+      jAddress.Zipcode = jAddress.Zipcode.slice(0, 5);
+      // If it matches our regex make it a clickable and dialable link, else just add it to page as is
+      if( regexObj.test( jAddress.PrimaryPhone ) )
+      {
+        var phoneParts = jAddress.PrimaryPhone.match(regexObj);
+        var formattedPhone = "1-"+phoneParts[1]+"-"+phoneParts[2]+"-"+phoneParts[3];
+        displayPhone = "("+phoneParts[1]+") "+phoneParts[2]+"-"+phoneParts[3];
+        attrPhone = "<a href=tel:"+formattedPhone+">"+displayPhone+"</a>";
+      }
+      else
+      { attrPhone = jAddress.PrimaryPhone; }
+
+      if( jAddress.Longitude != 0 )
+      {
+        // Place a marker on the map.
+        var location = new google.maps.LatLng( jAddress.Latitude, jAddress.Longitude );
+
+        var infoWindow = '<div class="ginfo locationname">' + sanitizeHtml( jAddress.LocationName ) + '</div>'+
+          '<div class="ginfo address">' + sanitizeHtml( jAddress.Address1 ) + '</div>' +
+          '<div class="ginfo city">' + sanitizeHtml( jAddress.City ) +
+            ', ' + sanitizeHtml( jAddress.State ) +
+            ' ' + sanitizeHtml( jAddress.Zipcode ) + '</div>' +
+          '<div class="ginfo primaryphone">Phone: ' + attrPhone + '</div>';
+
+        var MarkerString='';
+        var MarkerImage = "//maps.google.com/mapfiles/ms/micons/red.png";
+        if( i < 26 )
+        {
+          MarkerString = String.fromCharCode( 65 + count );
+          MarkerImage = "//maps.google.com/mapfiles/marker" + MarkerString + ".png";
+        }
+        // Add mapped markers to collection
+        var marker = $( '#mapContainer' ).gmap( 'addMarker',
+          {'position': location,
+           'TheMap': $('#mapContainer').gmap('get', 'map'),
+           'icon': MarkerImage,
+           'shadow': shadow,
+           'infoWindow': infoWindow,
+           'title': jAddress.LocationName,
+           'locationData': jAddress,
+           'markerId': i,
+           'color': '#00FF00',
+           'bounds': true } );
+        bounds.extend(location);
+        RetailLocator.markers.push(marker);
+        // Add marker click event listener.
+        marker.addEventListener( 'click', RetailLocator.openInfoWindow() );
+      }
+      else
+      {
+        marker = { 'locationData': jAddress };
+      }
+
+      // Generate list elements for each marker, mapped or unmapped.
+      var MarkerListItem = $('<li class="MarkerListItem marker' + i + '"></li>').appendTo( MarkerList );
+      // Add the Address info
+      $( '<div></div>' ).appendTo( MarkerListItem )
+        .text( jAddress.LocationName ).addClass( 'locationname' );
+      $( '<div></div>' ).appendTo( MarkerListItem )
+        .text( jAddress.Address1 ).addClass( 'address' );
+      $( '<div></div>' ).appendTo( MarkerListItem )
+        .text( jAddress.City ).addClass( 'city' );
+      $( '<div></div>' ).appendTo( MarkerListItem )
+        .text( jAddress.State + " " + jAddress.Zipcode ).addClass( 'statezip' );
+      $( '<div></div>' ).appendTo( MarkerListItem )
+        .text( displayPhone ).addClass( 'primaryphone' );
+
+      if( jAddress.Longitude != 0 )
+      {
+        // Add a link to the Marker
+        var aSelDiv = $( '<div></div>' ).appendTo( MarkerListItem );
+        var aSel = $('<a href="#">View Retail</a>').appendTo( aSelDiv );
+        if( i < 26 )
+        { aSel.html( aSel.html() + ': ' + String.fromCharCode( 65 + count ) ); }
+        bounds.extend(location);
+        MarkerListItem.addClass( 'HasMarker' );
+        MarkerListItem.on( 'click', RetailLocator.generateTriggerCallback( marker, 'click' ) );
+        count++;
+      }
+      else
+      {
+        MarkerListItem.addClass( 'NoMarker' )
+        .on( 'click', RetailLocator.locationChosen( marker.locationData ) )
+        .on( 'click', function(){ $('#mapContainer').gmap( 'closeInfoWindow' ); } );
+      }
+      MarkerListItem.on( 'click', function()
+      {
+        $( '.SelectedLocation' ).removeClass( 'SelectedLocation' );
+        $( this ).addClass( 'SelectedLocation' );
+      } );
+    }
+    $( 'li:even' ).addClass( 'evenrow' );
+    $( '.MarkerListItem a' ).on( 'click', function( e ){ e.preventDefault(); } );
+    $('#mapContainer').gmap('get', 'map').fitBounds(bounds);
+  },
+
+  init: function() {
+     // Read map origin from content.xml else default to center of U.S.
+          var firstLatLng = new google.maps.LatLng( 39.3, -76.6 );
+	  
+    
+    $('#mapContainer').gmap({ center: firstLatLng, zoom: 8, mapTypeId:google.maps.MapTypeId.ROADMAP });
+    RetailLocator.TheMap = $('#mapContainer').gmap('get', 'map');
+  }
+};
+
+$(document).ready( function() {
+  RetailLocator.init()
+
+  $('#RetailLocator').on( 'submit', function( event )
+  {
+    event.preventDefault();
+    // clear any previous error
+    $('#mapError').text("");
+    var params = $( this ).serialize();
+    $.ajax( {
+      type: 'POST',
+      url: 'https://rewards.mdlottery.com/retail/locator',
+      data: params,
+      global: false,
+      dataType: 'json',
+      contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+      success: function( data )
+      {
+        RetailLocator.clearMarkers();
+        if( data.Errors.length > 0 )
+        {
+          for( var i = 0; i<  data.Errors.length; i++  )
+          {
+            $( '#sideContainer' ).append( '<li class="Error">' + data.Errors[i] + '</li>' );
+          }
+        }
+        else if( data.Locations.length < 1 )
+        {
+          $( '#sideContainer' ).html('<li class="Error">No retail locations found.</li>');
+        }
+        else
+        {
+          RetailLocator.generateMarkers( RetailLocator.TheMap.getCenter(), data.Locations );
+        }
+
+        const myLong = Number(data.Longitude);
+        const myLat = Number(data.Latitude);
+  
+        if( myLong !== 0 && myLat !== 0 )
+        {
+          // Current location is set. Add a marker
+          $('#mapContainer').gmap( 'addMarker', {
+            position: data.Latitude + ',' + data.Longitude,
+            'icon':"//www.google.com/intl/en_us/mapfiles/ms/micons/blue-dot.png",
+            'shadow':shadow,
+            'bounds': true,
+            'title':'You are here' } );
+        }
+      }
+    } ).fail( function( error, textStatus, errorThrown )
+        {
+          $( '#sideContainer' ).html(
+            '<li>' +
+            'There was an error searching retail locations. If this problem ' +
+            'persists, please report it to Player Support' +
+            '</li>'+
+            '<li class="evenrow Error">' +
+            'System Error ' +
+            error.status +
+            ': ' +
+            errorThrown +
+            '</li>' );
+        } );
+  } );
+} );
+
+function displayPosition(position)
+{
+  // The real deal: comment out for testing
+  $( '#Longitude' ).val( position.coords.longitude );
+  $( '#Latitude' ).val( position.coords.latitude );
+
+  // The fake numbers: remove these.
+  //$( '#Longitude' ).val( -79 );
+  //$( '#Latitude' ).val( 35 );
+
+  // Clear the zipcode value and submit the form.
+  $('#Zipcode').val('');
+  $('#RetailLocator').submit();
+}
+
+function displayError(error)
+{
+  switch (error.code)
+  {
+    case 1:
+      $('#mapError').text("Unable to retrieve current location. Please enable location services in your browser/mobile device");
+      break;
+    case 2:
+      $('#mapError').text("The requested location cannot be found, please try again");
+      break;
+    case 3:
+      $('#mapError').text("The Retailer Locator service has timed out, please try again");
+      break;
+    default:
+      $('#mapError').text("An error has occurred with the Retailer Locator, please retry");
+      break;
+  }
+}
+
+// Clear and restore the zipcode field
+DefaultVal = "Zip Code";
+$('#Zipcode').on( 'focusin', function(){
+    if( $(this).val() == DefaultVal )
+    {
+      $(this).val( '' );
+      $(this).removeClass( 'DefaultTextActive' );
+    }
+  } );
+$('#Zipcode').on( 'focusout', function(){
+    if( $(this).val() == "" )
+    {
+      $(this).val( DefaultVal );
+      $(this).addClass( 'DefaultTextActive' );
+    }
+  } );
+
+// Activate geolocation
+if( navigator.geolocation )
+{
+  $( '#usegeo' ).on( 'click', function() {
+      $( '#Radius' ).attr( 'disabled', false );
+      $( '#Radius' ).attr( 'value', 100 );
+
+      var timeoutVal = 10 * 1000 * 1000;
+      navigator.geolocation.getCurrentPosition
+      (
+        displayPosition,
+        displayError,
+        { enableHighAccuracy: true, timeout: timeoutVal, maximumAge: (1000 * 60 * 15) }
+      );
+    } );
+}
+else
+{
+  $('#usegeo').hide();
+  $('.or').hide();
+}
+</script>
+    <!-- FOOTER -->
+  <footer id="footer" class="bg-footer mt-3 py-5">
+    <div class="container">
+      <nav id="footerNav" class="nav nav-footer justify-content-center"></nav><!-- END nav mt-5 justify-content-center -->
+      <div class="row my-5">
+        <div class="col-sm-4 mb-5">
+          <div id="footerLogo"></div>
+          <div class="mt-2 text-center" id="socialLogos"></div><!-- END mt-2 text-center -->
+        </div><!-- END col -->
+        <div class="col-sm-8 text-right" id="disclaimer"></div><!-- END col -->
+      </div><!-- END row -->
+    </div><!-- END container -->
+  </footer>
+
+<script>
+  const playerLoggedIn = false;
+</script>
+
+<script type="module">
+  import {getCMSContent} from "/d/js/firebase-CMS.js.php";
+
+  // Given a string and an object of "key/values" pairs replaces each key in the string
+  // with the value.    Useful for putting variables into JSON and replacing them at runtime.
+  //
+  function replaceAll(str,mapObj){
+    const re = new RegExp(Object.keys(mapObj).join("|"),"g"); 
+
+    return str.replace(re, function(matched){
+      return mapObj[matched];
+    });
+  }
+
+  $(function() {
+    // enable bootstrap tooltips
+    $('[data-toggle="tooltip"]').tooltip({
+      placement: 'auto right',
+      trigger: 'hover focus'
+    });
+
+    const populateFooter = async () => {
+      const mapObj = { "_MDLottery": "https://www.mdlottery.com" };
+
+      const footerContent = await getCMSContent('webContent', 'data.footer') ?? null;
+
+      // footer links
+      let footerLinksRaw = footerContent?.footerLinks?.jsonBlock;
+      footerLinksRaw = replaceAll( footerLinksRaw, mapObj );
+      const footerLinks = JSON.parse( footerLinksRaw ) ?? "";
+      const footerNav = $('#footerNav');
+      if (footerLinks && typeof footerLinks === "object") {
+        for (const value of Object.values(footerLinks)) {
+          footerNav.append(value);
+        }
+      }
+      else {
+        postToErrorLog("MD Footer", "Footer Links is not an object");
+      }
+
+      // Footer Logo
+      const footerLogo = $('#footerLogo');
+      const logoLink = $('<a>');
+      logoLink.attr( 'href', footerContent?.footerLogo?.image?.webLinkUrl ?? "");
+      logoLink.attr('target', footerContent?.footerLogo?.image?.webLinkTarget ?? "");
+      const logoImg = $('<img>');
+      logoImg.attr('src', footerContent?.footerLogo?.image?.imageSrc ?? "");
+      logoImg.attr('alt', footerContent?.footerLogo?.image?.imageAlt ?? "");
+      logoImg.addClass( "d-block mx-auto img-fluid")
+      logoLink.append( logoImg );
+      footerLogo.append( logoLink );
+
+      // Social Logos
+      const socialLogoContainer = $('#socialLogos');
+      const socialIcons = footerContent?.footerSocialIcons ?? "";
+      if (socialIcons && typeof socialIcons === "object") {
+        for (const icon of Object.values(socialIcons)) {
+          const socialLink = $('<a>');
+          socialLink.attr( 'href', icon?.image?.webLinkUrl ?? "");
+          socialLink.attr('target', icon?.image?.image?.webLinkTarget ?? "");
+          const socialImg = $('<img>');
+          socialImg.attr('src', icon?.image?.imageSrc ?? "");
+          socialImg.attr('alt', icon?.image?.imageAlt ?? "");
+          socialImg.addClass( "img-fluid social-icons");
+          socialLink.append( socialImg );
+          socialLogoContainer.append( socialLink );
+        }
+      }
+      else {
+        postToErrorLog("MD Footer", "Social Icons is not an object");
+      }
+
+      // disclaimer
+      $('#disclaimer').html( footerContent?.footerLegalText?.contentHTML ?? "" );
+
+    }; //  end populateFooter
+    populateFooter();
+  });
+  
+  // Reset any filters on load.  This list might need to grow if new filters are introduced, but since many
+  // templates share the same filters, it makes sense to do this once here rather than in each template.
+  $(window).load(function () {
+    resetHistoryFilters();
+  });
+</script>
+
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="/v/4.20.7/d/js/localstorage.js"></script>
+<script src="/v/4.20.7/d/js/circle-progress.js"></script>
+<script src="/v/4.20.7/d/js/gauge-utilities.js"></script>
+
+ 
+<!-- Do Not Cache the BAR bonusing Trigger JS -->
+<script type="module" src="/d/js/bar-bonusing-trigger.js.php?1780227565"></script>
+<script>
+  if ( !window.BAROverride )
+  {
+    // Look for the bonusingawardresponse - and save it to a global JS variable
+    // that can be picked up via the JS libraries.
+    //
+    window.barObject =  null;
+  }
+</script><script src="/v/4.20.7/d/js/bootstrap.min.js"></script>
+<script src="/v/4.20.7/d/js/jquery-ui-1.13.2.js"></script>
+<script src="/v/4.20.7/d/js/jquery-utilities.js"></script>
+<script src="/v/4.20.7/d/js/modaljs.js"></script>
+<script src="/v/4.20.7/d/js/filters.js"></script>
+<script src="/v/4.20.7/d/js/glvalidate.js.php"></script>
+<script src="/v/4.20.7/d/js/mastheadcontrols.js"></script>
+<script src="/v/4.20.7/d/js/jquery.cookie.js"></script>
+<script src="/v/4.20.7/d/js/jquery.tablesorter-2.29.0.js"></script>
+<script src="/v/4.20.7/d/js/jquery.colorbox-min.js"></script>
+<script src="/v/4.20.7/d/js/jquery.ba-hashchange.min.js"></script>
+<script src="/v/4.20.7/d/js/ilottery/jquery.formchange.js"></script>
+<script src="/v/4.20.7/d/js/ilottery/tablesorterparsers.js"></script>
+<script src="/v/4.20.7/d/js/jquery.dataTables.min.js"></script>
+<script src="/v/4.20.7/d/js/dataTables.fourbutton.js"></script>
+<script src="/v/4.20.7/d/js/ilottery/draw.js"></script>
+<script src="/v/4.20.7/d/js/ilottery/drawBasket2.js"></script>
+<script src="/v/4.20.7/d/js/ilottery/playSlip.js"></script>
+<script src="/v/4.20.7/d/js/password-visibility-toggle.js"></script>
+<script src="/v/4.20.7/d/js/localstorage.js"></script>
+<script src="/v/4.20.7/d/js/ticketDetailsDisplay.js.php"></script>
+<script src="/v/4.20.7/b/js/footerscripts.js.php"></script>
+<script type="module" src="/v/4.20.7/d/js/js-history-page.js"></script>
+<script type="module" src="/v/4.20.7/d/js/wins-account-history-page.js.php"></script>
+<script type="module" src="/v/4.20.7/d/js/cms-web-notices.js.php"></script>
+  <script type="text/javascript">
+    $(document).load( function()
+    {
+      $('div.alert.collapse').removeClass('show');
+      showFooterAlert( $('#PlayerErrors'), $('div.PlayerError.alert.collapse').remove() );
+      showFooterAlert( $('#PlayerMessages'), $('div.PlayerMessage.alert.collapse').remove() );
+      showFooterAlert( $('#PlayerStatuses'), $('div.PlayerStatus.alert.collapse').remove() );
+
+      // Add some spacing. Why isn't this css?
+      $('nav.navbar+div>div.alert.collapse:first-of-type').before( $('<div class="m-3">') );
+      $('div.alert.collapse.bsalertfooter').slideDown().addClass('show');
+    } );
+
+    function showFooterAlert( Container, Alerts )
+    {
+      // TODO: fix the selector below, perhaps by establishing an ID for each page's top H1
+      if( Container.length == 1 )
+      {
+        Container.prepend( Alerts );
+
+      }
+      else
+      {
+        $('.container > h1').eq(0).after( Alerts );
+      }
+    }
+  </script>
+<script src="/d/js/fontawesome.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@popperjs/core@2"></script>
+
+      </body>
+</html>
