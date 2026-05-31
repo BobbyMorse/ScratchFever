@@ -1914,6 +1914,16 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 .store-owner-post-body { font-size: .8rem; color: var(--text-muted); margin-top: .1rem; white-space: pre-wrap; }
 .store-owner-post-meta { font-size: .7rem; color: var(--text-muted); margin-top: .2rem; }
 
+.store-full-page-row {
+  padding: .55rem 1rem .8rem;
+  border-top: 1px dashed var(--border);
+}
+.store-full-page-link {
+  font-size: .8rem; font-weight: 700; color: var(--mint, #14b8a6);
+  text-decoration: none;
+}
+.store-full-page-link:hover { text-decoration: underline; }
+
 /* ── "Claim this store" CTA at the bottom of the profile panel ─────────────── */
 .store-claim-cta {
   display: flex; align-items: center; gap: .85rem;
