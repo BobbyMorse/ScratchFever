@@ -13,6 +13,7 @@ class NorthDakotaScraper(BaseScraper):
     state_code = "ND"
     state_name = "North Dakota"
     base_url = "https://lottery.nd.gov"
+    disabled = True
 
     def scrape(self) -> list[dict]:
         logger.info("ND: disabled (scratch-offs not accessible in static HTML)")
