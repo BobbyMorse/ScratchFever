@@ -254,3 +254,41 @@ class IllinoisScraper(PlaywrightScraper):
 
         logger.info("IL: %d games scraped", len(games))
         return games
+
+    def _sniff_game_images(self) -> dict[str, str]:
+        """Open the games-hub page, scroll to trigger lazy-load, and capture
+        game-tile image URLs keyed by IL-XXXX game number from the filename."""
+        self._ensure_browser()
+        image_map: dict[str, str] = {}
+        from backend.scraper.playwright_base import _UA  # noqa
+        ctx = self._browser.new_context(user_agent=_UA)
+        page = ctx.new_page()
+
+        def on_response(r):
+            url = r.url
+            low = url.split("?")[0].lower()
+            if "illinoislottery.com" not in low:
+                return
+            if not any(low.endswith(ext) for ext in (".jpg", ".jpeg", ".png", ".webp")):
+                return
+            if "/dam/il/" not in low:
+                return
+            fname = url.rsplit("/", 1)[-1].split("?")[0]
+            m = _IL_IMG_GAMEID_RE.search(fname)
+            if m:
+                gid = m.group(1)
+                image_map.setdefault(gid, url.split("?")[0])
+
+        page.on("response", on_response)
+        try:
+            page.goto(GAMES_HUB_URL, wait_until="domcontentloaded", timeout=60_000)
+            page.wait_for_timeout(8_000)
+            for _ in range(6):
+                page.evaluate("window.scrollBy(0, 2000)")
+                page.wait_for_timeout(800)
+        except Exception as e:
+            logger.warning("IL: games-hub sniff failed: %s", e)
+        finally:
+            page.close()
+            ctx.close()
+        return image_map
