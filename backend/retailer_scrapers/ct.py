@@ -150,7 +150,7 @@ def _playwright_scrape() -> list[dict]:
         remaining_zips = CT_ZIPS[1:]
 
         if api_info["url"]:
-            page.remove_all_listeners("route")
+            page.unroute_all()
             browser.close()
             logger.info("CT: API discovered, fetching %d remaining zips via HTTP", len(remaining_zips))
             _bulk_fetch(api_info, remaining_zips, seen_ids, retailers)
