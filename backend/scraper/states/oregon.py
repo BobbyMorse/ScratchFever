@@ -117,6 +117,27 @@ class OregonScraper(BaseScraper):
                     except Exception:
                         pass
 
+                # Filenames in /wp-content/uploads/.../{GameNum}_*.jpg key to
+                # the game; prefer the larger non-thumbnail variant.
+                url = resp.url
+                low = url.lower()
+                if "/wp-content/uploads/" in low and any(
+                    low.split("?")[0].endswith(ext)
+                    for ext in (".jpg", ".jpeg", ".png", ".webp")
+                ):
+                    fname = url.rsplit("/", 1)[-1].split("?")[0]
+                    m = re.match(r"(\d+)_", fname)
+                    if m:
+                        gid = m.group(1)
+                        existing = image_map.get(gid, "")
+                        # Skip resized thumbnails (-WxH suffix) when a base
+                        # version is already captured.
+                        is_thumb = bool(re.search(r"-\d+x\d+\.[a-z]+$", fname, re.I))
+                        if not existing or (
+                            not is_thumb and re.search(r"-\d+x\d+\.[a-z]+$", existing, re.I)
+                        ):
+                            image_map[gid] = url.split("?")[0]
+
             page.on("request", on_request)
             page.on("response", on_response)
 
