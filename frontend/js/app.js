@@ -5157,6 +5157,7 @@ async function loadAzRetailers() {
     azLoaded = true;
     updateAzStats();
     renderAzTable();
+    if (!azMapVisible) toggleAzMap();
   } catch (e) {
     const tbody = document.getElementById("azTableBody");
     if (tbody) tbody.innerHTML =
