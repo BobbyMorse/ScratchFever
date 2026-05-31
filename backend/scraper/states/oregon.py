@@ -86,6 +86,9 @@ class OregonScraper(BaseScraper):
 
         creds: dict[str, str] = {}
         listing_payload: dict | None = None
+        # Sniff every image response on the listing page and key by leading
+        # game-number prefix in the filename (e.g. "1652_50Or100-Blast_*.jpg").
+        image_map: dict[str, str] = {}
 
         with sync_playwright() as pw:
             browser = pw.chromium.launch(headless=True)
