@@ -5686,6 +5686,7 @@ async function loadNyRetailers() {
     const el = document.getElementById("nyStatTotal");
     if (el) el.textContent = allNyRetailers.length.toLocaleString();
     renderNyTable();
+    if (!nyMapVisible) toggleNyMap();
   } catch (e) {
     const tbody = document.getElementById("nyTableBody");
     if (tbody) tbody.innerHTML =
