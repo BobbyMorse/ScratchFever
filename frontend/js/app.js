@@ -4210,6 +4210,7 @@ async function loadCommunityReports() {
       : currentHuntState === 'VA' ? selectedVaGame
       : currentHuntState === 'DC' ? selectedDcGame
       : currentHuntState === 'VT' ? selectedVtGame
+      : (typeof GEN_STATES !== 'undefined' && GEN_STATES[currentHuntState]) ? selectedGenGame
       : selectedGame;
     loadRetailerLatest(activeGame?.name);
     updateReportBadges();
