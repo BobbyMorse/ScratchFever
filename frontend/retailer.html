@@ -800,13 +800,14 @@
 
     // Public-page links — owners share this URL with customers; it's the page
     // where their promotions actually live.
-    const publicUrl = `/store/${encodeURIComponent(p.retailer_id)}`;
-    const pub1 = document.getElementById("navPublicLink");
-    const pub2 = document.getElementById("ovPublicBtn");
-    const pub3 = document.getElementById("pfPublicBtn");
-    if (pub1) pub1.href = publicUrl;
-    if (pub2) pub2.href = publicUrl;
-    if (pub3) pub3.href = publicUrl;
+    const publicPath = `/store/${encodeURIComponent(p.retailer_id)}`;
+    const publicAbs = window.location.origin + publicPath;
+    ["navPublicLink", "ovPublicBtn", "pfPublicBtn", "postsPublicLink"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.href = publicPath;
+    });
+    const shareInput = document.getElementById("shareUrlInput");
+    if (shareInput) shareInput.value = publicAbs;
   }
 
   function renderOverview() {
