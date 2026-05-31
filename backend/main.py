@@ -45,68 +45,42 @@ scheduler = AsyncIOScheduler()
 scrape_status = {"running": False, "last_run": None, "last_results": [], "current_state": None}
 
 
-SCRAPE_COOLDOWN_SEC = 300  # 5-min pause between full crawl cycles
+# Scheduler is gated on DISABLE_SCHEDULER env var (Phase 3 worker-split prep).
+# Default unset → scheduler runs in-process exactly as before. Set to "1" on
+# the API service once a dedicated worker service is running scrapers.
+SCHEDULER_DISABLED = os.environ.get("DISABLE_SCHEDULER") == "1"
 
 
 async def scheduled_scrape():
+    """Compatibility wrapper for the manual scrape endpoint (/api/scrape).
+    Delegates to backend.scheduler_jobs so worker + API share one code path."""
+    from backend.scheduler_jobs import run_games_scrape_cycle
     if scrape_status["running"]:
         logger.info("Scrape already running, skipping")
         return
     scrape_status["running"] = True
     scrape_status["current_state"] = None
     try:
-        logger.info("Starting scrape of all states")
-        from backend.scraper.runner import run_all
         def _on_state(code, name):
             scrape_status["current_state"] = {"code": code, "name": name}
-        results = await run_all(on_state=_on_state)
+        results = await run_games_scrape_cycle(on_state=_on_state)
         scrape_status["last_results"] = results
         scrape_status["last_run"] = datetime.datetime.utcnow().isoformat()
-        clear_games_cache()
-        logger.info("Scrape complete — next cycle in %ds", SCRAPE_COOLDOWN_SEC)
     except Exception as e:
         logger.error("Scrape cycle failed: %s", e, exc_info=True)
     finally:
         scrape_status["running"] = False
-        # Always re-schedule — even if the cycle crashed — so the scraper never dies
-        scheduler.add_job(scheduled_scrape, "date",
-                          run_date=datetime.datetime.utcnow() + datetime.timedelta(seconds=SCRAPE_COOLDOWN_SEC),
-                          id="scrape_next", replace_existing=True)
 
 
 async def check_and_run_stale_retailers():
-    """Check retailer_scrape_log and scrape any state not updated in 30 days."""
+    """Wrapper for manual triggers (admin endpoints)."""
+    from backend.scheduler_jobs import run_retailer_freshness_cycle
     try:
-        from backend.retailer_scrapers.runner import run_stale
-        results = await run_stale(max_age_days=30)
+        results = await run_retailer_freshness_cycle()
         if results:
             logger.info("Retailer scrape complete: %s", results)
     except Exception as e:
         logger.error("Retailer staleness check failed: %s", e)
-
-
-def ensure_playwright_browsers():
-    """Install Chromium if missing. Railway's Nixpacks build silently drops the
-    binary from the runtime image, so every Playwright scraper (AZ, OH, IL, etc.)
-    fails with 'Executable doesn't exist'. Self-heal at startup."""
-    import glob
-    import subprocess
-    browsers_path = os.environ.get("PLAYWRIGHT_BROWSERS_PATH", "/app/.playwright")
-    pattern = os.path.join(browsers_path, "chromium_headless_shell-*",
-                           "chrome-headless-shell-linux64", "chrome-headless-shell")
-    if glob.glob(pattern):
-        logger.info("Playwright headless-shell already installed at %s", browsers_path)
-        return
-    logger.warning("Playwright headless-shell missing — installing into %s", browsers_path)
-    env = {**os.environ, "PLAYWRIGHT_BROWSERS_PATH": browsers_path}
-    try:
-        subprocess.run(
-            ["python", "-m", "playwright", "install", "chromium", "chromium-headless-shell"],
-            env=env, check=True, timeout=300,
-        )
-        logger.info("Playwright install complete")
-    except Exception as e:
-        logger.error("Playwright self-heal install failed: %s", e)
 
 
 @asynccontextmanager
@@ -118,50 +92,43 @@ async def lifespan(app: FastAPI):
     await init_retailer_db()
     await seed_admin()
 
-    # Retailer freshness check — daily
-    scheduler.add_job(check_and_run_stale_retailers, "interval", days=1, id="check_retailer_freshness")
+    if SCHEDULER_DISABLED:
+        logger.info("DISABLE_SCHEDULER=1 — scrapers will NOT run in this process "
+                    "(assuming a dedicated worker service is handling them)")
+    else:
+        from backend.scheduler_jobs import register_jobs, ensure_playwright_browsers
+        kick_games_now = register_jobs(
+            scheduler,
+            status_dict=scrape_status,
+            on_winners_finish=lambda: _reported_wins_cache.clear(),
+        )
+        scheduler.start()
 
-    # Winners feed scrape — hourly. Light JSON pull, populates reported_wins for the map.
-    async def _scheduled_winners_scrape():
-        try:
-            from backend.scraper.winners.runner import run_all as run_winners
-            results = await run_winners(days=14)
-            logger.info("winners scrape: %s", results)
-            _reported_wins_cache.clear()
-        except Exception:
-            logger.exception("scheduled winners scrape failed")
-    scheduler.add_job(_scheduled_winners_scrape, "interval", hours=1, id="scrape_winners")
+        # Delay heavy startup work so Railway health checks pass before scraping begins
+        STARTUP_DELAY = 90  # seconds after boot before first scrape/cache-warm
 
-    # In-app caller (Bland/Twilio) is retired — calls now run in VAPI externally
-    # and are ingested via /api/vapi/webhook. Files under backend/caller/ are kept
-    # for reference but the runner is no longer attached to the scheduler.
+        async def _delayed_startup():
+            await asyncio.sleep(STARTUP_DELAY)
+            await asyncio.to_thread(ensure_playwright_browsers)
+            try:
+                from backend.ma_scorer import load_and_score_async as warm_ma
+                from backend.az_scorer import load_and_score_async as warm_az
+                pool = get_pool()
+                async with pool.acquire() as conn:
+                    await warm_ma(conn)
+                async with pool.acquire() as conn:
+                    await warm_az(conn)
+                logger.info("Retailer caches warmed")
+            except Exception as e:
+                logger.warning("Cache warm failed: %s", e)
+            await check_and_run_stale_retailers()
+            await kick_games_now()
 
-    scheduler.start()
-
-    # Delay heavy startup work so Railway health checks pass before scraping begins
-    STARTUP_DELAY = 90  # seconds after boot before first scrape/cache-warm
-
-    async def _delayed_startup():
-        await asyncio.sleep(STARTUP_DELAY)
-        await asyncio.to_thread(ensure_playwright_browsers)
-        try:
-            from backend.ma_scorer import load_and_score_async as warm_ma
-            from backend.az_scorer import load_and_score_async as warm_az
-            pool = get_pool()
-            async with pool.acquire() as conn:
-                await warm_ma(conn)
-            async with pool.acquire() as conn:
-                await warm_az(conn)
-            logger.info("Retailer caches warmed")
-        except Exception as e:
-            logger.warning("Cache warm failed: %s", e)
-        await check_and_run_stale_retailers()
-        await scheduled_scrape()
-
-    asyncio.create_task(_delayed_startup())
+        asyncio.create_task(_delayed_startup())
 
     yield
-    scheduler.shutdown()
+    if not SCHEDULER_DISABLED:
+        scheduler.shutdown()
 
 
 app = FastAPI(title="ScratchFever", description="Scratch-off lottery EV tracker", lifespan=lifespan)
