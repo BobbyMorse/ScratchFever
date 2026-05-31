@@ -2063,6 +2063,7 @@ function selectHuntState(code) {
   document.getElementById("huntConsoleVA").style.display   = "none";
   document.getElementById("huntConsoleDC").style.display   = "none";
   document.getElementById("huntConsoleVT").style.display   = "none";
+  document.getElementById("huntConsoleGen").style.display  = "none";
   document.getElementById("huntConsoleSoon").style.display = "none";
 
   if (code === "MA") {
@@ -2100,6 +2101,10 @@ function selectHuntState(code) {
   } else if (code === "VT") {
     document.getElementById("huntConsoleVT").style.display = "";
     if (!vtLoaded) loadVtRetailers();
+    if (_currentUser && Date.now() - communityReportsLastFetch > 30_000) loadCommunityReports();
+  } else if (GEN_STATES[code]) {
+    document.getElementById("huntConsoleGen").style.display = "";
+    loadGenRetailers(code);
     if (_currentUser && Date.now() - communityReportsLastFetch > 30_000) loadCommunityReports();
   } else {
     document.getElementById("huntConsoleSoon").style.display = "";
