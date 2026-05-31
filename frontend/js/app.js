@@ -5506,6 +5506,7 @@ async function loadGaRetailers() {
     const el = document.getElementById("gaStatTotal");
     if (el) el.textContent = allGaRetailers.length.toLocaleString();
     renderGaTable();
+    if (!gaMapVisible) toggleGaMap();
   } catch (e) {
     const tbody = document.getElementById("gaTableBody");
     if (tbody) tbody.innerHTML =
