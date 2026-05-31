@@ -194,6 +194,15 @@ class SouthDakotaScraper(BaseScraper):
                         total_tickets * total_prizes_remaining / total_prizes_printed
                     )
 
+        image_url = None
+        og = soup.find("meta", property="og:image")
+        if og and og.get("content"):
+            image_url = og["content"]
+        if not image_url:
+            img = soup.select_one(".game-image img, .ticket-image img, article img")
+            if img and img.get("src"):
+                image_url = img["src"]
+
         return self.build_game(
             game_id=str(meta['id']),
             name=name,
@@ -203,6 +212,7 @@ class SouthDakotaScraper(BaseScraper):
             total_tickets=total_tickets,
             tickets_remaining=tickets_remaining,
             detail_url=url,
+            image_url=image_url,
         )
 
 
