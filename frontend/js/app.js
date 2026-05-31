@@ -1382,16 +1382,18 @@ function renderBigWinsMap() {
   const state = document.getElementById("bigwinsStateFilter")?.value || "";
   const game = document.getElementById("bigwinsGameFilter")?.value || "";
   const minPrize = parseFloat(document.getElementById("bigwinsPrizeFilter")?.value || "0") || 0;
-  let wins = bigwinsReportedWins;
-  if (state) wins = wins.filter(w => w.state_code === state);
-  if (game)  wins = wins.filter(w => (w.source_game_name || "").trim() === game);
-  if (minPrize) wins = wins.filter(w => (w.prize_amount || 0) >= minPrize);
+
+  // Server already aggregated per location and applied days+min_prize. State
+  // and game filters narrow the visible groups; no client-side regrouping.
+  let groups = bigwinsMapGroups;
+  if (state) groups = groups.filter(g => g.state_code === state);
+  if (game)  groups = groups.filter(g => g.games && (g.games[game] || 0) > 0);
 
   const empty = document.getElementById("bigwinsMapEmpty");
   const stats = document.getElementById("bigwinsMapStats");
   const countEl = document.getElementById("bigwinsCount");
 
-  if (!wins.length) {
+  if (!groups.length) {
     if (empty) {
       empty.style.display = "";
       const prizeLabel = minPrize ? `${fmtClaimPrize(minPrize)}+` : "";
@@ -1406,50 +1408,40 @@ function renderBigWinsMap() {
   }
   if (empty) empty.style.display = "none";
 
-  // Group wins by location. Retailer wins group by exact lat/lng (one pin per
-  // store); winner-home wins group by city (one pin per city, no specific store).
-  const groups = new Map();
-  for (const w of wins) {
-    const isHome = !w.retailer_name;
-    const key = isHome
-      ? `home|${w.state_code}|${(w.winner_city || '').toLowerCase()}`
-      : `ret|${w.retailer_lat.toFixed(5)}|${w.retailer_lng.toFixed(5)}`;
-    if (!groups.has(key)) {
-      groups.set(key, {
-        lat: w.retailer_lat,
-        lng: w.retailer_lng,
-        retailer: w.retailer_name,
-        city: w.retailer_city || w.winner_city,
-        state: w.state_code,
-        isHome,
-        wins: [],
-        total: 0,
-      });
+  // Recompute headline counts from the visible slice.
+  let visibleWins = 0;
+  let visiblePrize = 0;
+  for (const g of groups) {
+    if (game) {
+      const c = (g.games && g.games[game]) || 0;
+      visibleWins += c;
+      // We don't store per-game prize sums on the group — approximate using
+      // the proportional share. Header label only, not used for plotting.
+      visiblePrize += g.win_count > 0 ? g.total_prize * (c / g.win_count) : 0;
+    } else {
+      visibleWins += g.win_count;
+      visiblePrize += g.total_prize;
     }
-    const g = groups.get(key);
-    g.wins.push(w);
-    g.total += w.prize_amount || 0;
   }
 
-  const totalPrize = wins.reduce((s, w) => s + (w.prize_amount || 0), 0);
-  const days = parseInt(document.getElementById("bigwinsRangeFilter")?.value || "30", 10);
+  const days = parseInt(document.getElementById("bigwinsRangeFilter")?.value || "1095", 10);
   const rangeLabel = days >= 365 ? `last ${Math.round(days / 365)} year${days >= 730 ? "s" : ""}` : `last ${days} days`;
   if (stats) {
     const stateSeg = state ? ` · ${state}` : "";
     const gameSeg = game ? ` · ${escHtml(game)}` : "";
     const prizeSeg = minPrize ? ` · ${fmtClaimPrize(minPrize)}+` : "";
-    stats.innerHTML = `<strong>${wins.length}</strong> wins across <strong>${groups.size}</strong> retailers · <strong>${fmtClaimPrize(totalPrize)}</strong> total prizes · ${rangeLabel}${stateSeg}${gameSeg}${prizeSeg}`;
+    stats.innerHTML = `<strong>${visibleWins.toLocaleString()}</strong> wins across <strong>${groups.length.toLocaleString()}</strong> retailers · <strong>${fmtClaimPrize(visiblePrize)}</strong> total prizes · ${rangeLabel}${stateSeg}${gameSeg}${prizeSeg}`;
   }
-  if (countEl) countEl.textContent = `${wins.length} mapped win${wins.length !== 1 ? "s" : ""}`;
+  if (countEl) countEl.textContent = `${visibleWins.toLocaleString()} mapped win${visibleWins !== 1 ? "s" : ""}`;
 
   const bounds = [];
-  for (const g of groups.values()) {
-    const radius = Math.max(7, Math.min(28, Math.sqrt(g.total) / 30));
+  for (const g of groups) {
+    const radius = Math.max(7, Math.min(28, Math.sqrt(g.total_prize) / 30));
     // Distinct color for winner-home pins (city centroid, not a specific store).
-    const color = g.isHome
-      ? (g.wins.length > 1 ? "#3b82f6" : "#60a5fa")
-      : (g.wins.length > 1 ? "#e85d04" : "#f48c06");
-    const stroke = g.isHome ? "#1e40af" : "#7a2a00";
+    const color = g.is_home
+      ? (g.win_count > 1 ? "#3b82f6" : "#60a5fa")
+      : (g.win_count > 1 ? "#e85d04" : "#f48c06");
+    const stroke = g.is_home ? "#1e40af" : "#7a2a00";
     const marker = L.circleMarker([g.lat, g.lng], {
       radius,
       fillColor: color,
@@ -1468,26 +1460,24 @@ function renderBigWinsMap() {
 }
 
 function buildBigWinsPopup(g) {
-  const items = g.wins
-    .slice()
-    .sort((a, b) => (b.prize_amount || 0) - (a.prize_amount || 0))
-    .slice(0, 12)
-    .map(w => {
-      const prize = fmtClaimPrize(w.prize_amount);
-      const game = escHtml((w.source_game_name || "").trim() || "(unknown game)");
-      const gameHtml = w.game_db_id != null
-        ? `<a class="bp-game-link" onclick="openGame(${w.game_db_id});return false;">${game}</a>`
-        : game;
-      const date = w.claim_date ? `<span class="bp-date"> · ${escHtml(w.claim_date)}</span>` : "";
-      return `<li><span class="bp-prize">${prize}</span> · ${gameHtml}${date}</li>`;
-    })
-    .join("");
-  const moreNote = g.wins.length > 12 ? `<li class="bp-date">…and ${g.wins.length - 12} more</li>` : "";
-  const headerLine = g.isHome
-    ? `<div class="bp-retailer">Winners from ${escHtml(g.city || "this area")}</div>
-       <div class="bp-city">${escHtml(g.state || "")} · ${g.wins.length} win${g.wins.length !== 1 ? "s" : ""} · home-city pin</div>`
-    : `<div class="bp-retailer">${escHtml(g.retailer || "Unknown retailer")}</div>
-       <div class="bp-city">${escHtml(g.city || "")}${g.state ? ", " + escHtml(g.state) : ""} · ${g.wins.length} win${g.wins.length !== 1 ? "s" : ""}</div>`;
+  const tops = (g.top_wins || []).slice().sort((a, b) => (b.prize_amount || 0) - (a.prize_amount || 0));
+  const items = tops.map(w => {
+    const prize = fmtClaimPrize(w.prize_amount);
+    const game = escHtml((w.source_game_name || "").trim() || "(unknown game)");
+    const gameHtml = w.game_db_id != null
+      ? `<a class="bp-game-link" onclick="openGame(${w.game_db_id});return false;">${game}</a>`
+      : game;
+    const date = w.claim_date ? `<span class="bp-date"> · ${escHtml(w.claim_date)}</span>` : "";
+    return `<li><span class="bp-prize">${prize}</span> · ${gameHtml}${date}</li>`;
+  }).join("");
+  const winCount = g.win_count || tops.length;
+  const remaining = winCount - tops.length;
+  const moreNote = remaining > 0 ? `<li class="bp-date">…and ${remaining.toLocaleString()} more</li>` : "";
+  const headerLine = g.is_home
+    ? `<div class="bp-retailer">Winners from ${escHtml(g.winner_city || g.retailer_city || "this area")}</div>
+       <div class="bp-city">${escHtml(g.state_code || "")} · ${winCount.toLocaleString()} win${winCount !== 1 ? "s" : ""} · home-city pin</div>`
+    : `<div class="bp-retailer">${escHtml(g.retailer_name || "Unknown retailer")}</div>
+       <div class="bp-city">${escHtml(g.retailer_city || "")}${g.state_code ? ", " + escHtml(g.state_code) : ""} · ${winCount.toLocaleString()} win${winCount !== 1 ? "s" : ""}</div>`;
   return `<div class="bigwins-popup">
     ${headerLine}
     <ul>${items}${moreNote}</ul>
