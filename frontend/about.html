@@ -320,7 +320,7 @@
         return `<strong>${name}</strong><br>No state scratch-off lottery.`;
       }
       if (!s || s.games_in_db === 0) {
-        return `<strong>${name}</strong><br>No data — odds not accessible.`;
+        return `<strong>${name}</strong><br>On our list — not yet integrated.`;
       }
       const cat = evCategory(s);
       const games = s.games_in_db;
