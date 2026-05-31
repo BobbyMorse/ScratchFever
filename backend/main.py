@@ -607,6 +607,7 @@ async def api_status_states():
             "state_name": state_name,
             "games_in_db": games,
             "last_scrape_at": log["ran_at"].isoformat() if log else None,
+            "last_scrape_error": log["error_msg"] if (log and not log["success"]) else None,
             "status": status,
             "ev_pct": int(g["ev_pct"] or 0) if g else 0,
             "image_pct": int(g["image_pct"] or 0) if g else 0,
