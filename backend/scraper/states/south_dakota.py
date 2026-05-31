@@ -133,12 +133,18 @@ class SouthDakotaScraper(BaseScraper):
         if not price:
             return None
 
-        # Use domcontentloaded + selector wait — SD pages load analytics that
-        # keep "networkidle" from firing for ~5–10s each, blowing the 600s
-        # overall timeout on Railway's slower dyno.
-        page.goto(url, wait_until="domcontentloaded", timeout=25_000)
+        # Prize table is JS-rendered. Try a fast load + specific selector wait
+        # first; fall back to networkidle if the table hasn't rendered. We use
+        # "load" instead of "networkidle" because SD's analytics scripts keep
+        # the network busy for 5-10s per page, blowing the 600s overall budget.
+        page.goto(url, wait_until="load", timeout=25_000)
         try:
-            page.wait_for_selector("table", timeout=8_000)
+            # Wait for a TD whose text starts with "$" — that's only present
+            # once the prize-tier table has finished rendering.
+            page.wait_for_function(
+                "Array.from(document.querySelectorAll('td')).some(td => td.textContent.trim().startsWith('$'))",
+                timeout=15_000,
+            )
         except Exception:
             pass
 
