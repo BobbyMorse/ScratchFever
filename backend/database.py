@@ -22,9 +22,9 @@ async def init_db():
         try:
             _pool = await asyncpg.create_pool(
                 db_url,
-                min_size=2, max_size=10,
+                min_size=2, max_size=20,
                 statement_cache_size=0,
-                timeout=30,
+                timeout=60,
             )
             break
         except Exception as e:
