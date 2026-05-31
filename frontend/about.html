@@ -199,43 +199,63 @@
     <h2>Contact</h2>
     <p>Questions? Visit our <a href="/contact">Contact page</a>.</p>
 
+    <!-- ── Coverage maps ──────────────────────────────────────────────── -->
+    <div class="coverage-section" id="coverage">
+      <h1>What data we have, where</h1>
+      <p class="intro">Three lenses on our state-by-state coverage. Live from production — hover any state for detail.</p>
+
+      <div class="coverage-grid">
+        <div class="cov-card">
+          <h3>EV calculations</h3>
+          <p class="sub">Per-ticket expected value from published odds and prizes-remaining.</p>
+          <div id="map-ev" class="cov-map"></div>
+          <div class="cov-legend">
+            <span><span class="sw" style="background:#16a34a"></span>Full data</span>
+            <span><span class="sw" style="background:#f59e0b"></span>Estimated</span>
+            <span><span class="sw" style="background:#e5e7eb"></span>Not available</span>
+            <span><span class="sw" style="background:#cbd5e1"></span>No scratch games</span>
+          </div>
+        </div>
+
+        <div class="cov-card">
+          <h3>Retailer locations</h3>
+          <p class="sub">Store-level data for the inventory map and hunt mode.</p>
+          <div id="map-retailers" class="cov-map"></div>
+          <div class="cov-legend">
+            <span><span class="sw" style="background:#2563eb"></span>Retailer data</span>
+            <span><span class="sw" style="background:#e5e7eb"></span>Not yet</span>
+            <span><span class="sw" style="background:#cbd5e1"></span>No scratch games</span>
+          </div>
+        </div>
+
+        <div class="cov-card">
+          <h3>Big winners ($10K+)</h3>
+          <p class="sub">Publicly reported scratch wins shown on the Big Wins map.</p>
+          <div id="map-winners" class="cov-map"></div>
+          <div class="cov-legend">
+            <span><span class="sw" style="background:#db2777"></span>Winners feed</span>
+            <span><span class="sw" style="background:#e5e7eb"></span>Not yet</span>
+            <span><span class="sw" style="background:#cbd5e1"></span>No scratch games</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ── FAQ ──────────────────────────────────────────────────────────── -->
     <div class="faq-section" id="faq">
       <h1>Frequently Asked Questions</h1>
 
-      <p class="faq-q">Which states are currently covered?</p>
-      <p class="faq-a">We actively scrape and display EV data for <strong>32 states plus D.C.</strong> Our goal is full 50-state coverage — here's where we stand today:</p>
-      <div class="state-grid">
-        <span class="state-pill">AR</span><span class="state-pill">AZ</span><span class="state-pill">CA</span><span class="state-pill">CO</span><span class="state-pill">CT</span>
-        <span class="state-pill">DC</span><span class="state-pill">DE</span><span class="state-pill">FL</span><span class="state-pill">GA</span><span class="state-pill">ID</span>
-        <span class="state-pill">IL</span><span class="state-pill">IN</span><span class="state-pill">KY</span><span class="state-pill">LA</span><span class="state-pill">MA</span>
-        <span class="state-pill">MD</span><span class="state-pill">MI</span><span class="state-pill">MN</span><span class="state-pill">MS</span><span class="state-pill">NC</span>
-        <span class="state-pill">NE</span><span class="state-pill">NJ</span><span class="state-pill">NM</span><span class="state-pill">NY</span><span class="state-pill">PA</span>
-        <span class="state-pill">RI</span><span class="state-pill">SC</span><span class="state-pill">TX</span><span class="state-pill">VA</span><span class="state-pill">VT</span>
-        <span class="state-pill">WI</span><span class="state-pill">NH</span>
-      </div>
+      <p class="faq-q">Why don't some states have EV data?</p>
+      <p class="faq-a">Every state lottery is required by law to publish prize odds, but not every lottery makes that data accessible to scrape. Some sites publish only top-prize counts, others sit behind bot challenges, and a few states (ND, WY, AK, HI) don't sell scratch tickets at all.</p>
 
-      <p class="faq-q">Why are some states missing from the EV rankings?</p>
-      <p class="faq-a">Every state lottery is required by law to publish prize odds — we want to cover all of them. A handful of states can't be ranked right now:</p>
-      <table class="reason-table">
-        <thead>
-          <tr><th>State(s)</th><th>Status</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>WY</td><td>No scratch-off lottery.</td></tr>
-          <tr><td>KS</td><td>Digital games only — no physical scratch-offs.</td></tr>
-          <tr><td>ND, TN, OH,<br>WA, OR, MO,<br>WV, OK, SD, IA,<br>MT</td><td>Data inaccessible.</td></tr>
-        </tbody>
-      </table>
+      <p class="faq-q">What's the difference between full and estimated EV?</p>
+      <p class="faq-a"><strong>Full EV</strong> uses published per-tier prize counts — both total printed and unclaimed — for every prize level in the game. <strong>Estimated EV</strong> applies when a state only publishes high-tier counts (e.g. $100+ winners only); we extrapolate small-tier depletion from the top tier's sell-through rate and flag those games with an "Estimated EV" banner.</p>
 
       <p class="faq-q">How often is data updated?</p>
       <p class="faq-a">Game odds and prizes-remaining counts are refreshed every hour directly from each state lottery's official website. The timestamp shown on each game reflects when that state's data was last pulled. Retailer location data is updated monthly.</p>
 
-      <p class="faq-q">Why doesn't ScratchFever have retailer data for every state?</p>
-      <p class="faq-a">State lottery retailer locators vary wildly — some expose clean APIs, others are JavaScript-protected maps with no accessible data endpoint. We currently have retailer data for MA, AZ, NY, NJ, GA, CA, NH, CT, and IL, and are adding more states as we reverse-engineer each locator.</p>
-
       <p class="faq-q">Is the data official?</p>
-      <p class="faq-a">Yes. All prize odds and remaining-prize counts are sourced directly from each state lottery's official website. ScratchFever does not generate, estimate, or alter prize data — we read what the state publishes and run the math. We are not affiliated with any state lottery commission.</p>
+      <p class="faq-a">Yes. All prize odds and remaining-prize counts are sourced directly from each state lottery's official website. ScratchFever does not generate or alter prize data — we read what the state publishes and run the math. We are not affiliated with any state lottery commission.</p>
     </div>
   </main>
 
