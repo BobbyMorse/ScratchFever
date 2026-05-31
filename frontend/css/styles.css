@@ -226,6 +226,18 @@ body {
 .ds-sdot.busy  { background: var(--orange); box-shadow: 0 0 6px var(--orange); animation: pulse 1s infinite; }
 .ds-state-code { font-weight: 700; color: var(--orange); min-width: 2.2rem; font-size: .75rem; }
 .ds-state-name { color: var(--text); flex: 1; }
+.ds-err-msg {
+  display: block;
+  margin-top: .2rem;
+  font-size: .68rem;
+  color: var(--red);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 22rem;
+  cursor: help;
+}
 .ds-state-when { color: var(--chrome-muted); font-size: .72rem; white-space: nowrap; }
 .ds-state-games { color: var(--chrome-muted); font-size: .72rem; white-space: nowrap; min-width: 4.5rem; text-align: right; }
 .ds-loading { color: var(--chrome-muted); font-size: .85rem; padding: 1rem .75rem; }
