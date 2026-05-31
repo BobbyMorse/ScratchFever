@@ -1104,11 +1104,15 @@
       el.innerHTML = `<div class="empty-state">No posts yet. Write your first update above!</div>`;
       return;
     }
+    const publicUrl = _profile ? `/store/${encodeURIComponent(_profile.retailer_id)}` : null;
     el.innerHTML = _posts.map(p => `
       <div class="post-item" id="post-${p.id}">
         <div class="post-item-header">
           <div class="post-item-title">${escHtml(p.title)}</div>
-          <button class="btn-danger" onclick="deletePost(${p.id})">Delete</button>
+          <div style="display:flex;gap:.4rem;align-items:center">
+            ${publicUrl ? `<a href="${publicUrl}" target="_blank" style="font-size:.72rem;color:var(--teal);text-decoration:none;font-weight:600">View ↗</a>` : ""}
+            <button class="btn-danger" onclick="deletePost(${p.id})">Delete</button>
+          </div>
         </div>
         ${p.body ? `<div class="post-item-body">${escHtml(p.body)}</div>` : ""}
         <div class="post-item-meta">${fmtDate(p.created_at)}</div>
