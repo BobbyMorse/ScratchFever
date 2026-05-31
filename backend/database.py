@@ -20,9 +20,15 @@ async def init_db():
         raise RuntimeError("DATABASE_URL env var is not set — check Railway Variables tab")
     for attempt in range(1, 6):
         try:
+            # max_size is bounded by Supabase's pgBouncer session-mode limit
+            # (15 total clients per project). Default 8 leaves headroom; the
+            # worker should set DB_POOL_MAX_SIZE=5 so API(8) + worker(5) = 13
+            # stays under 15. Switch DATABASE_URL to the transaction-mode
+            # pooler (port 6543) to relax this ceiling.
+            db_pool_max = int(os.environ.get("DB_POOL_MAX_SIZE", "8"))
             _pool = await asyncpg.create_pool(
                 db_url,
-                min_size=2, max_size=20,
+                min_size=2, max_size=db_pool_max,
                 statement_cache_size=0,
                 timeout=60,
             )
