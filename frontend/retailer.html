@@ -817,7 +817,7 @@
     // where their promotions actually live.
     const publicPath = `/store/${encodeURIComponent(p.retailer_id)}`;
     const publicAbs = window.location.origin + publicPath;
-    ["navPublicLink", "ovPublicBtn", "pfPublicBtn", "postsPublicLink"].forEach(id => {
+    ["navPublicLink", "ovPublicBtn", "ovPublicBtn2", "pfPublicBtn", "postsPublicLink"].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.href = publicPath;
     });
