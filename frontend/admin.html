@@ -1205,6 +1205,225 @@
     if (name === "claims" && !_claimsLoaded) {
       loadClaims();
     }
+    if (name === "winners" && !_winnersLoaded) {
+      loadWinners();
+    }
+    if (name === "retailers" && !_retailersLoaded) {
+      loadRetailers();
+    }
+  }
+
+  // ── Winners tab ─────────────────────────────────────────────────────────
+  let _winnersLoaded = false;
+
+  function winnersStatusBadge(s) {
+    if (!s.last_scraped) {
+      return `<span class="status-badge no-data">Never Run</span>`;
+    }
+    const hoursSinceScrape = (Date.now() - new Date(s.last_scraped).getTime()) / 3600000;
+    // Scheduler runs hourly; flag if we haven't seen a scrape in >6h.
+    if (hoursSinceScrape > 6) {
+      return `<span class="status-badge error"><span class="status-dot"></span>Stale</span>`;
+    }
+    if (s.wins_total === 0) {
+      return `<span class="status-badge warn"><span class="status-dot"></span>No Wins</span>`;
+    }
+    if (s.geo_pct < 50) {
+      return `<span class="status-badge warn"><span class="status-dot"></span>Low Geo</span>`;
+    }
+    return `<span class="status-badge ok"><span class="status-dot"></span>OK</span>`;
+  }
+
+  function renderWinners(states) {
+    const tbody = document.getElementById("winnersBody");
+    const cnt = document.getElementById("winnersCount");
+    cnt.textContent = `· ${states.length} feed${states.length === 1 ? "" : "s"}`;
+    if (!states.length) {
+      tbody.innerHTML = '<tr class="loading-row"><td colspan="10">No winners feeds configured.</td></tr>';
+      return;
+    }
+    let okCount = 0, warnCount = 0, errCount = 0;
+    tbody.innerHTML = states.map(s => {
+      const badge = winnersStatusBadge(s);
+      if (badge.includes('"ok"')) okCount++;
+      else if (badge.includes('"error"')) errCount++;
+      else warnCount++;
+
+      const totalCls = s.wins_total === 0 ? "games-count games-zero" : "games-count";
+      const totalCell = `<span class="${totalCls}">${s.wins_total.toLocaleString()}</span>`;
+      const claim7d = s.wins_claimed_7d > 0
+        ? `<span class="mono" style="color:var(--text)">${s.wins_claimed_7d}</span>`
+        : `<span class="no-error">0</span>`;
+      const claim30d = s.wins_claimed_30d > 0
+        ? `<span class="mono" style="color:var(--text)">${s.wins_claimed_30d}</span>`
+        : `<span class="no-error">0</span>`;
+      const scrape24h = s.wins_scraped_24h > 0
+        ? `<span class="mono" style="color:var(--text)">${s.wins_scraped_24h}</span>`
+        : `<span class="no-error">0</span>`;
+      const recent = s.most_recent_claim
+        ? `<div class="time-str">${timeAgo(s.most_recent_claim)}</div>
+           <div style="font-size:.7rem;color:#c0c8d5">${s.most_recent_claim.slice(0,10)}</div>`
+        : `<span class="no-error">—</span>`;
+      const geoCell = s.wins_total > 0 ? pctBar(Math.round(s.geo_pct)) : `<span class="no-error">—</span>`;
+
+      return `<tr>
+        <td>
+          <div class="state-name">${escHtml(s.state_name)}</div>
+          <div class="state-code">${s.state_code}</div>
+        </td>
+        <td>${badge}</td>
+        <td>
+          <div class="time-str">${timeAgo(s.last_scraped)}</div>
+          <div style="font-size:.7rem;color:#c0c8d5">${s.last_scraped ? s.last_scraped.slice(0,16).replace("T"," ") : ""}</div>
+        </td>
+        <td>${scrape24h}</td>
+        <td>${claim7d}</td>
+        <td>${claim30d}</td>
+        <td>${recent}</td>
+        <td>${geoCell}</td>
+        <td>${totalCell}</td>
+        <td><button class="scrape-btn" onclick="triggerWinnersScrape('${s.state_code}')">Scrape</button></td>
+      </tr>`;
+    }).join("");
+
+    document.getElementById("winnersChips").innerHTML = `
+      <div class="chip ok"><span class="chip-dot"></span><span class="chip-val">${okCount}</span> OK</div>
+      <div class="chip warn"><span class="chip-dot"></span><span class="chip-val">${warnCount}</span> Warn</div>
+      <div class="chip err"><span class="chip-dot"></span><span class="chip-val">${errCount}</span> Error</div>
+    `;
+  }
+
+  async function loadWinners() {
+    document.getElementById("winnersBody").innerHTML =
+      '<tr class="loading-row"><td colspan="10">Loading…</td></tr>';
+    try {
+      const res = await fetch("/api/admin/health/winners", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.status === 401 || res.status === 403) { showLogin(); return; }
+      const data = await res.json();
+      _winnersLoaded = true;
+      renderWinners(data.states || []);
+    } catch (e) {
+      document.getElementById("winnersBody").innerHTML =
+        `<tr class="loading-row"><td colspan="10" style="color:var(--red)">Failed to load: ${escHtml(e.message)}</td></tr>`;
+    }
+  }
+
+  async function triggerWinnersScrape(code) {
+    try {
+      const res = await fetch(`/api/admin/scrape-winners?state=${code}&days=14`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        showToast(`Winners scrape failed to start: ${res.status}`);
+        return;
+      }
+      showToast(`${code} winners scrape started — refresh in ~30s.`);
+    } catch (e) {
+      showToast(`Failed: ${e.message}`);
+    }
+  }
+
+  // ── Retailers tab ───────────────────────────────────────────────────────
+  let _retailersLoaded = false;
+  const RETAILER_STALE_DAYS = 30;
+
+  function retailerStatusBadge(s) {
+    if (!s.last_scraped) {
+      return `<span class="status-badge no-data">Never Run</span>`;
+    }
+    const ageDays = (Date.now() - new Date(s.last_scraped).getTime()) / 86400000;
+    if (ageDays > RETAILER_STALE_DAYS) {
+      return `<span class="status-badge error"><span class="status-dot"></span>Stale</span>`;
+    }
+    if ((s.retailers_count ?? 0) === 0) {
+      return `<span class="status-badge warn"><span class="status-dot"></span>Empty</span>`;
+    }
+    return `<span class="status-badge ok"><span class="status-dot"></span>OK</span>`;
+  }
+
+  function renderRetailers(states) {
+    const tbody = document.getElementById("retailersBody");
+    const cnt = document.getElementById("retailersCount");
+    cnt.textContent = `· ${states.length} state${states.length === 1 ? "" : "s"}`;
+    if (!states.length) {
+      tbody.innerHTML = '<tr class="loading-row"><td colspan="6">No retailer scrapers configured.</td></tr>';
+      return;
+    }
+    let okCount = 0, warnCount = 0, errCount = 0;
+    tbody.innerHTML = states.map(s => {
+      const badge = retailerStatusBadge(s);
+      if (badge.includes('"ok"')) okCount++;
+      else if (badge.includes('"error"')) errCount++;
+      else warnCount++;
+
+      let ageCell = '<span class="no-error">—</span>';
+      if (s.last_scraped) {
+        const ageDays = Math.floor((Date.now() - new Date(s.last_scraped).getTime()) / 86400000);
+        const cls = ageDays > RETAILER_STALE_DAYS ? "retailer-stale" : "retailer-ok";
+        ageCell = `<span class="${cls}">${ageDays}d</span>`;
+      }
+      const countCell = s.retailers_count != null
+        ? `<span class="games-count">${s.retailers_count.toLocaleString()}</span>`
+        : `<span class="no-error">—</span>`;
+
+      return `<tr>
+        <td>
+          <div class="state-name">${escHtml(s.state_name)}</div>
+          <div class="state-code">${s.state_code}</div>
+        </td>
+        <td>${badge}</td>
+        <td>
+          <div class="time-str">${timeAgo(s.last_scraped)}</div>
+          <div style="font-size:.7rem;color:#c0c8d5">${s.last_scraped ? s.last_scraped.slice(0,10) : ""}</div>
+        </td>
+        <td>${ageCell}</td>
+        <td>${countCell}</td>
+        <td><button class="scrape-btn" onclick="triggerRetailerScrape('${s.state_code}')">Scrape</button></td>
+      </tr>`;
+    }).join("");
+
+    document.getElementById("retailersChips").innerHTML = `
+      <div class="chip ok"><span class="chip-dot"></span><span class="chip-val">${okCount}</span> OK</div>
+      <div class="chip warn"><span class="chip-dot"></span><span class="chip-val">${warnCount}</span> Warn</div>
+      <div class="chip err"><span class="chip-dot"></span><span class="chip-val">${errCount}</span> Stale</div>
+    `;
+  }
+
+  async function loadRetailers() {
+    document.getElementById("retailersBody").innerHTML =
+      '<tr class="loading-row"><td colspan="6">Loading…</td></tr>';
+    try {
+      const res = await fetch("/api/admin/health/retailers", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.status === 401 || res.status === 403) { showLogin(); return; }
+      const data = await res.json();
+      _retailersLoaded = true;
+      renderRetailers(data.states || []);
+    } catch (e) {
+      document.getElementById("retailersBody").innerHTML =
+        `<tr class="loading-row"><td colspan="6" style="color:var(--red)">Failed to load: ${escHtml(e.message)}</td></tr>`;
+    }
+  }
+
+  async function triggerRetailerScrape(code) {
+    try {
+      const res = await fetch(`/api/admin/scrape/retailers/${code}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        showToast(`Retailer scrape failed: ${data.detail || res.status}`);
+        return;
+      }
+      showToast(`${code} retailer scrape started — refresh in a few minutes.`);
+    } catch (e) {
+      showToast(`Failed: ${e.message}`);
+    }
   }
 
   // ── Claims tab ──────────────────────────────────────────────────────────
