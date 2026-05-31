@@ -270,5 +270,137 @@
       <a href="/contact">Contact</a>
     </nav>
   </footer>
+
+  <script src="/static/js/leaflet.js"></script>
+  <script>
+  (function () {
+    const NAME_TO_CODE = {
+      "Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","California":"CA",
+      "Colorado":"CO","Connecticut":"CT","Delaware":"DE","District of Columbia":"DC",
+      "Florida":"FL","Georgia":"GA","Hawaii":"HI","Idaho":"ID","Illinois":"IL",
+      "Indiana":"IN","Iowa":"IA","Kansas":"KS","Kentucky":"KY","Louisiana":"LA",
+      "Maine":"ME","Maryland":"MD","Massachusetts":"MA","Michigan":"MI","Minnesota":"MN",
+      "Mississippi":"MS","Missouri":"MO","Montana":"MT","Nebraska":"NE","Nevada":"NV",
+      "New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY",
+      "North Carolina":"NC","North Dakota":"ND","Ohio":"OH","Oklahoma":"OK","Oregon":"OR",
+      "Pennsylvania":"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD",
+      "Tennessee":"TN","Texas":"TX","Utah":"UT","Vermont":"VT","Virginia":"VA",
+      "Washington":"WA","West Virginia":"WV","Wisconsin":"WI","Wyoming":"WY",
+    };
+    // No state lottery / no scratch product
+    const NO_SCRATCH = new Set(["AK","HI","ND","WY","NV","UT","AL"]);
+
+    function evCategory(s) {
+      if (!s) return "none";
+      if (s.ev_pct >= 50 && s.approx_pct < 50) return "full";
+      if (s.ev_pct >= 30) return "estimated";
+      return "none";
+    }
+    function evColor(s, code) {
+      if (NO_SCRATCH.has(code) && (!s || s.games_in_db === 0)) return "#cbd5e1";
+      const cat = evCategory(s);
+      if (cat === "full") return "#16a34a";
+      if (cat === "estimated") return "#f59e0b";
+      return "#e5e7eb";
+    }
+    function retailerColor(s, code) {
+      if (NO_SCRATCH.has(code) && (!s || s.games_in_db === 0)) return "#cbd5e1";
+      return (s && s.has_retailer_scraper) ? "#2563eb" : "#e5e7eb";
+    }
+    function winnersColor(s, code) {
+      if (NO_SCRATCH.has(code) && (!s || s.games_in_db === 0)) return "#cbd5e1";
+      return (s && s.has_winners_scraper && s.winners_count > 0) ? "#db2777" : "#e5e7eb";
+    }
+
+    function evTip(name, code, s) {
+      if (NO_SCRATCH.has(code) && (!s || s.games_in_db === 0)) {
+        return `<strong>${name}</strong><br>No state scratch-off lottery.`;
+      }
+      if (!s || s.games_in_db === 0) {
+        return `<strong>${name}</strong><br>No data — odds not accessible.`;
+      }
+      const cat = evCategory(s);
+      const games = s.games_in_db;
+      const withEv = Math.round((s.ev_pct || 0) / 100 * games);
+      if (cat === "full") {
+        return `<strong>${name}</strong><br>${withEv} of ${games} games with full EV<br>Avg return: ${s.avg_return.toFixed(1)}%`;
+      }
+      if (cat === "estimated") {
+        return `<strong>${name}</strong><br>${withEv} of ${games} games — EV estimated<br>Avg return: ${s.avg_return.toFixed(1)}%`;
+      }
+      return `<strong>${name}</strong><br>${games} games tracked, EV not yet available.`;
+    }
+    function retailerTip(name, code, s) {
+      if (NO_SCRATCH.has(code) && (!s || s.games_in_db === 0)) {
+        return `<strong>${name}</strong><br>No state scratch-off lottery.`;
+      }
+      if (s && s.has_retailer_scraper) {
+        return `<strong>${name}</strong><br>Retailer locations available.`;
+      }
+      return `<strong>${name}</strong><br>Retailer locator not yet integrated.`;
+    }
+    function winnersTip(name, code, s) {
+      if (NO_SCRATCH.has(code) && (!s || s.games_in_db === 0)) {
+        return `<strong>${name}</strong><br>No state scratch-off lottery.`;
+      }
+      if (s && s.has_winners_scraper && s.winners_count > 0) {
+        return `<strong>${name}</strong><br>${s.winners_count.toLocaleString()} reported $10K+ scratch wins.`;
+      }
+      return `<strong>${name}</strong><br>No public big-winners feed.`;
+    }
+
+    function buildMap(elId, geo, byCode, colorFn, tipFn) {
+      const map = L.map(elId, {
+        zoomControl: false, attributionControl: false,
+        dragging: false, scrollWheelZoom: false, doubleClickZoom: false,
+        touchZoom: false, boxZoom: false, keyboard: false,
+        zoomSnap: 0.05,
+      });
+      L.geoJSON(geo, {
+        style: function (f) {
+          const code = NAME_TO_CODE[f.properties.name];
+          return {
+            fillColor: colorFn(byCode[code], code),
+            color: "#ffffff",
+            weight: 0.7,
+            fillOpacity: 1,
+          };
+        },
+        onEachFeature: function (f, layer) {
+          const code = NAME_TO_CODE[f.properties.name];
+          layer.bindTooltip(tipFn(f.properties.name, code, byCode[code]), {
+            sticky: true, className: "cov-tip-wrap", direction: "top", offset: [0, -4],
+          });
+        },
+      }).addTo(map);
+      // Continental US bounds (AK/HI omitted from visual)
+      map.fitBounds([[24.5, -125], [49.5, -66]], { padding: [4, 4] });
+    }
+
+    async function init() {
+      try {
+        const [geoRes, statusRes] = await Promise.all([
+          fetch("/static/data/us-states.geojson"),
+          fetch("/api/status/states"),
+        ]);
+        const geo = await geoRes.json();
+        const status = await statusRes.json();
+        const byCode = {};
+        for (const s of (status.states || [])) byCode[s.state_code] = s;
+        buildMap("map-ev", geo, byCode, evColor, evTip);
+        buildMap("map-retailers", geo, byCode, retailerColor, retailerTip);
+        buildMap("map-winners", geo, byCode, winnersColor, winnersTip);
+      } catch (e) {
+        console.error("Coverage maps failed to load", e);
+      }
+    }
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
+    } else {
+      init();
+    }
+  })();
+  </script>
 </body>
 </html>
