@@ -2111,5 +2111,233 @@
     if (btn && window.matchMedia('(max-width: 900px)').matches) closeSidebar();
   });
 </script>
+
+<!-- ── Info drawer controller ──────────────────────────────────────────── -->
+<script>
+(function () {
+  const NAME_TO_CODE = {
+    "Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","California":"CA",
+    "Colorado":"CO","Connecticut":"CT","Delaware":"DE","District of Columbia":"DC",
+    "Florida":"FL","Georgia":"GA","Hawaii":"HI","Idaho":"ID","Illinois":"IL",
+    "Indiana":"IN","Iowa":"IA","Kansas":"KS","Kentucky":"KY","Louisiana":"LA",
+    "Maine":"ME","Maryland":"MD","Massachusetts":"MA","Michigan":"MI","Minnesota":"MN",
+    "Mississippi":"MS","Missouri":"MO","Montana":"MT","Nebraska":"NE","Nevada":"NV",
+    "New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY",
+    "North Carolina":"NC","North Dakota":"ND","Ohio":"OH","Oklahoma":"OK","Oregon":"OR",
+    "Pennsylvania":"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD",
+    "Tennessee":"TN","Texas":"TX","Utah":"UT","Vermont":"VT","Virginia":"VA",
+    "Washington":"WA","West Virginia":"WV","Wisconsin":"WI","Wyoming":"WY",
+  };
+
+  // Confirmed: no state scratch-off product available, period.
+  //  - AK, HI, NV, UT: no state lottery at all
+  //  - ND, WY: state lottery exists but sells only draw games (no scratch)
+  // (AL deliberately excluded — status in flux; let the data speak.)
+  const NO_SCRATCH = new Set(["AK","HI","NV","UT","ND","WY"]);
+
+  let drawerMap = null;
+  let drawerLayer = null;
+  let stateByCode = {};
+  let geoData = null;
+  let currentLayer = "ev";
+
+  // ── Categorizers ──────────────────────────────────────────────────────
+  function evCat(s) {
+    if (!s) return "todo";
+    if (s.ev_pct >= 50 && (s.approx_pct || 0) < 50) return "full";
+    if (s.ev_pct >= 30) return "estimated";
+    return "todo";
+  }
+
+  function styleFor(layer, code, s) {
+    const isNoScratch = NO_SCRATCH.has(code);
+    if (layer === "ev") {
+      if (isNoScratch && (!s || s.games_in_db === 0)) return { fill: "#cbd5e1", label: "noscratch" };
+      const cat = evCat(s);
+      if (cat === "full") return { fill: "#16a34a", label: "full" };
+      if (cat === "estimated") return { fill: "#f59e0b", label: "estimated" };
+      return { fill: "#e5e7eb", label: "todo" };
+    }
+    if (layer === "retailers") {
+      if (isNoScratch && (!s || s.games_in_db === 0)) return { fill: "#cbd5e1", label: "noscratch" };
+      return (s && s.has_retailer_scraper)
+        ? { fill: "#2563eb", label: "live" }
+        : { fill: "#e5e7eb", label: "todo" };
+    }
+    if (layer === "winners") {
+      if (isNoScratch && (!s || s.games_in_db === 0)) return { fill: "#cbd5e1", label: "noscratch" };
+      return (s && s.has_winners_scraper && s.winners_count > 0)
+        ? { fill: "#db2777", label: "live" }
+        : { fill: "#e5e7eb", label: "todo" };
+    }
+  }
+
+  // ── Tooltips ──────────────────────────────────────────────────────────
+  function tipFor(layer, name, code, s) {
+    const isNoScratch = NO_SCRATCH.has(code);
+    if (layer === "ev") {
+      if (isNoScratch && (!s || s.games_in_db === 0)) {
+        return `<strong>${name}</strong><br>No state scratch lottery.`;
+      }
+      if (!s || s.games_in_db === 0) {
+        return `<strong>${name}</strong><br>On our list — not yet integrated.`;
+      }
+      const cat = evCat(s);
+      const games = s.games_in_db;
+      const withEv = Math.round((s.ev_pct || 0) / 100 * games);
+      if (cat === "full") {
+        return `<strong>${name}</strong><br>${withEv} of ${games} games · Full EV<br>Avg return: ${s.avg_return.toFixed(1)}%`;
+      }
+      if (cat === "estimated") {
+        return `<strong>${name}</strong><br>${withEv} of ${games} games · Estimated EV<br>Avg return: ${s.avg_return.toFixed(1)}%`;
+      }
+      return `<strong>${name}</strong><br>${games} games tracked — EV not yet available.`;
+    }
+    if (layer === "retailers") {
+      if (isNoScratch && (!s || s.games_in_db === 0)) {
+        return `<strong>${name}</strong><br>No state scratch lottery.`;
+      }
+      if (s && s.has_retailer_scraper) {
+        return `<strong>${name}</strong><br>Retailer locations live.`;
+      }
+      return `<strong>${name}</strong><br>Retailer locator on our roadmap.`;
+    }
+    if (layer === "winners") {
+      if (isNoScratch && (!s || s.games_in_db === 0)) {
+        return `<strong>${name}</strong><br>No state scratch lottery.`;
+      }
+      if (s && s.has_winners_scraper && s.winners_count > 0) {
+        return `<strong>${name}</strong><br>${s.winners_count.toLocaleString()} reported $10K+ scratch wins.`;
+      }
+      return `<strong>${name}</strong><br>Big-winners feed on our roadmap.`;
+    }
+  }
+
+  // ── Legend + explainer text per layer ─────────────────────────────────
+  function renderLegend(layer) {
+    const el = document.getElementById("covLegend");
+    const items = {
+      ev: [
+        ["#16a34a", "Full data"],
+        ["#f59e0b", "Estimated"],
+        ["#e5e7eb", "Coming soon"],
+        ["#cbd5e1", "No state scratch lottery"],
+      ],
+      retailers: [
+        ["#2563eb", "Retailer data live"],
+        ["#e5e7eb", "On our roadmap"],
+        ["#cbd5e1", "No state scratch lottery"],
+      ],
+      winners: [
+        ["#db2777", "Winners feed live"],
+        ["#e5e7eb", "On our roadmap"],
+        ["#cbd5e1", "No state scratch lottery"],
+      ],
+    }[layer];
+    el.innerHTML = items.map(([c, t]) =>
+      `<span><span class="sw" style="background:${c}"></span>${t}</span>`
+    ).join("");
+  }
+
+  function renderExplainer(layer) {
+    const el = document.getElementById("covExplainer");
+    if (layer === "ev") {
+      el.innerHTML = `
+        <p class="ex-row"><span class="pill" style="background:#16a34a">Full data</span>State publishes every prize tier with totals AND remaining counts — EV is computed directly.</p>
+        <p class="ex-row"><span class="pill" style="background:#f59e0b">Estimated</span>State publishes only top-prize counts — we extrapolate small-tier depletion from top-tier sell-through. Games are flagged in-app.</p>
+        <p class="ex-row"><span class="pill" style="background:#e5e7eb;color:#475569">Coming soon</span>State has scratch but we haven't built the integration yet, or odds aren't published in a usable form.</p>
+      `;
+    } else if (layer === "retailers") {
+      el.innerHTML = `<p class="ex-row">Retailer data powers the inventory map and store hunt — addresses + lat/long for every licensed scratch ticket seller in the state.</p>`;
+    } else {
+      el.innerHTML = `<p class="ex-row">Big winners are publicly reported scratch wins of $10,000+ scraped from each state lottery's winners feed. Shown on the Big Wins map with retailer or winner-home-city pins.</p>`;
+    }
+  }
+
+  function restyle(layer) {
+    if (!drawerLayer) return;
+    drawerLayer.eachLayer(function (layer_) {
+      const name = layer_.feature.properties.name;
+      const code = NAME_TO_CODE[name];
+      const s = stateByCode[code];
+      const { fill } = styleFor(layer, code, s);
+      layer_.setStyle({ fillColor: fill });
+      layer_.unbindTooltip();
+      layer_.bindTooltip(tipFor(layer, name, code, s), {
+        sticky: true, className: "cov-tip-wrap", direction: "top", offset: [0, -4],
+      });
+    });
+  }
+
+  window.setCovLayer = function (layer) {
+    currentLayer = layer;
+    document.querySelectorAll(".cov-tab").forEach(function (b) {
+      b.classList.toggle("active", b.dataset.layer === layer);
+    });
+    renderLegend(layer);
+    renderExplainer(layer);
+    restyle(layer);
+  };
+
+  async function buildMapOnce() {
+    if (drawerMap) {
+      setTimeout(function () { drawerMap.invalidateSize(); }, 50);
+      return;
+    }
+    const [geoRes, statusRes] = await Promise.all([
+      fetch("/static/data/us-states.geojson"),
+      fetch("/api/status/states"),
+    ]);
+    geoData = await geoRes.json();
+    const status = await statusRes.json();
+    stateByCode = {};
+    for (const s of (status.states || [])) stateByCode[s.state_code] = s;
+
+    drawerMap = L.map("covMapBig", {
+      zoomControl: false, attributionControl: false,
+      dragging: false, scrollWheelZoom: false, doubleClickZoom: false,
+      touchZoom: false, boxZoom: false, keyboard: false,
+      zoomSnap: 0.05,
+    });
+
+    drawerLayer = L.geoJSON(geoData, {
+      style: function (f) {
+        const code = NAME_TO_CODE[f.properties.name];
+        const { fill } = styleFor(currentLayer, code, stateByCode[code]);
+        return { fillColor: fill, color: "#ffffff", weight: 0.8, fillOpacity: 1 };
+      },
+      onEachFeature: function (f, lyr) {
+        const code = NAME_TO_CODE[f.properties.name];
+        lyr.bindTooltip(tipFor(currentLayer, f.properties.name, code, stateByCode[code]), {
+          sticky: true, className: "cov-tip-wrap", direction: "top", offset: [0, -4],
+        });
+      },
+    }).addTo(drawerMap);
+
+    drawerMap.fitBounds([[24.5, -125], [49.5, -66]], { padding: [6, 6] });
+    renderLegend(currentLayer);
+    renderExplainer(currentLayer);
+  }
+
+  window.openInfoDrawer = function () {
+    document.getElementById("infoDrawer").classList.add("open");
+    document.getElementById("infoDrawerBackdrop").classList.add("open");
+    document.body.classList.add("info-drawer-open");
+    buildMapOnce().catch(function (e) { console.error("Coverage map failed", e); });
+  };
+
+  window.closeInfoDrawer = function () {
+    document.getElementById("infoDrawer").classList.remove("open");
+    document.getElementById("infoDrawerBackdrop").classList.remove("open");
+    document.body.classList.remove("info-drawer-open");
+  };
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && document.getElementById("infoDrawer").classList.contains("open")) {
+      window.closeInfoDrawer();
+    }
+  });
+})();
+</script>
 </body>
 </html>
