@@ -97,10 +97,14 @@ def main():
         for x in xhrs[:30]:
             print(f"  [{x['status']}] {x['ctype']:30s} {x['url']}")
 
-        # Save HTML snippet for offline review
-        with open("scripts/_az_winners_probe.html", "w", encoding="utf-8") as f:
+        # Save HTML snippet for offline review (host-named, gitignored)
+        import urllib.parse as up
+        host = up.urlparse(page.url).hostname or "probe"
+        slug = host.replace(".", "_")
+        out_path = f"scripts/_winners_probe_{slug}.html"
+        with open(out_path, "w", encoding="utf-8") as f:
             f.write(html)
-        print("\nSaved full HTML to scripts/_az_winners_probe.html")
+        print(f"\nSaved full HTML to {out_path}")
 
         browser.close()
 
