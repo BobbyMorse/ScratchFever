@@ -133,7 +133,14 @@ class SouthDakotaScraper(BaseScraper):
         if not price:
             return None
 
-        page.goto(url, wait_until="networkidle", timeout=25_000)
+        # Use domcontentloaded + selector wait — SD pages load analytics that
+        # keep "networkidle" from firing for ~5–10s each, blowing the 600s
+        # overall timeout on Railway's slower dyno.
+        page.goto(url, wait_until="domcontentloaded", timeout=25_000)
+        try:
+            page.wait_for_selector("table", timeout=8_000)
+        except Exception:
+            pass
 
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(page.content(), "lxml")
