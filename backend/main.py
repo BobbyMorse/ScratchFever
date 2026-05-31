@@ -85,12 +85,19 @@ async def check_and_run_stale_retailers():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    logger.info("startup: init_db ...")
     await init_db()
+    logger.info("startup: init_caller_db ...")
     await init_caller_db()
+    logger.info("startup: init_vapi_db ...")
     await init_vapi_db()
+    logger.info("startup: init_users_db ...")
     await init_users_db()
+    logger.info("startup: init_retailer_db ...")
     await init_retailer_db()
+    logger.info("startup: seed_admin ...")
     await seed_admin()
+    logger.info("startup: schema init complete")
 
     if SCHEDULER_DISABLED:
         logger.info("DISABLE_SCHEDULER=1 — scrapers will NOT run in this process "
