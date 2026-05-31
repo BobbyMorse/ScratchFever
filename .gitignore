@@ -29,3 +29,4 @@ test_map.html
 # OS
 .DS_Store
 Thumbs.db
+scripts/_winners_probe_*.html
