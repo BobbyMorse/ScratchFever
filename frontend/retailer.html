@@ -1132,7 +1132,9 @@
       document.getElementById("postTitle").value = "";
       document.getElementById("postBody").value = "";
       renderPosts();
-      showMsg("postMsg", "Post published!", "ok");
+      const publicUrl = _profile ? `/store/${encodeURIComponent(_profile.retailer_id)}` : null;
+      const link = publicUrl ? ` <a href="${publicUrl}" target="_blank" style="color:inherit;text-decoration:underline;font-weight:700">View it live ↗</a>` : "";
+      showMsg("postMsg", "Live on your store page." + link, "ok");
     } catch (e) {
       showMsg("postMsg", e.message, "err");
     }
