@@ -6493,6 +6493,12 @@ function _syncGenMapButton() {
   }
 }
 
+function _autoShowGenMap() {
+  if (genMapVisible) return;
+  const hasGeo = _currentGenList().some(r => r.latitude != null && r.longitude != null);
+  if (hasGeo) toggleGenMap();
+}
+
 function getGenFilteredRows() {
   if (!currentGenState) return [];
   const q          = (document.getElementById("genSearchInput")?.value || "").toLowerCase().trim();
