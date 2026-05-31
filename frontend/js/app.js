@@ -1219,7 +1219,13 @@ function bigwinsRangeLabel() {
 }
 
 function filterBigWins() {
-  if (bigwinsView === "map") { renderBigWinsMap(); return; }
+  if (bigwinsView === "map") {
+    // Min-prize is a server-side filter (changes which wins get aggregated),
+    // so it requires a refetch. State and game are client-side filters over
+    // the aggregated groups, so they only re-render.
+    loadBigWinsMap().then(() => renderBigWinsMap());
+    return;
+  }
   const state = document.getElementById("bigwinsStateFilter")?.value || "";
   const game = document.getElementById("bigwinsGameFilter")?.value || "";
   const minPrize = parseFloat(document.getElementById("bigwinsPrizeFilter")?.value || "0") || 0;
