@@ -1457,6 +1457,16 @@
                       onchange="filterBigWins()" title="Filter by ticket">
                 <option value="">All Tickets</option>
               </select>
+              <select id="bigwinsPrizeFilter" class="bigwins-state-filter"
+                      onchange="filterBigWins()" title="Filter by prize size">
+                <option value="0">Any Prize</option>
+                <option value="25000">$25K+</option>
+                <option value="50000">$50K+</option>
+                <option value="100000">$100K+</option>
+                <option value="250000">$250K+</option>
+                <option value="500000">$500K+</option>
+                <option value="1000000">$1M+</option>
+              </select>
               <span class="bigwins-page-count" id="bigwinsCount"></span>
             </div>
           </div>
