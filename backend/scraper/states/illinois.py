@@ -62,6 +62,12 @@ class IllinoisScraper(PlaywrightScraper):
         if soup is None:
             raise RuntimeError(f"IL: table never rendered after retries — {last_err}")
 
+        # Game images live on a separate JS-rendered page; sniff network
+        # responses on the games-hub URL and key images by the IL-XXXX game
+        # number embedded in the asset filename.
+        image_map = self._sniff_game_images()
+        logger.info("IL: sniffed %d game images from games-hub", len(image_map))
+
         # ── Build header → column-index map ──────────────────────────────────
         headers = soup.select("th.unclaimed-prizes-table__header, th.unclaimed-prizes-table__cell")
         if not headers:
