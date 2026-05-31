@@ -117,14 +117,18 @@ with sync_playwright() as pw:
 
     browser.close()
 
-print(f"\n=== CAPTURED {len(calls)} XHR/FETCH CALLS ===\n")
+print(f"\n=== GAMBYTSERVICES CALLS (the retailer API) ===\n")
 for i, c in enumerate(calls):
+    if "gambytservices" not in c["url"]:
+        continue
     print(f"[{i}] {c['method']} {c['url']}")
-    print(f"    type={c['type']}  status={c.get('status')}  ctype={c.get('ctype','')}")
+    print(f"    status={c.get('status')}  ctype={c.get('ctype','')}")
+    print(f"    headers:")
+    for k, v in c.get("headers", {}).items():
+        print(f"      {k}: {v}")
     if c.get("post"):
         print(f"    post: {c['post']}")
     body = c.get("body", "")
     if body:
-        # Show only first 300 chars of body to spot retailer-shaped data
-        print(f"    body[:300]: {body[:300]}")
+        print(f"    body[:400]: {body[:400]}")
     print()
