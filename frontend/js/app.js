@@ -397,16 +397,17 @@ function syncHeaderHeight() {
   // Used by the retailer dashboard's "View public page" link.
   openStoreFromUrl();
 
-  // Live promotions feed — populates the "Live store updates near you" card
-  // on the EV tab. Uses cached geolocation if previously granted; otherwise
-  // shows latest across all claimed stores and offers a "use my location" button.
-  loadPromoFeed();
-  // Auto-refresh every 2 minutes so new posts surface without a page reload.
-  setInterval(() => { if (currentTab === "ev") loadPromoFeed(); }, 120_000);
+  // Background-poll the promo feed for the sidebar notification dot.
+  // The full grid renders only when the Nearby tab is opened (loadPromoFeed
+  // fires from switchTab); this lighter ping just updates the badge.
+  pingPromoFeedBadge();
+  setInterval(pingPromoFeedBadge, 120_000);
 })();
 
-/* ── Live promotions feed ──────────────────────────────────────────────────── */
+/* ── Live promotions feed (Nearby tab) ────────────────────────────────────── */
 const PROMO_GEO_KEY = "sf_promo_geo";
+const PROMO_LAST_SEEN_KEY = "sf_promo_last_seen";
+
 function getCachedGeo() {
   try {
     const raw = localStorage.getItem(PROMO_GEO_KEY);
@@ -422,38 +423,82 @@ function setCachedGeo(lat, lng) {
   catch {}
 }
 
+function _selectedRadius() {
+  const sel = document.getElementById("nearbyRadiusSelect");
+  return sel ? parseInt(sel.value, 10) || 25 : 25;
+}
+
 async function loadPromoFeed(force = false) {
-  const feed = document.getElementById("promoFeed");
-  const list = document.getElementById("promoFeedList");
-  const scope = document.getElementById("promoFeedScope");
-  const locBtn = document.getElementById("promoFeedLocBtn");
-  if (!feed || !list) return;
+  const grid    = document.getElementById("nearbyGrid");
+  const empty   = document.getElementById("nearbyEmpty");
+  const sub     = document.getElementById("nearbySub");
+  const locBtn  = document.getElementById("nearbyLocBtn");
+  const locLbl  = document.getElementById("nearbyLocBtnLabel");
+  const radius  = document.getElementById("nearbyRadiusSelect");
+  if (!grid) return;
 
   const geo = getCachedGeo();
-  const qs = new URLSearchParams({ limit: "12", days: "14" });
+  const qs = new URLSearchParams({ limit: "40", days: "30" });
   if (geo) {
     qs.set("lat", String(geo.lat));
     qs.set("lng", String(geo.lng));
-    qs.set("radius_mi", "25");
-    if (scope) scope.textContent = "near you";
-    if (locBtn) locBtn.style.display = "none";
+    qs.set("radius_mi", String(_selectedRadius()));
+    if (sub) sub.textContent = `Sorted by closest to you · within ${_selectedRadius()} mi.`;
+    if (locBtn) { locBtn.classList.add("is-active"); }
+    if (locLbl) locLbl.textContent = "Location on";
+    if (radius) radius.style.display = "";
   } else {
-    if (scope) scope.textContent = "from claimed stores";
-    if (locBtn) locBtn.style.display = "";
+    if (sub) sub.textContent = "Showing latest from every claimed store. Allow location to sort by what's closest to you.";
+    if (locBtn) locBtn.classList.remove("is-active");
+    if (locLbl) locLbl.textContent = "Use my location";
+    if (radius) radius.style.display = "none";
   }
 
   try {
     const res = await fetch(`/api/public/feed/promotions?${qs}`);
-    if (!res.ok) return;
+    if (!res.ok) {
+      grid.innerHTML = "";
+      empty.style.display = "";
+      return;
+    }
     const data = await res.json();
     const items = data.promotions || [];
     if (!items.length) {
-      feed.style.display = "none";
-      return;
+      grid.innerHTML = "";
+      empty.style.display = "";
+    } else {
+      empty.style.display = "none";
+      grid.innerHTML = items.map(renderPromoItem).join("");
     }
-    feed.style.display = "";
-    list.innerHTML = items.map(renderPromoItem).join("");
-  } catch (_) { /* silent — feed is non-critical chrome */ }
+    // Mark feed as seen — clears the sidebar dot.
+    if (items.length) {
+      const newest = Math.max(...items.map(p => new Date(p.created_at).getTime()));
+      try { localStorage.setItem(PROMO_LAST_SEEN_KEY, String(newest)); } catch {}
+    }
+    updateSidebarNearbyDot([]);
+  } catch (_) {
+    grid.innerHTML = "";
+    empty.style.display = "";
+  }
+}
+
+async function pingPromoFeedBadge() {
+  // Tiny lookahead — just enough to decide if the sidebar dot should pulse.
+  try {
+    const res = await fetch(`/api/public/feed/promotions?limit=5&days=2`);
+    if (!res.ok) return;
+    const data = await res.json();
+    updateSidebarNearbyDot(data.promotions || []);
+  } catch (_) {}
+}
+
+function updateSidebarNearbyDot(items) {
+  const dot = document.getElementById("sidebarNearbyDot");
+  if (!dot) return;
+  let lastSeen = 0;
+  try { lastSeen = parseInt(localStorage.getItem(PROMO_LAST_SEEN_KEY) || "0", 10) || 0; } catch {}
+  const hasNew = items.some(p => new Date(p.created_at).getTime() > lastSeen);
+  dot.style.display = hasNew ? "" : "none";
 }
 
 function renderPromoItem(p) {
