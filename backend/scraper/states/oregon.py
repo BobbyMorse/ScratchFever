@@ -148,10 +148,15 @@ class OregonScraper(BaseScraper):
     def _scrape_detail(self, page, slug: str, url: str, game_num: str | None) -> dict | None:
         from bs4 import BeautifulSoup
 
-        page.goto(url, wait_until="networkidle", timeout=25_000)
-        # Wait for odds table to populate
+        # "networkidle" keeps waiting for OR's analytics scripts (~15-25s each),
+        # which blew the 600s overall budget on Railway. domcontentloaded +
+        # selector wait is enough to capture the rendered table.
+        page.goto(url, wait_until="domcontentloaded", timeout=25_000)
         try:
-            page.wait_for_selector("table", timeout=10_000)
+            page.wait_for_selector(
+                "div.ol-odds-payouts-scratchits__results, table",
+                timeout=10_000,
+            )
         except Exception:
             pass
 
