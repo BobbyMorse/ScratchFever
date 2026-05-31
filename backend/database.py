@@ -351,24 +351,35 @@ async def upsert_game(conn: asyncpg.Connection, state_code: str, state_name: str
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19,
                 $20, $21, $22, $23, $24, $25, $26, NOW(), TRUE)
         ON CONFLICT(state_code, game_id) DO UPDATE SET
-            name=EXCLUDED.name, price=EXCLUDED.price,
+            -- Dynamic fields: must overwrite every scrape (even to NULL).
+            -- ev/return_pct/jackpot_odds_one_in are recomputed; remaining
+            -- counters legitimately move; ev_approximate reflects this run.
             ev=EXCLUDED.ev,
             return_pct=EXCLUDED.return_pct,
-            overall_odds_one_in=EXCLUDED.overall_odds_one_in,
-            top_prize=EXCLUDED.top_prize, top_prize_remaining=EXCLUDED.top_prize_remaining,
-            total_tickets=EXCLUDED.total_tickets, tickets_remaining=EXCLUDED.tickets_remaining,
-            prize_pool_left=EXCLUDED.prize_pool_left, jackpot_odds_one_in=EXCLUDED.jackpot_odds_one_in,
-            detail_url=EXCLUDED.detail_url,
+            top_prize_remaining=EXCLUDED.top_prize_remaining,
+            tickets_remaining=EXCLUDED.tickets_remaining,
+            prize_pool_left=EXCLUDED.prize_pool_left,
+            jackpot_odds_one_in=EXCLUDED.jackpot_odds_one_in,
+            ev_approximate=EXCLUDED.ev_approximate,
+            top_prize_is_annuity=EXCLUDED.top_prize_is_annuity,
+            has_second_chance=EXCLUDED.has_second_chance,
+            -- Static / metadata fields: COALESCE so a glitched scrape that
+            -- returns NULL can never wipe the prior value. These are fixed
+            -- at game launch (or are URLs/images we'd rather keep stale
+            -- than lose entirely).
+            name=COALESCE(EXCLUDED.name, games.name),
+            price=COALESCE(EXCLUDED.price, games.price),
+            overall_odds_one_in=COALESCE(EXCLUDED.overall_odds_one_in, games.overall_odds_one_in),
+            top_prize=COALESCE(EXCLUDED.top_prize, games.top_prize),
+            total_tickets=COALESCE(EXCLUDED.total_tickets, games.total_tickets),
+            detail_url=COALESCE(EXCLUDED.detail_url, games.detail_url),
             image_url=COALESCE(EXCLUDED.image_url, games.image_url),
             how_to_play=COALESCE(EXCLUDED.how_to_play, games.how_to_play),
-            end_date=EXCLUDED.end_date,
-            ev_approximate=EXCLUDED.ev_approximate,
+            end_date=COALESCE(EXCLUDED.end_date, games.end_date),
             start_date=COALESCE(EXCLUDED.start_date, games.start_date),
-            top_prize_is_annuity=EXCLUDED.top_prize_is_annuity,
-            top_prize_cash_value=EXCLUDED.top_prize_cash_value,
-            top_prize_annuity_years=EXCLUDED.top_prize_annuity_years,
-            top_prize_annuity_annual=EXCLUDED.top_prize_annuity_annual,
-            has_second_chance=EXCLUDED.has_second_chance,
+            top_prize_cash_value=COALESCE(EXCLUDED.top_prize_cash_value, games.top_prize_cash_value),
+            top_prize_annuity_years=COALESCE(EXCLUDED.top_prize_annuity_years, games.top_prize_annuity_years),
+            top_prize_annuity_annual=COALESCE(EXCLUDED.top_prize_annuity_annual, games.top_prize_annuity_annual),
             second_chance_url=COALESCE(EXCLUDED.second_chance_url, games.second_chance_url),
             scraped_at=NOW(), is_active=TRUE
         RETURNING id
