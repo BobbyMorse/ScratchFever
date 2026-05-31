@@ -6546,6 +6546,7 @@ const GEN_STATES = {
   MI: { name: "Michigan",       center: [44.3, -85.6],  zoom: 7 },
   MS: { name: "Mississippi",    center: [32.8, -89.5],  zoom: 7 },
   NC: { name: "North Carolina", center: [35.5, -79.5],  zoom: 7 },
+  NH: { name: "New Hampshire",  center: [43.9, -71.6],  zoom: 8 },
   NJ: { name: "New Jersey",     center: [40.2, -74.7],  zoom: 8 },
   OK: { name: "Oklahoma",       center: [35.5, -97.5],  zoom: 7 },
   OR: { name: "Oregon",         center: [43.9, -120.5], zoom: 7 },
