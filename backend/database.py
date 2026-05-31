@@ -26,11 +26,14 @@ async def init_db():
             # stays under 15. Switch DATABASE_URL to the transaction-mode
             # pooler (port 6543) to relax this ceiling.
             db_pool_max = int(os.environ.get("DB_POOL_MAX_SIZE", "8"))
+            # min_size=1 so a new deploy can start even when the old deploy
+            # still holds connections (Supabase pgBouncer session-mode caps
+            # at ~15 clients project-wide; deploys deadlock if we demand 2+).
             _pool = await asyncpg.create_pool(
                 db_url,
-                min_size=2, max_size=db_pool_max,
+                min_size=1, max_size=db_pool_max,
                 statement_cache_size=0,
-                timeout=60,
+                timeout=30,
             )
             break
         except Exception as e:
