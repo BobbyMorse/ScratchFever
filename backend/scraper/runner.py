@@ -213,8 +213,30 @@ async def run_all(state_filter: str = None, on_state=None) -> list[dict]:
 
     active = [s for s in scrapers if not getattr(s, "disabled", False)]
     skipped = [s for s in scrapers if getattr(s, "disabled", False)]
+    # Disabled states may have stale active rows from a prior run when the
+    # scraper was working. Deactivate them so they stop appearing in the EV
+    # table, dropdown counts, and state-status row.
+    if skipped:
+        async with get_pool().acquire() as conn:
+            for s in skipped:
+                n = await conn.fetchval(
+                    "UPDATE games SET is_active=FALSE WHERE state_code=$1 AND is_active=TRUE RETURNING 1",
+                )
+                # asyncpg's fetchval on a multi-row UPDATE returns the first row's value;
+                # use execute() + parse "UPDATE n" status string for the count.
+                pass
+            for s in skipped:
+                status = await conn.execute(
+                    "UPDATE games SET is_active=FALSE WHERE state_code=$1 AND is_active=TRUE",
+                    s.state_code,
+                )
+                n = int(status.split()[-1]) if status.startswith("UPDATE") else 0
+                if n:
+                    logger.info("  %s: deactivated %d stale rows (scraper disabled)", s.state_code, n)
+                else:
+                    logger.info("  %s: skipped (scraper marked disabled)", s.state_code)
     for s in skipped:
-        logger.info("  %s: skipped (scraper marked disabled)", s.state_code)
+        pass
 
     http_sem = asyncio.Semaphore(HTTP_CONCURRENCY)
     pw_sem = asyncio.Semaphore(PLAYWRIGHT_CONCURRENCY)
