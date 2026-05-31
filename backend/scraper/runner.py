@@ -90,7 +90,47 @@ ALL_SCRAPERS = [
 
 DEFAULT_TIMEOUT = 120   # seconds for HTTP-based scrapers
 PLAYWRIGHT_TIMEOUT = 600  # seconds for Playwright scrapers
-DELAY_BETWEEN_STATES = 180  # seconds to sleep between each state
+
+# Concurrency budgets. Playwright is RAM-bound on 512MB Railway dyno — one at a
+# time. HTTP scrapers can fan out more safely (asyncpg pool is 20).
+HTTP_CONCURRENCY = 4
+PLAYWRIGHT_CONCURRENCY = 1
+
+# Circuit breaker. After this many consecutive failures, skip the state for a
+# cooldown that doubles each subsequent failure (capped). In-memory only —
+# resets on process restart, which is fine: Railway redeploys are infrequent
+# and the persistent scrape_log table is the source of truth for history.
+CB_FAIL_THRESHOLD = 3
+CB_COOLDOWN_BASE = 30 * 60       # 30 min after first trip
+CB_COOLDOWN_MAX = 24 * 60 * 60   # 24 hr ceiling
+
+_cb_fail_count: dict[str, int] = {}
+_cb_skip_until: dict[str, float] = {}
+
+
+def _cb_should_skip(state_code: str) -> float | None:
+    """Return seconds remaining in cooldown, or None to allow the scrape."""
+    until = _cb_skip_until.get(state_code)
+    if until and until > time.time():
+        return until - time.time()
+    return None
+
+
+def _cb_record(state_code: str, success: bool) -> None:
+    if success:
+        _cb_fail_count.pop(state_code, None)
+        _cb_skip_until.pop(state_code, None)
+        return
+    n = _cb_fail_count.get(state_code, 0) + 1
+    _cb_fail_count[state_code] = n
+    if n >= CB_FAIL_THRESHOLD:
+        # n=3 → 30m, n=4 → 1h, n=5 → 2h, … capped at 24h
+        cooldown = min(CB_COOLDOWN_BASE * (2 ** (n - CB_FAIL_THRESHOLD)), CB_COOLDOWN_MAX)
+        _cb_skip_until[state_code] = time.time() + cooldown
+        logger.warning(
+            "%s: circuit breaker tripped (%d consecutive failures) — cooling down %d min",
+            state_code, n, int(cooldown / 60),
+        )
 
 
 async def persist_games(conn, state_code: str, state_name: str, games: list[dict]):
