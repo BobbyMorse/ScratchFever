@@ -1291,6 +1291,22 @@
     }
   }
 
+  /* ── COPY-URL ──────────────────────────────────────── */
+  async function copyShareUrl(btn) {
+    const input = document.getElementById("shareUrlInput");
+    if (!input) return;
+    try {
+      await navigator.clipboard.writeText(input.value);
+    } catch {
+      input.select();
+      document.execCommand("copy");
+    }
+    const orig = btn.textContent;
+    btn.textContent = "Copied ✓";
+    btn.disabled = true;
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1800);
+  }
+
   /* ── POST QUICKFILL ────────────────────────────────── */
   function prefillPost(kind) {
     const t = document.getElementById("postTitle");
