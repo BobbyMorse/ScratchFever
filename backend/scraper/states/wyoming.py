@@ -17,6 +17,7 @@ class WyomingScraper(BaseScraper):
     state_code = "WY"
     state_name = "Wyoming"
     base_url = BASE_URL
+    disabled = True
 
     def scrape(self) -> list[dict]:
         # Wyoming Lottery sells draw games only — no scratch-off tickets
