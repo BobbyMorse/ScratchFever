@@ -6586,6 +6586,7 @@ async function loadGenRetailers(code) {
   if (genLoaded[code]) {
     const totalEl = document.getElementById("genStatTotal");
     if (totalEl) totalEl.textContent = (allGenRetailers[code] || []).length.toLocaleString();
+    _syncGenMapButton();
     renderGenTable();
     return;
   }
@@ -6599,10 +6600,26 @@ async function loadGenRetailers(code) {
     allGenRetailers[code] = data.retailers || [];
     genLoaded[code] = true;
     if (totalEl) totalEl.textContent = allGenRetailers[code].length.toLocaleString();
+    _syncGenMapButton();
     renderGenTable();
   } catch (e) {
     const tbody = document.getElementById("genTableBody");
     if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="loading-cell">Failed to load retailers.</td></tr>`;
+  }
+}
+
+// Hide the Map button when the current state has no geo-coded retailers
+// (scraper missing or broken — CT today). Avoids opening an empty map.
+function _syncGenMapButton() {
+  const btn = document.getElementById("genViewMapBtn");
+  if (!btn) return;
+  const list = _currentGenList();
+  const hasGeo = list.some(r => r.latitude != null && r.longitude != null);
+  btn.style.display = hasGeo ? "" : "none";
+  if (!hasGeo && genMapVisible) {
+    const sec = document.getElementById("genMapSection");
+    if (sec) sec.style.display = "none";
+    genMapVisible = false;
   }
 }
 
