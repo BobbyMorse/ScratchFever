@@ -55,14 +55,23 @@ class OregonScraper(BaseScraper):
             page = ctx.new_page()
 
             # --- Listing page: extract game slugs (and game numbers if available) ---
+            # The table is JS-rendered; "networkidle" alone sometimes catches the
+            # page mid-render with only 1 row. Wait until the table has a real
+            # number of rows before parsing.
             slug_to_game_num: dict[str, str] = {}
             try:
-                page.goto(LISTING_URL, wait_until="networkidle", timeout=35_000)
-                # Wait for the table rows to populate
+                page.goto(LISTING_URL, wait_until="domcontentloaded", timeout=45_000)
                 try:
-                    page.wait_for_selector("table tbody tr td", timeout=15_000)
+                    page.wait_for_function(
+                        "document.querySelectorAll('table tbody tr').length > 10",
+                        timeout=60_000,
+                    )
                 except Exception:
-                    pass
+                    # Last-ditch: any rows at all, even if few
+                    try:
+                        page.wait_for_selector("table tbody tr td", timeout=15_000)
+                    except Exception:
+                        pass
                 soup = BeautifulSoup(page.content(), "lxml")
                 slug_to_game_num = self._parse_listing(soup)
             except Exception as e:
@@ -71,9 +80,15 @@ class OregonScraper(BaseScraper):
             slugs = list(slug_to_game_num.keys())
             logger.info("OR: %d game slugs found", len(slugs))
 
-            if not slugs:
+            # Don't proceed with a near-empty listing — the runner's site-outage
+            # check would mark us errored anyway, and raising here surfaces a
+            # clearer error message than "scraped 1 games but DB has 36".
+            if len(slugs) < 5:
                 browser.close()
-                return []
+                raise RuntimeError(
+                    f"OR listing page returned only {len(slugs)} slugs — "
+                    f"table did not finish rendering"
+                )
 
             # --- Detail pages ---
             for slug in slugs:
