@@ -49,10 +49,16 @@ class _TableParser(HTMLParser):
             self._current.append(html_mod.unescape(f"&#{name};"))
 
 
+_UA = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+)
+
+
 def _fetch_cities() -> list[str]:
     import requests
     session = requests.Session()
-    session.headers.update({"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"})
+    session.headers.update({"User-Agent": _UA, "Accept": "text/html,application/xhtml+xml,*/*;q=0.8"})
     try:
         resp = session.get(LOCATOR_URL, timeout=30)
         resp.raise_for_status()
@@ -70,7 +76,7 @@ def _parse_rows(html: str) -> list[dict]:
     """Parse retailer table rows. Columns: Name, Address, City."""
     parser = _TableParser()
     parser.feed(html)
-    cells = parser.cells
+    cells = parser._cells
     # Every 3 cells = one retailer row (Name, Address, City)
     retailers: list[dict] = []
     i = 0
