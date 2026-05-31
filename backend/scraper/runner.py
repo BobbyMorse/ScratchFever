@@ -205,7 +205,11 @@ async def run_all(state_filter: str = None, on_state=None) -> list[dict]:
     reset_cancel()
     scrapers = ALL_SCRAPERS
     if state_filter:
-        scrapers = [s for s in ALL_SCRAPERS if s.state_code.upper() == state_filter.upper()]
+        sf = state_filter.upper()
+        scrapers = [s for s in ALL_SCRAPERS if s.state_code.upper() == sf]
+        # Manual single-state runs are explicit retries — bypass the breaker.
+        _cb_fail_count.pop(sf, None)
+        _cb_skip_until.pop(sf, None)
 
     active = [s for s in scrapers if not getattr(s, "disabled", False)]
     skipped = [s for s in scrapers if getattr(s, "disabled", False)]
