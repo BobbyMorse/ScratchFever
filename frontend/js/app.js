@@ -1419,7 +1419,8 @@ function renderBigWinsMap() {
   if (stats) {
     const stateSeg = state ? ` · ${state}` : "";
     const gameSeg = game ? ` · ${escHtml(game)}` : "";
-    stats.innerHTML = `<strong>${wins.length}</strong> wins across <strong>${groups.size}</strong> retailers · <strong>${fmtClaimPrize(totalPrize)}</strong> total prizes · ${rangeLabel}${stateSeg}${gameSeg}`;
+    const prizeSeg = minPrize ? ` · ${fmtClaimPrize(minPrize)}+` : "";
+    stats.innerHTML = `<strong>${wins.length}</strong> wins across <strong>${groups.size}</strong> retailers · <strong>${fmtClaimPrize(totalPrize)}</strong> total prizes · ${rangeLabel}${stateSeg}${gameSeg}${prizeSeg}`;
   }
   if (countEl) countEl.textContent = `${wins.length} mapped win${wins.length !== 1 ? "s" : ""}`;
 
