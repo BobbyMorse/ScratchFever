@@ -236,6 +236,7 @@ class IllinoisScraper(PlaywrightScraper):
                     tiers=[],
                     overall_odds=overall_odds,
                     detail_url=f"{BASE_URL}/games-hub/instant-tickets",
+                    image_url=image_map.get(game_id),
                 ))
                 continue
 
@@ -248,6 +249,7 @@ class IllinoisScraper(PlaywrightScraper):
                 total_tickets=total_tickets,
                 overall_odds=overall_odds,
                 detail_url=f"{BASE_URL}/games-hub/instant-tickets",
+                image_url=image_map.get(game_id),
             ))
 
         logger.info("IL: %d games scraped", len(games))
