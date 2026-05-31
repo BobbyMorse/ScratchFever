@@ -787,7 +787,7 @@ async def api_reported_wins(
     min_prize: float = Query(10000, ge=0),
     state: Optional[str] = Query(None, description="2-letter state code filter"),
     has_location: bool = Query(False, description="Only wins with lat/lng"),
-    limit: int = Query(1000, le=5000),
+    limit: int = Query(1000),
 ):
     cache_key = (days, min_prize, state, has_location, limit)
     cached = _reported_wins_cache.get(cache_key)
