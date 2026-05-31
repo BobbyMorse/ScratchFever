@@ -148,10 +148,16 @@ async def persist_games(conn, state_code: str, state_name: str, games: list[dict
 
 
 async def run_scraper(scraper_cls) -> tuple[str, int, str | None]:
-    if _cancel_requested:
-        scraper = scraper_cls()
-        return scraper.state_code, 0, "cancelled"
     scraper = scraper_cls()
+    if _cancel_requested:
+        return scraper.state_code, 0, "cancelled"
+
+    cooldown_left = _cb_should_skip(scraper.state_code)
+    if cooldown_left is not None:
+        msg = f"skipped: circuit breaker cooldown ({int(cooldown_left / 60)} min remaining)"
+        logger.info("  %s: %s", scraper.state_code, msg)
+        return scraper.state_code, 0, msg
+
     timeout = getattr(scraper, "scraper_timeout", DEFAULT_TIMEOUT)
     logger.info("Starting scraper: %s (%s)", scraper.state_name, scraper.state_code)
     try:
@@ -187,6 +193,10 @@ async def run_scraper(scraper_cls) -> tuple[str, int, str | None]:
             logger.error("%s: %s", scraper.state_code, e)
     async with get_pool().acquire() as conn:
         await log_scrape(conn, scraper.state_code, error is None, count, error)
+    # Don't count "site outage protection" as a circuit-breaker failure — the
+    # scraper worked, the DB just refused the write. Only true scrape/persist
+    # failures bump the counter.
+    _cb_record(scraper.state_code, success=(error is None or "site outage" in (error or "")))
     logger.info("  %s: %d games%s", scraper.state_code, count, f" [ERROR: {error}]" if error else "")
     return scraper.state_code, count, error
 
@@ -197,21 +207,33 @@ async def run_all(state_filter: str = None, on_state=None) -> list[dict]:
     if state_filter:
         scrapers = [s for s in ALL_SCRAPERS if s.state_code.upper() == state_filter.upper()]
 
-    results = []
-    for i, cls in enumerate(scrapers):
+    active = [s for s in scrapers if not getattr(s, "disabled", False)]
+    skipped = [s for s in scrapers if getattr(s, "disabled", False)]
+    for s in skipped:
+        logger.info("  %s: skipped (scraper marked disabled)", s.state_code)
+
+    http_sem = asyncio.Semaphore(HTTP_CONCURRENCY)
+    pw_sem = asyncio.Semaphore(PLAYWRIGHT_CONCURRENCY)
+
+    async def _one(cls):
         if _cancel_requested:
-            break
-        if i > 0:
-            logger.info("Waiting %ds before next state...", DELAY_BETWEEN_STATES)
-            await asyncio.sleep(DELAY_BETWEEN_STATES)
-        if on_state:
-            on_state(cls.state_code, cls.state_name)
-        try:
-            code, count, error = await run_scraper(cls)
-            results.append({"state": code, "games": count, "error": error})
-        except Exception as exc:
-            logger.error("Unhandled scraper exception: %s", exc)
-            results.append({"state": "?", "games": 0, "error": str(exc)})
+            return {"state": cls.state_code, "games": 0, "error": "cancelled"}
+        sem = pw_sem if issubclass(cls, PlaywrightScraper) else http_sem
+        async with sem:
+            if _cancel_requested:
+                return {"state": cls.state_code, "games": 0, "error": "cancelled"}
+            if on_state:
+                on_state(cls.state_code, cls.state_name)
+            try:
+                code, count, error = await run_scraper(cls)
+                return {"state": code, "games": count, "error": error}
+            except Exception as exc:
+                logger.error("Unhandled scraper exception in %s: %s", cls.state_code, exc)
+                return {"state": cls.state_code, "games": 0, "error": str(exc)}
+
+    results = await asyncio.gather(*[_one(cls) for cls in active])
+    for s in skipped:
+        results.append({"state": s.state_code, "games": 0, "error": "disabled"})
     return results
 
 
