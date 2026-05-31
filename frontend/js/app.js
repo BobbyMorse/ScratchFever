@@ -5866,6 +5866,7 @@ async function loadVaRetailers() {
     const el = document.getElementById("vaStatTotal");
     if (el) el.textContent = allVaRetailers.length.toLocaleString();
     renderVaTable();
+    if (!vaMapVisible) toggleVaMap();
   } catch (e) {
     const tbody = document.getElementById("vaTableBody");
     if (tbody) tbody.innerHTML =
