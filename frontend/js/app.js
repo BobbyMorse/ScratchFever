@@ -4344,6 +4344,12 @@ function _findRetailerAcrossStates(retailerId) {
     [allFlRetailers, 'FL'], [allGaRetailers, 'GA'], [allNyRetailers, 'NY'],
     [allVaRetailers, 'VA'], [allDcRetailers, 'DC'], [allVtRetailers, 'VT'],
   ];
+  if (typeof GEN_STATES !== "undefined") {
+    for (const code of Object.keys(GEN_STATES)) {
+      const arr = allGenRetailers[code];
+      if (arr) buckets.push([arr, code]);
+    }
+  }
   for (const [arr, code] of buckets) {
     if (!arr) continue;
     const r = arr.find(x => String(x.id) === String(retailerId));
