@@ -1,10 +1,21 @@
 """
 Runs all state scrapers and persists results to the database.
+
+Concurrency model: scrapers run with bounded concurrency under two budgets —
+a wider one for HTTP-based scrapers and a tighter one for Playwright scrapers
+(each Chromium instance is RAM-heavy on Railway's 512MB dyno). Replaces the
+prior sequential-with-180s-sleep loop.
+
+Circuit breaker: a state that fails N times in a row gets skipped for an
+exponentially-growing cooldown, so a broken site (e.g. IL Playwright timeout,
+OH parser drift) no longer eats its full timeout slot every cycle.
 """
 import asyncio
 import logging
+import time
 
 from backend.database import get_pool, upsert_game, upsert_prize_tiers, log_scrape
+from backend.scraper.playwright_base import PlaywrightScraper
 from backend.scraper.states.texas import TexasScraper
 from backend.scraper.states.florida import FloridaScraper
 from backend.scraper.states.california import CaliforniaScraper
