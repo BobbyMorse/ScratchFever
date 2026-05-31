@@ -6537,14 +6537,22 @@ function applyVtGameFilter() {
 // ══════════════════════════════════════════════════════════════════════════════
 
 const GEN_STATES = {
+  AR: { name: "Arkansas",       center: [34.8, -92.5],  zoom: 7 },
+  CA: { name: "California",     center: [37.2, -119.5], zoom: 6 },
   CO: { name: "Colorado",       center: [39.0, -105.5], zoom: 7 },
   CT: { name: "Connecticut",    center: [41.6, -72.7],  zoom: 9 },
+  KY: { name: "Kentucky",       center: [37.5, -85.0],  zoom: 7 },
   ME: { name: "Maine",          center: [45.3, -69.0],  zoom: 7 },
   MI: { name: "Michigan",       center: [44.3, -85.6],  zoom: 7 },
+  MS: { name: "Mississippi",    center: [32.8, -89.5],  zoom: 7 },
+  NC: { name: "North Carolina", center: [35.5, -79.5],  zoom: 7 },
   NJ: { name: "New Jersey",     center: [40.2, -74.7],  zoom: 8 },
+  OK: { name: "Oklahoma",       center: [35.5, -97.5],  zoom: 7 },
   OR: { name: "Oregon",         center: [43.9, -120.5], zoom: 7 },
   SC: { name: "South Carolina", center: [33.8, -81.0],  zoom: 8 },
+  TX: { name: "Texas",          center: [31.5, -99.0],  zoom: 6 },
   WA: { name: "Washington",     center: [47.4, -120.7], zoom: 7 },
+  WI: { name: "Wisconsin",      center: [44.5, -89.5],  zoom: 7 },
 };
 
 let allGenRetailers = {};   // { CODE: [...] }
