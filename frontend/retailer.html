@@ -425,6 +425,21 @@
       margin-left: auto; font-size: .72rem; opacity: .85; font-weight: 500;
     }
 
+    /* ── Share-URL row ──────────────────────────────── */
+    .share-url-row {
+      display: flex; gap: .5rem; align-items: center; flex-wrap: wrap;
+    }
+    .share-url-input {
+      flex: 1; min-width: 220px;
+      padding: .55rem .85rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: .8rem;
+      background: #f8fafc; color: var(--text);
+    }
+    .share-url-input:focus { outline: 2px solid var(--teal); outline-offset: -1px; }
+
     /* ── Post quick-fill buttons ────────────────────── */
     .post-quick {
       display: flex; align-items: center; gap: .4rem; flex-wrap: wrap;
