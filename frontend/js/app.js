@@ -1285,7 +1285,7 @@ function rebuildBigWinsStateDropdown() {
   const sel = document.getElementById("bigwinsStateFilter");
   if (!sel) return;
   const prev = sel.value;
-  const source = bigwinsView === "map" ? bigwinsReportedStates : allBigWinsStates;
+  const source = bigwinsView === "map" ? bigwinsMapStates : allBigWinsStates;
   sel.innerHTML = '<option value="">All States</option>' +
     source.map(sc => `<option value="${sc}">${sc}</option>`).join("");
   if (source.includes(prev)) sel.value = prev;
@@ -1295,19 +1295,17 @@ function rebuildBigWinsGameDropdown() {
   const sel = document.getElementById("bigwinsGameFilter");
   if (!sel) return;
   const prev = sel.value;
-  const counts = new Map();
+  let sorted;
   if (bigwinsView === "map") {
-    for (const w of bigwinsReportedWins) {
-      const key = (w.source_game_name || "").trim() || "(unknown)";
-      counts.set(key, (counts.get(key) || 0) + 1);
-    }
+    sorted = bigwinsMapGameCounts.map(gc => [gc.name, gc.count]);
   } else {
+    const counts = new Map();
     for (const c of allBigWins) {
       const key = (c.game_name || "").trim() || "(unknown)";
       counts.set(key, (counts.get(key) || 0) + 1);
     }
+    sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
   }
-  const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
   sel.innerHTML = '<option value="">All Tickets</option>' +
     sorted.map(([name, n]) => `<option value="${escAttr(name)}">${escHtml(name)} (${n})</option>`).join("");
   if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
