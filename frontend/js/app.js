@@ -1729,6 +1729,19 @@ function gameRow(g, rank) {
   const updated = g.scraped_at ? timeAgo(parseReportedAt(g.scraped_at)) : "—";
   const updatedFull = g.scraped_at ? fmtDate(g.scraped_at) : "";
 
+  let startedCell = `<span style="color:var(--text-muted)">—</span>`;
+  if (g.start_date) {
+    const sd = parseReportedAt(g.start_date);
+    const days = Math.floor((Date.now() - sd) / 86400000);
+    let label;
+    if (days < 0) label = "soon";
+    else if (days < 30) label = `${days}d ago`;
+    else if (days < 365) label = `${Math.round(days / 30)} mo ago`;
+    else label = `${(days / 365).toFixed(1)} yr ago`;
+    const isNew = days >= 0 && days < 60;
+    startedCell = `<span title="${fmtDate(g.start_date)}" style="font-size:.8rem;${isNew ? 'color:var(--green);font-weight:700' : 'color:var(--text-muted)'}">${isNew ? '🆕 ' : ''}${label}</span>`;
+  }
+
   const reportCount = gameCounts[g.name.toLowerCase()] || 0;
   const reportBadge = reportCount > 0
     ? `<span class="game-report-badge" title="In stock at ${reportCount} member-reported location${reportCount > 1 ? 's' : ''}">${reportCount} 📍</span>`
