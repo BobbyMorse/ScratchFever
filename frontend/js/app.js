@@ -396,7 +396,112 @@ function syncHeaderHeight() {
   // Deep-link: /?store=<id>&state=<code> — open that store's profile inline.
   // Used by the retailer dashboard's "View public page" link.
   openStoreFromUrl();
+
+  // Live promotions feed — populates the "Live store updates near you" card
+  // on the EV tab. Uses cached geolocation if previously granted; otherwise
+  // shows latest across all claimed stores and offers a "use my location" button.
+  loadPromoFeed();
+  // Auto-refresh every 2 minutes so new posts surface without a page reload.
+  setInterval(() => { if (currentTab === "ev") loadPromoFeed(); }, 120_000);
 })();
+
+/* ── Live promotions feed ──────────────────────────────────────────────────── */
+const PROMO_GEO_KEY = "sf_promo_geo";
+function getCachedGeo() {
+  try {
+    const raw = localStorage.getItem(PROMO_GEO_KEY);
+    if (!raw) return null;
+    const v = JSON.parse(raw);
+    // 24h cache — coords don't change that often, no need to re-prompt
+    if (!v.t || Date.now() - v.t > 86_400_000) return null;
+    return { lat: v.lat, lng: v.lng };
+  } catch { return null; }
+}
+function setCachedGeo(lat, lng) {
+  try { localStorage.setItem(PROMO_GEO_KEY, JSON.stringify({ lat, lng, t: Date.now() })); }
+  catch {}
+}
+
+async function loadPromoFeed(force = false) {
+  const feed = document.getElementById("promoFeed");
+  const list = document.getElementById("promoFeedList");
+  const scope = document.getElementById("promoFeedScope");
+  const locBtn = document.getElementById("promoFeedLocBtn");
+  if (!feed || !list) return;
+
+  const geo = getCachedGeo();
+  const qs = new URLSearchParams({ limit: "12", days: "14" });
+  if (geo) {
+    qs.set("lat", String(geo.lat));
+    qs.set("lng", String(geo.lng));
+    qs.set("radius_mi", "25");
+    if (scope) scope.textContent = "near you";
+    if (locBtn) locBtn.style.display = "none";
+  } else {
+    if (scope) scope.textContent = "from claimed stores";
+    if (locBtn) locBtn.style.display = "";
+  }
+
+  try {
+    const res = await fetch(`/api/public/feed/promotions?${qs}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const items = data.promotions || [];
+    if (!items.length) {
+      feed.style.display = "none";
+      return;
+    }
+    feed.style.display = "";
+    list.innerHTML = items.map(renderPromoItem).join("");
+  } catch (_) { /* silent — feed is non-critical chrome */ }
+}
+
+function renderPromoItem(p) {
+  const ageMs = Date.now() - new Date(p.created_at).getTime();
+  const isFresh = ageMs < 24 * 3600 * 1000;
+  const distStr = (typeof p.distance_mi === "number")
+    ? (p.distance_mi < 0.5 ? "<½ mi"
+        : p.distance_mi < 10 ? `${p.distance_mi.toFixed(1)} mi`
+        : `${Math.round(p.distance_mi)} mi`)
+    : null;
+  const cityState = p.city ? `${p.city}, ${p.state_code || ""}` : (p.state_code || "");
+  const verifiedBadge = p.verified ? `<span class="promo-item-verified" title="Verified store">✓</span>` : "";
+  const freshBadge = isFresh ? `<span class="promo-item-fresh">NEW</span>` : "";
+  const distBadge = distStr ? `<span class="promo-item-dist">${distStr}</span>` : "";
+  const body = p.body ? `<div class="promo-item-body">${escHtml(p.body)}</div>` : "";
+  return `<a class="promo-item" href="/store/${encodeURIComponent(p.retailer_id)}">
+    <div class="promo-item-head">
+      <span class="promo-item-store" title="${escHtml(p.store_name)}">${escHtml(p.store_name)}</span>
+      ${verifiedBadge}
+      ${freshBadge}
+      ${distBadge}
+    </div>
+    <div class="promo-item-title">${escHtml(p.title)}</div>
+    ${body}
+    <div class="promo-item-foot">
+      <span>${escHtml(cityState)} · ${timeAgo(new Date(p.created_at))}</span>
+      <span class="promo-item-go">Open →</span>
+    </div>
+  </a>`;
+}
+
+function askPromoFeedLocation() {
+  if (!navigator.geolocation) {
+    alert("Your browser doesn't support location. The feed will show recent updates across all claimed stores.");
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      setCachedGeo(pos.coords.latitude, pos.coords.longitude);
+      loadPromoFeed(true);
+    },
+    (err) => {
+      // Permission denied or unavailable — silently fall back to no-location view.
+      console.warn("Geolocation declined or failed:", err.message);
+    },
+    { enableHighAccuracy: false, timeout: 8000, maximumAge: 600_000 }
+  );
+}
 
 async function openStoreFromUrl() {
   const params = new URLSearchParams(window.location.search);
