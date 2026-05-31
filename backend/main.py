@@ -812,6 +812,105 @@ async def api_reported_wins(
     return result
 
 
+@app.get("/api/reported-wins/map")
+async def api_reported_wins_map(
+    days: int = Query(1095, le=7300, description="Time window in days (default 3 years)"),
+    min_prize: float = Query(10000, ge=0),
+):
+    """Aggregated location groups for the Big Wins map. Bypasses the row cap that
+    plagues /api/reported-wins — for the map we only need one point per location,
+    so we aggregate server-side. Returns every geocoded location, not a top-N
+    slice. Filtering by state and game happens client-side off this dataset."""
+    cache_key = ("map", days, min_prize)
+    cached = _reported_wins_cache.get(cache_key)
+    if cached and (datetime.datetime.utcnow().timestamp() - cached[0]) < _REPORTED_WINS_TTL:
+        return cached[1]
+
+    async with get_pool().acquire() as conn:
+        rows = await get_reported_wins_for_map(conn, days=days, min_prize=min_prize)
+
+    groups: dict = {}
+    states_set: set = set()
+    game_counts: dict = {}
+    total_wins = 0
+    total_prize = 0.0
+    TOP_WINS_PER_GROUP = 12
+
+    for r in rows:
+        state_code = r["state_code"]
+        retailer_name = r["retailer_name"]
+        retailer_lat = r["retailer_lat"]
+        retailer_lng = r["retailer_lng"]
+        prize = float(r["prize_amount"] or 0)
+        game_name = (r["source_game_name"] or "").strip() or "(unknown)"
+        claim_date = r["claim_date"]
+        winner_city = r["winner_city"]
+
+        states_set.add(state_code)
+        game_counts[game_name] = game_counts.get(game_name, 0) + 1
+        total_wins += 1
+        total_prize += prize
+
+        is_home = retailer_name is None
+        if is_home:
+            key = ("home", state_code, (winner_city or "").lower())
+        else:
+            key = ("ret", round(retailer_lat, 5), round(retailer_lng, 5))
+
+        g = groups.get(key)
+        if g is None:
+            g = {
+                "lat": retailer_lat,
+                "lng": retailer_lng,
+                "state_code": state_code,
+                "is_home": is_home,
+                "retailer_name": retailer_name,
+                "retailer_city": r["retailer_city"],
+                "winner_city": winner_city,
+                "win_count": 0,
+                "total_prize": 0.0,
+                "max_prize": 0.0,
+                "last_claim_date": None,
+                "games": {},
+                "top_wins": [],
+            }
+            groups[key] = g
+
+        g["win_count"] += 1
+        g["total_prize"] += prize
+        if prize > g["max_prize"]:
+            g["max_prize"] = prize
+        if claim_date and (g["last_claim_date"] is None or claim_date > g["last_claim_date"]):
+            g["last_claim_date"] = claim_date
+        g["games"][game_name] = g["games"].get(game_name, 0) + 1
+        if len(g["top_wins"]) < TOP_WINS_PER_GROUP:
+            g["top_wins"].append({
+                "prize_amount": prize,
+                "source_game_name": r["source_game_name"],
+                "claim_date": claim_date.isoformat() if claim_date else None,
+                "game_db_id": r["game_db_id"],
+            })
+
+    for g in groups.values():
+        if g["last_claim_date"]:
+            g["last_claim_date"] = g["last_claim_date"].isoformat()
+
+    result = {
+        "groups": list(groups.values()),
+        "total_wins": total_wins,
+        "total_prize": total_prize,
+        "total_locations": len(groups),
+        "states_with_data": sorted(states_set),
+        "game_counts": [
+            {"name": n, "count": c}
+            for n, c in sorted(game_counts.items(), key=lambda kv: (-kv[1], kv[0]))
+        ],
+        "fetched_at": datetime.datetime.utcnow().isoformat() + "Z",
+    }
+    _reported_wins_cache[cache_key] = (datetime.datetime.utcnow().timestamp(), result)
+    return result
+
+
 @app.post("/api/admin/scrape-winners")
 async def api_scrape_winners(
     background: BackgroundTasks,
