@@ -217,6 +217,7 @@ class OregonScraper(BaseScraper):
             total_tickets=total_tickets,
             tickets_remaining=tickets_remaining,
             detail_url=f"{BASE_URL}/scratch-its/{_slugify(name)}/",
+            image_url=image_map.get(game_num),
         )
 
 
