@@ -566,7 +566,9 @@ async function openStoreFromUrl() {
     NY: () => allNyRetailers, VA: () => allVaRetailers,
     DC: () => allDcRetailers, VT: () => allVtRetailers,
   };
-  const getArr = stateArrays[stateCode] || stateArrays.MA;
+  const getArr = stateArrays[stateCode]
+    || (typeof GEN_STATES !== "undefined" && GEN_STATES[stateCode] ? () => (allGenRetailers[stateCode] || []) : null)
+    || stateArrays.MA;
   const deadline = Date.now() + 15_000;  // 15s cap so we never spin forever
   while (Date.now() < deadline) {
     const arr = getArr();
