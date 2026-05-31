@@ -13,6 +13,7 @@ class TennesseeScraper(BaseScraper):
     state_code = "TN"
     state_name = "Tennessee"
     base_url = "https://tnlottery.com"
+    disabled = True
 
     def scrape(self) -> list[dict]:
         logger.info("TN: disabled (403 Forbidden)")
