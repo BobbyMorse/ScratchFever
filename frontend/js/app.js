@@ -1768,6 +1768,7 @@ function gameRow(g, rank) {
     <td>${odds}</td>
     <td>${left}</td>
     <td>${pool}</td>
+    <td>${startedCell}</td>
     <td style="color:var(--text-muted);font-size:.8rem" title="${updatedFull}">${updated}</td>
     ${campaignCell}
   </tr>`;
