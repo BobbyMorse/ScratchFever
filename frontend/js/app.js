@@ -4220,6 +4220,7 @@ async function loadCommunityReports() {
       renderVaTable();
       renderDcTable();
       renderVtTable();
+      if (typeof renderGenTable === "function" && currentGenState) renderGenTable();
     }
     refreshOpenModalCommunity();
     if (currentHuntState === 'AZ') updateAzInventoryMapLayer();
@@ -4230,6 +4231,7 @@ async function loadCommunityReports() {
     else if (currentHuntState === 'VA') updateVaInventoryMapLayer();
     else if (currentHuntState === 'DC') updateDcInventoryMapLayer();
     else if (currentHuntState === 'VT') updateVtInventoryMapLayer();
+    else if (typeof GEN_STATES !== "undefined" && GEN_STATES[currentHuntState]) updateGenInventoryMapLayer();
     else updateInventoryMapLayer();
   } catch (_) {}
 }
