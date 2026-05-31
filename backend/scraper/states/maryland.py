@@ -88,6 +88,9 @@ class MarylandScraper(PlaywrightScraper):
                         if t["prizes_total"] and total_tickets:
                             t["odds_one_in"] = round(total_tickets / t["prizes_total"], 2)
 
+                img_el = li.find("img")
+                image_url = img_el.get("src") if img_el else None
+
                 games.append(self.build_game(
                     game_id=game_id,
                     name=name,
@@ -97,6 +100,7 @@ class MarylandScraper(PlaywrightScraper):
                     total_tickets=total_tickets,
                     tickets_remaining=tickets_remaining,
                     detail_url=f"{LIST_URL}#{li['id']}",
+                    image_url=image_url,
                 ))
             except Exception as e:
                 logger.debug("MD card parse error: %s", e)
