@@ -2308,6 +2308,7 @@ async function loadMaRetailers() {
     maLoaded = true;
     updateMaStats();
     renderMaTable();
+    if (!maMapVisible) toggleMaMap();
   } catch (e) {
     document.getElementById("maTableBody").innerHTML =
       `<tr><td colspan="6" class="loading-cell">Failed to load MA retailers.</td></tr>`;
