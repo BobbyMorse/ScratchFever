@@ -924,6 +924,11 @@ async function loadAllGamesUnfiltered() {
     vaGames = raw.filter(g => g.state_code === "VA");
     dcGames = raw.filter(g => g.state_code === "DC");
     vtGames = raw.filter(g => g.state_code === "VT");
+    if (typeof GEN_STATES !== "undefined") {
+      for (const code of Object.keys(GEN_STATES)) {
+        genGames[code] = raw.filter(g => g.state_code === code);
+      }
+    }
     allGames = applyClientFilters(raw);
     renderTable();
     populateGameFilterSelect();
