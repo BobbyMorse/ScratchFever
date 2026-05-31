@@ -564,7 +564,8 @@ async def api_status_states():
                 ROUND(100.0 * COUNT(ev) / COUNT(*), 0) AS ev_pct,
                 ROUND(100.0 * COUNT(image_url) / COUNT(*), 0) AS image_pct,
                 ROUND(AVG(CASE WHEN ev IS NOT NULL THEN return_pct END)::numeric, 1) AS avg_return,
-                ROUND(100.0 * COUNT(CASE WHEN tickets_remaining > 0 THEN 1 END) / NULLIF(COUNT(tickets_remaining),0), 0) AS prizes_pct
+                ROUND(100.0 * COUNT(CASE WHEN tickets_remaining > 0 THEN 1 END) / NULLIF(COUNT(tickets_remaining),0), 0) AS prizes_pct,
+                ROUND(100.0 * SUM(CASE WHEN ev IS NOT NULL AND COALESCE(ev_approximate, FALSE) THEN 1 ELSE 0 END) / NULLIF(COUNT(ev), 0), 0) AS approx_pct
             FROM games WHERE is_active=TRUE
             GROUP BY state_code
         """)
