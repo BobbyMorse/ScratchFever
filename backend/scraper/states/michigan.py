@@ -103,6 +103,10 @@ class MichiganScraper(BaseScraper):
             slug = identifier.lower().replace("_", "-") if identifier else str(igt_id)
             detail_url = f"{GAME_BASE}/{slug}"
 
+            logo = cat.get("logoUrl") or None
+            if logo and logo.startswith("//"):
+                logo = "https:" + logo
+
             game = self.build_game(
                 game_id=str(igt_id),
                 name=name,
@@ -112,6 +116,7 @@ class MichiganScraper(BaseScraper):
                 total_tickets=total_tickets,
                 tickets_remaining=tickets_remaining,
                 detail_url=detail_url,
+                image_url=logo,
             )
             games.append(game)
 
