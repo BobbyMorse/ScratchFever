@@ -1363,9 +1363,11 @@ function renderBigWinsMap() {
 
   const state = document.getElementById("bigwinsStateFilter")?.value || "";
   const game = document.getElementById("bigwinsGameFilter")?.value || "";
+  const minPrize = parseFloat(document.getElementById("bigwinsPrizeFilter")?.value || "0") || 0;
   let wins = bigwinsReportedWins;
   if (state) wins = wins.filter(w => w.state_code === state);
   if (game)  wins = wins.filter(w => (w.source_game_name || "").trim() === game);
+  if (minPrize) wins = wins.filter(w => (w.prize_amount || 0) >= minPrize);
 
   const empty = document.getElementById("bigwinsMapEmpty");
   const stats = document.getElementById("bigwinsMapStats");
@@ -1374,7 +1376,8 @@ function renderBigWinsMap() {
   if (!wins.length) {
     if (empty) {
       empty.style.display = "";
-      const filterDesc = [state, game].filter(Boolean).join(" · ");
+      const prizeLabel = minPrize ? `${fmtClaimPrize(minPrize)}+` : "";
+      const filterDesc = [state, game, prizeLabel].filter(Boolean).join(" · ");
       empty.textContent = filterDesc
         ? `No mapped wins for ${filterDesc} in this time range.`
         : "No mapped wins yet for this time range.";
