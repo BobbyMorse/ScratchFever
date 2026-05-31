@@ -1264,6 +1264,12 @@ function setBigWinsView(view) {
     if (mapWrap) mapWrap.style.display = "";
     if (rangeSel) rangeSel.style.display = "";
     if (gameSel) gameSel.style.display = "";
+    // Map's purpose is the multi-year distribution. If the user is on a
+    // short window (the list's default), bump to 3 years so smaller states
+    // aren't invisible.
+    if (rangeSel && parseInt(rangeSel.value, 10) < 365) {
+      rangeSel.value = "1095";
+    }
     rebuildBigWinsStateDropdown();
     loadBigWinsMap().then(() => renderBigWinsMap());
   } else {
