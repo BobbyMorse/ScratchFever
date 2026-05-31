@@ -131,6 +131,14 @@ def register_jobs(scheduler, status_dict: Optional[dict] = None,
             logger.exception("retailer staleness check failed")
 
     scheduler.add_job(_retailer_job, "interval", days=1, id="check_retailer_freshness")
-    scheduler.add_job(_winners_job, "interval", hours=1, id="scrape_winners")
+    # First winners pass kicks off ~3 minutes after boot so newly-added state
+    # scrapers get ingested on the very first deploy without waiting a full
+    # interval. APScheduler's `interval` trigger otherwise waits one whole
+    # interval before its first firing — meaning a fresh deploy could sit an
+    # hour with no winners data.
+    scheduler.add_job(
+        _winners_job, "interval", hours=1, id="scrape_winners",
+        next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=180),
+    )
 
     return _games_with_status
