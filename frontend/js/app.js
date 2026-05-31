@@ -6471,6 +6471,7 @@ async function loadGenRetailers(code) {
     if (totalEl) totalEl.textContent = allGenRetailers[code].length.toLocaleString();
     _syncGenMapButton();
     renderGenTable();
+    _autoShowGenMap();
   } catch (e) {
     const tbody = document.getElementById("genTableBody");
     if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="loading-cell">Failed to load retailers.</td></tr>`;
