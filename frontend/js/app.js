@@ -6046,6 +6046,7 @@ async function loadDcRetailers() {
     const el = document.getElementById("dcStatTotal");
     if (el) el.textContent = allDcRetailers.length.toLocaleString();
     renderDcTable();
+    if (!dcMapVisible) toggleDcMap();
   } catch (e) {
     const tbody = document.getElementById("dcTableBody");
     if (tbody) tbody.innerHTML =
