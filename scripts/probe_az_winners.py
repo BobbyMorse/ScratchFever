@@ -4,6 +4,9 @@ winner cards/tables, pagination, API XHR calls, key selectors)."""
 from __future__ import annotations
 import json
 import re
+import sys
+import io
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 from playwright.sync_api import sync_playwright
 
 URL = "https://www.arizonalottery.com/winners/"
