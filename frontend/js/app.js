@@ -1216,14 +1216,17 @@ function filterBigWins() {
   if (bigwinsView === "map") { renderBigWinsMap(); return; }
   const state = document.getElementById("bigwinsStateFilter")?.value || "";
   const game = document.getElementById("bigwinsGameFilter")?.value || "";
+  const minPrize = parseFloat(document.getElementById("bigwinsPrizeFilter")?.value || "0") || 0;
   const list = document.getElementById("bigwinsList");
   const countEl = document.getElementById("bigwinsCount");
   let filtered = allBigWins;
   if (state) filtered = filtered.filter(c => c.state_code === state);
   if (game)  filtered = filtered.filter(c => (c.game_name || "").trim() === game);
+  if (minPrize) filtered = filtered.filter(c => (c.prize_amount || 0) >= minPrize);
   if (filtered.length === 0) {
     const range = bigwinsRangeLabel();
-    const scope = [state, game].filter(Boolean).join(" · ");
+    const prizeLabel = minPrize ? `${fmtClaimPrize(minPrize)}+` : "";
+    const scope = [state, game, prizeLabel].filter(Boolean).join(" · ");
     list.innerHTML = `<div style="color:var(--text-muted);padding:2rem 1rem">No big wins${scope ? ` for ${escHtml(scope)}` : ""} in the ${range}.</div>`;
     countEl.textContent = "";
     return;
