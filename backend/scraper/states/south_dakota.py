@@ -85,13 +85,45 @@ class SouthDakotaScraper(BaseScraper):
         return games
 
     def _fetch_game_list(self) -> list[dict]:
-        resp = self.get(GAME_API, params={
-            "per_page": 100,
+        """Fetch all active scratch games via paginated WP REST API.
+
+        Single per_page=100 calls have intermittently returned partial results
+        on Railway (~19/49). Paginate explicitly and validate against the
+        X-WP-Total header so a truncated response surfaces as a hard error
+        instead of a silently-shrunken game list.
+        """
+        params = {
+            "per_page": 50,
             "game_option": 24,  # Active
             "game_type": 3,     # Scratch
             "_fields": "id,slug,title,game_price",
-        })
-        return resp.json()
+        }
+        all_games: list[dict] = []
+        page = 1
+        expected_total: int | None = None
+        while True:
+            resp = self.get(GAME_API, params={**params, "page": page})
+            if expected_total is None:
+                try:
+                    expected_total = int(resp.headers.get("X-WP-Total", "0"))
+                except (TypeError, ValueError):
+                    expected_total = None
+            batch = resp.json()
+            if not isinstance(batch, list) or not batch:
+                break
+            all_games.extend(batch)
+            if len(batch) < params["per_page"]:
+                break
+            page += 1
+            if page > 20:  # safety guard
+                break
+
+        if expected_total and len(all_games) < expected_total:
+            raise RuntimeError(
+                f"SD WP API returned {len(all_games)}/{expected_total} games — "
+                f"truncated response"
+            )
+        return all_games
 
     def _scrape_detail(self, page, meta: dict, url: str) -> dict | None:
         slug = meta["slug"]
