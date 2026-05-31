@@ -36,13 +36,27 @@ class IllinoisScraper(PlaywrightScraper):
     scraper_timeout = 600
 
     def scrape(self) -> list[dict]:
-        soup = self.pw_soup(
-            PRIZES_URL,
-            wait_for="domcontentloaded",
-            selector=".unclaimed-prizes-table__row",
-            timeout=60_000,
-            extra_wait_ms=2000,
-        )
+        # Cloudflare interstitial occasionally outlasts a single wait; retry
+        # once with a longer timeout before giving up. The runner's site-outage
+        # check preserves existing data if both attempts fail.
+        soup = None
+        last_err: Exception | None = None
+        for attempt, (sel_timeout, extra_wait) in enumerate([(60_000, 2_000), (120_000, 4_000)]):
+            try:
+                soup = self.pw_soup(
+                    PRIZES_URL,
+                    wait_for="domcontentloaded",
+                    selector=".unclaimed-prizes-table__row",
+                    timeout=sel_timeout,
+                    extra_wait_ms=extra_wait,
+                )
+                break
+            except Exception as e:
+                last_err = e
+                logger.warning("IL: attempt %d failed waiting for table: %s", attempt + 1, e)
+                self._close_browser()  # force a fresh Cloudflare handshake
+        if soup is None:
+            raise RuntimeError(f"IL: table never rendered after retries — {last_err}")
 
         # ── Build header → column-index map ──────────────────────────────────
         headers = soup.select("th.unclaimed-prizes-table__header, th.unclaimed-prizes-table__cell")
