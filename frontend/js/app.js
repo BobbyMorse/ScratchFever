@@ -6418,11 +6418,11 @@ function renderVtTable() {
   if (countEl) countEl.innerHTML = `${rows.length.toLocaleString()} retailers${countSuffix}`;
   const tbody = document.getElementById("vtTableBody");
   if (!tbody) return;
+  if (vtMapVisible) renderVtMapLayers(rows);
   if (!rows.length) {
     tbody.innerHTML = `<tr><td colspan="6" class="loading-cell">No retailers match.</td></tr>`;
     return;
   }
-  if (vtMapVisible) renderVtMapLayers(rows);
   lazyRenderRows({
     tbody,
     rows,
