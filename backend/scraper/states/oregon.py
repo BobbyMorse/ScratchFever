@@ -154,9 +154,9 @@ class OregonScraper(BaseScraper):
 
             browser.close()
 
-        return (creds if creds else None), listing_payload
+        return (creds if creds else None), listing_payload, image_map
 
-    def _fetch_and_build(self, session: requests.Session, meta: dict) -> dict | None:
+    def _fetch_and_build(self, session: requests.Session, meta: dict, image_map: dict[str, str]) -> dict | None:
         game_num = str(meta.get("GameNumber") or "").strip()
         if not game_num:
             return None
