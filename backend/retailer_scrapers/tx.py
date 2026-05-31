@@ -119,6 +119,8 @@ def scrape_tx() -> list[dict]:
 
     all_retailers: list[dict] = []
     seen_ids: set[str] = set()
+    consecutive_403 = 0
+    error_count = 0
 
     for i, city in enumerate(cities):
         try:
@@ -127,7 +129,21 @@ def scrape_tx() -> list[dict]:
                 data={"submitted": "true", "city": city, "zipcode": "", "distance": "10"},
                 timeout=30,
             )
+            if resp.status_code == 403:
+                consecutive_403 += 1
+                if consecutive_403 == 1 or consecutive_403 % 50 == 0:
+                    logger.warning("TX: HTTP 403 on city %s (consecutive=%d) — IP throttled, backing off 60s",
+                                   city, consecutive_403)
+                if consecutive_403 >= 5:
+                    # IP is banned. Bail out — runs that would silently get 403 for hundreds of cities just
+                    # waste time and inflate the runtime; better to fail fast and re-run after the ban lifts.
+                    logger.error("TX: aborting after %d consecutive 403s (banned). Partial result: %d retailers from %d cities",
+                                 consecutive_403, len(all_retailers), i)
+                    break
+                time.sleep(60)
+                continue
             resp.raise_for_status()
+            consecutive_403 = 0
             rows = _parse_rows(resp.text)
             new_count = 0
             for r in rows:
@@ -139,12 +155,13 @@ def scrape_tx() -> list[dict]:
                 logger.debug("TX [%d/%d] %s: %d new (total: %d)",
                              i + 1, len(cities), city, new_count, len(all_retailers))
         except Exception as e:
-            logger.debug("TX: error on city %s: %s", city, e)
-        time.sleep(0.3)
+            error_count += 1
+            logger.warning("TX: error on city %s: %s", city, e)
+        time.sleep(0.5)
 
         if (i + 1) % 100 == 0:
-            logger.info("TX: progress %d/%d cities, %d retailers so far",
-                        i + 1, len(cities), len(all_retailers))
+            logger.info("TX: progress %d/%d cities, %d retailers so far (errors=%d)",
+                        i + 1, len(cities), len(all_retailers), error_count)
 
     logger.info("TX: scraped %d unique retailers across %d cities",
                 len(all_retailers), len(cities))
