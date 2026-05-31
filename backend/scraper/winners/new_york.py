@@ -185,27 +185,65 @@ def _parse_retailer(body_html: str) -> tuple[str | None, str | None, str | None]
     return None, None, None
 
 
-_GAME_TITLE_RE = re.compile(
-    r"(?:on|playing|from\s+the\s+(?:Lottery\W+s\s+)?)\s+([^.]+?)\s+(?:scratch[-\s]?off|game|draw)",
+# Draw games we want to surface by name (rather than letting them get parsed
+# as garbage) so the DRAW_GAME_PATTERNS filter catches them. Match in title.
+_DRAW_KEYWORDS = (
+    "Powerball", "Mega Millions", "Cash4Life", "Take 5", "Win 4",
+    "Pick 10", "Lotto", "Numbers", "Quick Draw",
+)
+
+# Body: "...on the New York Lottery's $X,XXX,XXX <GAME> scratch-off game"
+# or:    "...on the <GAME> scratch-off game"
+# We allow the prize-prefixed form because most scratch winners read that way.
+_BODY_SCRATCH_GAME_RE = re.compile(
+    r"on\s+the\s+(?:New\s+York\s+Lottery\W*s\s+)?"
+    r"(?:\$[\d,.]+\s+)?"
+    r"([A-Z0-9][^.<\n]*?)\s+scratch[-\s]?off\s+game",
+    re.IGNORECASE,
+)
+# Body: "$X,XXX,XXX <draw-game-name>"
+_BODY_DRAW_GAME_RE = re.compile(
+    r"\$[\d,.]+\s+(Powerball|Mega\s+Millions|Cash4Life|Take\s+5|Lotto|Win\s+4|Pick\s+10|Numbers|Quick\s+Draw)",
     re.IGNORECASE,
 )
 
 
 def _parse_game_name(title: str, body_html: str) -> str | None:
-    """Best-effort game extraction. We try the body's '...on the X scratch-off
-    game' pattern first since the title is often promotional ('Brooklyn Player
-    Wins $1M Scratch-Off Prize'); fall back to title parsing."""
-    text = _HTML_TAG_RE.sub(" ", body_html or "")
-    text = _WS_RE.sub(" ", text)
-    m = _GAME_TITLE_RE.search(text)
+    """Extract a clean game name we can pass to is_draw_game().
+
+    Priorities, in order:
+      1. Title contains a known draw-game keyword → return that draw name (so
+         the DRAW_GAME_PATTERNS["NY"] filter rejects it cleanly).
+      2. Body has "...on the [<lottery>'s <amount>] <NAME> scratch-off game"
+         → return NAME.
+      3. Body has "$<amount> <draw-game>" → return draw game.
+      4. Fall back to the title (less precise; usually still a sensible label).
+    """
+    title = (title or "").strip()
+    body_text = _WS_RE.sub(" ", _HTML_TAG_RE.sub(" ", body_html or ""))
+
+    # 1. Title-based draw detection — most reliable signal for non-scratch
+    for kw in _DRAW_KEYWORDS:
+        if re.search(rf"\b{re.escape(kw)}\b", title, re.IGNORECASE):
+            return kw
+
+    # 2. Body scratch-off pattern
+    m = _BODY_SCRATCH_GAME_RE.search(body_text)
     if m:
-        return m.group(1).strip()
-    # Title-based fallback — e.g., "Wins $1,000 A Week for Life Scratch-Off Prize"
-    if "$" in title and ("scratch" in title.lower() or "draw" in title.lower()):
-        m2 = re.search(r"\$[\d,.]+\s+(.+?)\s+(?:Scratch[-\s]?Off|Draw|Lottery)\s+Prize", title, re.IGNORECASE)
-        if m2:
-            return m2.group(1).strip()
-    return title.strip() or None
+        name = m.group(1).strip()
+        # Strip trailing prize-amount fragments that sometimes lead the name
+        name = re.sub(r"^\$[\d,.]+\s+", "", name).strip()
+        # Strip leading "Max", "200 Extra", etc. labels are fine — keep as-is
+        if name and len(name) <= 60:
+            return name
+
+    # 3. Body draw pattern
+    m = _BODY_DRAW_GAME_RE.search(body_text)
+    if m:
+        return m.group(1)
+
+    # 4. Title fallback
+    return title or None
 
 
 def _parse_iso_date(s: str | None) -> dt.date | None:
