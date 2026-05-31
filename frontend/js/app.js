@@ -4344,6 +4344,10 @@ async function loadOwnerProfile(retailerId) {
     return;
   }
 
+  const storePageLink = `<a class="store-full-page-link" href="/store/${encodeURIComponent(retailerId)}" target="_blank">
+    Open full store page <span style="font-size:.85em">↗</span>
+  </a>`;
+
   mount.innerHTML = `<div class="store-owner-card">
     ${bannerHtml}
     <div class="store-owner-card-hd">
@@ -4355,6 +4359,7 @@ async function loadOwnerProfile(retailerId) {
       </div>
     </div>
     ${postsHtml}
+    <div class="store-full-page-row">${storePageLink}</div>
   </div>`;
 }
 
