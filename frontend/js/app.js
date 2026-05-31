@@ -6474,6 +6474,239 @@ function applyVtGameFilter() {
   if (vtMapVisible) renderVtMapLayers(getVtFilteredRows());
 }
 
+// ══════════════════════════════════════════════════════════════════════════════
+// GENERIC LIVE-STATE HUNT (CO, CT, ME, MI, NJ, OR, SC, WA)
+// One reusable console driven by `currentGenState`. Data sourced from
+// /api/state/{code}/retailers (backed by the state_retailers table).
+// ══════════════════════════════════════════════════════════════════════════════
+
+const GEN_STATES = {
+  CO: { name: "Colorado",       center: [39.0, -105.5], zoom: 7 },
+  CT: { name: "Connecticut",    center: [41.6, -72.7],  zoom: 9 },
+  ME: { name: "Maine",          center: [45.3, -69.0],  zoom: 7 },
+  MI: { name: "Michigan",       center: [44.3, -85.6],  zoom: 7 },
+  NJ: { name: "New Jersey",     center: [40.2, -74.7],  zoom: 8 },
+  OR: { name: "Oregon",         center: [43.9, -120.5], zoom: 7 },
+  SC: { name: "South Carolina", center: [33.8, -81.0],  zoom: 8 },
+  WA: { name: "Washington",     center: [47.4, -120.7], zoom: 7 },
+};
+
+let allGenRetailers = {};   // { CODE: [...] }
+let genGames        = {};   // { CODE: [...] }
+let genLoaded       = {};   // { CODE: true }
+let selectedGenGame = null;
+let currentGenState = null;
+let genMap          = null;
+let genMapVisible   = false;
+let genMapReportFilter = "all";
+let genRenderGen    = 0;
+
+function _currentGenList() { return currentGenState ? (allGenRetailers[currentGenState] || []) : []; }
+function _currentGenGames() { return currentGenState ? (genGames[currentGenState] || []) : []; }
+
+async function loadGenRetailers(code) {
+  currentGenState = code;
+  selectedGenGame = null;
+  // Reset filter inputs when switching states
+  ["genGameFilterInput", "genSearchInput", "genCityInput"].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = "";
+  });
+  ["genInvFilter", "genDateFilter"].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = "";
+  });
+  const clr = document.getElementById("genGameFilterClear"); if (clr) clr.style.display = "none";
+  const inStockCard = document.getElementById("genStatInStockCard"); if (inStockCard) inStockCard.style.display = "none";
+  const outCard = document.getElementById("genStatOutCard"); if (outCard) outCard.style.display = "none";
+
+  if (genLoaded[code]) {
+    const totalEl = document.getElementById("genStatTotal");
+    if (totalEl) totalEl.textContent = (allGenRetailers[code] || []).length.toLocaleString();
+    renderGenTable();
+    return;
+  }
+  try {
+    const totalEl = document.getElementById("genStatTotal");
+    if (totalEl) totalEl.textContent = "—";
+    const tbody = document.getElementById("genTableBody");
+    if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="loading-cell">Loading ${GEN_STATES[code]?.name || code} retailers…</td></tr>`;
+    const res = await fetch(`/api/state/${encodeURIComponent(code)}/retailers?limit=30000`);
+    const data = await res.json();
+    allGenRetailers[code] = data.retailers || [];
+    genLoaded[code] = true;
+    if (totalEl) totalEl.textContent = allGenRetailers[code].length.toLocaleString();
+    renderGenTable();
+  } catch (e) {
+    const tbody = document.getElementById("genTableBody");
+    if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="loading-cell">Failed to load retailers.</td></tr>`;
+  }
+}
+
+function getGenFilteredRows() {
+  if (!currentGenState) return [];
+  const q          = (document.getElementById("genSearchInput")?.value || "").toLowerCase().trim();
+  const city       = (document.getElementById("genCityInput")?.value   || "").toLowerCase().trim();
+  const invFilter  = document.getElementById("genInvFilter")?.value  || "";
+  const dateFilter = document.getElementById("genDateFilter")?.value || "";
+
+  genMapReportFilter = (invFilter === "in" || invFilter === "out") ? invFilter : "all";
+
+  let rows = _currentGenList();
+  if (q)    rows = rows.filter(r => (r.name || "").toLowerCase().includes(q));
+  if (city) rows = rows.filter(r => (r.city || "").toLowerCase().includes(city));
+  if (invFilter) {
+    rows = rows.filter(r => {
+      const s = retailerLatestStatus[r.id];
+      if (invFilter === "in")      return s && s.has_stock;
+      if (invFilter === "out")     return s && !s.has_stock;
+      if (invFilter === "checked") return !!s;
+      return true;
+    });
+  }
+  if (dateFilter) {
+    const now = Date.now();
+    const cutoffs = { today: 86400000, "7d": 7 * 86400000, "30d": 30 * 86400000 };
+    const cutoff  = cutoffs[dateFilter];
+    rows = rows.filter(r => {
+      const s = retailerLatestStatus[r.id];
+      if (!s) return false;
+      return (now - parseReportedAt(s.reported_at).getTime()) <= cutoff;
+    });
+  }
+  return rows;
+}
+
+function renderGenTable() {
+  if (!currentGenState || !genLoaded[currentGenState]) return;
+  const myGen = ++genRenderGen;
+  _openProfileId = null;
+  const rows = getGenFilteredRows();
+  const checkedCount = selectedGenGame ? Object.keys(retailerLatestStatus).length : null;
+  const countSuffix = checkedCount != null
+    ? ` · <strong style="color:var(--grape)">${checkedCount} checked for ${escHtml(selectedGenGame.name)}</strong>`
+    : "";
+  const countEl = document.getElementById("genResultCount");
+  if (countEl) countEl.innerHTML = `${rows.length.toLocaleString()} retailers${countSuffix}`;
+  const tbody = document.getElementById("genTableBody");
+  if (!tbody) return;
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="6" class="loading-cell">No retailers match.</td></tr>`;
+    return;
+  }
+  if (genMapVisible) renderGenMapLayers(rows);
+  const code = currentGenState;
+  lazyRenderRows({
+    tbody,
+    rows,
+    rowFn: (r, rank) => _stateRow(r, rank, code),
+    getStaleFlag: () => myGen !== genRenderGen,
+  });
+}
+
+function downloadGenCsv() {
+  if (!currentGenState) return;
+  const rows = getGenFilteredRows();
+  const cols = ["name","address","city","zipCode","phone","latitude","longitude"];
+  const blob = new Blob([cols.join(",") + "\n" + rows.map(r =>
+    cols.map(c => { const v = String(r[c] ?? ""); return v.includes(",") || v.includes('"') ? `"${v.replace(/"/g,'""')}"` : v; }).join(",")
+  ).join("\n")], { type: "text/csv" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+  a.download = `${currentGenState.toLowerCase()}_retailers.csv`; a.click(); URL.revokeObjectURL(a.href);
+}
+
+function toggleGenMap() {
+  const sec = document.getElementById("genMapSection");
+  genMapVisible = !genMapVisible;
+  sec.style.display = genMapVisible ? "" : "none";
+  if (genMapVisible) {
+    if (!genMap) initGenMap();
+    const cfg = GEN_STATES[currentGenState];
+    if (cfg && genMap) genMap.setView(cfg.center, cfg.zoom);
+    setTimeout(() => genMap && genMap.invalidateSize(), 50);
+    renderGenMapLayers(getGenFilteredRows());
+  }
+}
+
+function initGenMap() {
+  const cfg = GEN_STATES[currentGenState] || { center: [39.5, -98.35], zoom: 4 };
+  genMap = L.map("genMap", { preferCanvas: true }).setView(cfg.center, cfg.zoom);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors", maxZoom: 19,
+  }).addTo(genMap);
+  setupMapAutoResize(genMap);
+}
+
+function renderGenMapLayers(retailers) {
+  if (!genMap) return;
+  debounceMapRender("gen", () => updateGenInventoryMapLayer(retailers), 180);
+}
+
+function updateGenInventoryMapLayer(visibleRetailers) {
+  renderInventoryCluster(genMap, "_genInventoryLayer", {
+    retailers: visibleRetailers || getGenFilteredRows(),
+    reports: communityReports,
+    scopeIds: new Set(_currentGenList().map(r => String(r.id))),
+    selectedGame: selectedGenGame,
+    reportFilter: genMapReportFilter,
+  });
+}
+
+function searchGenGameFilter() {
+  const input = document.getElementById("genGameFilterInput");
+  const dd    = document.getElementById("genGameFilterDropdown");
+  const clear = document.getElementById("genGameFilterClear");
+  if (!input) return;
+  const q = input.value.trim().toLowerCase();
+  clear.style.display = q ? "" : "none";
+  const games = _currentGenGames();
+  const matches = q ? games.filter(g => g.name.toLowerCase().includes(q)) : games.slice(0, 50);
+  if (!matches.length) { dd.style.display = "none"; return; }
+  dd.innerHTML = matches.map(g => {
+    const meta = [g.price != null ? `$${g.price}` : null, g.return_pct != null ? `${g.return_pct.toFixed(1)}%` : null].filter(Boolean).join(" · ");
+    const sub = meta ? `<span style="color:var(--text-muted);font-size:.78rem">${escHtml(meta)}</span>` : "";
+    return `<div class="store-option" onmousedown="selectGenGameFilter(${JSON.stringify(g.name).replace(/"/g, '&quot;')})">${escHtml(g.name)} ${sub}</div>`;
+  }).join("");
+  dd.style.display = "";
+}
+
+function selectGenGameFilter(name) {
+  const input = document.getElementById("genGameFilterInput");
+  const dd    = document.getElementById("genGameFilterDropdown");
+  const clear = document.getElementById("genGameFilterClear");
+  input.value = name; dd.style.display = "none"; clear.style.display = "";
+  const g = _currentGenGames().find(g => g.name === name) || { name, price: null };
+  selectedGenGame = { name: g.name, price: g.price ?? null };
+  applyGenGameFilter();
+}
+
+function clearGenGameFilter() {
+  document.getElementById("genGameFilterInput").value = "";
+  document.getElementById("genGameFilterDropdown").style.display = "none";
+  document.getElementById("genGameFilterClear").style.display = "none";
+  selectedGenGame = null;
+  applyGenGameFilter();
+}
+
+function applyGenGameFilter() {
+  const th = document.getElementById("genLastReportTh");
+  if (th) th.textContent = selectedGenGame ? selectedGenGame.name : "Last Report";
+  buildLatestStatusFromReports();
+  if (selectedGenGame) {
+    let inCount = 0, outCount = 0;
+    for (const s of Object.values(retailerLatestStatus)) { s.has_stock ? inCount++ : outCount++; }
+    document.getElementById("genStatInStockCard").style.display = "";
+    document.getElementById("genStatOutCard").style.display = "";
+    document.getElementById("genStatInStock").textContent = inCount.toLocaleString();
+    document.getElementById("genStatOut").textContent = outCount.toLocaleString();
+    loadRetailerLatest(selectedGenGame.name);
+  } else {
+    document.getElementById("genStatInStockCard").style.display = "none";
+    document.getElementById("genStatOutCard").style.display = "none";
+    loadRetailerLatest();
+  }
+  renderGenTable();
+  if (genMapVisible) renderGenMapLayers(getGenFilteredRows());
+}
+
 // ── Shared table row renderer for simple states (FL/GA/NY) ───────────────────
 
 function _stateRow(r, rank, stateCode) {
