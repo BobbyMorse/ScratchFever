@@ -871,6 +871,10 @@ function buildLatestStatusFromReports() {
     : currentHuntState === 'FL' ? selectedFlGame
     : currentHuntState === 'GA' ? selectedGaGame
     : currentHuntState === 'NY' ? selectedNyGame
+    : currentHuntState === 'VA' ? selectedVaGame
+    : currentHuntState === 'DC' ? selectedDcGame
+    : currentHuntState === 'VT' ? selectedVtGame
+    : (typeof GEN_STATES !== 'undefined' && GEN_STATES[currentHuntState]) ? selectedGenGame
     : selectedGame;
   const gameFilter = activeGame?.name.toLowerCase();
   for (const rep of communityReports) {
