@@ -24,6 +24,8 @@ SCRAPERS: list[str] = [
     "MA", "AZ", "NY", "NJ", "GA", "CA", "NH", "CT", "IL", "DC", "VT", "VA",
     # Added scrapers
     "ME", "OR", "CO", "SC", "WA", "TX", "MI",
+    # Phase-2 batch (2026-05-31): HTTP/HTML scrapers covering 6 more states
+    "MS", "NC", "KY", "AR", "OK", "WI",
 ]
 
 
