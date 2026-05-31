@@ -44,14 +44,17 @@ class OregonScraper(BaseScraper):
             return ex.submit(self._scrape_via_api).result()
 
     def _scrape_via_api(self) -> list[dict]:
-        creds, listing = self._bootstrap_via_playwright()
+        creds, listing, image_map = self._bootstrap_via_playwright()
         if not creds:
             raise RuntimeError("OR: failed to capture API credentials from listing page")
         if not listing:
             raise RuntimeError("OR: listing API call returned no data")
 
         all_games = listing.get("InstantGames", [])
-        logger.info("OR: API returned %d total games", len(all_games))
+        logger.info(
+            "OR: API returned %d total games, %d images sniffed from listing",
+            len(all_games), len(image_map),
+        )
 
         active = [g for g in all_games if _is_active(g)]
         logger.info("OR: %d active games after filtering", len(active))
@@ -68,7 +71,7 @@ class OregonScraper(BaseScraper):
         games: list[dict] = []
         for meta in active:
             try:
-                game = self._fetch_and_build(session, meta)
+                game = self._fetch_and_build(session, meta, image_map)
                 if game:
                     games.append(game)
             except Exception as e:
@@ -78,7 +81,7 @@ class OregonScraper(BaseScraper):
         logger.info("OR: %d games scraped", len(games))
         return games
 
-    def _bootstrap_via_playwright(self) -> tuple[dict | None, dict | None]:
+    def _bootstrap_via_playwright(self) -> tuple[dict | None, dict | None, dict[str, str]]:
         from playwright.sync_api import sync_playwright
 
         creds: dict[str, str] = {}
