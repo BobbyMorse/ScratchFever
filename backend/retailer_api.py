@@ -415,6 +415,91 @@ async def get_public_retailer_posts(retailer_id: str, limit: int = Query(10, le=
     }
 
 
+@public_router.get("/feed/promotions")
+async def public_promo_feed(
+    lat: Optional[float] = Query(None, ge=-90, le=90),
+    lng: Optional[float] = Query(None, ge=-180, le=180),
+    radius_mi: float = Query(25.0, gt=0, le=500),
+    limit: int = Query(20, ge=1, le=100),
+    days: int = Query(14, ge=1, le=90),
+):
+    """Recent promotions from claimed stores, optionally filtered by user
+    location. Drives the homepage 'Live store updates near you' card —
+    the demand-side push that makes store-owner promotions actually visible.
+
+    Distance is computed in Postgres using the Haversine formula when both
+    user coords and the store's lat/lng are present. Stores without lat/lng
+    still appear (with distance_mi = NULL) when no location filter is set.
+    """
+    # MA is currently the only state where claimed stores live in a table
+    # we can join for lat/lng (ma_retailers). Other states only show without
+    # distance for now; expanding here is a 1:1 UNION ALL per new state table.
+    use_location = lat is not None and lng is not None
+    args: list = [days]
+    distance_sql = "NULL::float AS distance_mi"
+    where_extra = ""
+    order_sql = "p.created_at DESC"
+    if use_location:
+        # 3958.8 = Earth radius in miles
+        distance_sql = (
+            "CASE WHEN ma.latitude IS NULL OR ma.longitude IS NULL THEN NULL "
+            "ELSE 3958.8 * acos(LEAST(1.0, "
+            "  sin(radians($2)) * sin(radians(ma.latitude)) "
+            "  + cos(radians($2)) * cos(radians(ma.latitude)) "
+            "  * cos(radians(ma.longitude) - radians($3))"
+            ")) END AS distance_mi"
+        )
+        args.extend([lat, lng])
+        # Don't drop stores we can't geo-locate; include them after the radius hits.
+        where_extra = (
+            f" AND (ma.latitude IS NULL OR "
+            f"  (3958.8 * acos(LEAST(1.0, "
+            f"    sin(radians(${len(args)-1})) * sin(radians(ma.latitude)) "
+            f"    + cos(radians(${len(args)-1})) * cos(radians(ma.latitude)) "
+            f"    * cos(radians(ma.longitude) - radians(${len(args)}))"
+            f"  ))) <= ${len(args)+1})"
+        )
+        args.append(radius_mi)
+        order_sql = "distance_mi NULLS LAST, p.created_at DESC"
+    args.append(limit)
+
+    sql = f"""
+        SELECT p.id, p.retailer_id, p.store_name, p.title, p.body, p.created_at,
+               rp.state_code, rp.city, rp.verified,
+               ma.latitude, ma.longitude,
+               {distance_sql}
+        FROM retailer_posts p
+        LEFT JOIN retailer_profiles rp ON rp.retailer_id = p.retailer_id
+        LEFT JOIN ma_retailers ma ON rp.state_code = 'MA'
+                                   AND ma.id::text = p.retailer_id
+        WHERE p.created_at > NOW() - INTERVAL '1 day' * $1
+          {where_extra}
+        ORDER BY {order_sql}
+        LIMIT ${len(args)}
+    """
+    async with get_pool().acquire() as conn:
+        rows = await conn.fetch(sql, *args)
+    return {
+        "promotions": [
+            {
+                "id": r["id"],
+                "retailer_id": r["retailer_id"],
+                "store_name": r["store_name"] or "Lottery Retailer",
+                "city": r["city"],
+                "state_code": r["state_code"],
+                "verified": r["verified"],
+                "title": r["title"],
+                "body": r["body"],
+                "created_at": r["created_at"].isoformat(),
+                "lat": r["latitude"],
+                "lng": r["longitude"],
+                "distance_mi": float(r["distance_mi"]) if r["distance_mi"] is not None else None,
+            }
+            for r in rows
+        ]
+    }
+
+
 @public_router.get("/retailer/{retailer_id}/profile")
 async def get_public_retailer_profile(retailer_id: str):
     """Owner-published store profile fields, surfaced on the consumer-side
