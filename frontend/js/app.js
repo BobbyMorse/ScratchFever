@@ -4848,6 +4848,7 @@ async function loadRiRetailers() {
     riLoaded = true;
     updateRiStats();
     renderRiTable();
+    if (!riMapVisible) toggleRiMap();
   } catch (e) {
     const tbody = document.getElementById("riTableBody");
     if (tbody) tbody.innerHTML =
