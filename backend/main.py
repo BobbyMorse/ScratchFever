@@ -761,7 +761,7 @@ _PRIZE_CLAIMS_TTL = 120  # seconds
 async def api_prize_claims(
     days: int = Query(7, le=7300),
     min_prize: float = Query(0, ge=0),
-    limit: int = Query(200, ge=1, le=2000),
+    limit: int = Query(200, ge=1),
 ):
     cache_key = (days, min_prize, limit)
     cached = _prize_claims_cache.get(cache_key)
