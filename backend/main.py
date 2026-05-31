@@ -341,6 +341,88 @@ async def admin_health(user: dict = Depends(require_admin)):
     return {"states": states}
 
 
+@app.get("/api/admin/health/winners")
+async def admin_health_winners(user: dict = Depends(require_admin)):
+    """Per-state health of the winners feeds (backend/scraper/winners/*).
+    Surfaces last-scrape freshness, total/recent win counts, and geo-resolution
+    rate so the admin dashboard can spot a feed that stopped returning data."""
+    from backend.scraper.winners.runner import ALL_WINNERS_SCRAPERS
+
+    configured = {cls.state_code: cls.state_name for cls in ALL_WINNERS_SCRAPERS}
+
+    async with get_pool().acquire() as conn:
+        rows = await conn.fetch("""
+            SELECT
+                state_code,
+                COUNT(*) AS wins_total,
+                COUNT(*) FILTER (WHERE scraped_at > NOW() - INTERVAL '24 hours') AS wins_scraped_24h,
+                COUNT(*) FILTER (WHERE claim_date > CURRENT_DATE - INTERVAL '7 days') AS wins_claimed_7d,
+                COUNT(*) FILTER (WHERE claim_date > CURRENT_DATE - INTERVAL '30 days') AS wins_claimed_30d,
+                MAX(scraped_at) AS last_scraped,
+                MAX(claim_date) AS most_recent_claim,
+                ROUND(100.0 * COUNT(*) FILTER (WHERE retailer_lat IS NOT NULL) / NULLIF(COUNT(*), 0), 1) AS geo_pct
+            FROM reported_wins
+            GROUP BY state_code
+        """)
+
+    by_state = {r["state_code"]: r for r in rows}
+    out = []
+    for code, name in configured.items():
+        r = by_state.get(code)
+        out.append({
+            "state_code": code,
+            "state_name": name,
+            "wins_total": int(r["wins_total"]) if r else 0,
+            "wins_scraped_24h": int(r["wins_scraped_24h"]) if r else 0,
+            "wins_claimed_7d": int(r["wins_claimed_7d"]) if r else 0,
+            "wins_claimed_30d": int(r["wins_claimed_30d"]) if r else 0,
+            "last_scraped": r["last_scraped"].isoformat() if r and r["last_scraped"] else None,
+            "most_recent_claim": r["most_recent_claim"].isoformat() if r and r["most_recent_claim"] else None,
+            "geo_pct": float(r["geo_pct"] or 0) if r else 0.0,
+        })
+    out.sort(key=lambda s: s["state_name"])
+    return {"states": out}
+
+
+@app.get("/api/admin/health/retailers")
+async def admin_health_retailers(user: dict = Depends(require_admin)):
+    """Per-state health of the retailer-locator scrapers
+    (backend/retailer_scrapers/*). Reflects retailer_scrape_log entries
+    written by the staleness-driven daily job."""
+    from backend.retailer_scrapers.runner import SCRAPERS as RETAILER_STATES
+    from backend.scraper.runner import ALL_SCRAPERS
+
+    state_names = {cls.state_code: cls.state_name for cls in ALL_SCRAPERS}
+    state_names.setdefault("DC", "District of Columbia")
+
+    async with get_pool().acquire() as conn:
+        log_rows = await conn.fetch(
+            "SELECT state_code, last_scraped_at, retailers_count FROM retailer_scrape_log"
+        )
+        # Live counts from state_retailers — drift from retailer_scrape_log's
+        # cached count means rows were deleted/added outside the scraper.
+        live_rows = await conn.fetch(
+            "SELECT state_code, COUNT(*) AS live_count "
+            "FROM state_retailers WHERE is_active = TRUE GROUP BY state_code"
+        )
+
+    log_by = {r["state_code"]: r for r in log_rows}
+    live_by = {r["state_code"]: int(r["live_count"]) for r in live_rows}
+
+    out = []
+    for code in RETAILER_STATES:
+        row = log_by.get(code)
+        out.append({
+            "state_code": code,
+            "state_name": state_names.get(code, code),
+            "last_scraped": row["last_scraped_at"].isoformat() if row else None,
+            "logged_count": int(row["retailers_count"]) if row else None,
+            "live_count": live_by.get(code),
+        })
+    out.sort(key=lambda s: s["state_name"])
+    return {"states": out}
+
+
 @app.get("/api/admin/retailers")
 async def admin_list_retailers(user: dict = Depends(require_admin)):
     async with get_pool().acquire() as conn:
