@@ -56,6 +56,8 @@ ALL_WINNERS_SCRAPERS = [
     MississippiWinnersScraper,
     ArizonaWinnersScraper,
     NewHampshireWinnersScraper,
+    FloridaWinnersScraper,
+    NewYorkWinnersScraper,
 ]
 
 TIMEOUT_SEC = 180
