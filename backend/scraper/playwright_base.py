@@ -14,8 +14,9 @@ from backend.scraper.base import BaseScraper, HEADERS
 
 # Ensure Playwright finds Chromium in the path used during the nixpacks build.
 # Railway's startCommand env-var prefix doesn't always propagate to subprocesses.
-# Skip on non-Linux (local dev on Windows/macOS uses Playwright's default cache).
-if os.name == "posix" and not os.environ.get("PLAYWRIGHT_BROWSERS_PATH"):
+# Only apply when the Railway browser cache actually exists; local dev
+# (Windows/macOS) uses Playwright's default cache.
+if not os.environ.get("PLAYWRIGHT_BROWSERS_PATH") and os.path.isdir("/app/.playwright"):
     os.environ["PLAYWRIGHT_BROWSERS_PATH"] = "/app/.playwright"
 
 logger = logging.getLogger(__name__)
