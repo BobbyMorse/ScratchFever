@@ -1185,7 +1185,7 @@ async function loadBigWins() {
   if (loadingEl) loadingEl.style.display = "";
   allBigWinsLoading = (async () => {
     try {
-      const res = await fetch(`/api/prize-claims?min_prize=10000&days=${days}&limit=1000`);
+      const res = await fetch(`/api/prize-claims?min_prize=10000&days=${days}&limit=100000`);
       if (!res.ok) {
         if (list) list.innerHTML = '<div style="color:var(--text-muted);padding:2rem 1rem">Failed to load wins. Try refreshing.</div>';
         return;
