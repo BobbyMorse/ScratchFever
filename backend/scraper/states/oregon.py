@@ -188,7 +188,10 @@ class OregonScraper(BaseScraper):
 
 
 def _is_active(g: dict) -> bool:
-    end = g.get("ValidationEndDate") or g.get("GameEndDate")
+    """A game is for-sale if GameEndDate (sales end) is in the future or unset.
+    ValidationEndDate is later — it's the claim deadline — and including those
+    games would inflate the active list with dead-inventory titles."""
+    end = g.get("GameEndDate")
     if not end:
         return True
     try:
