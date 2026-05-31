@@ -57,11 +57,38 @@ class ArizonaScraper(BaseScraper):
             )
             page = ctx.new_page()
 
-            # Listing tiles are server-rendered: each game lives in a
-            # <div class="card" data-game-id="1523"> with a thumbnail <img>.
-            slugs, game_id_to_img = self._get_slugs_and_images(page)
+            # Images may be JS-loaded (filenames embed the game ID,
+            # e.g. "1466-instant-millions-p2.jpg"). Sniff every image
+            # response on the listing pages as a fallback for cases where
+            # the server-rendered <div class="card" data-game-id> parse
+            # finds nothing (the site has flipped between both shapes).
+            sniffed_img: dict[str, str] = {}
 
-            logger.info("AZ: %d game slugs found, %d images captured", len(slugs), len(game_id_to_img))
+            def _capture_image(response):
+                url = response.url
+                low = url.lower()
+                if "arizonalottery.com" not in low:
+                    return
+                if not any(low.endswith(ext) or (ext + "?") in low
+                           for ext in (".jpg", ".jpeg", ".png", ".gif", ".webp")):
+                    return
+                path = url.split("?")[0]
+                for gid in re.findall(r"\b(\d{4,})\b", path):
+                    if gid not in sniffed_img:
+                        sniffed_img[gid] = path
+
+            page.on("response", _capture_image)
+            slugs, game_id_to_img = self._get_slugs_and_images(page)
+            page.remove_listener("response", _capture_image)
+
+            # Backfill any missing IDs from the network sniffer.
+            for gid, src in sniffed_img.items():
+                game_id_to_img.setdefault(gid, src)
+
+            logger.info(
+                "AZ: %d game slugs found, %d images captured (sniffer caught %d)",
+                len(slugs), len(game_id_to_img), len(sniffed_img),
+            )
 
             for slug in slugs:
                 url = f"{BASE_URL}/scratchers/{slug}/"
