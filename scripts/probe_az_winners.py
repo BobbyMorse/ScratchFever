@@ -1,6 +1,7 @@
-"""One-off probe: inspect arizonalottery.com/winners/ via Playwright to design
-the scraper. Prints page structure clues (URL after redirects, presence of
-winner cards/tables, pagination, API XHR calls, key selectors)."""
+"""Generic winners-page probe: inspect a state lottery winners URL via Playwright
+to design a scraper. Pass URL as argv[1]; defaults to AZ for back-compat.
+Prints page structure clues (URL after redirects, presence of winner
+cards/tables, pagination, API XHR calls, key selectors)."""
 from __future__ import annotations
 import json
 import re
@@ -9,7 +10,7 @@ import io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 from playwright.sync_api import sync_playwright
 
-URL = "https://www.arizonalottery.com/winners/"
+URL = sys.argv[1] if len(sys.argv) > 1 else "https://www.arizonalottery.com/winners/"
 
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
       "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36")
