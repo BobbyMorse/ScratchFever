@@ -1,337 +1,226 @@
 """
 Oregon Lottery scratch-off scraper.
-Uses Playwright to render JS-loaded prize/odds tables.
-Listing: /scratch-its/list/  → table: Game #, Name, Price, Top Prize, Unclaimed, % Sold
-Detail:  /scratch-its/{slug}/ → full prize tier table with odds and remaining counts
+
+Implementation note (2026-05-31): switched from per-game Playwright DOM
+scraping to OR's JSON API at osl-gameinfo-sys-api.us-w2.cloudhub.io.
+- The site's JS bundle authenticates via client_id/client_secret headers.
+  We bootstrap by loading the listing page once with Playwright and
+  intercepting those headers from the first XHR, then make all subsequent
+  per-game calls with `requests`.
+- This avoids 36 sequential JS-rendered detail pageloads (and the timing
+  fragility that caused prod scrapes to return 1-row partial results).
 """
 from __future__ import annotations
 import re
+import json
 import logging
 import concurrent.futures
+from datetime import datetime, timezone
+
+import requests
 from backend.scraper.base import BaseScraper
 
 logger = logging.getLogger(__name__)
 
 BASE_URL = "https://www.oregonlottery.org"
 LISTING_URL = f"{BASE_URL}/scratch-its/list/"
-
-_SKIP_SLUGS = {
-    "list", "grid", "how-to-play", "scratch-its", "winners", "faq",
-    "second-chance", "responsible-gambling", "winning-numbers", "prize-claim",
-}
+API_BASE = "https://osl-gameinfo-sys-api.us-w2.cloudhub.io/api/v1/instant/games"
 
 
 class OregonScraper(BaseScraper):
     state_code = "OR"
     state_name = "Oregon"
     base_url = BASE_URL
-    scraper_timeout = 600
+    scraper_timeout = 300
 
     def scrape(self) -> list[dict]:
         try:
             from playwright.sync_api import sync_playwright  # noqa: F401
         except ImportError:
-            logger.warning("OR: playwright not installed — run: python -m playwright install chromium")
+            logger.warning("OR: playwright not installed")
             return []
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
-            return ex.submit(self._playwright_scrape).result()
+            return ex.submit(self._scrape_via_api).result()
 
-    def _playwright_scrape(self) -> list[dict]:
-        from playwright.sync_api import sync_playwright
-        from bs4 import BeautifulSoup
+    def _scrape_via_api(self) -> list[dict]:
+        creds, listing = self._bootstrap_via_playwright()
+        if not creds:
+            raise RuntimeError("OR: failed to capture API credentials from listing page")
+        if not listing:
+            raise RuntimeError("OR: listing API call returned no data")
 
-        games = []
-        with sync_playwright() as pw:
-            browser = pw.chromium.launch(headless=True)
-            ctx = browser.new_context(
-                user_agent=(
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) "
-                    "Chrome/124.0.0.0 Safari/537.36"
-                ),
-                viewport={"width": 1280, "height": 900},
-            )
-            page = ctx.new_page()
+        all_games = listing.get("InstantGames", [])
+        logger.info("OR: API returned %d total games", len(all_games))
 
-            # --- Listing page: extract game slugs (and game numbers if available) ---
-            # The table is JS-rendered; "networkidle" alone sometimes catches the
-            # page mid-render with only 1 row. Wait until the table has a real
-            # number of rows before parsing.
-            slug_to_game_num: dict[str, str] = {}
+        active = [g for g in all_games if _is_active(g)]
+        logger.info("OR: %d active games after filtering", len(active))
+
+        session = requests.Session()
+        session.headers.update({
+            "User-Agent": "Mozilla/5.0",
+            "Accept": "application/json",
+            "Referer": f"{BASE_URL}/",
+            "client_id": creds["client_id"],
+            "client_secret": creds["client_secret"],
+        })
+
+        games: list[dict] = []
+        for meta in active:
             try:
-                page.goto(LISTING_URL, wait_until="domcontentloaded", timeout=45_000)
-                try:
-                    page.wait_for_function(
-                        "document.querySelectorAll('table tbody tr').length > 10",
-                        timeout=60_000,
-                    )
-                except Exception:
-                    # Last-ditch: any rows at all, even if few
-                    try:
-                        page.wait_for_selector("table tbody tr td", timeout=15_000)
-                    except Exception:
-                        pass
-                soup = BeautifulSoup(page.content(), "lxml")
-                slug_to_game_num = self._parse_listing(soup)
+                game = self._fetch_and_build(session, meta)
+                if game:
+                    games.append(game)
             except Exception as e:
-                logger.warning("OR: listing page failed: %s", e)
-
-            slugs = list(slug_to_game_num.keys())
-            logger.info("OR: %d game slugs found", len(slugs))
-
-            # Don't proceed with a near-empty listing — the runner's site-outage
-            # check would mark us errored anyway, and raising here surfaces a
-            # clearer error message than "scraped 1 games but DB has 36".
-            if len(slugs) < 5:
-                browser.close()
-                raise RuntimeError(
-                    f"OR listing page returned only {len(slugs)} slugs — "
-                    f"table did not finish rendering"
-                )
-
-            # --- Detail pages ---
-            for slug in slugs:
-                url = f"{BASE_URL}/scratch-its/{slug}/"
-                game_num = slug_to_game_num.get(slug)
-                try:
-                    game = self._scrape_detail(page, slug, url, game_num)
-                    if game:
-                        games.append(game)
-                except Exception as e:
-                    logger.debug("OR detail error %s: %s", slug, e)
-
-            browser.close()
+                logger.debug("OR: detail fetch failed for game %s: %s",
+                             meta.get("GameNumber"), e)
 
         logger.info("OR: %d games scraped", len(games))
         return games
 
-    def _parse_listing(self, soup) -> dict[str, str]:
-        """Extract slug → game_number mapping from the listing table."""
-        slug_to_num: dict[str, str] = {}
-        seen: set[str] = set()
+    def _bootstrap_via_playwright(self) -> tuple[dict | None, dict | None]:
+        from playwright.sync_api import sync_playwright
 
-        # Prefer table rows (Game #, Name, ...) for the game number
-        rows = soup.select("table tbody tr")
-        for row in rows:
-            cells = row.find_all("td")
-            if not cells:
-                continue
-            game_num = cells[0].get_text(strip=True) if cells else ""
-            # Find the link in the row
-            a = row.find("a", href=True)
-            if not a:
-                continue
-            m = re.search(r"/scratch-its/([a-z0-9][a-z0-9-]+)/?$", a["href"])
-            if not m:
-                continue
-            slug = m.group(1)
-            if slug in _SKIP_SLUGS or slug in seen:
-                continue
-            seen.add(slug)
-            slug_to_num[slug] = game_num if re.match(r"^\d+$", game_num) else ""
+        creds: dict[str, str] = {}
+        listing_payload: dict | None = None
 
-        # Fallback: collect all /scratch-its/{slug}/ links if table was empty
-        if not slug_to_num:
-            for a in soup.find_all("a", href=True):
-                m = re.search(r"/scratch-its/([a-z0-9][a-z0-9-]+)/?$", a["href"])
-                if not m:
-                    continue
-                slug = m.group(1)
-                if slug in _SKIP_SLUGS or slug in seen:
-                    continue
-                seen.add(slug)
-                slug_to_num[slug] = ""
+        with sync_playwright() as pw:
+            browser = pw.chromium.launch(headless=True)
+            ctx = browser.new_context(user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+            ))
+            page = ctx.new_page()
 
-        return slug_to_num
+            def on_request(req):
+                if "osl-gameinfo-sys-api" in req.url and "client_id" in req.headers and not creds:
+                    creds["client_id"] = req.headers["client_id"]
+                    creds["client_secret"] = req.headers["client_secret"]
 
-    def _scrape_detail(self, page, slug: str, url: str, game_num: str | None) -> dict | None:
-        from bs4 import BeautifulSoup
+            def on_response(resp):
+                nonlocal listing_payload
+                if (
+                    "osl-gameinfo-sys-api" in resp.url
+                    and "count=1000" in resp.url
+                    and listing_payload is None
+                    and resp.status == 200
+                ):
+                    try:
+                        listing_payload = json.loads(resp.body())
+                    except Exception:
+                        pass
 
-        # "networkidle" keeps waiting for OR's analytics scripts (~15-25s each),
-        # which blew the 600s overall budget on Railway. domcontentloaded +
-        # selector wait is enough to capture the rendered table.
-        page.goto(url, wait_until="domcontentloaded", timeout=25_000)
-        try:
-            page.wait_for_selector(
-                "div.ol-odds-payouts-scratchits__results, table",
-                timeout=10_000,
-            )
-        except Exception:
-            pass
+            page.on("request", on_request)
+            page.on("response", on_response)
 
-        soup = BeautifulSoup(page.content(), "lxml")
-        raw = page.inner_text("body")
-        text = raw.encode("ascii", "ignore").decode()
+            try:
+                page.goto(LISTING_URL, wait_until="networkidle", timeout=60_000)
+            except Exception as e:
+                logger.warning("OR: listing page load: %s", e)
 
-        # --- Name ---
-        name_el = soup.select_one("h1")
-        name = name_el.get_text(strip=True) if name_el else slug.replace("-", " ").title()
-        name = re.sub(r"\s*#\s*\d+\s*$", "", name).strip()
-        if not name or len(name) < 2:
-            return None
+            browser.close()
 
-        # --- Game ID ---
-        # Use game number from listing table; fall back to extracting from page text
+        return (creds if creds else None), listing_payload
+
+    def _fetch_and_build(self, session: requests.Session, meta: dict) -> dict | None:
+        game_num = str(meta.get("GameNumber") or "").strip()
         if not game_num:
-            m = re.search(r"Game\s*#?\s*:?\s*(\d+)", text, re.IGNORECASE)
-            game_num = m.group(1) if m else ""
-        game_id = game_num if game_num else slug
-
-        # --- Price ---
-        # Oregon renders "Ticket Cost" label and "$20.00" on separate lines
-        price = None
-        for pat in [
-            r"Ticket\s+Cost[\s\n:]+\$?([\d.]+)",
-            r"Price[\s\n:]+\$?([\d.]+)",
-            r"\$(\d+(?:\.\d+)?)\s+Scratch",
-            r"costs?\s+\$?([\d.]+)",
-        ]:
-            m = re.search(pat, text, re.IGNORECASE)
-            if m:
-                price = float(m.group(1))
-                break
-        if not price:
+            return None
+        name = (meta.get("GameNameTitle") or "").strip()
+        price = _to_float(meta.get("TicketPrice"))
+        if not name or not price:
             return None
 
-        # --- Overall odds ---
-        # Label and value are on separate lines on Oregon's site
-        overall_odds = None
-        m = re.search(r"Overall\s+Odds[\s\n:]+1\s+in\s+([\d,]+(?:\.\d+)?)", text, re.IGNORECASE)
-        if m:
-            overall_odds = float(m.group(1).replace(",", ""))
-
-        # --- Prize tiers: Oregon uses div.ol-odds-payouts-scratchits__results ---
-        tiers = self._parse_div_tiers(soup)
-
-        # Fallback: try HTML tables
-        if not tiers:
-            for table in soup.find_all("table"):
-                parsed = self.parse_table_tiers(table)
-                if len(parsed) >= 2:
-                    tiers = parsed
-                    break
-
-        # Last resort: scan text lines for "$X  1 in Y  Z of W" pattern
-        if not tiers:
-            tiers = self._parse_text_tiers(text)
-
-        if not tiers and not overall_odds:
+        resp = session.get(API_BASE, params={
+            "gameNumber": game_num,
+            "includePrizeTiers": "true",
+        }, timeout=15)
+        if resp.status_code != 200:
+            logger.debug("OR: game %s api %s", game_num, resp.status_code)
             return None
 
-        # --- Tickets total / remaining ---
+        data = resp.json()
+        detail = _first_dict(data, "InstantGames") or data
+        if not isinstance(detail, dict):
+            return None
+
+        overall_odds = _to_float(detail.get("OverallOdds") or meta.get("OverallOdds"))
+
+        tiers = []
+        for t in (detail.get("PrizeTiers") or []):
+            prize = _to_float(t.get("PrizeAmount"))
+            total = _to_int(t.get("PrizesTotal"))
+            remaining = _to_int(t.get("PrizesRemaining"))
+            odds = _to_float(t.get("Odds"))
+            if not prize or prize <= 0 or not total:
+                continue
+            tiers.append({
+                "prize_amount": prize,
+                "prizes_total": total,
+                "prizes_remaining": remaining,
+                # API "Odds" is probability per ticket; convert to "1 in N".
+                "odds_one_in": (round(1 / odds, 2) if odds and odds > 0 else None),
+            })
+
+        if not tiers:
+            return None
+
+        total_printed = sum(t["prizes_total"] or 0 for t in tiers)
+        total_remaining = sum(t["prizes_remaining"] or 0 for t in tiers)
+
         total_tickets = None
         tickets_remaining = None
-        if tiers:
-            total_printed = sum(t.get("prizes_total") or 0 for t in tiers)
-            total_remaining = sum(t.get("prizes_remaining") or 0 for t in tiers)
-            if overall_odds and total_printed > 0:
-                total_tickets = round(overall_odds * total_printed)
-                tickets_remaining = round(overall_odds * total_remaining)
-            else:
-                refs = [
-                    (t["prizes_total"], t["odds_one_in"]) for t in tiers
-                    if t.get("prizes_total") and t.get("odds_one_in")
-                ]
-                if refs:
-                    estimates = sorted(int(tot * odds) for tot, odds in refs)
-                    total_tickets = estimates[len(estimates) // 2]
-                    if total_printed > 0:
-                        tickets_remaining = round(
-                            total_tickets * total_remaining / total_printed
-                        )
-
-        # --- Image ---
-        image_url = None
-        for selector in [
-            "img[src*='scratch']",
-            "img[src*='game']",
-            ".scratch-game img",
-            "article img",
-            ".game-detail img",
-            "main img",
-        ]:
-            img = soup.select_one(selector)
-            if img and img.get("src"):
-                src = img["src"]
-                image_url = (BASE_URL + src) if src.startswith("/") else src
-                break
+        if overall_odds and total_printed > 0:
+            total_tickets = round(overall_odds * total_printed)
+            tickets_remaining = round(overall_odds * total_remaining)
 
         return self.build_game(
-            game_id=game_id,
+            game_id=game_num,
             name=name,
             price=price,
             tiers=tiers,
             overall_odds=overall_odds,
             total_tickets=total_tickets,
             tickets_remaining=tickets_remaining,
-            detail_url=url,
-            image_url=image_url,
+            detail_url=f"{BASE_URL}/scratch-its/{_slugify(name)}/",
         )
 
-    @staticmethod
-    def _parse_div_tiers(soup) -> list[dict]:
-        """Parse Oregon's div-based odds/payouts section into prize tiers."""
-        tiers = []
-        for result_div in soup.select("div.ol-odds-payouts-scratchits__results"):
-            data: dict[str, str] = {}
-            for cell in result_div.select("div.ol-odds-payouts-scratchits__result"):
-                raw = cell.get_text(separator=" ", strip=True)
-                m = re.match(r"^([^:]+):\s*(.+)$", raw)
-                if m:
-                    data[m.group(1).strip().lower()] = m.group(2).strip()
 
-            prize = OregonScraper._parse_prize(data.get("prize", "").lstrip("$"))
-            odds_raw = data.get("odds", "")
-            odds_m = re.search(r"1\s+in\s+([\d,]+(?:\.\d+)?)", odds_raw, re.IGNORECASE)
-            total = int(data["total prizes"].replace(",", "")) if "total prizes" in data else None
-            left = int(data["prizes left"].replace(",", "")) if "prizes left" in data else None
+def _is_active(g: dict) -> bool:
+    end = g.get("ValidationEndDate") or g.get("GameEndDate")
+    if not end:
+        return True
+    try:
+        dt = datetime.fromisoformat(end.replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt > datetime.now(timezone.utc)
+    except Exception:
+        return True
 
-            if prize and prize > 0 and odds_m:
-                tiers.append({
-                    "prize_amount": prize,
-                    "odds_one_in": float(odds_m.group(1).replace(",", "")),
-                    "prizes_remaining": left,
-                    "prizes_total": total,
-                })
-        return tiers
 
-    @staticmethod
-    def _parse_text_tiers(text: str) -> list[dict]:
-        """Parse prize tiers from inner_text lines: '$X  1 in Y  Z of W'."""
-        tiers = []
-        for line in text.split("\n"):
-            line = line.strip()
-            m = re.match(
-                r"\$([\d,]+(?:\.\d+)?(?:\s*(?:Million|Thousand))?)"
-                r".*?1\s+in\s+([\d,]+(?:\.\d+)?)"
-                r".*?(\d[\d,]*)\s+of\s+(\d[\d,]*)",
-                line, re.IGNORECASE,
-            )
-            if not m:
-                continue
-            prize = OregonScraper._parse_prize(m.group(1))
-            odds_val = float(m.group(2).replace(",", ""))
-            remaining = int(m.group(3).replace(",", ""))
-            total = int(m.group(4).replace(",", ""))
-            if prize and prize > 0 and total > 0:
-                tiers.append({
-                    "prize_amount": prize,
-                    "odds_one_in": odds_val,
-                    "prizes_remaining": remaining,
-                    "prizes_total": total,
-                })
-        return tiers
+def _to_float(v) -> float | None:
+    if v is None or v == "":
+        return None
+    try:
+        return float(v)
+    except (TypeError, ValueError):
+        return None
 
-    @staticmethod
-    def _parse_prize(txt: str) -> float | None:
-        txt = txt.strip().lower().replace(",", "")
-        m = re.match(r"([\d.]+)\s*(million|thousand)?", txt)
-        if not m:
-            return None
-        val = float(m.group(1))
-        if m.group(2) == "million":
-            val *= 1_000_000
-        elif m.group(2) == "thousand":
-            val *= 1_000
-        return val
+
+def _to_int(v) -> int | None:
+    f = _to_float(v)
+    return int(f) if f is not None else None
+
+
+def _first_dict(payload, list_key: str):
+    """Some endpoints wrap a single game in {InstantGames: [game]}, others return game dict."""
+    if isinstance(payload, dict):
+        if list_key in payload and isinstance(payload[list_key], list) and payload[list_key]:
+            return payload[list_key][0]
+    return None
+
+
+def _slugify(name: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
