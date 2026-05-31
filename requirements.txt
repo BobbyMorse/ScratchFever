@@ -13,3 +13,4 @@ twilio>=9.0.0
 anthropic>=0.49.0
 python-dotenv>=1.0.0
 pdfplumber>=0.11.0
+pgeocode>=0.5.0
