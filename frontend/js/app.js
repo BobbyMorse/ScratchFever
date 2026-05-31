@@ -6456,6 +6456,7 @@ async function loadGenRetailers(code) {
     if (totalEl) totalEl.textContent = (allGenRetailers[code] || []).length.toLocaleString();
     _syncGenMapButton();
     renderGenTable();
+    _autoShowGenMap();
     return;
   }
   try {
