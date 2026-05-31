@@ -924,6 +924,23 @@ async def get_reported_wins(conn, days: int = 30, min_prize: float = 10000,
     return [dict(zip(cols, r)) for r in rows]
 
 
+async def get_reported_wins_for_map(conn, days: int, min_prize: float):
+    """Return all geocoded reported wins matching (days, min_prize), no row cap.
+    Used by the Big Wins map. Caller aggregates per location. Bounded in practice
+    by retailer_lat IS NOT NULL — the map can't plot rows without coordinates."""
+    return await conn.fetch("""
+        SELECT state_code, source_game_name, game_db_id,
+               prize_amount, claim_date, winner_city,
+               retailer_name, retailer_city, retailer_lat, retailer_lng
+        FROM reported_wins
+        WHERE claim_date >= CURRENT_DATE - make_interval(days => $1)
+          AND prize_amount >= $2
+          AND retailer_lat IS NOT NULL
+          AND retailer_lng IS NOT NULL
+        ORDER BY prize_amount DESC, claim_date DESC
+    """, days, min_prize)
+
+
 async def get_recent_inventory_reports(conn, limit: int = 200,
                                         retailer_id: str = None, game_name: str = None):
     conditions = []
