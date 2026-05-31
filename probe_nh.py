@@ -21,6 +21,7 @@ def on_request(req):
             "url": req.url,
             "type": req.resource_type,
             "post": (req.post_data or "")[:300],
+            "headers": dict(req.headers),
         })
 
 def on_response(resp):
