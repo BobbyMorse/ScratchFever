@@ -1424,7 +1424,7 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
   /* Hunt layout: collapse to single column on mobile */
   .hunt-layout { flex-direction: column; }
   .hunt-main { padding: .9rem .85rem 1.5rem; }
-  #maMap, #azMap, #flMap, #riMap, #gaMap, #nyMap, #vaMap, #dcMap, #vtMap { height: 280px; }
+  #maMap, #azMap, #flMap, #riMap, #gaMap, #nyMap, #vaMap, #dcMap, #vtMap, #genMap { height: 280px; }
   .hunt-soon-games { grid-template-columns: 1fr; }
 
   /* Data status table */
