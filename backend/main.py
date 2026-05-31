@@ -399,15 +399,8 @@ async def admin_health_retailers(user: dict = Depends(require_admin)):
         log_rows = await conn.fetch(
             "SELECT state_code, last_scraped_at, retailers_count FROM retailer_scrape_log"
         )
-        # Live counts from state_retailers — drift from retailer_scrape_log's
-        # cached count means rows were deleted/added outside the scraper.
-        live_rows = await conn.fetch(
-            "SELECT state_code, COUNT(*) AS live_count "
-            "FROM state_retailers WHERE is_active = TRUE GROUP BY state_code"
-        )
 
     log_by = {r["state_code"]: r for r in log_rows}
-    live_by = {r["state_code"]: int(r["live_count"]) for r in live_rows}
 
     out = []
     for code in RETAILER_STATES:
@@ -416,8 +409,7 @@ async def admin_health_retailers(user: dict = Depends(require_admin)):
             "state_code": code,
             "state_name": state_names.get(code, code),
             "last_scraped": row["last_scraped_at"].isoformat() if row else None,
-            "logged_count": int(row["retailers_count"]) if row else None,
-            "live_count": live_by.get(code),
+            "retailers_count": int(row["retailers_count"]) if row else None,
         })
     out.sort(key=lambda s: s["state_name"])
     return {"states": out}
