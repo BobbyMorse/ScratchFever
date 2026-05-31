@@ -745,6 +745,86 @@
       </div>
     </div>
 
+    <!-- Winners tab -->
+    <div class="tab-pane" id="tab-winners">
+      <div class="page-top">
+        <div>
+          <h1>Winners <span>Feeds</span></h1>
+          <div style="font-size:.82rem;color:var(--text-muted);margin-top:.2rem">
+            Per-state recent-winners scrapers. Pulls $10K+ wins from state lottery sites every hour.
+            <span class="inv-count" id="winnersCount"></span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+          <div class="summary-chips" id="winnersChips"></div>
+          <button class="refresh-btn" onclick="loadWinners()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>State</th>
+              <th>Status</th>
+              <th>Last Scrape</th>
+              <th>Scraped 24h</th>
+              <th>Claimed 7d</th>
+              <th>Claimed 30d</th>
+              <th>Most Recent Claim</th>
+              <th>Geo Resolved</th>
+              <th>Total Wins</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="winnersBody">
+            <tr class="loading-row"><td colspan="10">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Retailers tab -->
+    <div class="tab-pane" id="tab-retailers">
+      <div class="page-top">
+        <div>
+          <h1>Retailer <span>Locators</span></h1>
+          <div style="font-size:.82rem;color:var(--text-muted);margin-top:.2rem">
+            Per-state retailer-list scrapers. Refresh on a 30-day staleness check.
+            <span class="inv-count" id="retailersCount"></span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+          <div class="summary-chips" id="retailersChips"></div>
+          <button class="refresh-btn" onclick="loadRetailers()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>State</th>
+              <th>Status</th>
+              <th>Last Scrape</th>
+              <th>Age</th>
+              <th>Retailers</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="retailersBody">
+            <tr class="loading-row"><td colspan="6">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <!-- Inventory Reports tab -->
     <div class="tab-pane" id="tab-inventory">
       <div class="page-top">
