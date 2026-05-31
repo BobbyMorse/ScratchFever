@@ -198,11 +198,11 @@ def _parse_date(text: str) -> dt.date | None:
 
 
 def _normalize_city(raw: str) -> str | None:
-    """'Seligman, AZ' → 'Seligman, AZ'. Strip trailing punct and dedupe spaces."""
+    """'Seligman, AZ' → 'Seligman'. Strip state suffix — the upsert geocoder
+    already passes state_code separately to pgeocode."""
     raw = re.sub(r"\s+", " ", raw).strip().rstrip(",.")
     if not raw:
         return None
-    # Ensure ", AZ" suffix for downstream pgeocode lookups.
-    if "," not in raw:
-        raw = f"{raw}, AZ"
-    return raw
+    # Drop trailing ", AZ" / ", Arizona" — pgeocode takes (city, state) split.
+    raw = re.sub(r",\s*(AZ|Arizona)\s*$", "", raw, flags=re.IGNORECASE).strip()
+    return raw or None
