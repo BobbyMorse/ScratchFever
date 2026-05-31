@@ -981,6 +981,42 @@ async def api_me_retailers(
     return {"retailers": retailers[:limit], "total": len(retailers)}
 
 
+@app.get("/api/state/{state_code}/retailers")
+async def api_state_retailers(
+    state_code: str,
+    search: Optional[str] = Query(None, description="Name / city search"),
+    limit:  int           = Query(500, le=30000),
+):
+    """Generic retailer endpoint backed by the state_retailers table.
+    Used by 'Live' Chase states that don't have a custom scorer (CO, CT, ME, MI,
+    NJ, OR, SC, WA, etc.)."""
+    code = state_code.upper()
+    async with get_pool().acquire() as conn:
+        rows = await conn.fetch(
+            """SELECT id, name, address, city, zip_code, phone, latitude, longitude
+               FROM state_retailers WHERE state_code=$1 AND is_active=TRUE
+               ORDER BY city, name""",
+            code,
+        )
+    retailers = [
+        {
+            "id":        str(r["id"]),
+            "name":      r["name"] or "",
+            "address":   r["address"] or "",
+            "city":      r["city"] or "",
+            "zipCode":   r["zip_code"] or "",
+            "phone":     r["phone"] or "",
+            "latitude":  r["latitude"],
+            "longitude": r["longitude"],
+        }
+        for r in rows
+    ]
+    if search:
+        q = search.lower()
+        retailers = [r for r in retailers if q in r["name"].lower() or q in r["city"].lower()]
+    return {"retailers": retailers[:limit], "total": len(retailers)}
+
+
 @app.get("/api/scrape/status")
 async def api_scrape_status():
     return {
