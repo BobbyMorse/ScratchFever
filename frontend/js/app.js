@@ -1878,9 +1878,6 @@ function switchTab(name) {
   if (name === "ma") {
     selectHuntState(currentHuntState);
   }
-  if (name === "nearby") {
-    loadPromoFeed();
-  }
   if (name === "settings") {
     populateSettingsTab();
   }
