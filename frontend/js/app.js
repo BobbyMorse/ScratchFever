@@ -1265,7 +1265,7 @@ function setBigWinsView(view) {
     if (rangeSel) rangeSel.style.display = "";
     if (gameSel) gameSel.style.display = "";
     rebuildBigWinsStateDropdown();
-    loadBigWinsReported().then(() => renderBigWinsMap());
+    loadBigWinsMap().then(() => renderBigWinsMap());
   } else {
     mapBtn?.classList.remove("is-active");
     listBtn?.classList.add("is-active");
