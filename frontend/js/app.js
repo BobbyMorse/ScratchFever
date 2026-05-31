@@ -4292,6 +4292,12 @@ function getRetailerState(retailerId) {
   if (allVaRetailers.some(r => String(r.id) === String(retailerId))) return 'VA';
   if (allDcRetailers.some(r => String(r.id) === String(retailerId))) return 'DC';
   if (allVtRetailers.some(r => String(r.id) === String(retailerId))) return 'VT';
+  if (typeof GEN_STATES !== "undefined") {
+    for (const code of Object.keys(GEN_STATES)) {
+      const arr = allGenRetailers[code];
+      if (arr && arr.some(r => String(r.id) === String(retailerId))) return code;
+    }
+  }
   return null;
 }
 
@@ -4306,6 +4312,9 @@ function getGamesForRetailer(retailerId) {
   if (state === 'VA') return vaGames;
   if (state === 'DC') return dcGames;
   if (state === 'VT') return vtGames;
+  if (state && typeof GEN_STATES !== "undefined" && GEN_STATES[state]) {
+    return genGames[state] || [];
+  }
   return [];
 }
 
