@@ -200,6 +200,7 @@ class BaseScraper(ABC):
     state_code: str = ""
     state_name: str = ""
     base_url: str = ""
+    disabled: bool = False
 
     def __init__(self):
         self.session = requests.Session()
