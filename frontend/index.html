@@ -1898,6 +1898,199 @@
   </div>
 </div>
 
+<!-- ══════════════ INFO DRAWER (Coverage + FAQ) ══════════════ -->
+<style>
+  .header-info-btn {
+    background: transparent; border: 1px solid rgba(255,255,255,.15);
+    color: rgba(255,255,255,.7); cursor: pointer;
+    width: 34px; height: 34px; border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-left: auto; margin-right: .75rem;
+    transition: color .15s, border-color .15s, background .15s;
+  }
+  .header-info-btn:hover { color: #fff; border-color: rgba(255,255,255,.35); background: rgba(255,255,255,.06); }
+  .header-info-btn svg { width: 18px; height: 18px; }
+
+  .info-drawer-backdrop {
+    position: fixed; inset: 0; background: rgba(15,23,42,.55);
+    backdrop-filter: blur(3px);
+    opacity: 0; pointer-events: none; transition: opacity .25s ease;
+    z-index: 2400;
+  }
+  .info-drawer-backdrop.open { opacity: 1; pointer-events: auto; }
+
+  .info-drawer {
+    position: fixed; top: 0; right: 0; height: 100vh;
+    width: 600px; max-width: 100vw;
+    background: #f8fafc; color: #0f172a;
+    box-shadow: -16px 0 40px rgba(15,23,42,.18);
+    transform: translateX(100%); transition: transform .3s cubic-bezier(.32,.72,.32,1);
+    z-index: 2500; display: flex; flex-direction: column;
+  }
+  .info-drawer.open { transform: translateX(0); }
+
+  .info-drawer-header {
+    flex: 0 0 auto; padding: 1.1rem 1.4rem;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex; align-items: center; justify-content: space-between;
+    background: linear-gradient(135deg, #ec4899, #f97316, #facc15);
+    color: #fff;
+  }
+  .info-drawer-header h2 {
+    font-size: 1.1rem; font-weight: 800; margin: 0;
+    letter-spacing: -.01em; color: #fff;
+  }
+  .info-drawer-close {
+    background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+    color: #fff; cursor: pointer;
+    width: 32px; height: 32px; border-radius: 50%;
+    font-size: .9rem; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: background .15s;
+  }
+  .info-drawer-close:hover { background: rgba(255,255,255,.3); }
+
+  .info-drawer-body {
+    flex: 1 1 auto; overflow-y: auto; padding: 1.25rem 1.4rem 2.5rem;
+  }
+
+  .info-intro {
+    font-size: .9rem; color: #475569; line-height: 1.55;
+    margin: 0 0 1rem;
+  }
+
+  .cov-toggle {
+    display: flex; gap: .35rem;
+    background: #e2e8f0; padding: 4px; border-radius: 10px;
+    margin-bottom: .9rem;
+  }
+  .cov-tab {
+    flex: 1; padding: .55rem .65rem;
+    background: transparent; border: none; cursor: pointer;
+    font-size: .82rem; font-weight: 700; color: #475569;
+    border-radius: 7px; transition: background .15s, color .15s;
+    font-family: inherit;
+  }
+  .cov-tab:hover { color: #0f172a; }
+  .cov-tab.active {
+    background: #fff; color: #0f172a;
+    box-shadow: 0 1px 3px rgba(15,23,42,.12);
+  }
+
+  .cov-map-big {
+    width: 100%; height: 380px;
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+    overflow: hidden;
+  }
+  .cov-map-big .leaflet-container { background: transparent !important; outline: none; }
+  .cov-map-big path { transition: fill .15s, stroke-width .15s; }
+  .cov-map-big path:hover { stroke: #0f172a !important; stroke-width: 1.6 !important; }
+
+  .cov-legend-big {
+    display: flex; flex-wrap: wrap; gap: .5rem 1rem;
+    margin: .8rem 0 .25rem; font-size: .8rem; color: #475569;
+  }
+  .cov-legend-big .sw {
+    display: inline-block; width: 12px; height: 12px;
+    border-radius: 3px; margin-right: .4rem; vertical-align: middle;
+    border: 1px solid rgba(0,0,0,.1);
+  }
+
+  .cov-explainer {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+    padding: .85rem 1rem; font-size: .82rem; line-height: 1.6;
+    color: #334155; margin-top: .8rem;
+  }
+  .cov-explainer strong { color: #0f172a; }
+  .cov-explainer .ex-row { margin: 0; }
+  .cov-explainer .ex-row + .ex-row { margin-top: .35rem; }
+  .cov-explainer .pill {
+    display: inline-block; padding: .05rem .45rem;
+    border-radius: 4px; font-size: .72rem; font-weight: 800;
+    color: #fff; margin-right: .25rem; vertical-align: 1px;
+  }
+
+  .info-faq { margin-top: 1.8rem; }
+  .info-faq h3 {
+    font-size: .95rem; font-weight: 800; color: #0f172a;
+    margin: 0 0 .7rem; letter-spacing: -.01em;
+    text-transform: uppercase; font-size: .72rem; letter-spacing: .08em;
+    color: #64748b;
+  }
+  .info-faq-item { border-top: 1px solid #e2e8f0; padding: .9rem 0; }
+  .info-faq-item:last-child { border-bottom: 1px solid #e2e8f0; }
+  .info-faq-q {
+    font-size: .92rem; font-weight: 700; color: #0f172a;
+    margin: 0 0 .35rem;
+  }
+  .info-faq-a {
+    font-size: .85rem; line-height: 1.6; color: #475569; margin: 0;
+  }
+  .info-faq-a strong { color: #0f172a; }
+
+  .leaflet-tooltip.cov-tip-wrap {
+    background: #0f172a; color: #fff; border: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,.25);
+    padding: .45rem .65rem; border-radius: 6px;
+    font-size: .8rem; line-height: 1.5;
+  }
+  .leaflet-tooltip.cov-tip-wrap::before { display: none; }
+  .leaflet-tooltip.cov-tip-wrap strong { color: #facc15; }
+
+  body.info-drawer-open { overflow: hidden; }
+
+  @media (max-width: 640px) {
+    .info-drawer { width: 100vw; }
+    .cov-map-big { height: 320px; }
+    .header-info-btn { width: 30px; height: 30px; margin-right: .5rem; }
+  }
+</style>
+
+<aside class="info-drawer" id="infoDrawer" aria-hidden="true">
+  <div class="info-drawer-header">
+    <h2>Coverage &amp; FAQ</h2>
+    <button class="info-drawer-close" onclick="closeInfoDrawer()" aria-label="Close">✕</button>
+  </div>
+  <div class="info-drawer-body">
+    <p class="info-intro">What we track, by state. Hover a state for detail. Live from production.</p>
+
+    <div class="cov-toggle" role="tablist">
+      <button class="cov-tab active" data-layer="ev" onclick="setCovLayer('ev')">EV Data</button>
+      <button class="cov-tab" data-layer="retailers" onclick="setCovLayer('retailers')">Retailers</button>
+      <button class="cov-tab" data-layer="winners" onclick="setCovLayer('winners')">Big Winners</button>
+    </div>
+
+    <div id="covMapBig" class="cov-map-big"></div>
+    <div class="cov-legend-big" id="covLegend"></div>
+    <div class="cov-explainer" id="covExplainer"></div>
+
+    <div class="info-faq">
+      <h3>Questions</h3>
+
+      <div class="info-faq-item">
+        <p class="info-faq-q">What's the difference between Full data and Estimated?</p>
+        <p class="info-faq-a"><strong>Full data</strong> means the state lottery publishes every prize tier with both the total minted and the unclaimed count. We compute EV directly from those numbers. <strong>Estimated</strong> applies when a state only publishes counts for the top prize tiers; we use that top-tier sell-through rate to extrapolate depletion across the smaller tiers. Estimated games are flagged with an "Estimated EV" banner in the modal.</p>
+      </div>
+
+      <div class="info-faq-item">
+        <p class="info-faq-q">Why don't some states show full data?</p>
+        <p class="info-faq-a">Every state lottery is required by law to publish prize odds, but each commission posts them differently — some sites publish only top-prize counts, others sit behind bot challenges or authentication walls. We're actively working through the holdouts.</p>
+      </div>
+
+      <div class="info-faq-item">
+        <p class="info-faq-q">How often is data updated?</p>
+        <p class="info-faq-a">Game odds and prizes-remaining counts are refreshed every hour from each state lottery's official website. Retailer location data is refreshed monthly.</p>
+      </div>
+
+      <div class="info-faq-item">
+        <p class="info-faq-q">Is the data official?</p>
+        <p class="info-faq-a">Yes. All prize odds and remaining-prize counts are sourced from each state lottery's official website. We read what the state publishes and run the math. ScratchFever is not affiliated with any state lottery commission.</p>
+      </div>
+    </div>
+  </div>
+</aside>
+<div class="info-drawer-backdrop" id="infoDrawerBackdrop" onclick="closeInfoDrawer()"></div>
+
 <script src="/static/js/leaflet.js"></script>
 <script src="/static/js/leaflet.markercluster.js"></script>
 <script src="/static/js/app.js?v=24"></script>
