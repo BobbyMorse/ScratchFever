@@ -1847,6 +1847,138 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 .sf-cluster-instock { background-color: rgba(0, 204, 68, 0.35); }
 .sf-cluster-neutral { background-color: rgba(120, 120, 120, 0.30); }
 
+/* ── Live promotions feed (homepage EV tab) ─────────────────────────────── */
+.promo-feed {
+  margin: 1.25rem 0 1.5rem;
+  background: linear-gradient(180deg, #f0fdfa 0%, #ffffff 100%);
+  border: 1px solid rgba(20,184,166,0.22);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 2px 12px rgba(20,184,166,0.05);
+}
+.promo-feed-hd {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: .85rem; gap: .75rem; flex-wrap: wrap;
+}
+.promo-feed-title {
+  display: flex; align-items: center; gap: .55rem;
+  font-size: .98rem; font-weight: 800; color: var(--text);
+  letter-spacing: -.005em;
+}
+.promo-feed-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: #ef4444;
+  box-shadow: 0 0 0 0 rgba(239,68,68,.6);
+  animation: promoDot 1.6s ease-out infinite;
+  flex-shrink: 0;
+}
+@keyframes promoDot {
+  0%   { box-shadow: 0 0 0 0 rgba(239,68,68,.55); }
+  70%  { box-shadow: 0 0 0 8px rgba(239,68,68,0); }
+  100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+}
+.promo-feed-actions {
+  display: flex; align-items: center; gap: .4rem;
+}
+.promo-feed-loc-btn {
+  font-family: inherit; font-size: .75rem; font-weight: 600;
+  padding: .3rem .7rem;
+  background: var(--card);
+  border: 1px solid rgba(20,184,166,0.3);
+  color: #0d9488;
+  border-radius: 16px; cursor: pointer;
+  transition: .15s;
+}
+.promo-feed-loc-btn:hover { background: rgba(20,184,166,0.08); }
+.promo-feed-refresh {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 1px solid var(--border); background: var(--card);
+  color: var(--text-muted); cursor: pointer;
+  font-size: .95rem; font-family: inherit;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: .15s;
+}
+.promo-feed-refresh:hover { color: #0d9488; border-color: rgba(20,184,166,0.4); }
+
+.promo-feed-list {
+  display: flex; gap: .75rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: .25rem;
+}
+.promo-feed-list::-webkit-scrollbar { height: 6px; }
+.promo-feed-list::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 3px; }
+
+.promo-item {
+  flex: 0 0 280px;
+  scroll-snap-align: start;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: .85rem 1rem;
+  display: flex; flex-direction: column;
+  text-decoration: none; color: inherit;
+  transition: border-color .15s, transform .15s, box-shadow .15s;
+}
+.promo-item:hover {
+  border-color: rgba(20,184,166,0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(20,184,166,0.12);
+}
+.promo-item-head {
+  display: flex; align-items: center; gap: .4rem; flex-wrap: wrap;
+  font-size: .72rem; color: var(--text-muted);
+  margin-bottom: .35rem;
+}
+.promo-item-store {
+  font-weight: 700; color: var(--text);
+  font-size: .8rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 160px;
+}
+.promo-item-dist {
+  font-size: .68rem; font-weight: 700;
+  background: rgba(20,184,166,0.12); color: #0d9488;
+  padding: .1rem .4rem; border-radius: 8px;
+}
+.promo-item-verified {
+  color: #0d9488; font-size: .82rem; line-height: 1;
+}
+.promo-item-fresh {
+  font-size: .58rem; font-weight: 800; letter-spacing: .08em;
+  background: linear-gradient(90deg, #14b8a6 0%, #0ea5e9 100%);
+  color: #fff;
+  padding: .12rem .42rem; border-radius: 4px;
+  text-transform: uppercase;
+}
+.promo-item-title {
+  font-size: .92rem; font-weight: 700; color: var(--text);
+  line-height: 1.3;
+  margin-bottom: .25rem;
+  display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+.promo-item-body {
+  font-size: .78rem; color: var(--text-muted);
+  line-height: 1.4;
+  display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden;
+  flex: 1;
+}
+.promo-item-foot {
+  font-size: .7rem; color: var(--text-muted);
+  margin-top: .55rem;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.promo-item-go {
+  color: #0d9488; font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .promo-item { flex: 0 0 86%; }
+}
+
 /* ── Store profile owner-info card (consumer-side, fetched async) ─────────── */
 .store-owner-card {
   background: linear-gradient(180deg, #fafbff 0%, var(--card) 60%);
