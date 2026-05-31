@@ -18,7 +18,11 @@ from backend.ev_calculator import parse_prize_amount, parse_odds
 logger = logging.getLogger(__name__)
 
 PRIZES_URL = "https://www.illinoislottery.com/about-the-games/unpaid-instant-games-prizes"
+GAMES_HUB_URL = "https://www.illinoislottery.com/games-hub/instant-tickets"
 BASE_URL = "https://www.illinoislottery.com"
+# Game image asset filenames embed the IL game number, e.g.
+# ".../26-0245_WebApp_INT_NewTicketAsset_Feb26_TicketLogos_IL-7645_Logo.png".
+_IL_IMG_GAMEID_RE = re.compile(r"IL-(\d{3,6})_", re.IGNORECASE)
 
 
 def _parse_int(text: str) -> int | None:
