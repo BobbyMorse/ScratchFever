@@ -29,24 +29,36 @@ def _grid_points():
         lat += LAT_STEP
 
 
-def _parse_retailer(item: dict) -> dict | None:
-    name = (item.get("name") or item.get("pwsDisplayName") or "").strip()
+def _parse_feature(feat: dict) -> dict | None:
+    """CA API returns GeoJSON FeatureCollection; each feature has .properties + .geometry."""
+    props = feat.get("properties") or {}
+    geom = feat.get("geometry") or {}
+
+    name = (props.get("name") or props.get("pwsDisplayName") or "").strip()
     if not name:
         return None
-    external_id = str(item.get("id") or "").strip()
+    external_id = str(props.get("id") or "").strip()
     if not external_id:
         return None
+
+    lat = lng = None
     try:
-        lat = float(item["latitude"]) if item.get("latitude") is not None else None
-        lng = float(item["longitude"]) if item.get("longitude") is not None else None
+        if geom.get("latitude") is not None:
+            lat = float(geom["latitude"])
+        if geom.get("longitude") is not None:
+            lng = float(geom["longitude"])
+        if (lat is None or lng is None) and isinstance(geom.get("coordinates"), list) and len(geom["coordinates"]) >= 2:
+            lng = float(geom["coordinates"][0])
+            lat = float(geom["coordinates"][1])
     except (ValueError, TypeError):
-        lat, lng = None, None
+        pass
+
     return {
         "external_id": external_id,
         "name": name,
-        "address": (item.get("address1") or "").strip() or None,
-        "city": (item.get("city") or "").strip() or None,
-        "zip_code": (item.get("zip") or item.get("postalCode") or "").strip() or None,
+        "address": (props.get("address1") or "").strip() or None,
+        "city": (props.get("city") or "").strip() or None,
+        "zip_code": (props.get("zip") or props.get("postalCode") or "").strip() or None,
         "phone": None,
         "latitude": lat,
         "longitude": lng,
@@ -68,15 +80,28 @@ def scrape_ca() -> list[dict]:
         if resp is None:
             continue
         try:
-            items = resp.json()
-            if isinstance(items, dict):
-                items = items.get("retailers") or items.get("locations") or []
+            data = resp.json()
         except Exception:
             continue
 
+        features = []
+        if isinstance(data, dict):
+            features = data.get("features") or data.get("retailers") or data.get("locations") or []
+        elif isinstance(data, list):
+            features = data
+
         new_count = 0
-        for item in items:
-            r = _parse_retailer(item)
+        for feat in features:
+            if not isinstance(feat, dict):
+                continue
+            # New GeoJSON shape (properties + geometry) OR legacy flat shape
+            if "properties" in feat or "geometry" in feat:
+                r = _parse_feature(feat)
+            else:
+                # Legacy flat record — wrap so _parse_feature handles it uniformly
+                r = _parse_feature({"properties": feat, "geometry": {
+                    "latitude": feat.get("latitude"), "longitude": feat.get("longitude"),
+                }})
             if r and r["external_id"] not in seen_ids:
                 seen_ids.add(r["external_id"])
                 retailers.append(r)
