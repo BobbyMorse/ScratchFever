@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 URL = "https://nclottery.com/Data/WhereToPlay.js.aspx"
 
-_ARRAY_RE = re.compile(r"locationsAll\s*=\s*(\[.*?\])\s*;", re.DOTALL)
+_ARRAY_RE = re.compile(r"locationsAll\s*=\s*(\[.*\])\s*;?\s*$", re.DOTALL)
 
 
 def scrape_nc() -> list[dict]:
