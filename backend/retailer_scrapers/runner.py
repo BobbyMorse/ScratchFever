@@ -32,6 +32,8 @@ SCRAPERS: list[str] = [
     "IN",
     # Phase-5 batch (2026-06-01): 5 JSON-API scrapers (Playwright recon → plain HTTP)
     "ID", "LA", "PA", "KS", "MD",
+    # Phase-6 batch (2026-06-01): OH (JWT auth via public mobile creds + county sweep)
+    "OH",
 ]
 
 
