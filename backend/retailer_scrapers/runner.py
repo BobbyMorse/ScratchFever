@@ -26,6 +26,8 @@ SCRAPERS: list[str] = [
     "ME", "OR", "CO", "SC", "WA", "TX", "MI",
     # Phase-2 batch (2026-05-31): HTTP/HTML scrapers covering 6 more states
     "MS", "NC", "KY", "AR", "OK", "WI",
+    # Phase-3 batch (2026-05-31): NE city-sweep + MO zip-grid HTTP scrapers
+    "NE", "MO",
 ]
 
 
