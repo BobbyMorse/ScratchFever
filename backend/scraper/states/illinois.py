@@ -274,7 +274,7 @@ class IllinoisScraper(BaseScraper):
         def _fetch(g):
             url = g["detail_url"]
             try:
-                resp = self.session.get(url, timeout=30)
+                resp = cffi_requests.get(url, impersonate=self._IMPERSONATE, timeout=30)
                 resp.raise_for_status()
                 soup = BeautifulSoup(resp.text, "lxml")
             except Exception as e:
