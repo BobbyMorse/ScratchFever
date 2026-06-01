@@ -148,7 +148,7 @@ class IllinoisScraper(BaseScraper):
         for page in range(0, 5):
             url = f"{HUB_URL}?page={page}&filter=all"
             try:
-                soup = self.soup(url)
+                soup = self._cf_soup(url)
             except Exception as e:
                 logger.warning("IL: hub page %d fetch failed: %s", page, e)
                 break
