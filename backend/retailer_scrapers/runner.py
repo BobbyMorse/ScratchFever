@@ -28,6 +28,8 @@ SCRAPERS: list[str] = [
     "MS", "NC", "KY", "AR", "OK", "WI",
     # Phase-3 batch (2026-05-31): NE city-sweep + MO zip-grid HTTP scrapers
     "NE", "MO",
+    # Phase-4 batch (2026-05-31): IN lat/lng grid sweep (server-rendered cards)
+    "IN",
 ]
 
 
