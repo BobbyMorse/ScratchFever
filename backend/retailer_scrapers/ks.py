@@ -26,14 +26,15 @@ API_URL = (
     "https://gateway-web.loyalty.playonkansas.com"
     "/services/retailer/api/stores/location"
 )
+# NB: the gateway rejects "Invalid CORS request" if Origin is set, and the
+# referer host MUST be playonkansas.com without the www subdomain.
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
         "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
     ),
-    "Accept": "application/json,text/plain,*/*",
-    "Origin": "https://www.playonkansas.com",
-    "Referer": "https://www.playonkansas.com/",
+    "Accept": "application/json",
+    "Referer": "https://playonkansas.com/",
 }
 
 # KS bounding box, padded
