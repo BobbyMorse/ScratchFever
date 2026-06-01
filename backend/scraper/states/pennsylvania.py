@@ -374,12 +374,16 @@ class PennsylvaniaScraper(BaseScraper):
                 }
                 for future in as_completed(futures):
                     gid, tiers, overall_odds, total_tickets, image_url = future.result()
-                    if tiers:
+                    if tiers or image_url:
+                        # Persist even if bulletin link is gone — the ticket
+                        # image is still useful and may have been the only
+                        # thing the fetch succeeded at.
+                        existing = cache.get(gid) if isinstance(cache.get(gid), dict) else {}
                         cache[gid] = {
-                            "tiers":         tiers,
-                            "overall_odds":  overall_odds,
-                            "total_tickets": total_tickets,
-                            "image_url":     image_url,
+                            "tiers":         tiers or existing.get("tiers", []),
+                            "overall_odds":  overall_odds if overall_odds is not None else existing.get("overall_odds"),
+                            "total_tickets": total_tickets if total_tickets is not None else existing.get("total_tickets"),
+                            "image_url":     image_url or existing.get("image_url"),
                         }
                         cache_updated = True
                     if overall_odds is not None:
