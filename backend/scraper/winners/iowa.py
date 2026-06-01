@@ -94,7 +94,11 @@ class IowaWinnersScraper(WinnersScraper):
             date_span = tr.find("span", class_="date")
             if date_span:
                 claim_date = _parse_mdy(date_span.get_text(strip=True))
-            logo = tr.find("img")
+            # Each IA row has TWO <img> tags: a winner thumbnail (class
+            # "pic-styleImg") and the game logo ("gameLogo-styleImg"). Pick
+            # the latter — the winner-photo alt is the winner's name, not the
+            # game.
+            logo = tr.find("img", class_="gameLogo-styleImg")
             if logo and logo.get("alt"):
                 game_name = _extract_game_from_alt(logo["alt"])
 
