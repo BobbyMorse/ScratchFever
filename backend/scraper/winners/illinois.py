@@ -100,25 +100,40 @@ class IllinoisWinnersScraper(WinnersScraper):
         if prize is None or prize < self.min_prize:
             return None
 
-        # IL mixes two column orders in the same table:
-        #   newer rows: Game# | Name | $ | Retailer | Date
-        #   older rows: Game# | Name | $ | Date     | Retailer
-        # Detect which by checking if td[3] is a bare ISO/MDY date string.
-        td3_text = tds[3].get_text(" ", strip=True)
-        if _ISO_DATE_RE.fullmatch(td3_text) or _MDY_RE.fullmatch(td3_text):
-            date_cell, retailer_cell = tds[3], tds[4]
+        # IL publishes THREE row formats in this single page:
+        #   (a) 5 cells, recent:  Game# | Name | $ | Retailer (multi-line)  | Date (MDY)
+        #   (b) 5 cells, middle:  Game# | Name | $ | Date (ISO)             | Retailer (single-line, comma)
+        #   (c) 6 cells, oldest:  Game# | Name | $ | Winner+WinnerCity      | Retailer (multi-line) | empty
+        # Format (c) has no date column.
+        winner_city = None
+        claim_date = None
+        retailer_cell = None
+
+        if len(tds) >= 6:
+            # Format (c) — winner name+city in tds[3], retailer in tds[4]
+            winner_cell = tds[3]
+            for br in winner_cell.find_all("br"):
+                br.replace_with("\n")
+            wlines = [ln.strip() for ln in winner_cell.get_text("\n", strip=True).split("\n") if ln.strip()]
+            # wlines[0] = winner first name + last initial, wlines[1] = "City IL"
+            if len(wlines) >= 2:
+                winner_city = re.sub(r"\s+IL\s*$", "", wlines[1], flags=re.IGNORECASE).strip() or None
+            retailer_cell = tds[4]
         else:
-            retailer_cell, date_cell = tds[3], tds[4]
+            # 5-cell layout — detect column order by sniffing td[3] for a date.
+            td3_text = tds[3].get_text(" ", strip=True)
+            if _ISO_DATE_RE.fullmatch(td3_text) or _MDY_RE.fullmatch(td3_text):
+                date_cell, retailer_cell = tds[3], tds[4]
+            else:
+                retailer_cell, date_cell = tds[3], tds[4]
+            date_raw = date_cell.get_text(" ", strip=True)
+            claim_date = _parse_mdy(date_raw) or _parse_iso(date_raw)
 
         # Retailer cell uses <br> or <p> between name / street / city,state,zip.
-        # Replace <br>/<p>/</p> boundaries with newline before text extraction.
         for br in retailer_cell.find_all("br"):
             br.replace_with("\n")
         retailer_raw = retailer_cell.get_text("\n", strip=True)
         retailer_name, address, city, zip_code = _parse_retailer(retailer_raw)
-
-        date_raw = date_cell.get_text(" ", strip=True)
-        claim_date = _parse_mdy(date_raw) or _parse_iso(date_raw)
 
         # Strip the trailing "($X)" price marker that IL appends to game names
         # — keep the name cleaner for is_draw_game matching and game-linking.
