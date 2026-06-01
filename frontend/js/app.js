@@ -960,9 +960,7 @@ function _renderDsGrid() {
     const d = _parseTs(s.last_scrape_at);
     const when = isActive ? `<span style="color:var(--yellow);font-weight:600">Scraping now…</span>`
                : d ? timeAgo(d) : `<span class="ds-muted">—</span>`;
-    const errLine = (s.status === "error" && s.last_scrape_error)
-      ? `<div class="ds-err-msg" title="${s.last_scrape_error.replace(/"/g, '&quot;')}">${s.last_scrape_error}</div>`
-      : "";
+    const errLine = "";
     const games = s.games_in_db > 0 ? s.games_in_db.toLocaleString() : `<span class="ds-muted">—</span>`;
     const avgRet = s.avg_return
       ? `<span class="${s.avg_return >= 100 ? 'ds-pct-hi' : s.avg_return >= 80 ? 'ds-pct-mid' : 'ds-pct-lo'}">${s.avg_return}%</span>`
