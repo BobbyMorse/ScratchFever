@@ -44,7 +44,11 @@ PRIZES_URL = f"{BASE_URL}/about-the-games/unpaid-instant-games-prizes"
 HUB_URL = f"{BASE_URL}/games-hub/instant-tickets"
 
 _IL_IMG_GAMEID_RE = re.compile(r"IL-(\d{3,6})_", re.IGNORECASE)
-_OVERALL_ODDS_RE = re.compile(r"1\s*in\s*([\d,.]+)", re.IGNORECASE)
+# IL detail pages use two formats interchangeably for the Overall Odds cell:
+#   "1 in 4.97"   (most games)
+#   "4.80 to 1"   (some games, including 7-11-21 editions and Loose Change Multiplier)
+_OVERALL_ODDS_IN_RE = re.compile(r"1\s*in\s*([\d,.]+)", re.IGNORECASE)
+_OVERALL_ODDS_TO_RE = re.compile(r"([\d,.]+)\s*to\s*1", re.IGNORECASE)
 _BG_IMG_URL_RE = re.compile(r"url\(([^)]+)\)")
 _HUB_DETAIL_HREF = "/games-hub/instant-tickets/"
 
