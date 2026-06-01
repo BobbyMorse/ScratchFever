@@ -154,9 +154,33 @@ class IllinoisScraper(BaseScraper):
     _NON_ALNUM_RE = re.compile(r"[^a-z0-9]+")
 
     @classmethod
-    def _slugify_name(cls, name: str) -> str:
-        n = name.lower().replace("$", "").replace(",", "")
-        return cls._NON_ALNUM_RE.sub("-", n).strip("-")
+    def _slug_variants(cls, name: str) -> list[str]:
+        """IL hub slugs follow inconsistent rules, e.g.
+            "$1,000,000 Ca$h Cha$er"      → "1000000-cash-chaser"
+            "$100,000,000 Ca$h Spectacular!" → "100-000-000-cash-spectacular"
+        Generate plausible variants and let the caller verify against the
+        detail-page game number."""
+        variants: list[str] = []
+
+        def _norm(s: str) -> str:
+            return cls._NON_ALNUM_RE.sub("-", s.lower()).strip("-")
+
+        seen: set[str] = set()
+
+        def _add(s: str) -> None:
+            if s and s not in seen:
+                seen.add(s)
+                variants.append(s)
+
+        # Variant A: drop $, drop commas, then normalize.
+        _add(_norm(name.replace("$", "").replace(",", "")))
+        # Variant B: drop $, keep commas → become hyphens.
+        _add(_norm(name.replace("$", "")))
+        # Variant C: $→s (handles "Ca$h" → "cash"), drop commas.
+        _add(_norm(name.replace("$", "s").replace(",", "")))
+        # Variant D: $→s, keep commas.
+        _add(_norm(name.replace("$", "s")))
+        return variants
 
     def _fill_missing_via_slug_guess(self, rows, detail_map: dict[str, dict]) -> None:
         """For prize-table rows whose game_number isn't in detail_map, try a
@@ -175,11 +199,11 @@ class IllinoisScraper(BaseScraper):
                 continue
             raw_name = cells[0].get_text(" ", strip=True)
             name = re.sub(r"\s*\(\s*\$[\d.,]+\s*\)\s*$", "", raw_name).strip()
-            base = self._slugify_name(name)
-            if not base:
-                continue
-            for suffix in ("", "-2025", "-2024", "-2023", "-2022"):
-                candidates.append((gn, f"{base}{suffix}"))
+            for base in self._slug_variants(name):
+                if not base:
+                    continue
+                for suffix in ("", "-2025", "-2024", "-2023", "-2022"):
+                    candidates.append((gn, f"{base}{suffix}"))
 
         if not candidates:
             return
