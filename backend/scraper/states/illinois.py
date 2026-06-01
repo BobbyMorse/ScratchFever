@@ -103,10 +103,21 @@ class IllinoisScraper(BaseScraper):
     scraper_timeout = 600
 
     # ── Cloudflare-impersonating fetcher ───────────────────────────────────────
-    def _cf_get(self, url: str) -> str:
-        resp = cffi_requests.get(url, impersonate=_IMPERSONATE, timeout=30)
-        resp.raise_for_status()
-        return resp.text
+    def _cf_get(self, url: str, retries: int = 2) -> str:
+        # Cloudflare occasionally 403s a request even with a valid JA3; a small
+        # retry budget recovers reliably without spamming the edge.
+        last_exc: Exception | None = None
+        for attempt in range(retries + 1):
+            try:
+                resp = cffi_requests.get(url, impersonate=_IMPERSONATE, timeout=30)
+                resp.raise_for_status()
+                return resp.text
+            except Exception as e:
+                last_exc = e
+                if attempt < retries:
+                    import time as _t
+                    _t.sleep(1.5 * (attempt + 1))
+        raise last_exc  # type: ignore[misc]
 
     def _cf_soup(self, url: str) -> BeautifulSoup:
         return BeautifulSoup(self._cf_get(url), "lxml")
