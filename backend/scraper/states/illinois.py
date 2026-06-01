@@ -1,298 +1,308 @@
 """
 Illinois Lottery scratch-off scraper.
-Source: https://www.illinoislottery.com/about-the-games/unpaid-instant-games-prizes
 
-The page is Cloudflare-protected; Playwright renders it fully.
-Table structure: prize-amount columns as <th> headers, plus "Overall Odds", "Total",
-and "Unclaimed" columns. Each row is one active game.
+Three server-rendered sources (no JS / Playwright needed; the page accepts a
+standard browser User-Agent and returns full HTML):
 
-EV formula (same as MA):
+  1. https://www.illinoislottery.com/about-the-games/unpaid-instant-games-prizes
+     Single table with one row per active game. Cells:
+       [0] NAME ($PRICE)
+       [1] $PRICE
+       [2] GAME_NUMBER<br/>(WEEKS_IN_MARKET)
+       [3] Prize Values        — br-separated dollar amounts
+       [4] Total prizes        — br-separated counts, aligns with cell [3]
+       [5] Unclaimed prizes    — br-separated counts, aligns with cell [3]
+
+  2. https://www.illinoislottery.com/games-hub/instant-tickets?page=N&filter=all
+     Paginated 20 cards per page (≈3 pages for ~58 games). Each card carries
+     the slug in <a href="/games-hub/instant-tickets/{slug}"> and the IL game
+     number inside the background-image URL as `IL-{number}_Logo*.png`.
+
+  3. https://www.illinoislottery.com/games-hub/instant-tickets/{slug}
+     Per-game detail page with an `Overall Odds | 1 in X.XX` row.
+
+EV uses the MA formula:
   tickets_remaining = overall_odds × Σ prizes_remaining_i
   EV = Σ(prize_i × prizes_remaining_i) / tickets_remaining − price
 """
-import re
+from __future__ import annotations
+
 import logging
-from backend.scraper.playwright_base import PlaywrightScraper
+import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+from bs4 import BeautifulSoup
+
+from backend.scraper.base import BaseScraper
 from backend.ev_calculator import parse_prize_amount, parse_odds
 
 logger = logging.getLogger(__name__)
 
-PRIZES_URL = "https://www.illinoislottery.com/about-the-games/unpaid-instant-games-prizes"
-GAMES_HUB_URL = "https://www.illinoislottery.com/games-hub/instant-tickets"
 BASE_URL = "https://www.illinoislottery.com"
-# Game image asset filenames embed the IL game number, e.g.
-# ".../26-0245_WebApp_INT_NewTicketAsset_Feb26_TicketLogos_IL-7645_Logo.png".
+PRIZES_URL = f"{BASE_URL}/about-the-games/unpaid-instant-games-prizes"
+HUB_URL = f"{BASE_URL}/games-hub/instant-tickets"
+
 _IL_IMG_GAMEID_RE = re.compile(r"IL-(\d{3,6})_", re.IGNORECASE)
+_OVERALL_ODDS_RE = re.compile(r"1\s*in\s*([\d,.]+)", re.IGNORECASE)
+_BG_IMG_URL_RE = re.compile(r"url\(([^)]+)\)")
+_HUB_DETAIL_HREF = "/games-hub/instant-tickets/"
 
 
 def _parse_int(text: str) -> int | None:
-    cleaned = text.replace(",", "").strip()
+    cleaned = (text or "").replace(",", "").strip()
+    if not cleaned:
+        return None
     try:
         return int(float(cleaned))
     except (ValueError, TypeError):
         return None
 
 
-class IllinoisScraper(PlaywrightScraper):
+def _br_split(cell) -> list[str]:
+    """Return a cell's text content split on <br> boundaries, trimmed."""
+    raw = cell.decode_contents()
+    parts = re.split(r"<br\s*/?>", raw, flags=re.I)
+    out = []
+    for p in parts:
+        txt = re.sub(r"<[^>]+>", "", p).strip()
+        if txt:
+            out.append(txt)
+    return out
+
+
+class IllinoisScraper(BaseScraper):
     state_code = "IL"
     state_name = "Illinois"
     base_url = BASE_URL
+    # ~58 games × ~0.5s detail fetch (parallel) + 3 hub pages + 1 prizes page.
+    # 600s is comfortably above worst-case retry latency.
     scraper_timeout = 600
 
     def scrape(self) -> list[dict]:
-        # Cloudflare interstitial occasionally outlasts a single wait; retry
-        # once with a longer timeout before giving up. The runner's site-outage
-        # check preserves existing data if both attempts fail.
-        soup = None
-        last_err: Exception | None = None
-        for attempt, (sel_timeout, extra_wait) in enumerate([(60_000, 2_000), (120_000, 4_000)]):
-            try:
-                soup = self.pw_soup(
-                    PRIZES_URL,
-                    wait_for="domcontentloaded",
-                    selector=".unclaimed-prizes-table__row",
-                    timeout=sel_timeout,
-                    extra_wait_ms=extra_wait,
-                )
-                break
-            except Exception as e:
-                last_err = e
-                logger.warning("IL: attempt %d failed waiting for table: %s", attempt + 1, e)
-                self._close_browser()  # force a fresh Cloudflare handshake
-        if soup is None:
-            raise RuntimeError(f"IL: table never rendered after retries — {last_err}")
+        hub_map = self._fetch_hub_map()
+        logger.info("IL: %d games discovered in games-hub", len(hub_map))
 
-        # Game images live on a separate JS-rendered page; sniff network
-        # responses on the games-hub URL and key images by the IL-XXXX game
-        # number embedded in the asset filename.
-        image_map = self._sniff_game_images()
-        logger.info("IL: sniffed %d game images from games-hub", len(image_map))
-
-        # ── Build header → column-index map ──────────────────────────────────
-        headers = soup.select("th.unclaimed-prizes-table__header, th.unclaimed-prizes-table__cell")
-        if not headers:
-            headers = soup.select(".unclaimed-prizes-table th")
-
-        header_texts = [h.get_text(" ", strip=True) for h in headers]
-        logger.debug("IL headers: %s", header_texts)
-
-        prize_cols: list[tuple[int, float]] = []
-        total_col: int | None = None
-        unclaimed_col: int | None = None
-        odds_col: int | None = None
-
-        for i, text in enumerate(header_texts):
-            low = text.lower()
-            if "unclaimed" in low or "remaining" in low:
-                unclaimed_col = i
-            elif "total" in low:
-                total_col = i
-            elif "odd" in low:
-                odds_col = i
-            else:
-                amt = parse_prize_amount(text)
-                if amt is not None and amt > 0:
-                    prize_cols.append((i, amt))
-                elif "free" in low and "ticket" in low:
-                    prize_cols.append((i, 0.0))
-
-        logger.info(
-            "IL: %d prize columns, total_col=%s, unclaimed_col=%s, odds_col=%s",
-            len(prize_cols), total_col, unclaimed_col, odds_col,
-        )
-
-        # ── Parse rows ────────────────────────────────────────────────────────
-        games: list[dict] = []
-        seen: set[str] = set()
-
+        soup = self.soup(PRIZES_URL)
         rows = soup.select("tr.unclaimed-prizes-table__row")
-        logger.info("IL: found %d game rows", len(rows))
+        logger.info("IL: %d unclaimed-prize rows", len(rows))
 
+        parsed: list[dict] = []
         for row in rows:
-            # Use find_all("td") to capture every column, not just branded-class cells
-            cells = row.find_all("td")
-            if not cells:
-                continue
+            game = self._parse_row(row, hub_map)
+            if game:
+                parsed.append(game)
 
-            raw_name = cells[0].get_text(" ", strip=True)
-            name = re.sub(r"\s*\(\s*\$[\d.]+\s*\)\s*$", "", raw_name).strip()
-            if not name:
-                continue
+        # Fetch overall odds in parallel from each detail page.
+        odds_map = self._fetch_odds_parallel(parsed)
 
-            price_attr = row.get("data-price")
-            try:
-                price = float(price_attr)
-            except (TypeError, ValueError):
-                m = re.search(r"\(\s*\$([\d.]+)\s*\)", raw_name)
-                price = float(m.group(1)) if m else None
-            if not price:
-                continue
-
-            game_id_raw = cells[2].get_text(" ", strip=True) if len(cells) > 2 else ""
-            game_id_m = re.search(r"(\d{3,6})", game_id_raw)
-            game_id = game_id_m.group(1) if game_id_m else re.sub(r"[^a-z0-9]", "", name.lower())[:20]
-
-            if game_id in seen:
-                continue
-            seen.add(game_id)
-
-            # ── Extract overall odds ──────────────────────────────────────────
-            overall_odds: float | None = None
-            if odds_col is not None and len(cells) > odds_col:
-                overall_odds = parse_odds(cells[odds_col].get_text(strip=True))
-            if not overall_odds:
-                overall_odds = parse_odds(row.get("data-odds", "") or "")
-
-            # ── Build prize tiers ─────────────────────────────────────────────
-            tiers: list[dict] = []
-
-            # Strategy A: prize amounts are column headers, cells map 1-to-1
-            if prize_cols and len(cells) > max(i for i, _ in prize_cols):
-                for col_i, prize_amount in prize_cols:
-                    if prize_amount <= 0:
-                        continue
-                    cell_text = cells[col_i].get_text(strip=True)
-                    remaining = _parse_int(cell_text)
-                    if remaining is not None:
-                        total = None
-                        if total_col is not None and len(cells) > total_col:
-                            total_parts = [
-                                p.strip() for p in
-                                cells[total_col].decode_contents().split("<br") if p.strip()
-                            ]
-                            idx = [i for i, _ in prize_cols].index(col_i)
-                            if idx < len(total_parts):
-                                total = _parse_int(re.sub(r"[^0-9,]", "", total_parts[idx]))
-                        tiers.append({
-                            "prize_amount": prize_amount,
-                            "prizes_remaining": remaining,
-                            "prizes_total": total,
-                            "odds_one_in": None,
-                        })
-
-            # Strategy B: br-separated prize amounts in a dedicated cell
-            if not tiers and len(cells) >= 2:
-                for cell in cells[2:]:
-                    raw_html = cell.decode_contents()
-                    if "$" not in raw_html and "free" not in raw_html.lower():
-                        continue
-                    parts = re.split(r"<br\s*/?>", raw_html, flags=re.I)
-                    amounts = []
-                    for p in parts:
-                        txt = re.sub(r"<[^>]+>", "", p).strip()
-                        amt = parse_prize_amount(txt)
-                        if amt is not None and amt > 0:
-                            amounts.append(amt)
-                    if not amounts:
-                        continue
-
-                    def _br_ints(c):
-                        raw = c.decode_contents()
-                        parts = re.split(r"<br\s*/?>", raw, flags=re.I)
-                        result = []
-                        for p in parts:
-                            txt = re.sub(r"<[^>]+>", "", p).strip()
-                            v = _parse_int(txt)
-                            if v is not None:
-                                result.append(v)
-                        return result
-
-                    totals = _br_ints(cells[-2]) if len(cells) >= 2 else []
-                    remainings = _br_ints(cells[-1])
-                    for j, amt in enumerate(amounts):
-                        tiers.append({
-                            "prize_amount": amt,
-                            "prizes_remaining": remainings[j] if j < len(remainings) else None,
-                            "prizes_total": totals[j] if j < len(totals) else None,
-                            "odds_one_in": None,
-                        })
-                    break
-
-            # ── Compute tickets_remaining via MA formula ───────────────────────
-            tickets_remaining: int | None = None
-            total_tickets: int | None = None
-
-            if tiers and overall_odds and overall_odds > 0:
-                total_prizes_remaining = sum(t.get("prizes_remaining") or 0 for t in tiers)
-                total_prizes_printed = sum(t.get("prizes_total") or 0 for t in tiers)
-
-                if total_prizes_remaining > 0:
-                    tickets_remaining = round(overall_odds * total_prizes_remaining)
-                if total_prizes_printed > 0:
-                    total_tickets = round(overall_odds * total_prizes_printed)
-
-                # Back-fill per-tier odds_one_in from total_tickets
+        games: list[dict] = []
+        for g in parsed:
+            overall = odds_map.get(g["game_id"])
+            tickets_remaining = None
+            total_tickets = None
+            tiers = g["tiers"]
+            if tiers and overall and overall > 0:
+                total_remaining = sum(t.get("prizes_remaining") or 0 for t in tiers)
+                total_printed = sum(t.get("prizes_total") or 0 for t in tiers)
+                if total_remaining > 0:
+                    tickets_remaining = round(overall * total_remaining)
+                if total_printed > 0:
+                    total_tickets = round(overall * total_printed)
                 if total_tickets:
                     for t in tiers:
                         if t.get("prizes_total"):
                             t["odds_one_in"] = round(total_tickets / t["prizes_total"], 2)
 
-            if not tiers:
-                logger.debug("IL: no tiers parsed for game %s (%s)", name, game_id)
-                games.append(self.build_game(
-                    game_id=game_id,
-                    name=name,
-                    price=price,
-                    tiers=[],
-                    overall_odds=overall_odds,
-                    detail_url=f"{BASE_URL}/games-hub/instant-tickets",
-                    image_url=image_map.get(game_id),
-                ))
-                continue
-
             games.append(self.build_game(
-                game_id=game_id,
-                name=name,
-                price=price,
+                game_id=g["game_id"],
+                name=g["name"],
+                price=g["price"],
                 tiers=tiers,
                 tickets_remaining=tickets_remaining,
                 total_tickets=total_tickets,
-                overall_odds=overall_odds,
-                detail_url=f"{BASE_URL}/games-hub/instant-tickets",
-                image_url=image_map.get(game_id),
+                overall_odds=overall,
+                detail_url=g["detail_url"],
+                image_url=g["image_url"],
             ))
 
-        logger.info("IL: %d games scraped", len(games))
+        with_ev = sum(1 for g in games if g.get("ev") is not None)
+        logger.info("IL: %d games scraped, %d with EV", len(games), with_ev)
         return games
 
-    def _sniff_game_images(self) -> dict[str, str]:
-        """Open the games-hub page, scroll to trigger lazy-load, and capture
-        game-tile image URLs keyed by IL-XXXX game number from the filename."""
-        self._ensure_browser()
-        image_map: dict[str, str] = {}
-        from backend.scraper.playwright_base import _UA  # noqa
-        ctx = self._browser.new_context(user_agent=_UA)
-        page = ctx.new_page()
+    # ── hub: slug + image map keyed by IL game number ──────────────────────────
+    def _fetch_hub_map(self) -> dict[str, dict]:
+        out: dict[str, dict] = {}
+        # 3 pages × 20 cards covers ~58 active games; stop early if a page returns
+        # nothing new (defends against IL adding/removing pagination params).
+        for page in range(0, 5):
+            url = f"{HUB_URL}?page={page}&filter=all"
+            try:
+                soup = self.soup(url)
+            except Exception as e:
+                logger.warning("IL: hub page %d fetch failed: %s", page, e)
+                break
 
-        def on_response(r):
-            url = r.url
-            low = url.split("?")[0].lower()
-            if "illinoislottery.com" not in low:
-                return
-            if not any(low.endswith(ext) for ext in (".jpg", ".jpeg", ".png", ".webp")):
-                return
-            if "/dam/il/" not in low:
-                return
-            fname = url.rsplit("/", 1)[-1].split("?")[0]
-            m = _IL_IMG_GAMEID_RE.search(fname)
+            added = 0
+            for card in soup.select("div.simple-game-card"):
+                link = card.find("a", href=True)
+                if not link:
+                    continue
+                href = link["href"]
+                if _HUB_DETAIL_HREF not in href:
+                    continue
+                slug = href.rsplit("/", 1)[-1].split("?")[0]
+                if not slug or slug == "instant-tickets":
+                    continue
+                name = (link.get("aria-label") or "").strip()
+
+                banner = card.select_one(".simple-game-card__banner")
+                image_url = None
+                game_number = None
+                if banner and banner.has_attr("style"):
+                    m = _BG_IMG_URL_RE.search(banner["style"])
+                    if m:
+                        img = m.group(1).strip().strip("'\"")
+                        if img.startswith("/"):
+                            img = BASE_URL + img
+                        image_url = img
+                        gm = _IL_IMG_GAMEID_RE.search(img)
+                        if gm:
+                            game_number = gm.group(1)
+
+                if not game_number:
+                    continue
+                if game_number in out:
+                    continue
+                out[game_number] = {
+                    "slug": slug,
+                    "image_url": image_url,
+                    "hub_name": name,
+                }
+                added += 1
+
+            logger.debug("IL: hub page %d → +%d games (total %d)", page, added, len(out))
+            if added == 0 and page > 0:
+                break
+        return out
+
+    # ── row → parsed game (without overall odds yet) ───────────────────────────
+    def _parse_row(self, row, hub_map: dict[str, dict]) -> dict | None:
+        cells = row.find_all("td")
+        if len(cells) < 6:
+            return None
+
+        raw_name = cells[0].get_text(" ", strip=True)
+        name = re.sub(r"\s*\(\s*\$[\d.,]+\s*\)\s*$", "", raw_name).strip()
+        if not name:
+            return None
+
+        price = None
+        price_attr = row.get("data-price")
+        if price_attr:
+            try:
+                price = float(price_attr)
+            except (TypeError, ValueError):
+                pass
+        if price is None:
+            m = re.search(r"\(\s*\$([\d.,]+)\s*\)", raw_name)
             if m:
-                gid = m.group(1)
-                image_map.setdefault(gid, url.split("?")[0])
+                try:
+                    price = float(m.group(1).replace(",", ""))
+                except ValueError:
+                    pass
+        if not price:
+            return None
 
-        page.on("response", on_response)
-        try:
-            page.goto(GAMES_HUB_URL, wait_until="domcontentloaded", timeout=60_000)
-            page.wait_for_timeout(8_000)
-            # Aggressive scroll loop — IL renders tiles in batches as they
-            # enter the viewport, and the grid is long (50+ games).
-            for _ in range(20):
-                page.evaluate("window.scrollBy(0, 1200)")
-                page.wait_for_timeout(700)
-            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-            page.wait_for_timeout(3_000)
-        except Exception as e:
-            logger.warning("IL: games-hub sniff failed: %s", e)
-        finally:
-            page.close()
-            ctx.close()
-        return image_map
+        # cells[2] looks like "7647\n(14)" — first number is the game number.
+        gn_match = re.search(r"(\d{3,6})", cells[2].get_text(" ", strip=True))
+        if not gn_match:
+            return None
+        game_number = gn_match.group(1)
+        game_id = f"il{game_number}"
+
+        prize_parts = _br_split(cells[3])
+        total_parts = _br_split(cells[4])
+        unclaimed_parts = _br_split(cells[5])
+
+        tiers: list[dict] = []
+        for i, prize_text in enumerate(prize_parts):
+            amt = parse_prize_amount(prize_text)
+            if amt is None or amt <= 0:
+                continue
+            total = _parse_int(total_parts[i]) if i < len(total_parts) else None
+            remaining = _parse_int(unclaimed_parts[i]) if i < len(unclaimed_parts) else None
+            if remaining is None and total is None:
+                continue
+            tiers.append({
+                "prize_amount": amt,
+                "prizes_remaining": remaining,
+                "prizes_total": total,
+                "odds_one_in": None,
+            })
+
+        hub = hub_map.get(game_number) or {}
+        slug = hub.get("slug")
+        detail_url = f"{BASE_URL}{_HUB_DETAIL_HREF}{slug}" if slug else f"{BASE_URL}/games-hub/instant-tickets"
+
+        return {
+            "game_id": game_id,
+            "game_number": game_number,
+            "slug": slug,
+            "name": name,
+            "price": price,
+            "tiers": tiers,
+            "detail_url": detail_url,
+            "image_url": hub.get("image_url"),
+        }
+
+    # ── overall odds: scrape each detail page in parallel ──────────────────────
+    def _fetch_odds_parallel(self, parsed: list[dict]) -> dict[str, float]:
+        odds: dict[str, float] = {}
+        targets = [g for g in parsed if g.get("slug")]
+
+        def _fetch(g):
+            url = g["detail_url"]
+            try:
+                resp = self.session.get(url, timeout=30)
+                resp.raise_for_status()
+                soup = BeautifulSoup(resp.text, "lxml")
+            except Exception as e:
+                logger.debug("IL: detail fetch failed for %s: %s", g["slug"], e)
+                return g["game_id"], None
+            return g["game_id"], _extract_overall_odds(soup)
+
+        # 8 workers keeps IL's CDN happy while finishing ~58 fetches in ~5–8s.
+        with ThreadPoolExecutor(max_workers=8) as ex:
+            futs = [ex.submit(_fetch, g) for g in targets]
+            for fut in as_completed(futs):
+                gid, val = fut.result()
+                if val:
+                    odds[gid] = val
+        logger.info("IL: overall odds resolved for %d/%d games", len(odds), len(targets))
+        return odds
+
+
+def _extract_overall_odds(soup: BeautifulSoup) -> float | None:
+    """Find the 'Overall Odds | 1 in X.XX' row in the detail-page spec table."""
+    for tr in soup.select("table.itg-details-block--table tr"):
+        cells = tr.find_all("td")
+        if len(cells) < 2:
+            continue
+        label = cells[0].get_text(" ", strip=True).lower()
+        if "overall odds" in label:
+            m = _OVERALL_ODDS_RE.search(cells[1].get_text(" ", strip=True))
+            if m:
+                try:
+                    return float(m.group(1).replace(",", ""))
+                except ValueError:
+                    return None
+    # Fallback: any "1 in X.XX" string under the spec block.
+    block = soup.select_one(".itg-details-block")
+    if block:
+        m = _OVERALL_ODDS_RE.search(block.get_text(" ", strip=True))
+        if m:
+            try:
+                return float(m.group(1).replace(",", ""))
+            except ValueError:
+                return None
+    return None
