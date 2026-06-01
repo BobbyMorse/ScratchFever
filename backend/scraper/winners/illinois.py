@@ -160,7 +160,7 @@ class IllinoisWinnersScraper(WinnersScraper):
             "retailer_address": address,
             "retailer_city": city,
             "retailer_zip": zip_code,
-            "winner_city": None,
+            "winner_city": winner_city,
             "retailer_lat": None,
             "retailer_lng": None,
             "source_url": URL,
