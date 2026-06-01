@@ -79,11 +79,21 @@ class IllinoisScraper(BaseScraper):
     # 600s is comfortably above worst-case retry latency.
     scraper_timeout = 600
 
+    # Cloudflare in front of illinoislottery.com TLS-fingerprints the urllib3
+    # client `requests` uses and 403s it even with a perfect browser UA. curl_cffi
+    # impersonates a real Chrome TLS handshake (JA3/JA4) which gets through.
+    _IMPERSONATE = "chrome120"
+
+    def _cf_soup(self, url: str) -> BeautifulSoup:
+        resp = cffi_requests.get(url, impersonate=self._IMPERSONATE, timeout=30)
+        resp.raise_for_status()
+        return BeautifulSoup(resp.text, "lxml")
+
     def scrape(self) -> list[dict]:
         hub_map = self._fetch_hub_map()
         logger.info("IL: %d games discovered in games-hub", len(hub_map))
 
-        soup = self.soup(PRIZES_URL)
+        soup = self._cf_soup(PRIZES_URL)
         rows = soup.select("tr.unclaimed-prizes-table__row")
         logger.info("IL: %d unclaimed-prize rows", len(rows))
 
