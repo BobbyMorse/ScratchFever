@@ -32,6 +32,7 @@ import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from bs4 import BeautifulSoup
+from curl_cffi import requests as cffi_requests
 
 from backend.scraper.base import BaseScraper
 from backend.ev_calculator import parse_prize_amount, parse_odds
