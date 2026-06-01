@@ -804,9 +804,18 @@ async def upsert_reported_wins(conn, state_code: str, wins: list[dict]) -> int:
              retailer_lat, retailer_lng, source_url, source_id, scraped_at)
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,NOW())
         ON CONFLICT (state_code, source_id) DO UPDATE SET
-            game_db_id = COALESCE(EXCLUDED.game_db_id, reported_wins.game_db_id),
-            retailer_lat = COALESCE(EXCLUDED.retailer_lat, reported_wins.retailer_lat),
-            retailer_lng = COALESCE(EXCLUDED.retailer_lng, reported_wins.retailer_lng),
+            game_db_id       = COALESCE(EXCLUDED.game_db_id, reported_wins.game_db_id),
+            retailer_lat     = COALESCE(EXCLUDED.retailer_lat, reported_wins.retailer_lat),
+            retailer_lng     = COALESCE(EXCLUDED.retailer_lng, reported_wins.retailer_lng),
+            -- Refresh retailer/winner fields on every upsert. Prior versions
+            -- of scrapers may have inserted partial rows (e.g. missing
+            -- retailer_city), and the latest scrape's value should win.
+            retailer_name    = COALESCE(EXCLUDED.retailer_name, reported_wins.retailer_name),
+            retailer_address = COALESCE(EXCLUDED.retailer_address, reported_wins.retailer_address),
+            retailer_city    = COALESCE(EXCLUDED.retailer_city, reported_wins.retailer_city),
+            retailer_zip     = COALESCE(EXCLUDED.retailer_zip, reported_wins.retailer_zip),
+            winner_city      = COALESCE(EXCLUDED.winner_city, reported_wins.winner_city),
+            source_game_name = COALESCE(EXCLUDED.source_game_name, reported_wins.source_game_name),
             scraped_at = NOW()
     """
     BATCH = 1000
