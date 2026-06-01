@@ -240,6 +240,32 @@ class OregonScraper(BaseScraper):
         )
 
 
+def _scrape_detail_image(session: requests.Session, detail_url: str, game_num: str) -> str | None:
+    """Fallback: when the listing sniffer missed a game (offscreen during
+    scroll, lazy-load never fired), fetch its detail page directly and
+    extract the /wp-content/uploads/{game_num}_*.jpg ticket image."""
+    try:
+        resp = session.get(detail_url, timeout=15)
+        if resp.status_code != 200:
+            return None
+        # Detail pages reuse the same filename convention as the listing.
+        pattern = re.compile(
+            rf'/wp-content/uploads/[^"\'\s]*/{re.escape(game_num)}_[^"\'\s]*?\.(?:jpg|jpeg|png|webp)',
+            re.IGNORECASE,
+        )
+        candidates: list[str] = []
+        for m in pattern.finditer(resp.text):
+            path = m.group(0)
+            # Prefer the non-thumbnail variant (filename without -WxH suffix).
+            if not re.search(r"-\d+x\d+\.[a-z]+$", path, re.IGNORECASE):
+                return BASE_URL + path
+            candidates.append(BASE_URL + path)
+        return candidates[0] if candidates else None
+    except Exception as e:
+        logger.debug("OR: detail-image fallback failed for %s: %s", game_num, e)
+        return None
+
+
 def _is_active(g: dict) -> bool:
     """A game is for-sale if GameEndDate (sales end) is in the future or unset.
     ValidationEndDate is later — it's the claim deadline — and including those
