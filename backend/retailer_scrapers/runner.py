@@ -30,6 +30,8 @@ SCRAPERS: list[str] = [
     "NE", "MO",
     # Phase-4 batch (2026-05-31): IN lat/lng grid sweep (server-rendered cards)
     "IN",
+    # Phase-5 batch (2026-06-01): 5 JSON-API scrapers (Playwright recon → plain HTTP)
+    "ID", "LA", "PA", "KS", "MD",
 ]
 
 
