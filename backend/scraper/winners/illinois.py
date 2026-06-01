@@ -190,14 +190,47 @@ def _parse_iso(s: str) -> dt.date | None:
 
 def _parse_retailer(raw: str) -> tuple[str | None, str | None, str | None, str | None]:
     """
-    Split "Westchester Bp,\\n11201 Cermak Rd,\\nWestchester, Il, 60154" into
-    (name, address, city, zip).
+    Two formats live in the same IL table:
+
+      Multi-line (newer):
+        "Westchester Bp,\\n11201 Cermak Rd,\\nWestchester, Il, 60154"
+
+      Single-line, all-caps, comma-separated (older):
+        "CAPUTOS FRESH MARKETS, 500 E NORTH AVE, CAROL STREAM, IL, 60188"
+
+    Return (name, address, city, zip).
     """
     if not raw:
         return None, None, None, None
     lines = [ln.strip().rstrip(",") for ln in raw.split("\n") if ln.strip()]
     if not lines:
         return None, None, None, None
+
+    # Single-line comma format: collapse to one tokenized list and split on comma.
+    if len(lines) == 1 and lines[0].count(",") >= 3:
+        parts = [p.strip() for p in lines[0].split(",")]
+        # Expected shape: NAME, STREET, CITY, IL, ZIP  (5 parts) — but be lenient.
+        name = parts[0] if parts else None
+        # Find the IL anchor; everything before it is address+city, after is zip.
+        il_idx = None
+        for i, p in enumerate(parts):
+            if p.upper() in ("IL", "ILLINOIS"):
+                il_idx = i
+                break
+        zip_code = None
+        city = None
+        address = None
+        if il_idx is not None and il_idx >= 2:
+            city = parts[il_idx - 1]
+            address = ", ".join(parts[1:il_idx - 1]) if il_idx - 1 > 1 else parts[1]
+            if il_idx + 1 < len(parts) and re.fullmatch(r"\d{5}", parts[il_idx + 1]):
+                zip_code = parts[il_idx + 1]
+        else:
+            address = parts[1] if len(parts) > 1 else None
+            city = parts[2] if len(parts) > 2 else None
+        return name, address, city, zip_code
+
+    # Multi-line format
     name = lines[0]
     address = lines[1] if len(lines) > 1 else None
     city = None
