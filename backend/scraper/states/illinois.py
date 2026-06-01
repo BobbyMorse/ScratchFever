@@ -283,9 +283,13 @@ class IllinoisScraper(PlaywrightScraper):
         try:
             page.goto(GAMES_HUB_URL, wait_until="domcontentloaded", timeout=60_000)
             page.wait_for_timeout(8_000)
-            for _ in range(6):
-                page.evaluate("window.scrollBy(0, 2000)")
-                page.wait_for_timeout(800)
+            # Aggressive scroll loop — IL renders tiles in batches as they
+            # enter the viewport, and the grid is long (50+ games).
+            for _ in range(20):
+                page.evaluate("window.scrollBy(0, 1200)")
+                page.wait_for_timeout(700)
+            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+            page.wait_for_timeout(3_000)
         except Exception as e:
             logger.warning("IL: games-hub sniff failed: %s", e)
         finally:
