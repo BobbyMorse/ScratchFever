@@ -100,17 +100,25 @@ class IllinoisWinnersScraper(WinnersScraper):
         if prize is None or prize < self.min_prize:
             return None
 
-        # Retailer cell uses <br> between name / street / city,state,zip.
-        # Replace <br> with newline before extracting text so we can split.
-        retailer_cell = tds[3]
+        # IL mixes two column orders in the same table:
+        #   newer rows: Game# | Name | $ | Retailer | Date
+        #   older rows: Game# | Name | $ | Date     | Retailer
+        # Detect which by checking if td[3] is a bare ISO/MDY date string.
+        td3_text = tds[3].get_text(" ", strip=True)
+        if _ISO_DATE_RE.fullmatch(td3_text) or _MDY_RE.fullmatch(td3_text):
+            date_cell, retailer_cell = tds[3], tds[4]
+        else:
+            retailer_cell, date_cell = tds[3], tds[4]
+
+        # Retailer cell uses <br> or <p> between name / street / city,state,zip.
+        # Replace <br>/<p>/</p> boundaries with newline before text extraction.
         for br in retailer_cell.find_all("br"):
             br.replace_with("\n")
         retailer_raw = retailer_cell.get_text("\n", strip=True)
-
         retailer_name, address, city, zip_code = _parse_retailer(retailer_raw)
 
-        date_raw = tds[4].get_text(" ", strip=True)
-        claim_date = _parse_mdy(date_raw)
+        date_raw = date_cell.get_text(" ", strip=True)
+        claim_date = _parse_mdy(date_raw) or _parse_iso(date_raw)
 
         # Strip the trailing "($X)" price marker that IL appends to game names
         # — keep the name cleaner for is_draw_game matching and game-linking.
