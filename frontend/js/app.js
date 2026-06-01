@@ -6419,6 +6419,7 @@ const GEN_STATES = {
   CA: { name: "California",     center: [37.2, -119.5], zoom: 6 },
   CO: { name: "Colorado",       center: [39.0, -105.5], zoom: 7 },
   CT: { name: "Connecticut",    center: [41.6, -72.7],  zoom: 9 },
+  IN: { name: "Indiana",        center: [39.9, -86.3],  zoom: 7 },
   KY: { name: "Kentucky",       center: [37.5, -85.0],  zoom: 7 },
   ME: { name: "Maine",          center: [45.3, -69.0],  zoom: 7 },
   MI: { name: "Michigan",       center: [44.3, -85.6],  zoom: 7 },
