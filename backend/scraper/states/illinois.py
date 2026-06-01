@@ -123,6 +123,13 @@ class IllinoisScraper(BaseScraper):
         rows = soup.select("tr.unclaimed-prizes-table__row")
         logger.info("IL: %d unclaimed-prize rows", len(rows))
 
+        # Some games still have unclaimed prizes but have been pulled from the
+        # active hub (e.g. "25X XTRA", older "$250,000 Crossword" editions). Their
+        # detail pages still exist; guess the slug from the prize-table name and
+        # confirm with the embedded Game Number to avoid mismatching same-name
+        # games of different vintages.
+        self._fill_missing_via_slug_guess(rows, detail_map)
+
         games: list[dict] = []
         for row in rows:
             g = self._build_game_from_row(row, detail_map)
@@ -132,6 +139,80 @@ class IllinoisScraper(BaseScraper):
         with_ev = sum(1 for g in games if g.get("ev") is not None)
         logger.info("IL: %d games scraped, %d with EV", len(games), with_ev)
         return games
+
+    _NON_ALNUM_RE = re.compile(r"[^a-z0-9]+")
+
+    @classmethod
+    def _slugify_name(cls, name: str) -> str:
+        n = name.lower().replace("$", "").replace(",", "")
+        return cls._NON_ALNUM_RE.sub("-", n).strip("-")
+
+    def _fill_missing_via_slug_guess(self, rows, detail_map: dict[str, dict]) -> None:
+        """For prize-table rows whose game_number isn't in detail_map, try a
+        small set of slug guesses derived from the name. Only adopt a candidate
+        if its Game Number matches the prize-table row."""
+        candidates: list[tuple[str, str]] = []  # (game_number, candidate_slug)
+        for row in rows:
+            cells = row.find_all("td")
+            if len(cells) < 6:
+                continue
+            gn_match = re.search(r"(\d{3,6})", cells[2].get_text(" ", strip=True))
+            if not gn_match:
+                continue
+            gn = gn_match.group(1)
+            if gn in detail_map:
+                continue
+            raw_name = cells[0].get_text(" ", strip=True)
+            name = re.sub(r"\s*\(\s*\$[\d.,]+\s*\)\s*$", "", raw_name).strip()
+            base = self._slugify_name(name)
+            if not base:
+                continue
+            for suffix in ("", "-2025", "-2024", "-2023", "-2022"):
+                candidates.append((gn, f"{base}{suffix}"))
+
+        if not candidates:
+            return
+        logger.info("IL: %d slug-guess candidates for %d unmatched games",
+                    len(candidates), len({gn for gn, _ in candidates}))
+
+        def _probe(gn: str, slug: str) -> tuple[str, dict | None]:
+            url = f"{BASE_URL}{_HUB_DETAIL_HREF}{slug}"
+            try:
+                html = self._cf_get(url)
+            except Exception:
+                return gn, None
+            soup = BeautifulSoup(html, "lxml")
+            detail_gn = None
+            odds = None
+            for tr in soup.select("table.itg-details-block--table tr"):
+                cells = tr.find_all("td")
+                if len(cells) < 2:
+                    continue
+                label = cells[0].get_text(" ", strip=True).lower()
+                value = cells[1].get_text(" ", strip=True)
+                if "game number" in label:
+                    m = re.search(r"(\d{3,6})", value)
+                    if m:
+                        detail_gn = m.group(1)
+                elif "overall odds" in label:
+                    odds = _parse_odds_value(value)
+            if detail_gn != gn:
+                return gn, None
+            img = soup.select_one(".itg-details-block .cmp-image img[src]")
+            image_url = None
+            if img:
+                src = img.get("src") or ""
+                if src.startswith("/"):
+                    src = BASE_URL + src
+                image_url = src
+            return gn, {"slug": slug, "overall_odds": odds, "image_url": image_url, "detail_url": url}
+
+        with ThreadPoolExecutor(max_workers=8) as ex:
+            futs = [ex.submit(_probe, gn, slug) for gn, slug in candidates]
+            for fut in as_completed(futs):
+                gn, rec = fut.result()
+                if rec and gn not in detail_map:
+                    detail_map[gn] = rec
 
     # ── hub: enumerate slugs across all paginated pages ────────────────────────
     def _fetch_hub_slugs(self) -> set[str]:
