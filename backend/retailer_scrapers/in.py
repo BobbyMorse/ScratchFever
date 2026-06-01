@@ -42,17 +42,13 @@ IN_LNG_MIN, IN_LNG_MAX = -88.15, -84.75
 GRID_STEP = 0.30           # ~21 mi N/S, ~16 mi E/W at IN latitude — gives overlap
 PAGE_CAP = 100             # server returns at most 100 per request
 REQUEST_SLEEP = 0.5
-REQUEST_TIMEOUT = 60
+REQUEST_TIMEOUT = 90
 MAX_RETRIES = 3
 
-CARD_RE = re.compile(
-    r'<div class="row wtb-card"[^>]*>([\s\S]*?)</div>\s*</div>\s*</div>'
-)
-NAME_RE = re.compile(
-    r'<a class="wtb-location-name[^"]*">\s*([^<]+?)\s*</a>'
-)
-ADDR_RE = re.compile(r'<span class="d-block wtb-card-address">([^<]+)</span>')
-LOC_RE  = re.compile(r'<span class="d-block wtb-card-location">([^<]+)</span>')
+CARD_SPLIT_RE = re.compile(r'<div class="row wtb-card"')
+NAME_RE = re.compile(r'wtb-location-name[^"]*">\s*([^<]+)')
+ADDR_RE = re.compile(r'wtb-card-address">([^<]+)')
+LOC_RE  = re.compile(r'wtb-card-location">([^<]+)')
 CITY_STATE_ZIP_RE = re.compile(r'^(?P<city>.+?),\s*(?P<state>[A-Z]{2})\s+(?P<zip>\d{5})')
 
 
@@ -76,18 +72,16 @@ def _fetch(session: requests.Session, lat: float, lng: float) -> str | None:
 
 def _parse_cards(html: str) -> list[dict]:
     retailers = []
-    for card in CARD_RE.findall(html):
-        nm = NAME_RE.search(card)
-        if not nm:
+    chunks = CARD_SPLIT_RE.split(html)
+    for chunk in chunks[1:]:
+        nm = NAME_RE.search(chunk)
+        ad = ADDR_RE.search(chunk)
+        lo = LOC_RE.search(chunk)
+        if not (nm and ad and lo):
             continue
-        addrm = ADDR_RE.search(card)
-        locm  = LOC_RE.search(card)
-        if not (addrm and locm):
-            continue
-
         name = html_mod.unescape(nm.group(1)).strip()
-        address = html_mod.unescape(addrm.group(1)).strip()
-        loc = html_mod.unescape(locm.group(1)).strip()
+        address = html_mod.unescape(ad.group(1)).strip()
+        loc = html_mod.unescape(lo.group(1)).strip()
         city = state = zip_code = None
         cm = CITY_STATE_ZIP_RE.match(loc)
         if cm:
