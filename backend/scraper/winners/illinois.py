@@ -165,6 +165,7 @@ def _parse_money(s: str) -> float | None:
 
 
 _MDY_RE = re.compile(r"(\d{1,2})/(\d{1,2})/(\d{4})")
+_ISO_DATE_RE = re.compile(r"(\d{4})-(\d{2})-(\d{2})")
 
 
 def _parse_mdy(s: str) -> dt.date | None:
@@ -173,6 +174,16 @@ def _parse_mdy(s: str) -> dt.date | None:
         return None
     try:
         return dt.date(int(m.group(3)), int(m.group(1)), int(m.group(2)))
+    except ValueError:
+        return None
+
+
+def _parse_iso(s: str) -> dt.date | None:
+    m = _ISO_DATE_RE.search(s or "")
+    if not m:
+        return None
+    try:
+        return dt.date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
     except ValueError:
         return None
 
