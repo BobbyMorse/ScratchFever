@@ -297,27 +297,34 @@ class IllinoisScraper(BaseScraper):
         return odds
 
 
+def _parse_odds_value(text: str) -> float | None:
+    """Parse IL's 'Overall Odds' cell, which appears as either '1 in X.XX'
+    or 'X.XX to 1'. Both forms yield the same divisor."""
+    for pattern in (_OVERALL_ODDS_IN_RE, _OVERALL_ODDS_TO_RE):
+        m = pattern.search(text)
+        if m:
+            try:
+                v = float(m.group(1).replace(",", ""))
+                if v > 0:
+                    return v
+            except ValueError:
+                pass
+    return None
+
+
 def _extract_overall_odds(soup: BeautifulSoup) -> float | None:
-    """Find the 'Overall Odds | 1 in X.XX' row in the detail-page spec table."""
+    """Find the 'Overall Odds | X' row in the detail-page spec table."""
     for tr in soup.select("table.itg-details-block--table tr"):
         cells = tr.find_all("td")
         if len(cells) < 2:
             continue
         label = cells[0].get_text(" ", strip=True).lower()
         if "overall odds" in label:
-            m = _OVERALL_ODDS_RE.search(cells[1].get_text(" ", strip=True))
-            if m:
-                try:
-                    return float(m.group(1).replace(",", ""))
-                except ValueError:
-                    return None
-    # Fallback: any "1 in X.XX" string under the spec block.
+            v = _parse_odds_value(cells[1].get_text(" ", strip=True))
+            if v:
+                return v
+    # Fallback: any odds-format substring under the spec block.
     block = soup.select_one(".itg-details-block")
     if block:
-        m = _OVERALL_ODDS_RE.search(block.get_text(" ", strip=True))
-        if m:
-            try:
-                return float(m.group(1).replace(",", ""))
-            except ValueError:
-                return None
+        return _parse_odds_value(block.get_text(" ", strip=True))
     return None
