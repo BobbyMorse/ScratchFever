@@ -222,6 +222,11 @@ class OregonScraper(BaseScraper):
             total_tickets = round(overall_odds * total_printed)
             tickets_remaining = round(overall_odds * total_remaining)
 
+        detail_url = f"{BASE_URL}/scratch-its/{_slugify(name)}/"
+        image_url = image_map.get(game_num)
+        if not image_url:
+            image_url = _scrape_detail_image(session, detail_url, game_num)
+
         return self.build_game(
             game_id=game_num,
             name=name,
@@ -230,8 +235,8 @@ class OregonScraper(BaseScraper):
             overall_odds=overall_odds,
             total_tickets=total_tickets,
             tickets_remaining=tickets_remaining,
-            detail_url=f"{BASE_URL}/scratch-its/{_slugify(name)}/",
-            image_url=image_map.get(game_num),
+            detail_url=detail_url,
+            image_url=image_url,
         )
 
 
