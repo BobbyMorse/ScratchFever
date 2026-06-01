@@ -129,12 +129,15 @@ class VirginiaScraper(PlaywrightScraper):
         if om:
             overall_odds = float(om.group(1))
 
-        # Ticket image — VA serves it from one of two media folders, so we read
-        # the <img> the page actually uses rather than guessing the path.
+        # Ticket image — VA serves it from one of two media folders under
+        # several naming conventions: "{id}_unscratched", "{id}-scratched",
+        # "{id}-unscratched", or just the bare game-number filename.
         image_url = None
         for img in soup.find_all("img", src=True):
             src = img["src"]
-            if "_unscratched" in src.lower():
+            low = src.lower()
+            if any(tag in low for tag in
+                   ("_unscratched", "-unscratched", "-scratched", "_scratched")):
                 image_url = src.split("?")[0]
                 break
 
