@@ -152,6 +152,20 @@ class OregonScraper(BaseScraper):
             except Exception as e:
                 logger.warning("OR: listing page load: %s", e)
 
+            # Scroll through the listing so lazy-loaded ticket images on every
+            # game tile fire their network requests; the sniffer above keys
+            # them by game-number.
+            try:
+                page.wait_for_timeout(2_000)
+                for _ in range(12):
+                    page.evaluate("window.scrollBy(0, 1500)")
+                    page.wait_for_timeout(600)
+                # Force any remaining offscreen images
+                page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                page.wait_for_timeout(2_000)
+            except Exception as e:
+                logger.debug("OR: scroll-for-images: %s", e)
+
             browser.close()
 
         return (creds if creds else None), listing_payload, image_map
