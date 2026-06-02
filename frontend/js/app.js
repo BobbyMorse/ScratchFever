@@ -1462,16 +1462,15 @@ async function renderBigWinsDarkLayer() {
   };
   bigwinsMapDarkLayer = L.geoJSON(dark, {
     interactive: false,
+    pane: "bigwinsDark",
     style: {
-      fillColor: "#0f172a",
-      color: "#1e293b",
-      weight: 0.6,
-      fillOpacity: 0.55,
+      fillColor: "#475569",
+      color: "#334155",
+      weight: 0.4,
+      fillOpacity: 0.35,
     },
   });
   bigwinsMapDarkLayer.addTo(bigwinsMap);
-  // Keep markers on top of the polygon layer.
-  if (bigwinsMapMarkers) bigwinsMapMarkers.bringToFront();
 }
 
 function renderBigWinsMap() {
