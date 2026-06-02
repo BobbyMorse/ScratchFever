@@ -426,6 +426,13 @@ def _clean_game(raw: str) -> str | None:
         name,
         flags=re.IGNORECASE,
     ).strip()
+    # Drop trailing "Scratch-Off Game" / "Scratch-Off" suffix when the prose
+    # form captured it: "Win for Life! Scratch-Off Game" → "Win for Life!"
+    name = re.sub(
+        r"\s*Scratch[-\s]?[Oo]ff(?:\s+Game)?\s*$",
+        "",
+        name,
+    ).strip().strip("!")
     if not name or len(name) > 80:
         return None
     return name
