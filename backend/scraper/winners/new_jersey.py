@@ -362,38 +362,45 @@ def _prize_near(body: str, anchor_start: int) -> float | None:
     return best if best > 0 else None
 
 
-# "Million in Cash Blitz", "200X Cash Blitz", "Crossword Bonanza",
-# "Ultimate Spectacular", "Win for Life!", "$100,000 Bingo Extra",
-# "Jersey Giant Winnings", "Millionaire Maker", "$250,000 Crossword"
-_GAME_RE = re.compile(
-    r"(?:the\s+|in\s+the\s+|playing\s+|for\s+(?:the\s+)?|of\s+(?:the\s+)?|in\s+)"
-    r"(\$?[\d,]*\s*[A-Z][A-Za-z0-9 '!\-\$&]{2,60}?)"
-    r"\s*(?:Scratch[-\s]?Off|Scratch[-\s]?off)",
-    re.IGNORECASE,
-)
-# Headline-style with prize prefix: "$200,000. The top prize of the $5 game..."
-_DATE_PREFIX_GAME_RE = re.compile(
-    r"[A-Z][a-z]{2}\.?\s+\d{1,2}:\s+(.+?),\s*\$",
-)
+# Game-name extractors (case-sensitive so we anchor on Title Case proper
+# nouns). Tried in order on the 500-char window preceding the anchor.
+# Examples that must parse cleanly:
+#   "$1,000,000 Ultimate Spectacular is that..."  → Ultimate Spectacular
+#   "top prize for the 200X Cash Blitz in Bergen" → 200X Cash Blitz
+#   "in the Win for Life! Scratch-Off Game"       → Win for Life!
+#   "$100,000 Bingo Extra, $100,000."             → Bingo Extra
+#   "the $250,000 Crossword. That ticket..."      → $250,000 Crossword
+#   "Jan. 13: Jersey Giant Winnings, $200,000."   → Jersey Giant Winnings
+_GAME_PATTERNS = [
+    # WeeklyWins format: "Jan. 13: <Game Name>, $Amount."
+    re.compile(r"(?<-i:[A-Z])[A-Z][a-z]{2}\.?\s+\d{1,2}:\s+([^,\n]{2,60}?),\s*\$"),
+    # "<prize-prefix> <GAME> Scratch-Off"
+    re.compile(
+        r"(?:\$[\d,]+\s+|the\s+)([A-Z][\w!&'\- ]{2,60}?)\s+Scratch[-\s]?[Oo]ff",
+    ),
+    # "for the <GAME> in <Location>"  (where GAME ends before "in")
+    re.compile(
+        r"for\s+(?:the\s+)?(\$?[\d,]*\s*[A-Z][\w!&'\- ]{2,60}?)\s+in\s+(?-i:[A-Z])",
+    ),
+    # "the $X,XXX,XXX <GAME>"  used in WeeklyWins lede ("the top prize of the $5 game...")
+    re.compile(
+        r"prize\s+in\s+the\s+(\$?[\d,]*\s*[A-Z][\w!&'\- ]{2,60}?)(?=[.,])",
+    ),
+    # Inline: "$X,XXX,XXX <GAME Name> is/was/has"  (lede of RetailWin releases)
+    re.compile(
+        r"\$[\d,]+\s+([A-Z][\w!&'\-]+(?:\s+[A-Z][\w!&'\-]+){1,5})\s+(?:is|was|has|game)\b",
+    ),
+]
 
 
 def _game_near(body: str, anchor_start: int) -> str | None:
     """Find the game name associated with the anchor by scanning the 500
-    chars preceding it. WeeklyWins format also uses "Mmm DD: Game, $Amount."
-    which we check as a fast path."""
-    window_start = max(0, anchor_start - 500)
-    window = body[window_start:anchor_start]
-
-    # Fast path: "Jan. 13: Game Name, $200,000."
-    matches = list(_DATE_PREFIX_GAME_RE.finditer(window))
-    if matches:
-        name = _clean_game(matches[-1].group(1))
-        if name:
-            return name
-
-    # General path: nearest "GAME Scratch-Off" before the anchor
-    matches = list(_GAME_RE.finditer(window))
-    if matches:
+    chars preceding it. Returns first cleanly-parsed match."""
+    window = body[max(0, anchor_start - 500):anchor_start]
+    for pat in _GAME_PATTERNS:
+        matches = list(pat.finditer(window))
+        if not matches:
+            continue
         name = _clean_game(matches[-1].group(1))
         if name:
             return name
@@ -407,7 +414,12 @@ def _clean_game(raw: str) -> str | None:
     # Drop leading prize prefix: "$100,000 Bingo Extra" → "Bingo Extra"
     name = re.sub(r"^\$[\d,]+\s+", "", name).strip()
     # Drop common prose lead-ins that creep in
-    name = re.sub(r"^(?:top\s+prize\s+for\s+the?\s+|the\s+)", "", name, flags=re.IGNORECASE).strip()
+    name = re.sub(
+        r"^(?:top\s+prize\s+(?:for|in)\s+the?\s+|the\s+|a\s+)",
+        "",
+        name,
+        flags=re.IGNORECASE,
+    ).strip()
     if not name or len(name) > 80:
         return None
     return name
