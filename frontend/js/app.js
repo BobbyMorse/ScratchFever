@@ -3503,6 +3503,7 @@ async function sendTestCall() {
 
   const asRetailerVal = document.getElementById("cfTestAsRetailer")?.value || "";
   const asRetailerId  = asRetailerVal ? parseInt(asRetailerVal) : null;
+  const pickedNumberId = document.getElementById("cfTestPhoneNumberId")?.value || null;
 
   try {
     const res  = await callerFetch("/api/vapi/test_call", {
@@ -3512,6 +3513,7 @@ async function sendTestCall() {
         phone,
         tickets,
         as_retailer_id: asRetailerId,
+        phone_number_id: pickedNumberId,
       }),
     });
     let data = {};
