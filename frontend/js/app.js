@@ -210,6 +210,13 @@ function applyServerPrefs(serverPrefs) {
   if (evPrefSel) evPrefSel.value = _prefs.evDefaultState || "";
 }
 
+async function _hydratePrefsFromServer() {
+  try {
+    const res = await fetch("/api/auth/prefs", { headers: authHeaders() });
+    if (res.ok) applyServerPrefs(await res.json());
+  } catch (_) {}
+}
+
 async function _persistPrefToServer(key, value) {
   if (!_currentUser) return;
   try {
