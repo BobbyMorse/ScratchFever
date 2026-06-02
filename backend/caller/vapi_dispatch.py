@@ -1004,7 +1004,10 @@ async def vapi_test_call(body: TestCallBody, _user: dict = Depends(require_admin
         "phone":       e164,
     }
     tickets = [t.model_dump() for t in body.tickets]
-    results, _ = await _dispatch_calls([target], tickets, env)
+    results, _ = await _dispatch_calls(
+        [target], tickets, env,
+        force_phone_number_id=body.phone_number_id,
+    )
     r = results[0] if results else {"ok": False, "error": "no result"}
     if not r["ok"]:
         raise HTTPException(status_code=502, detail=f"VAPI dispatch failed: {r.get('error')}")
