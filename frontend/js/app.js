@@ -2476,6 +2476,10 @@ async function loadCallerData() {
     document.getElementById("callerStatCalls").textContent     = (stats.total_calls || 0).toLocaleString();
     document.getElementById("callerStatFlight").textContent    = (stats.in_flight || 0).toLocaleString();
     document.getElementById("callerStatCampaigns").textContent = (stats.calls_today || 0).toLocaleString();
+    const vmEl = document.getElementById("callerStatVoicemail");
+    if (vmEl) vmEl.textContent = (stats.voicemails || 0).toLocaleString();
+    const vmTodayEl = document.getElementById("callerStatVoicemailToday");
+    if (vmTodayEl) vmTodayEl.textContent = `${(stats.voicemails_today || 0).toLocaleString()} today`;
 
     const backendEl = document.getElementById("callerBackendBadge");
     if (backendEl) {
