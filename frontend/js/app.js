@@ -342,7 +342,11 @@ async function restoreSession() {
     const res = await fetch("/api/auth/me", { headers: authHeaders() });
     if (res.ok) {
       const data = await res.json();
-      _setUser({ email: data.email, username: data.username, role: data.role });
+      _setUser({
+        email: data.email, username: data.username, role: data.role,
+        is_pro: !!data.is_pro, pro_until: data.pro_until || null,
+        has_stripe: !!data.has_stripe,
+      });
       if (data.prefs) applyServerPrefs(data.prefs);
     } else {
       localStorage.removeItem("sf_token");
