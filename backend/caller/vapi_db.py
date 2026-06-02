@@ -81,14 +81,14 @@ async def insert_vapi_call(row: dict[str, Any]) -> int:
                 retailer_external_id, retailer_name, retailer_city,
                 game_name, game_price, game_number,
                 has_game, confidence, can_order,
-                summary, notes, transcript, per_ticket_results, raw_payload
+                summary, notes, transcript, per_ticket_results, is_voicemail, raw_payload
             ) VALUES (
                 $1, $2, $3, $4, $5,
                 $6, $7, $8,
                 $9, $10, $11,
                 $12, $13, $14,
                 $15, $16, $17,
-                $18, $19, $20, $21::jsonb, $22::jsonb
+                $18, $19, $20, $21::jsonb, $22, $23::jsonb
             )
             ON CONFLICT (vapi_call_id) DO UPDATE SET
                 ended_at           = COALESCE(EXCLUDED.ended_at,           vapi_calls.ended_at),
@@ -101,6 +101,7 @@ async def insert_vapi_call(row: dict[str, Any]) -> int:
                 notes              = COALESCE(EXCLUDED.notes,              vapi_calls.notes),
                 transcript         = COALESCE(EXCLUDED.transcript,         vapi_calls.transcript),
                 per_ticket_results = COALESCE(EXCLUDED.per_ticket_results, vapi_calls.per_ticket_results),
+                is_voicemail       = COALESCE(EXCLUDED.is_voicemail,       vapi_calls.is_voicemail),
                 raw_payload        = EXCLUDED.raw_payload
             RETURNING id
             """,
@@ -125,6 +126,7 @@ async def insert_vapi_call(row: dict[str, Any]) -> int:
             row.get("notes"),
             row.get("transcript"),
             per_ticket,
+            row.get("is_voicemail"),
             raw,
         )
         return new_id
