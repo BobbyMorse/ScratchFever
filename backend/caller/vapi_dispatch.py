@@ -52,11 +52,47 @@ MAX_BATCH = 500
 CONCURRENCY = 5
 
 
-def _vapi_env() -> dict[str, Optional[str]]:
+def _phone_number_ids() -> list[str]:
+    """All configured VAPI phoneNumberIds. Two env-var shapes supported:
+      VAPI_PHONE_NUMBER_IDS = "id1,id2,id3"   ← preferred; round-robins
+      VAPI_PHONE_NUMBER_ID  = "id"            ← legacy single, still honored
+
+    Each VAPI-purchased free number has its own daily outbound cap, so
+    stacking 2-10 of them and rotating per-call multiplies headroom
+    without needing Twilio import."""
+    multi = os.getenv("VAPI_PHONE_NUMBER_IDS", "")
+    ids = [s.strip() for s in multi.split(",") if s.strip()]
+    if ids:
+        return ids
+    single = os.getenv("VAPI_PHONE_NUMBER_ID")
+    return [single] if single else []
+
+
+_PHONE_CYCLE: Optional[Any] = None
+_PHONE_CYCLE_KEY: Optional[tuple] = None
+_PHONE_CYCLE_LOCK = threading.Lock()
+
+
+def _next_phone_number_id() -> Optional[str]:
+    """Round-robin across all configured phoneNumberIds. Rebuilds the cycle
+    if the configured list changes (e.g., env reloaded)."""
+    global _PHONE_CYCLE, _PHONE_CYCLE_KEY
+    ids = _phone_number_ids()
+    if not ids:
+        return None
+    key = tuple(ids)
+    with _PHONE_CYCLE_LOCK:
+        if _PHONE_CYCLE_KEY != key:
+            _PHONE_CYCLE = itertools.cycle(ids)
+            _PHONE_CYCLE_KEY = key
+        return next(_PHONE_CYCLE)
+
+
+def _vapi_env() -> dict[str, Any]:
     return {
-        "private_key":     os.getenv("VAPI_PRIVATE_KEY"),
-        "assistant_id":    os.getenv("VAPI_ASSISTANT_ID"),
-        "phone_number_id": os.getenv("VAPI_PHONE_NUMBER_ID"),
+        "private_key":      os.getenv("VAPI_PRIVATE_KEY"),
+        "assistant_id":     os.getenv("VAPI_ASSISTANT_ID"),
+        "phone_number_ids": _phone_number_ids(),
     }
 
 
