@@ -332,7 +332,7 @@ async def ivr_gather(queue_id: int, request: Request):
     return Response(content=twiml, media_type="application/xml")
 
 
-@router.post("/caller/ivr/status/{queue_id}", include_in_schema=False)
+@router.post("/caller/ivr/status/{queue_id}", include_in_schema=False, dependencies=[Depends(verify_twilio)])
 async def ivr_status(queue_id: int, request: Request):
     form        = await request.form()
     call_status = form.get("CallStatus", "")
