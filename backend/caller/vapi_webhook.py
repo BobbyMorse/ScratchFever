@@ -100,6 +100,44 @@ def _to_float(value: Any) -> Optional[float]:
         return None
 
 
+# VAPI signals voicemail through endedReason. Different VAPI versions/configs
+# emit slightly different strings, so we match anything containing "voicemail".
+# We also keep a transcript heuristic as a safety net for cases where VAPI's
+# detection didn't fire but the customer side is clearly a voicemail greeting
+# (e.g. "if you record your name and reason for calling…").
+_VOICEMAIL_TRANSCRIPT_PATTERNS = (
+    "leave a message",
+    "leave your message",
+    "after the tone",
+    "at the tone",
+    "after the beep",
+    "you've reached the voicemail",
+    "you have reached the voicemail",
+    "record your name and reason",
+    "is not available",
+    "is unavailable",
+    "please record your message",
+    "google voice",
+)
+
+
+def _detect_voicemail(ended_reason: Optional[str], transcript: Optional[str]) -> bool:
+    er = (ended_reason or "").lower()
+    if "voicemail" in er:
+        return True
+    if not transcript:
+        return False
+    # Only look at the customer side of the transcript so the assistant's own
+    # greeting can't accidentally trigger detection.
+    customer_lines = []
+    for line in str(transcript).splitlines():
+        m = re.match(r"^(user|customer|caller)\s*:\s*(.*)$", line.strip(), re.IGNORECASE)
+        if m:
+            customer_lines.append(m.group(2).lower())
+    text = " ".join(customer_lines) if customer_lines else str(transcript).lower()
+    return any(p in text for p in _VOICEMAIL_TRANSCRIPT_PATTERNS)
+
+
 def _pick(d: dict, *keys: str) -> Any:
     """Return the first non-None value among the given keys (case-insensitive)."""
     if not isinstance(d, dict):
