@@ -1,5 +1,9 @@
 /* ScratchFever — frontend */
 
+// Single source of truth for the product name in user-facing strings.
+// Change this one constant when the brand is renamed.
+const BRAND = "ScratchFever";
+
 // States excluded from EV rankings — no reliable ticket-count data published by state.
 // IL: publishes remaining prizes only, no total tickets or per-game odds.
 const EV_EXCLUDED_STATES = new Set(["IL"]);
