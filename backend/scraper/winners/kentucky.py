@@ -75,22 +75,14 @@ class KentuckyWinnersScraper(WinnersScraper):
             if claim_date < cutoff:
                 continue
 
-            # Walk the block in order so we can pair each <strong> with the
-            # following <p>Ticket sold at..</p>.
+            # Pair each <strong> with the next <p>Ticket sold at...</p>.
+            # Include non-scratch wins in the iteration so retailer lines stay
+            # aligned, then filter to scratch-off only at the bottom.
             strongs = list(STRONG_RE.finditer(block))
             tickets = list(TICKET_RE.finditer(block))
             ti = 0
             for sm in strongs:
-                try:
-                    prize = float(sm.group(1).replace(",", ""))
-                except ValueError:
-                    continue
-                if prize < self.min_prize:
-                    continue
-                game = _decode_nbsp(sm.group(2))
-                if not game:
-                    continue
-                # Find next ticket entry after this <strong>.
+                full_name = _decode_nbsp(sm.group(2))
                 retailer = None
                 city = None
                 while ti < len(tickets) and tickets[ti].start() < sm.end():
@@ -99,6 +91,19 @@ class KentuckyWinnersScraper(WinnersScraper):
                     retailer = _decode_nbsp(tickets[ti].group(1)) or None
                     city = _decode_nbsp(tickets[ti].group(2)).title() or None
                     ti += 1
+
+                if not SCRATCH_RE.search(full_name):
+                    continue
+                # Strip the "Scratch-off" suffix from the captured game name.
+                game = SCRATCH_RE.sub("", full_name).strip().rstrip("-").strip()
+                if not game:
+                    continue
+                try:
+                    prize = float(sm.group(1).replace(",", ""))
+                except ValueError:
+                    continue
+                if prize < self.min_prize:
+                    continue
 
                 sid_parts = [
                     claim_date.isoformat(),
