@@ -148,8 +148,8 @@ class VermontScraper(BaseScraper):
             logger.debug("VT: skipping expired game %s (end %s)", slug, end_date)
             return None
 
-        # Overall odds
-        odds_m = re.search(r"Overall\s+Odds\s*1\s+in\s+([\d.]+)", page_text, re.IGNORECASE)
+        # Overall odds — VT writes either "1:3.83" or "1 in 3.83"
+        odds_m = re.search(r"Overall\s+Odds\s*1\s*(?::|in)\s*([\d.]+)", page_text, re.IGNORECASE)
         overall_odds = float(odds_m.group(1)) if odds_m else None
 
         # Total tickets
