@@ -93,20 +93,15 @@ class CallRunner:
                 self._in_flight.add(call_sid)
                 await asyncio.sleep(SECONDS_BETWEEN_CALLS)
 
-    def _use_bland(self) -> bool:
-        return bool(os.getenv("BLAND_API_KEY"))
-
     async def _initiate_call(self, queue_item: dict, campaign: dict) -> str | None:
         to_number = queue_item.get("phone_e164")
         if not to_number:
             logger.warning("Queue item %d has no E.164 phone", queue_item["id"])
             return None
 
-        backend = campaign.get("call_backend", "bland")
+        backend = campaign.get("call_backend", "twilio_ivr")
         if backend == "twilio_ivr":
             return await self._initiate_ivr_call(queue_item, campaign, to_number)
-        if self._use_bland():
-            return await self._initiate_bland_call(queue_item, campaign, to_number)
         return await self._initiate_twilio_call(queue_item, campaign, to_number)
 
     async def _initiate_ivr_call(self, queue_item: dict, campaign: dict,
