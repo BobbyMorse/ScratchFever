@@ -1177,7 +1177,7 @@ let allBigWins = [];
 let allBigWinsStates = [];         // states present in the prize_claims list view
 let allBigWinsDays = null;         // days range the loaded list set covers
 let allBigWinsLoading = null;      // in-flight promise to dedupe concurrent loads
-let bigwinsView = "list";          // "list" | "map"
+let bigwinsView = "map";           // "list" | "map"
 // Map view uses pre-aggregated location groups from /api/reported-wins/map.
 // We no longer hold the per-win list — the server does the heavy lifting so
 // state-flooding can't silently truncate small states off the map.
