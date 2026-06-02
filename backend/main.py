@@ -37,6 +37,7 @@ from backend.auth_api import router as auth_router
 from backend.retailer_api import router as retailer_router, public_router as retailer_public_router, admin_router as retailer_admin_router
 from backend.plays_api import router as plays_router
 from backend.revenuecat_webhook import router as revenuecat_router
+from backend.billing_api import router as billing_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
