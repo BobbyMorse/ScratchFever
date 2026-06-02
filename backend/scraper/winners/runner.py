@@ -68,7 +68,11 @@ ALL_WINNERS_SCRAPERS = [
     IowaWinnersScraper,
     SouthDakotaWinnersScraper,
     MontanaWinnersScraper,
+    NewJerseyWinnersScraper,
+    KentuckyWinnersScraper,
 ]
+
+WINNERS_FEED_STATES = sorted({s.state_code for s in ALL_WINNERS_SCRAPERS})
 
 TIMEOUT_SEC = 180
 
