@@ -119,19 +119,21 @@ class NewJerseyWinnersScraper(WinnersScraper):
 
         out: list[dict] = []
         seen: set[str] = set()
+        fetched = 0
         for url, slug_date in candidates[:MAX_FETCH]:
             try:
-                norm = self._fetch_and_parse(url, slug_date)
+                norms = self._fetch_and_parse(url, slug_date)
             except Exception as e:
                 logger.warning("NJ winners: failed to parse %s: %s", url, e)
                 continue
-            if not norm:
-                continue
-            if norm["source_id"] in seen:
-                continue
-            seen.add(norm["source_id"])
-            out.append(norm)
-        logger.info("NJ winners: %d scratch wins from %d press releases", len(out), len(candidates))
+            fetched += 1
+            for norm in norms:
+                if norm["source_id"] in seen:
+                    continue
+                seen.add(norm["source_id"])
+                out.append(norm)
+        logger.info("NJ winners: %d scratch wins from %d/%d press releases",
+                    len(out), fetched, len(candidates))
         return out
 
     def _sitemap_urls(self, cutoff: dt.date) -> list[tuple[str, dt.date]]:
