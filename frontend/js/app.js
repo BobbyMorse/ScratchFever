@@ -4778,7 +4778,7 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
     return Object.values(latest);
   }
 
-  const sfReports    = latestByRetailerInBucket('scratchfever');
+  const sfReports    = latestByRetailerInBucket('operator');
   const storeReports = latestByRetailerInBucket('store');
   const userReports  = latestByRetailerInBucket('user');
 
