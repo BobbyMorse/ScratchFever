@@ -874,9 +874,7 @@ async def vapi_test_call(body: TestCallBody, _user: dict = Depends(require_admin
     The external_id is always prefixed with 'test' so the webhook skips the
     inventory_reports mirror and the call doesn't pollute production data."""
     env = _vapi_env()
-    if not all(env.values()):
-        missing = [k for k, v in env.items() if not v]
-        raise HTTPException(status_code=400, detail=f"VAPI not configured — missing env: {', '.join(missing)}")
+    await _ensure_dispatch_ready(env)
 
     e164 = _to_e164(body.phone)
     if not e164:
