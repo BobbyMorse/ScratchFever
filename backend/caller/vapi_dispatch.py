@@ -336,7 +336,7 @@ async def _dispatch_calls(
         async def _one(t: dict):
             payload = {
                 "assistantId":    env["assistant_id"],
-                "phoneNumberId":  env["phone_number_id"],
+                "phoneNumberId":  _next_phone_number_id(),
                 "customer":       {"number": t["phone_e164"]},
                 "assistantOverrides": {
                     "variableValues": {
