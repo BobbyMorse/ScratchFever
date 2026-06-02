@@ -160,7 +160,7 @@ async def recent_vapi_calls(limit: int = 50) -> list[dict]:
             SELECT id, vapi_call_id, received_at, ended_at, duration_sec, ended_reason,
                    to_phone, state_code, retailer_external_id, retailer_name, retailer_city,
                    game_name, game_price, has_game, confidence, can_order, summary, notes,
-                   transcript, per_ticket_results
+                   transcript, per_ticket_results, is_voicemail
             FROM vapi_calls
             ORDER BY received_at DESC
             LIMIT $1
