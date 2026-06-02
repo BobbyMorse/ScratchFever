@@ -114,9 +114,10 @@ def _is_exhausted(pid: str) -> bool:
         return _EXHAUSTED_TODAY.get(pid) == _today_utc()
 
 
-async def _discover_vapi_phone_numbers(private_key: str) -> list[str]:
+async def _discover_vapi_phone_numbers(private_key: str) -> list[tuple[str, str]]:
     """GET /phone-number on VAPI to enumerate every number tied to the account.
-    Cached for _VAPI_NUMBERS_TTL_SEC to avoid hammering VAPI on every dispatch."""
+    Returns list of (id, provider) tuples. Cached for _VAPI_NUMBERS_TTL_SEC to
+    avoid hammering VAPI on every dispatch."""
     global _VAPI_NUMBERS_CACHE
     import time
     now = time.time()
@@ -133,23 +134,33 @@ async def _discover_vapi_phone_numbers(private_key: str) -> list[str]:
                     logger.warning("VAPI phone-number list failed: %s %s", r.status_code, r.text[:200])
                     return _VAPI_NUMBERS_CACHE[1] if _VAPI_NUMBERS_CACHE else []
                 data = r.json()
-                ids = [n["id"] for n in data if isinstance(n, dict) and n.get("id")]
+                pairs = [
+                    (n["id"], (n.get("provider") or "vapi").lower())
+                    for n in data
+                    if isinstance(n, dict) and n.get("id")
+                ]
         except Exception:
             logger.exception("VAPI phone-number discovery failed")
             return _VAPI_NUMBERS_CACHE[1] if _VAPI_NUMBERS_CACHE else []
-        _VAPI_NUMBERS_CACHE = (now, ids)
-        return ids
+        _VAPI_NUMBERS_CACHE = (now, pairs)
+        return pairs
 
 
-async def _all_phone_number_ids(private_key: Optional[str]) -> list[str]:
-    """Env override > VAPI account auto-discovery. Used by /config to show
-    everything available (regardless of exhaustion)."""
+async def _all_phone_numbers(private_key: Optional[str]) -> list[tuple[str, str]]:
+    """Env override > VAPI account auto-discovery. Returns (id, provider) pairs.
+    Env-overridden numbers are assumed BYO ('unknown' provider) so they get the
+    same priority as Twilio — the user wouldn't pin a capped number explicitly."""
     explicit = _env_phone_number_ids()
     if explicit:
-        return explicit
+        return [(pid, "unknown") for pid in explicit]
     if not private_key:
         return []
     return await _discover_vapi_phone_numbers(private_key)
+
+
+async def _all_phone_number_ids(private_key: Optional[str]) -> list[str]:
+    """IDs-only view of _all_phone_numbers, preserving discovery order."""
+    return [pid for pid, _ in await _all_phone_numbers(private_key)]
 
 
 async def _available_phone_number_ids(private_key: Optional[str]) -> list[str]:
@@ -159,13 +170,19 @@ async def _available_phone_number_ids(private_key: Optional[str]) -> list[str]:
 
 
 async def _pick_phone_number_id(private_key: Optional[str]) -> Optional[str]:
-    """Round-robin across the currently-available (non-exhausted) numbers."""
+    """Pick the next number to dial from. Prefers BYO carrier (Twilio/Vonage/
+    Telnyx) over VAPI-purchased numbers so the daily-capped pool is only used
+    as fallback. Round-robins within the preferred tier."""
     global _ROTATION_COUNTER
-    ids = await _available_phone_number_ids(private_key)
-    if not ids:
+    pairs = await _all_phone_numbers(private_key)
+    available = [(pid, prov) for pid, prov in pairs if not _is_exhausted(pid)]
+    if not available:
         return None
+    byo  = [pid for pid, prov in available if prov != "vapi"]
+    vapi = [pid for pid, prov in available if prov == "vapi"]
+    pool = byo or vapi
     with _ROTATION_LOCK:
-        pid = ids[_ROTATION_COUNTER % len(ids)]
+        pid = pool[_ROTATION_COUNTER % len(pool)]
         _ROTATION_COUNTER += 1
     return pid
 
