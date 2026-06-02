@@ -346,9 +346,8 @@ async def test_call_endpoint(body: TestCallBody):
 @router.get("/api/caller/status")
 async def caller_status():
     import os
-    bland_key  = os.getenv("BLAND_API_KEY")
     twilio_sid = os.getenv("TWILIO_ACCOUNT_SID")
-    backend = "bland" if bland_key else ("twilio" if twilio_sid else "not configured")
+    backend = "twilio" if twilio_sid else "not configured"
     if _runner is None:
         return {"runner": "not initialized", "active_campaigns": [], "backend": backend}
     return {
