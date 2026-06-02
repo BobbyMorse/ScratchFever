@@ -2534,7 +2534,7 @@ async function loadCallerData() {
         banner.style.border     = "1px solid rgba(239,68,68,0.4)";
         banner.style.display    = "block";
       } else if (diag && diag.last_webhook_received_at) {
-        const ago = timeAgo ? timeAgo(diag.last_webhook_received_at) : diag.last_webhook_received_at;
+        const ago = timeAgo(parseReportedAt(diag.last_webhook_received_at));
         banner.innerHTML = `✓ Webhook healthy — last end-of-call report received ${ago}. <span style="color:var(--text-muted);font-size:.78rem">URL: <code>${escHtml(diag.expected_webhook_url || '')}</code></span>`;
         banner.style.background = "rgba(34,197,94,0.10)";
         banner.style.color      = "#166534";
