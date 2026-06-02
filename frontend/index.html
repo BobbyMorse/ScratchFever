@@ -2331,24 +2331,16 @@
     renderExplainer(currentLayer);
   }
 
-  window.openInfoDrawer = function () {
-    document.getElementById("infoDrawer").classList.add("open");
-    document.getElementById("infoDrawerBackdrop").classList.add("open");
-    document.body.classList.add("info-drawer-open");
-    buildMapOnce().catch(function (e) { console.error("Coverage map failed", e); });
-  };
-
-  window.closeInfoDrawer = function () {
-    document.getElementById("infoDrawer").classList.remove("open");
-    document.getElementById("infoDrawerBackdrop").classList.remove("open");
-    document.body.classList.remove("info-drawer-open");
-  };
-
-  document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape" && document.getElementById("infoDrawer").classList.contains("open")) {
-      window.closeInfoDrawer();
+  // Lazy-build the coverage map the first time the user opens the tab,
+  // and re-invalidate size on subsequent visits so Leaflet repaints correctly.
+  const origSwitchTab = window.switchTab;
+  window.switchTab = function (name) {
+    const ret = origSwitchTab.apply(this, arguments);
+    if (name === "coverage") {
+      buildMapOnce().catch(function (e) { console.error("Coverage map failed", e); });
     }
-  });
+    return ret;
+  };
 })();
 </script>
 </body>
