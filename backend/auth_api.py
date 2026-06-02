@@ -11,7 +11,11 @@ from pydantic import BaseModel
 from backend.users import (
     create_user, get_user_by_email, verify_password,
     create_token, require_member, is_user_pro,
+    get_user_prefs, set_user_prefs,
 )
+
+_ALLOWED_PREF_KEYS = {"defaultHuntState", "evDefaultState"}
+_MAX_PREF_VALUE_LEN = 64
 
 router = APIRouter()
 
