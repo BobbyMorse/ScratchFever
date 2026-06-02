@@ -306,6 +306,7 @@ async function restoreSession() {
     if (res.ok) {
       const data = await res.json();
       _setUser({ email: data.email, username: data.username, role: data.role });
+      if (data.prefs) applyServerPrefs(data.prefs);
     } else {
       localStorage.removeItem("sf_token");
       _setUser(null);
