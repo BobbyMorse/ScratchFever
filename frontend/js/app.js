@@ -714,6 +714,22 @@ function _refreshStatCounts() {
   }
 }
 
+// Inventory provenance: every row in `inventory_reports` has a `source` column.
+// We bucket those raw values into three user-facing categories so future
+// automation sources (extra dialers, admin entry) Just Work without UI changes.
+function inventorySourceBucket(source) {
+  if (source === 'retailer') return 'store';
+  if (source === 'community') return 'user';
+  return 'scratchfever';
+}
+
+function inventorySourceBadgeHtml(source) {
+  const bucket = inventorySourceBucket(source);
+  if (bucket === 'store')        return `<span class="inv-src inv-src-store" title="Reported by the store">🏪 Store</span>`;
+  if (bucket === 'scratchfever') return `<span class="inv-src inv-src-sf" title="Verified by ScratchFever">⚡ ScratchFever</span>`;
+  return `<span class="inv-src inv-src-user" title="Reported by a member">👤 User</span>`;
+}
+
 function buildLatestStatusFromReports() {
   const status = {};
   const activeGame = currentHuntState === 'AZ' ? selectedAzGame
@@ -733,7 +749,7 @@ function buildLatestStatusFromReports() {
     if (!rid) continue;
     const existing = status[rid];
     if (!existing || parseReportedAt(rep.reported_at) > parseReportedAt(existing.reported_at)) {
-      status[rid] = { has_stock: rep.has_stock, reported_at: rep.reported_at };
+      status[rid] = { has_stock: rep.has_stock, reported_at: rep.reported_at, source: rep.source };
     }
   }
   retailerLatestStatus = status;
