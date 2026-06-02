@@ -617,6 +617,7 @@ async def vapi_stats(_user: dict = Depends(require_admin)):
               COUNT(*) FILTER (WHERE is_voicemail = TRUE
                                  AND received_at > NOW() - INTERVAL '24 hours') AS voicemails_today
             FROM vapi_calls
+            WHERE COALESCE(retailer_external_id, '') <> 'test'
         """)
     return {
         "total_calls":      int(row["total_calls"] or 0),
