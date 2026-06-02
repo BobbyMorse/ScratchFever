@@ -258,7 +258,7 @@ async def status_callback(queue_id: int, request: Request):
 
 # ── Twilio IVR (press 1 = has it, press 2 = doesn't) ─────────────────────────
 
-@router.post("/caller/ivr/twiml/{queue_id}", include_in_schema=False)
+@router.post("/caller/ivr/twiml/{queue_id}", include_in_schema=False, dependencies=[Depends(verify_twilio)])
 async def ivr_twiml(queue_id: int):
     ctx = _pending_calls.get(queue_id)
     if not ctx and queue_id != 0:
