@@ -36,21 +36,27 @@ logger = logging.getLogger("backfill_admin_source")
 async def main() -> None:
     await init_db()
     async with get_pool().acquire() as conn:
-        admin_usernames = await conn.fetch(
-            "SELECT username FROM users WHERE role = 'admin' AND username IS NOT NULL"
+        # `reporter_username` stores whatever `user.get("username")` returned
+        # at submit time. In practice that's been the email for admin users
+        # (since they were seeded without a separate username), so match
+        # against both columns to cover any historical pattern.
+        admins = await conn.fetch(
+            "SELECT email, username FROM users WHERE role = 'admin'"
         )
-        usernames = [r["username"] for r in admin_usernames]
-        if not usernames:
-            logger.info("No admin users with a username — nothing to backfill.")
+        identities = [r["email"] for r in admins if r["email"]]
+        identities += [r["username"] for r in admins if r["username"]]
+        identities = list({i for i in identities if i})
+        if not identities:
+            logger.info("No admin identities — nothing to backfill.")
             return
-        logger.info("Found %d admin username(s): %s", len(usernames), usernames)
+        logger.info("Matching against admin identities: %s", identities)
 
         affected = await conn.fetchval(
             """
             SELECT COUNT(*) FROM inventory_reports
             WHERE source = 'community' AND reporter_username = ANY($1::text[])
             """,
-            usernames,
+            identities,
         )
         logger.info("Rows to update: %d", affected)
         if not affected:
@@ -63,7 +69,7 @@ async def main() -> None:
              WHERE source = 'community'
                AND reporter_username = ANY($1::text[])
             """,
-            usernames,
+            identities,
         )
         logger.info("Backfill complete: %d rows updated.", affected)
 
