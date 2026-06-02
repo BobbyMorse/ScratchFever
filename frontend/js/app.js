@@ -177,6 +177,8 @@ function authHeaders() {
 }
 
 // ── User preferences ──────────────────────────────────────────────────────────
+// Prefs live on the user account (DB). Pre-auth we cache the last known values
+// in localStorage so the UI has sensible defaults before /api/auth/me responds.
 const _PREFS_KEY = "sf_prefs";
 const _prefsDefaults = { defaultHuntState: "MA", evDefaultState: "" };
 let _prefs = { ..._prefsDefaults };
@@ -189,6 +191,36 @@ function loadPrefs() {
   currentHuntState = _prefs.defaultHuntState || "MA";
 }
 
+function applyServerPrefs(serverPrefs) {
+  if (!serverPrefs || typeof serverPrefs !== "object") return;
+  const prev = { ..._prefs };
+  _prefs = { ..._prefsDefaults, ..._prefs, ...serverPrefs };
+  localStorage.setItem(_PREFS_KEY, JSON.stringify(_prefs));
+  currentHuntState = _prefs.defaultHuntState || "MA";
+  if (_prefs.evDefaultState !== prev.evDefaultState) {
+    const sel = document.getElementById("filterState");
+    if (sel) {
+      sel.value = _prefs.evDefaultState || "";
+      loadGames();
+    }
+  }
+  const huntSel = document.getElementById("prefDefaultHuntState");
+  if (huntSel) huntSel.value = _prefs.defaultHuntState || "MA";
+  const evPrefSel = document.getElementById("prefEvDefaultState");
+  if (evPrefSel) evPrefSel.value = _prefs.evDefaultState || "";
+}
+
+async function _persistPrefToServer(key, value) {
+  if (!_currentUser) return;
+  try {
+    await fetch("/api/auth/prefs", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", ...authHeaders() },
+      body: JSON.stringify({ [key]: value }),
+    });
+  } catch (_) { /* offline / network — local cache will resync on next load */ }
+}
+
 function onSettingChange(key, value) {
   _prefs[key] = value;
   localStorage.setItem(_PREFS_KEY, JSON.stringify(_prefs));
@@ -198,6 +230,7 @@ function onSettingChange(key, value) {
     const sel = document.getElementById("filterState");
     if (sel) { sel.value = value; loadGames(); }
   }
+  _persistPrefToServer(key, value);
 }
 
 function callerFetch(url, opts = {}) {
