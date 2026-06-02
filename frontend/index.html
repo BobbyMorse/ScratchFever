@@ -1911,6 +1911,60 @@
   </div>
 </div>
 
+<!-- ── Paywall / pricing modal ─────────────────────────────────────────────── -->
+<div class="modal-overlay" id="paywallOverlay" onclick="closePaywall()">
+  <div class="modal paywall-modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closePaywall()">✕</button>
+
+    <div class="paywall-head">
+      <div class="paywall-eyebrow">SCRATCHFEVER PRO</div>
+      <h2 class="paywall-h">Hunt with the math on your side.</h2>
+      <p class="paywall-sub">Every state. Live EV. Sightings from the community. Cancel anytime.</p>
+    </div>
+
+    <ul class="paywall-bullets">
+      <li><span>›</span> Real-time EV across <strong>all 50 states</strong></li>
+      <li><span>›</span> The Chase — top retailers ranked by expected value</li>
+      <li><span>›</span> Members-only inventory sightings</li>
+      <li><span>›</span> Big-wins map · Heat by location</li>
+    </ul>
+
+    <div class="paywall-plans">
+      <button class="paywall-plan" id="paywallPlanMonthly" onclick="selectPaywallPlan('monthly')">
+        <div class="paywall-plan-name">Monthly</div>
+        <div class="paywall-plan-price"><span>$7</span><em>/mo</em></div>
+        <div class="paywall-plan-foot">Billed monthly</div>
+      </button>
+      <button class="paywall-plan paywall-plan-active" id="paywallPlanYearly" onclick="selectPaywallPlan('yearly')">
+        <div class="paywall-plan-badge">SAVE 17%</div>
+        <div class="paywall-plan-name">Yearly</div>
+        <div class="paywall-plan-price"><span>$70</span><em>/yr</em></div>
+        <div class="paywall-plan-foot">$5.83/mo · billed yearly</div>
+      </button>
+    </div>
+
+    <button class="btn paywall-cta" id="paywallCheckoutBtn" onclick="startCheckout()">
+      Continue with Yearly →
+    </button>
+    <div id="paywallMsg" class="caller-msg" style="display:none;margin-top:.7rem"></div>
+
+    <div class="paywall-divider"><span>or</span></div>
+
+    <div class="paywall-beta">
+      <button class="paywall-beta-toggle" onclick="togglePaywallBeta()">Have a beta code?</button>
+      <div class="paywall-beta-form" id="paywallBetaForm" style="display:none">
+        <input type="text" id="betaCodeInput" placeholder="XXXX-XXXX-XXXX" autocomplete="off" maxlength="32" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')redeemBetaCode()">
+        <button class="btn" onclick="redeemBetaCode()">Redeem</button>
+      </div>
+      <div id="betaCodeMsg" class="caller-msg" style="display:none;margin-top:.45rem"></div>
+    </div>
+
+    <div class="paywall-foot">
+      Secure checkout by Stripe. Subscriptions auto-renew until canceled.
+    </div>
+  </div>
+</div>
+
 <!-- ── Game detail modal ───────────────────────────────────────────────────── -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
   <div class="modal" onclick="event.stopPropagation()">
