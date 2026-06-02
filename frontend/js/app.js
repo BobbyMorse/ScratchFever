@@ -2650,7 +2650,9 @@ function renderResultCell(c) {
   if (c.is_voicemail) {
     return `<span class="badge badge-status-paused" title="Reached a voicemail greeting — no inventory data captured">Voicemail</span>`;
   }
-  if (c.ended_at == null && c.has_game == null && !(c.per_ticket_results && c.per_ticket_results.length)) {
+  const hasInventory = (Array.isArray(c.per_ticket_results) && c.per_ticket_results.length) || c.has_game != null;
+  const isTerminal = c.ended_at != null || c.ended_reason != null;
+  if (!isTerminal && !hasInventory) {
     return `<span class="badge badge-status-paused">In flight</span>`;
   }
   if (Array.isArray(c.per_ticket_results) && c.per_ticket_results.length) {
@@ -2664,6 +2666,18 @@ function renderResultCell(c) {
   }
   if (c.has_game === true)  return `<span class="badge badge-green">1/1 in stock</span>`;
   if (c.has_game === false) return `<span class="badge badge-status-idle">0/1 in stock</span>`;
+  // Call ended without inventory data — show why (no-answer, busy, hangup, error, etc.)
+  const reason = (c.ended_reason || "").toLowerCase();
+  if (reason) {
+    let label = "No data";
+    if (reason.includes("did-not-answer") || reason.includes("no-answer")) label = "No answer";
+    else if (reason.includes("busy"))                                       label = "Busy";
+    else if (reason.includes("customer-ended"))                             label = "Hung up";
+    else if (reason.includes("assistant-ended"))                            label = "Ended";
+    else if (reason.includes("error") || reason.includes("failed"))         label = "Failed";
+    else if (reason.includes("silence"))                                    label = "Silence";
+    return `<span class="badge badge-status-idle" title="${escHtml(c.ended_reason)}">${label}</span>`;
+  }
   return `<span class="badge badge-status-idle">—</span>`;
 }
 
