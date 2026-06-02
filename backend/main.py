@@ -1220,7 +1220,7 @@ async def submit_inventory_report(
             game_name=body.game_name or None,
             game_price=body.game_price,
             has_stock=body.has_stock,
-            source="community",
+            source="admin" if is_admin else "community",
             reporter_ip=reporter_ip,
             reporter_username=user.get("username"),
             notes=body.notes or None,
