@@ -1190,6 +1190,25 @@ let bigwinsMapKey = null;          // cache key: stringified (days, min_prize)
 let bigwinsMapLoading = null;
 let bigwinsMap = null;
 let bigwinsMapMarkers = null;
+let bigwinsMapFeedStates = [];     // state codes we have a winners scraper for
+let bigwinsMapDarkLayer = null;    // GeoJSON layer shading states with no feed
+
+const BIGWINS_NAME_TO_CODE = {
+  "Alabama":"AL","Alaska":"AK","Arizona":"AZ","Arkansas":"AR","California":"CA",
+  "Colorado":"CO","Connecticut":"CT","Delaware":"DE","District of Columbia":"DC",
+  "Florida":"FL","Georgia":"GA","Hawaii":"HI","Idaho":"ID","Illinois":"IL",
+  "Indiana":"IN","Iowa":"IA","Kansas":"KS","Kentucky":"KY","Louisiana":"LA",
+  "Maine":"ME","Maryland":"MD","Massachusetts":"MA","Michigan":"MI","Minnesota":"MN",
+  "Mississippi":"MS","Missouri":"MO","Montana":"MT","Nebraska":"NE","Nevada":"NV",
+  "New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY",
+  "North Carolina":"NC","North Dakota":"ND","Ohio":"OH","Oklahoma":"OK","Oregon":"OR",
+  "Pennsylvania":"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD",
+  "Tennessee":"TN","Texas":"TX","Utah":"UT","Vermont":"VT","Virginia":"VA",
+  "Washington":"WA","West Virginia":"WV","Wisconsin":"WI","Wyoming":"WY",
+  "Puerto Rico":"PR"
+};
+let bigwinsGeoData = null;
+let bigwinsGeoLoading = null;
 
 async function loadBigWins() {
   const days = parseInt(document.getElementById("bigwinsRangeFilter")?.value || "30", 10);
