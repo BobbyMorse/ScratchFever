@@ -17,13 +17,24 @@ Data sources
 EV formula
 ----------
   tickets_remaining = total_tickets × (percent_unsold / 100)
-  ev_per_ticket     = total_unclaimed / tickets_remaining
+  top_tier_value    = Σ (prize_amount × prizes_remaining) for listed tiers
+  small_unclaimed   = max(0, total_unclaimed − top_tier_value)
+  small_in_unsold   = small_unclaimed × (percent_unsold / 100)
+  prize_pool_unsold = top_tier_value + small_in_unsold
+  ev_per_ticket     = prize_pool_unsold / tickets_remaining
   return_pct        = ev_per_ticket / price × 100
 
-This uses Maine's published total unclaimed dollar pool — so the EV reflects
-every unclaimed prize (top tiers + all smaller prizes), not just the top tiers
-enumerated in the unclaimed table. Marked ev_approximate=True because Maine
-does not publish per-tier breakdowns below the top prize levels.
+Maine's published "Total Unclaimed" is the dollar value of all prizes not yet
+redeemed across every printed ticket — including small prizes won on already-
+sold tickets that just haven't been cashed in. Naively dividing by unsold
+tickets balloons EV as a game sells through (the unredeemed-on-sold pool stays
+roughly constant while the unsold denominator shrinks).
+
+The top-tier counts are reliable (state tracks them), so we keep top-tier
+value at face. For the remaining "small-prize unclaimed" pool we pro-rate by
+percent_unsold — i.e., assume those small-prize dollars are distributed
+proportionally to remaining inventory. Marked ev_approximate=True because the
+pro-rate is a heuristic, not a measurement.
 """
 from __future__ import annotations
 import re
