@@ -230,15 +230,22 @@ class NewJerseyWinnersScraper(WinnersScraper):
 
 # A multi-word capitalized place name: "Jersey City", "Perth Amboy",
 # "Little Falls", "Mullica Hill", or single-word "Lodi"/"Ramsey".
-# Allows lowercase connectors like "of"/"the" only mid-name.
 _PLACE = r"[A-Z][A-Za-z'-]*(?:\s+[A-Z][A-Za-z'-]*){0,3}"
+
+# Retailer: starts with capital, no commas (commas separate retailer from
+# address). Periods allowed for "St. Mary's", "Wawa #915" style names.
+_RETAILER = r"[A-Z][^,<\n]{1,80}?"
+
+# Address: anything except <>\n, but stop before " in CITY" or sentence
+# boundary. Periods allowed for "Ave.", "St.", "W. Main St." abbreviations.
+_ADDRESS = r"(?:(?!\s+in\s+[A-Z])[^<\n,]){2,80}"
 
 # Anchor patterns scan the prose for retailer location callouts. Order
 # matters — most specific first; later passes use a "no overlap" rule.
 ANCHOR_FULL = re.compile(
     r"(?:at|sold\s+at|drawn\s+at|purchased\s+at|played\s+at|recorded\s+at|ticket\s+was\s+sold\s+at)\s+"
-    r"(?:the\s+)?([A-Z][^,.<\n]{1,80}?),\s+"
-    r"([^,.<\n]{2,80}?),?\s+in\s+"
+    r"(?:the\s+)?(" + _RETAILER + r"),\s+"
+    r"(" + _ADDRESS + r")[.,]?\s+in\s+"
     r"(" + _PLACE + r")"
     r"(?:,?\s+in\s+(" + _PLACE + r")\s+County)?"
     r"(?:,\s*(" + _PLACE + r")\s+County)?",
@@ -246,15 +253,15 @@ ANCHOR_FULL = re.compile(
 )
 # "at Big O Stop in Bergen County's Lodi"  (county-first NJ phrasing)
 ANCHOR_COUNTY_FIRST = re.compile(
-    r"at\s+(?:the\s+)?([A-Z][^,.<\n]{1,80}?)\s+in\s+"
+    r"at\s+(?:the\s+)?(" + _RETAILER + r")\s+in\s+"
     r"(" + _PLACE + r")\s+County[’']?s\s+"
     r"(" + _PLACE + r")",
 )
-# "at Krauzer's, 49 W. Main St. in Ramsey"  (address + city, no county)
+# "at Krauzer's, 49 W. Main St. in Ramsey"  (no county trailer)
 ANCHOR_ADDR_CITY = re.compile(
     r"(?:at|sold\s+at|drawn\s+at|purchased\s+at|played\s+at|recorded\s+at)\s+"
-    r"(?:the\s+)?([A-Z][^,.<\n]{1,80}?),\s+"
-    r"([^,.<\n]{2,80}?)\s+in\s+"
+    r"(?:the\s+)?(" + _RETAILER + r"),\s+"
+    r"(" + _ADDRESS + r")[.,]?\s+in\s+"
     r"(" + _PLACE + r")",
 )
 
