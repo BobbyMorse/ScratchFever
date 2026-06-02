@@ -284,7 +284,12 @@ async def vapi_webhook(
     is_test = parsed["retailer_external_id"] == "test"
     has_retailer = bool(parsed["retailer_external_id"]) and not is_test
 
-    if is_test:
+    if parsed.get("is_voicemail"):
+        logger.info(
+            "VAPI call %s detected as voicemail (ended_reason=%s) — skipping inventory mirror",
+            parsed["vapi_call_id"], parsed.get("ended_reason"),
+        )
+    elif is_test:
         logger.info("VAPI test call %s — skipping inventory mirror", parsed["vapi_call_id"])
     elif has_retailer:
         match_geo = await find_retailer_by_phone(_digits_only(parsed["to_phone"]))
