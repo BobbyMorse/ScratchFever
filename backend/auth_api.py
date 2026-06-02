@@ -83,10 +83,41 @@ async def register(body: RegisterBody):
 @router.get("/api/auth/me")
 async def get_me(user: dict = Depends(require_member)):
     pro = await is_user_pro(user["uid"])
+    prefs = await get_user_prefs(user["uid"])
     return {
         "id": user["uid"],
         "email": user["email"],
         "username": user.get("username"),
         "role": user["role"],
         "is_pro": pro,
+        "prefs": prefs,
     }
+
+
+def _sanitize_prefs(raw: dict) -> dict:
+    out = {}
+    for k, v in (raw or {}).items():
+        if k not in _ALLOWED_PREF_KEYS:
+            continue
+        if v is None:
+            out[k] = ""
+            continue
+        if not isinstance(v, str):
+            continue
+        if len(v) > _MAX_PREF_VALUE_LEN:
+            continue
+        out[k] = v
+    return out
+
+
+@router.get("/api/auth/prefs")
+async def get_prefs(user: dict = Depends(require_member)):
+    return await get_user_prefs(user["uid"])
+
+
+@router.put("/api/auth/prefs")
+async def put_prefs(body: dict, user: dict = Depends(require_member)):
+    current = await get_user_prefs(user["uid"])
+    merged = {**current, **_sanitize_prefs(body)}
+    await set_user_prefs(user["uid"], merged)
+    return merged
