@@ -61,7 +61,9 @@ class KentuckyWinnersScraper(WinnersScraper):
         seen: set[str] = set()
 
         for art_m in ARTICLE_RE.finditer(html):
-            block = art_m.group(1)
+            # &nbsp; isn't matched by \s, so normalize it (and decoded \xa0) to
+            # plain spaces before parsing the block's <strong> / <p> elements.
+            block = art_m.group(1).replace("&nbsp;", " ").replace("\xa0", " ")
             dm = DATE_RE.search(block)
             if not dm:
                 continue
