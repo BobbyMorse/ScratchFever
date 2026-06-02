@@ -724,13 +724,15 @@ function _refreshStatCounts() {
 function inventorySourceBucket(source) {
   if (source === 'retailer') return 'store';
   if (source === 'community') return 'user';
-  return 'scratchfever';
+  // 'admin', 'scratchfever', 'vapi_call', and any future operator-side source
+  // fall through to the operator bucket (rendered as the BRAND-verified bucket).
+  return 'operator';
 }
 
 function inventorySourceBadgeHtml(source) {
   const bucket = inventorySourceBucket(source);
-  if (bucket === 'store')        return `<span class="inv-src inv-src-store" title="Reported by the store">🏪 Store</span>`;
-  if (bucket === 'scratchfever') return `<span class="inv-src inv-src-sf" title="Verified by ScratchFever">⚡ ScratchFever</span>`;
+  if (bucket === 'store')    return `<span class="inv-src inv-src-store" title="Reported by the store">🏪 Store</span>`;
+  if (bucket === 'operator') return `<span class="inv-src inv-src-sf" title="Verified by ${BRAND}">⚡ ${BRAND}</span>`;
   return `<span class="inv-src inv-src-user" title="Reported by a member">👤 User</span>`;
 }
 
