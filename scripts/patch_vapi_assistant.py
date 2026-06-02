@@ -3,6 +3,8 @@ Patch a VAPI assistant to:
   1. Subscribe to the `end-of-call-report` server message
   2. Enable structured-data extraction with the schema our webhook parses
   3. Enable a summary
+  4. Inject {{ticketsToCheck}} into the system prompt so the assistant
+     actually knows which tickets ScratchFever picked for this call
 
 Usage:
     export VAPI_PRIVATE_KEY="..."   # or $env:VAPI_PRIVATE_KEY in PowerShell
