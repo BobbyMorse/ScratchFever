@@ -80,7 +80,9 @@ async def login(body: LoginBody, request: Request):
 
 
 @router.post("/api/auth/register")
-async def register(body: RegisterBody):
+async def register(body: RegisterBody, request: Request):
+    ip = request.client.host if request.client else "unknown"
+    _check_register_rate(ip)
     if len(body.password) < 8:
         raise HTTPException(status_code=400, detail="Password must be at least 8 characters")
     username = body.username.strip()
