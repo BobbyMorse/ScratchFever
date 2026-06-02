@@ -276,11 +276,13 @@ def _find_retailer_anchors(body: str) -> list[dict]:
         if _overlaps(m.start(), m.end()):
             continue
         used_spans.append((m.start(), m.end()))
+        # County is whichever of the two optional trailing groups matched.
+        county = _clean(m.group(4)) or _clean(m.group(5))
         anchors.append({
             "retailer": _clean(m.group(1)),
             "address": _clean(m.group(2)),
             "city":    _clean(m.group(3)),
-            "county":  _clean(m.group(4)) if m.lastindex and m.lastindex >= 4 else None,
+            "county":  county,
             "match_start": m.start(),
             "match_end": m.end(),
         })
