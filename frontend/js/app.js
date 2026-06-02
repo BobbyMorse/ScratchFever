@@ -2875,7 +2875,7 @@ function callerCampaignCard(c) {
           ${c.game_price ? `$${c.game_price} · ` : ""}
           ${c.game_number ? `Game #${c.game_number} · ` : ""}
           Max ${c.max_stores} stores ·
-          ${c.call_backend === "twilio_ivr" ? "Twilio IVR" : "Bland AI"}
+          ${c.call_backend === "twilio_ivr" ? "Twilio IVR" : "Twilio AI"}
         </div>
       </div>
       <div class="campaign-stat">
