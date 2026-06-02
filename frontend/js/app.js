@@ -403,6 +403,7 @@ async function submitRegister() {
     if (!res.ok) throw new Error(data.detail || "Registration failed");
     localStorage.setItem("sf_token", data.token);
     _setUser({ email: data.email, username: data.username, role: data.role });
+    _hydratePrefsFromServer();
     closeAuthModal();
     loadCommunityReports();
     loadGameCounts(); loadRetailerCounts(); loadRetailerLatest();
