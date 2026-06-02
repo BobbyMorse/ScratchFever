@@ -4805,7 +4805,7 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
     </div>`;
   }
 
-  const sfSection    = bucketSection("⚡ ScratchFever-Verified", sfReports,    `ScratchFever-verified store${sfReports.length > 1 ? "s" : ""}`);
+  const sfSection    = bucketSection(`⚡ ${BRAND}-Verified`,     sfReports,    `${BRAND}-verified store${sfReports.length > 1 ? "s" : ""}`);
   const storeSection = bucketSection("🏪 Store-Confirmed",       storeReports, `store-confirmed location${storeReports.length > 1 ? "s" : ""}`);
   const userSection  = bucketSection("👤 Member Reports",        userReports,  `member-reported store${userReports.length > 1 ? "s" : ""}`);
 
