@@ -177,18 +177,22 @@ class MaineScraper(BaseScraper):
 
             percent_unsold = unclaimed_data["percent_unsold"]
             total_unclaimed = unclaimed_data["total_unclaimed"]
-            prize_pool_left = total_unclaimed
 
             if total_tickets and percent_unsold is not None:
                 tickets_remaining = int(round(total_tickets * percent_unsold / 100))
 
+            top_tier_value = sum(amt * cnt for amt, cnt in unclaimed_data["top_tiers"])
+            small_unclaimed = max(0.0, (total_unclaimed or 0.0) - top_tier_value)
+            small_in_unsold = small_unclaimed * (percent_unsold or 0.0) / 100.0
+            prize_pool_left = top_tier_value + small_in_unsold
+
             if (
                 tickets_remaining
                 and tickets_remaining > 0
-                and total_unclaimed
+                and prize_pool_left > 0
                 and price > 0
             ):
-                ev_per_ticket = total_unclaimed / tickets_remaining
+                ev_per_ticket = prize_pool_left / tickets_remaining
                 ev = round(ev_per_ticket - price, 4)
                 return_pct = round(ev_per_ticket / price * 100, 2)
 
