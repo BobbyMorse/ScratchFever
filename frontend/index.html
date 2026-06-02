@@ -1989,55 +1989,18 @@
   </div>
 </div>
 
-<!-- ══════════════ INFO DRAWER (Coverage + FAQ) ══════════════ -->
+<!-- ══════════════ COVERAGE & FAQ TAB ══════════════ -->
 <style>
-  .info-drawer-backdrop {
-    position: fixed; inset: 0; background: rgba(15,23,42,.55);
-    backdrop-filter: blur(3px);
-    opacity: 0; pointer-events: none; transition: opacity .25s ease;
-    z-index: 2400;
+  .coverage-page { padding: 1.25rem 1.5rem; max-width: 880px; }
+  .coverage-page-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    flex-wrap: wrap; gap: .75rem; margin-bottom: 1.2rem;
   }
-  .info-drawer-backdrop.open { opacity: 1; pointer-events: auto; }
-
-  .info-drawer {
-    position: fixed; top: 0; right: 0; height: 100vh;
-    width: 600px; max-width: 100vw;
-    background: #f8fafc; color: #0f172a;
-    box-shadow: -16px 0 40px rgba(15,23,42,.18);
-    transform: translateX(100%); transition: transform .3s cubic-bezier(.32,.72,.32,1);
-    z-index: 2500; display: flex; flex-direction: column;
+  .coverage-page-title {
+    font-size: 1.25rem; font-weight: 800; margin: 0 0 .2rem;
+    letter-spacing: -.01em;
   }
-  .info-drawer.open { transform: translateX(0); }
-
-  .info-drawer-header {
-    flex: 0 0 auto; padding: 1.1rem 1.4rem;
-    border-bottom: 1px solid #e2e8f0;
-    display: flex; align-items: center; justify-content: space-between;
-    background: linear-gradient(135deg, #ec4899, #f97316, #facc15);
-    color: #fff;
-  }
-  .info-drawer-header h2 {
-    font-size: 1.1rem; font-weight: 800; margin: 0;
-    letter-spacing: -.01em; color: #fff;
-  }
-  .info-drawer-close {
-    background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
-    color: #fff; cursor: pointer;
-    width: 32px; height: 32px; border-radius: 50%;
-    font-size: .9rem; font-weight: 700;
-    display: inline-flex; align-items: center; justify-content: center;
-    transition: background .15s;
-  }
-  .info-drawer-close:hover { background: rgba(255,255,255,.3); }
-
-  .info-drawer-body {
-    flex: 1 1 auto; overflow-y: auto; padding: 1.25rem 1.4rem 2.5rem;
-  }
-
-  .info-intro {
-    font-size: .9rem; color: #475569; line-height: 1.55;
-    margin: 0 0 1rem;
-  }
+  .coverage-page-sub { font-size: .81rem; color: var(--text-muted); margin: 0; }
 
   .cov-toggle {
     display: flex; gap: .35rem;
