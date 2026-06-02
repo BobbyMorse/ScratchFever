@@ -228,106 +228,168 @@ class NewJerseyWinnersScraper(WinnersScraper):
 
 # ── parsing helpers ──────────────────────────────────────────────────────────
 
-_GAME_HEADLINE_RE = re.compile(
-    r"Playing\s+([A-Z0-9][A-Za-z0-9 '\-\$!&]+?)\s*$",
+# Anchor: "[at|at the] <RETAILER>, <ADDRESS>, in <CITY> in <COUNTY> County"
+# We extract each match as a window into the prose, then look around it for
+# the matching prize + game name. Order matters — most specific first.
+ANCHOR_FULL = re.compile(
+    r"(?:at|sold\s+at|drawn\s+at|purchased\s+at|played\s+at|recorded\s+at|ticket\s+was\s+sold\s+at)\s+"
+    r"(?:the\s+)?([^,.<\n]{2,80}?),\s+"
+    r"([^,.<\n]{2,80}?),?\s+in\s+"
+    r"([A-Z][A-Za-z .'-]{1,60}?)(?:,\s*([A-Z][A-Za-z .'-]{1,30}?)\s+County)?\b",
     re.IGNORECASE,
 )
-_GAME_TICKET_RE = re.compile(
-    r"\$\d[\d,]*\s+(?:ticket\s+)?(?:from|of)?\s*(?:the\s+)?([A-Z][A-Za-z0-9 '\-!&]+?)\s+(?:Scratch[-\s]?Off|scratch[-\s]?off|instant)",
+# "at Big O Stop in Bergen County's Lodi"  (county-first NJ phrasing)
+ANCHOR_COUNTY_FIRST = re.compile(
+    r"at\s+(?:the\s+)?([^,.<\n]{2,80}?)\s+in\s+"
+    r"([A-Z][A-Za-z .'-]{1,30}?)\s+County[A-Za-z’']*\s+"
+    r"([A-Z][A-Za-z .'-]{1,60})",
     re.IGNORECASE,
 )
-_GAME_PLAYED_RE = re.compile(
-    r"playing\s+(?:the\s+)?([A-Z][A-Za-z0-9 '\-!&]+?)\s+(?:Scratch[-\s]?Off|scratch[-\s]?off|instant)",
+# "at Krauzer's, 49 W. Main St. in Ramsey"  (address + city, no county)
+ANCHOR_ADDR_CITY = re.compile(
+    r"(?:at|sold\s+at|drawn\s+at|purchased\s+at|played\s+at|recorded\s+at)\s+"
+    r"(?:the\s+)?([^,.<\n]{2,80}?),\s+"
+    r"([^,.<\n]{2,80}?)\s+in\s+"
+    r"([A-Z][A-Za-z .'-]{1,60}?)(?=[.,]|\s+(?:and|Two|One|Three|Four|The|Other|However|More))",
     re.IGNORECASE,
 )
 
 
-def _parse_game_name(headline: str, body: str) -> str | None:
-    # Order: headline-tail "Playing X" → body "$X ticket of GAME Scratch-Off"
-    # → body "playing GAME Scratch-Off" → fall back to None (skip).
-    for src, pat in (
-        (headline, _GAME_HEADLINE_RE),
-        (body, _GAME_TICKET_RE),
-        (body, _GAME_PLAYED_RE),
-    ):
-        m = pat.search(src or "")
-        if m:
-            name = re.sub(r"\s+", " ", m.group(1)).strip().strip(".,!")
-            if name and len(name) <= 80:
-                return name
+def _find_retailer_anchors(body: str) -> list[dict]:
+    """Locate every (retailer, [address], city, [county]) anchor in the prose.
+
+    Spans are stored so the game/prize extractors can scan a window around
+    each anchor.
+    """
+    anchors: list[dict] = []
+    used_spans: list[tuple[int, int]] = []
+
+    def _overlaps(start: int, end: int) -> bool:
+        return any(not (end <= s or start >= e) for s, e in used_spans)
+
+    # Pass 1: full pattern with county
+    for m in ANCHOR_FULL.finditer(body):
+        if _overlaps(m.start(), m.end()):
+            continue
+        used_spans.append((m.start(), m.end()))
+        anchors.append({
+            "retailer": _clean(m.group(1)),
+            "address": _clean(m.group(2)),
+            "city":    _clean(m.group(3)),
+            "county":  _clean(m.group(4)) if m.lastindex and m.lastindex >= 4 else None,
+            "match_start": m.start(),
+            "match_end": m.end(),
+        })
+    # Pass 2: county-first NJ phrasing
+    for m in ANCHOR_COUNTY_FIRST.finditer(body):
+        if _overlaps(m.start(), m.end()):
+            continue
+        used_spans.append((m.start(), m.end()))
+        anchors.append({
+            "retailer": _clean(m.group(1)),
+            "address":  None,
+            "city":     _clean(m.group(3)),
+            "county":   _clean(m.group(2)),
+            "match_start": m.start(),
+            "match_end": m.end(),
+        })
+    # Pass 3: address + city, no county
+    for m in ANCHOR_ADDR_CITY.finditer(body):
+        if _overlaps(m.start(), m.end()):
+            continue
+        used_spans.append((m.start(), m.end()))
+        anchors.append({
+            "retailer": _clean(m.group(1)),
+            "address":  _clean(m.group(2)),
+            "city":     _clean(m.group(3)),
+            "county":   None,
+            "match_start": m.start(),
+            "match_end": m.end(),
+        })
+    anchors.sort(key=lambda a: a["match_start"])
+    return anchors
+
+
+_PRIZE_TOKEN_RE = re.compile(
+    r"\$\s*([\d,]+(?:\.\d+)?)\s*(million|m\b|thousand|k\b)?",
+    re.IGNORECASE,
+)
+
+
+def _prize_near(body: str, anchor_start: int) -> float | None:
+    """Look in the ~500 chars preceding the retailer anchor for the largest
+    plausible prize amount. Skips ticket prices and addresses."""
+    window_start = max(0, anchor_start - 500)
+    window = body[window_start:anchor_start]
+    best = 0.0
+    for m in _PRIZE_TOKEN_RE.finditer(window):
+        try:
+            val = float(m.group(1).replace(",", ""))
+        except ValueError:
+            continue
+        suffix = (m.group(2) or "").lower()
+        if "million" in suffix or suffix == "m":
+            val *= 1_000_000
+        elif "thousand" in suffix or suffix == "k":
+            val *= 1_000
+        # Skip "$X ticket", "$X game", "$X bet" — these are ticket prices.
+        tail = window[m.end():m.end() + 14].lower()
+        if any(t in tail for t in (" ticket", " game", " bet", " play")):
+            continue
+        if val > best:
+            best = val
+    return best if best > 0 else None
+
+
+# "Million in Cash Blitz", "200X Cash Blitz", "Crossword Bonanza",
+# "Ultimate Spectacular", "Win for Life!", "$100,000 Bingo Extra",
+# "Jersey Giant Winnings", "Millionaire Maker", "$250,000 Crossword"
+_GAME_RE = re.compile(
+    r"(?:the\s+|in\s+the\s+|playing\s+|for\s+(?:the\s+)?|of\s+(?:the\s+)?|in\s+)"
+    r"(\$?[\d,]*\s*[A-Z][A-Za-z0-9 '!\-\$&]{2,60}?)"
+    r"\s*(?:Scratch[-\s]?Off|Scratch[-\s]?off)",
+    re.IGNORECASE,
+)
+# Headline-style with prize prefix: "$200,000. The top prize of the $5 game..."
+_DATE_PREFIX_GAME_RE = re.compile(
+    r"[A-Z][a-z]{2}\.?\s+\d{1,2}:\s+(.+?),\s*\$",
+)
+
+
+def _game_near(body: str, anchor_start: int) -> str | None:
+    """Find the game name associated with the anchor by scanning the 500
+    chars preceding it. WeeklyWins format also uses "Mmm DD: Game, $Amount."
+    which we check as a fast path."""
+    window_start = max(0, anchor_start - 500)
+    window = body[window_start:anchor_start]
+
+    # Fast path: "Jan. 13: Game Name, $200,000."
+    matches = list(_DATE_PREFIX_GAME_RE.finditer(window))
+    if matches:
+        name = _clean_game(matches[-1].group(1))
+        if name:
+            return name
+
+    # General path: nearest "GAME Scratch-Off" before the anchor
+    matches = list(_GAME_RE.finditer(window))
+    if matches:
+        name = _clean_game(matches[-1].group(1))
+        if name:
+            return name
     return None
 
 
-def _parse_prize(headline: str) -> float | None:
-    if not headline:
+def _clean_game(raw: str) -> str | None:
+    if not raw:
         return None
-    m = HEADLINE_PRIZE_RE.search(headline)
-    if not m:
+    name = re.sub(r"\s+", " ", raw).strip().strip(".,!")
+    # Drop leading prize prefix: "$100,000 Bingo Extra" → "Bingo Extra"
+    name = re.sub(r"^\$[\d,]+\s+", "", name).strip()
+    # Drop common prose lead-ins that creep in
+    name = re.sub(r"^(?:top\s+prize\s+for\s+the?\s+|the\s+)", "", name, flags=re.IGNORECASE).strip()
+    if not name or len(name) > 80:
         return None
-    try:
-        val = float(m.group(1).replace(",", ""))
-    except ValueError:
-        return None
-    suffix = (m.group(2) or "").lower()
-    if "million" in suffix:
-        val *= 1_000_000
-    elif "thousand" in suffix:
-        val *= 1_000
-    elif val < 1000:
-        # Bare "$1" / "$5" with no unit is almost always shorthand for millions
-        # in headline form ("Wins $1 Million" parsed as "$1" + "Million" by the
-        # main path; this is the safety net for parsing oddities).
-        val *= 1_000_000
-    return val
-
-
-def _parse_prize_body(body: str) -> float | None:
-    if not body:
-        return None
-    # Prefer the largest $-figure in the first ~600 chars (the lede typically
-    # restates the prize). Skip obvious price callouts ("$30 ticket", "$1 game").
-    snippet = body[:600]
-    best = 0.0
-    for m in BODY_PRIZE_RE.finditer(snippet):
-        try:
-            v = float(m.group(1).replace(",", ""))
-        except ValueError:
-            continue
-        # Skip ticket prices: "$30 ticket", "$1 ticket", "$10 game"
-        tail = snippet[m.end():m.end() + 12].lower()
-        if any(t in tail for t in (" ticket", " game", " bet")):
-            continue
-        # "Million" suffix
-        if "million" in tail:
-            v *= 1_000_000
-        if v > best:
-            best = v
-    return best or None
-
-
-def _parse_retailer(body: str) -> tuple[str | None, str | None, str | None, str | None]:
-    if not body:
-        return None, None, None, None
-    for pat in RETAILER_PATTERNS:
-        m = pat.search(body)
-        if not m:
-            continue
-        groups = m.groups()
-        retailer = _clean(groups[0])
-        if len(groups) == 4:
-            address = _clean(groups[1])
-            city = _clean(groups[2])
-            county = _clean(groups[3])
-        elif len(groups) == 3:
-            address = _clean(groups[1])
-            city = _clean(groups[2])
-            county = None
-        else:
-            address = None
-            city = _clean(groups[1])
-            county = None
-        return retailer, address, city, county
-    return None, None, None, None
+    return name
 
 
 _RELEASE_DATE_RE = re.compile(
