@@ -303,6 +303,32 @@ function populateAccountTab() {
   const roleLabel = _currentUser.role === "admin" ? "Admin" : _currentUser.role === "retailer" ? "Retailer" : "Member";
   roleEl.textContent = roleLabel;
   roleEl.className = "user-chip-role role-" + _currentUser.role;
+  _renderAccountPro();
+}
+
+function _renderAccountPro() {
+  const dot = document.getElementById("accountProDot");
+  const label = document.getElementById("accountProLabel");
+  const meta = document.getElementById("accountProMeta");
+  const upgrade = document.getElementById("accountProUpgradeBtn");
+  const manage = document.getElementById("accountProManageBtn");
+  if (!dot) return;
+  const isPro = !!(_currentUser && _currentUser.is_pro);
+  dot.classList.toggle("is-pro", isPro);
+  if (isPro) {
+    label.textContent = "Pro — active";
+    const until = _currentUser.pro_until ? new Date(_currentUser.pro_until) : null;
+    meta.textContent = until
+      ? `Renews / expires ${until.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}`
+      : "Full access to every state.";
+    upgrade.style.display = "none";
+    manage.style.display = _currentUser.has_stripe ? "" : "none";
+  } else {
+    label.textContent = "Free account";
+    meta.textContent = "Unlock all 50 states, the Chase, and member sightings.";
+    upgrade.style.display = "";
+    manage.style.display = "none";
+  }
 }
 
 async function restoreSession() {
