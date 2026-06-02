@@ -946,7 +946,8 @@ async def vapi_dispatch_selected(body: DispatchSelectedBody, _user: dict = Depen
 class TestCallBody(BaseModel):
     phone: str
     tickets: list[TicketSpec] = Field(..., min_length=1, max_length=20)
-    as_retailer_id: Optional[int] = None  # state_retailers.id — simulate this store
+    as_retailer_id: Optional[int] = None       # state_retailers.id — simulate this store
+    phone_number_id: Optional[str] = None      # force a specific VAPI phoneNumberId
 
 
 @router.post("/test_call")
@@ -954,9 +955,19 @@ async def vapi_test_call(body: TestCallBody, _user: dict = Depends(require_admin
     """Dispatch a single test call to an arbitrary number. Optionally simulate
     a real retailer so the assistant prompt sounds like a production call.
     The external_id is always prefixed with 'test' so the webhook skips the
-    inventory_reports mirror and the call doesn't pollute production data."""
+    inventory_reports mirror and the call doesn't pollute production data.
+
+    When `phone_number_id` is given, the call goes from that specific number
+    (skipping the BYO-preference rotation) — used by the UI's "Send from"
+    picker to compare deliverability between Twilio and VAPI numbers."""
     env = _vapi_env()
-    await _ensure_dispatch_ready(env)
+    # Skip the "all numbers exhausted" pre-check when the user explicitly chose
+    # a number — they get the real error back from VAPI if it's actually capped.
+    if not body.phone_number_id:
+        await _ensure_dispatch_ready(env)
+    elif not env.get("private_key") or not env.get("assistant_id"):
+        missing = [k for k, v in env.items() if not v]
+        raise HTTPException(status_code=400, detail=f"VAPI not configured — missing env: {', '.join(missing)}")
 
     e164 = _to_e164(body.phone)
     if not e164:
