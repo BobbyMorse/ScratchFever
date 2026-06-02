@@ -72,7 +72,10 @@ def _env_phone_number_ids() -> list[str]:
 # the dispatcher picks it up on the next call. If a number hits VAPI's daily
 # cap mid-session, mark it dead for today and use the next one transparently.
 
-_VAPI_NUMBERS_CACHE: Optional[tuple[float, list[str]]] = None
+# Cache stores list of (phone_number_id, provider) tuples. provider is one of
+# "vapi" (purchased through VAPI — daily-capped) or "twilio"/"vonage"/"telnyx"
+# (BYO carrier — no VAPI-side daily cap). Used to prefer BYO over VAPI.
+_VAPI_NUMBERS_CACHE: Optional[tuple[float, list[tuple[str, str]]]] = None
 _VAPI_NUMBERS_TTL_SEC = 60  # short — user may create numbers live
 _VAPI_NUMBERS_LOCK = asyncio.Lock()
 
