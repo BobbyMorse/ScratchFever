@@ -67,6 +67,7 @@ ALL_WINNERS_SCRAPERS = [
     NebraskaWinnersScraper,
     IowaWinnersScraper,
     SouthDakotaWinnersScraper,
+    MontanaWinnersScraper,
 ]
 
 TIMEOUT_SEC = 180
