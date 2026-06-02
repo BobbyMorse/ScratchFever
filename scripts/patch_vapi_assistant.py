@@ -130,8 +130,8 @@ def main() -> int:
         "server": {"url": WEBHOOK_URL},
         "serverMessages": ["end-of-call-report"],
         "firstMessage": (
-            "Hi — automated inventory check for scratch tickets. "
-            "Do you currently sell them?"
+            "Hi, this is an automated assistant — "
+            "I'm looking for a couple scratch-off tickets, do you sell them?"
         ),
         "model": {
             "provider": "anthropic",
