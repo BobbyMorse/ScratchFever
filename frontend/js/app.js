@@ -2647,7 +2647,7 @@ function formatTranscript(text) {
 function renderResultCell(c) {
   // Compact ratio for the table row: "2/3 in stock", color-coded.
   if (c.is_voicemail) {
-    return `<span class="badge badge-status-paused" title="Reached a voicemail greeting — no inventory data captured">📭 Voicemail</span>`;
+    return `<span class="badge badge-status-paused" title="Reached a voicemail greeting — no inventory data captured">Voicemail</span>`;
   }
   if (c.ended_at == null && c.has_game == null && !(c.per_ticket_results && c.per_ticket_results.length)) {
     return `<span class="badge badge-status-paused">In flight</span>`;
