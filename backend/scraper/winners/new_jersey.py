@@ -167,56 +167,61 @@ class NewJerseyWinnersScraper(WinnersScraper):
         found.sort(key=lambda t: t[1], reverse=True)
         return found
 
-    def _fetch_and_parse(self, url: str, slug_date: dt.date) -> dict | None:
+    def _fetch_and_parse(self, url: str, slug_date: dt.date) -> list[dict]:
+        """Parse a press release into 0..N win records.
+
+        WeeklyWins releases list multiple wins per page; RetailWin releases
+        usually have one headline win. We scan the prose for every "at
+        RETAILER ... in CITY" anchor, then look in the surrounding text for
+        the matching game name + prize.
+        """
         resp = self.get(url, timeout=30)
         soup = BeautifulSoup(resp.text, "lxml")
 
-        title_el = soup.find(["h1", "h2"])
-        headline = (title_el.get_text(" ", strip=True) if title_el else "").strip()
-
         body_el = soup.find("article") or soup.find("div", class_="news-content") or soup
-        body_text = body_el.get_text(" ", strip=True)
-        body_text = re.sub(r"\s+", " ", body_text)
+        body_text = re.sub(r"\s+", " ", body_el.get_text(" ", strip=True))
 
-        game_name = _parse_game_name(headline, body_text)
-        if not game_name:
-            return None
-        if is_draw_game(self.state_code, game_name):
-            return None
+        if "Scratch-Off" not in body_text and "Scratch Off" not in body_text and "Scratch-off" not in body_text:
+            return []
 
-        prize = _parse_prize(headline) or _parse_prize_body(body_text)
-        if prize is None or prize < self.min_prize:
-            return None
-
-        retailer, address, city, county = _parse_retailer(body_text)
-
-        # Prefer release date from body; fall back to slug date.
         release_date = _parse_release_date(body_text) or slug_date
+        source_url = url if url.startswith("http") else f"{SOURCE_BASE}{url}"
 
-        sid_parts = [
-            release_date.isoformat(),
-            f"{int(prize)}",
-            game_name,
-            retailer or "",
-            city or "",
-        ]
-        source_id = "|".join(sid_parts)
+        wins: list[dict] = []
+        anchors = _find_retailer_anchors(body_text)
+        for anchor in anchors:
+            prize = _prize_near(body_text, anchor["match_start"])
+            game = _game_near(body_text, anchor["match_start"])
+            if not game:
+                continue
+            if is_draw_game(self.state_code, game):
+                continue
+            if prize is None or prize < self.min_prize:
+                continue
 
-        return {
-            "source_id": source_id,
-            "source_game_id": None,
-            "source_game_name": game_name,
-            "prize_amount": prize,
-            "claim_date": release_date,
-            "retailer_name": retailer,
-            "retailer_address": address,
-            "retailer_city": city,
-            "retailer_zip": None,
-            "winner_city": city,
-            "retailer_lat": None,
-            "retailer_lng": None,
-            "source_url": url if url.startswith("http") else f"{SOURCE_BASE}{url}",
-        }
+            sid_parts = [
+                release_date.isoformat(),
+                f"{int(prize)}",
+                game,
+                anchor["retailer"] or "",
+                anchor["city"] or "",
+            ]
+            wins.append({
+                "source_id": "|".join(sid_parts),
+                "source_game_id": None,
+                "source_game_name": game,
+                "prize_amount": prize,
+                "claim_date": release_date,
+                "retailer_name": anchor["retailer"],
+                "retailer_address": anchor["address"],
+                "retailer_city": anchor["city"],
+                "retailer_zip": None,
+                "winner_city": anchor["city"],
+                "retailer_lat": None,
+                "retailer_lng": None,
+                "source_url": source_url,
+            })
+        return wins
 
 
 # ── parsing helpers ──────────────────────────────────────────────────────────
