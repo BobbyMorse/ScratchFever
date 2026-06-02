@@ -147,11 +147,43 @@ async def set_user_prefs(user_id: int, prefs: dict) -> None:
 
 
 async def set_user_pro_until(user_id: int, pro_until) -> None:
-    """Called by the RevenueCat webhook. `pro_until` may be a datetime or None."""
+    """Called by billing webhooks (Stripe, RevenueCat). `pro_until` may be a datetime or None."""
     async with get_pool().acquire() as conn:
         await conn.execute(
             "UPDATE users SET pro_until=$1 WHERE id=$2",
             pro_until, user_id,
+        )
+
+
+async def get_user_pro_until(user_id: int):
+    async with get_pool().acquire() as conn:
+        row = await conn.fetchrow("SELECT pro_until FROM users WHERE id=$1", user_id)
+    return row["pro_until"] if row else None
+
+
+async def get_user_by_id(user_id: int) -> Optional[dict]:
+    async with get_pool().acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT id, email, username, role, stripe_customer_id, stripe_subscription_id, pro_until FROM users WHERE id=$1",
+            user_id,
+        )
+        return dict(row) if row else None
+
+
+async def get_user_by_stripe_customer(stripe_customer_id: str) -> Optional[dict]:
+    async with get_pool().acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT id, email, username, role, stripe_customer_id, stripe_subscription_id, pro_until FROM users WHERE stripe_customer_id=$1",
+            stripe_customer_id,
+        )
+        return dict(row) if row else None
+
+
+async def set_user_stripe_ids(user_id: int, customer_id: Optional[str], subscription_id: Optional[str]) -> None:
+    async with get_pool().acquire() as conn:
+        await conn.execute(
+            "UPDATE users SET stripe_customer_id=COALESCE($1, stripe_customer_id), stripe_subscription_id=$2 WHERE id=$3",
+            customer_id, subscription_id, user_id,
         )
 
 
