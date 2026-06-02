@@ -105,6 +105,28 @@ async def is_user_pro(user_id: int) -> bool:
     return row["pro_until"] > _dt.datetime.now(_dt.timezone.utc)
 
 
+async def get_user_prefs(user_id: int) -> dict:
+    async with get_pool().acquire() as conn:
+        row = await conn.fetchrow("SELECT prefs FROM users WHERE id=$1", user_id)
+    if not row or row["prefs"] is None:
+        return {}
+    prefs = row["prefs"]
+    if isinstance(prefs, str):
+        try:
+            prefs = json.loads(prefs)
+        except Exception:
+            return {}
+    return prefs if isinstance(prefs, dict) else {}
+
+
+async def set_user_prefs(user_id: int, prefs: dict) -> None:
+    async with get_pool().acquire() as conn:
+        await conn.execute(
+            "UPDATE users SET prefs=$1::jsonb WHERE id=$2",
+            json.dumps(prefs), user_id,
+        )
+
+
 async def set_user_pro_until(user_id: int, pro_until) -> None:
     """Called by the RevenueCat webhook. `pro_until` may be a datetime or None."""
     async with get_pool().acquire() as conn:
