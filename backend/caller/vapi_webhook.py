@@ -206,6 +206,9 @@ def _extract(payload: dict) -> dict:
     summary = msg.get("summary") or analysis.get("summary")
     transcript = msg.get("transcript") or analysis.get("transcript")
 
+    ended_reason = _pick(msg, "endedReason", "ended_reason")
+    is_voicemail = _detect_voicemail(ended_reason, transcript)
+
     return {
         "vapi_call_id":         call.get("id") or msg.get("callId"),
         "started_at":           started_at,
