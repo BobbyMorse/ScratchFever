@@ -69,7 +69,6 @@ ALL_WINNERS_SCRAPERS = [
     IowaWinnersScraper,
     SouthDakotaWinnersScraper,
     MontanaWinnersScraper,
-    NewJerseyWinnersScraper,
     KentuckyWinnersScraper,
 ]
 
