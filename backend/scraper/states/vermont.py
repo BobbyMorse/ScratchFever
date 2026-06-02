@@ -175,7 +175,7 @@ class VermontScraper(BaseScraper):
             for m in re.finditer(r"\$([\d,]+)\s+(\d+)", section):
                 prize = float(m.group(1).replace(",", ""))
                 remaining = int(m.group(2))
-                if prize > 0 and overall_odds:
+                if prize > 0:
                     tiers.append({
                         "prize_amount":     prize,
                         "odds_one_in":      round(total_tickets / remaining, 2) if total_tickets and remaining else None,
