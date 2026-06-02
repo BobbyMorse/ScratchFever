@@ -376,21 +376,25 @@ def _prize_near(body: str, anchor_start: int) -> float | None:
 _GAME_PATTERNS = [
     # WeeklyWins format: "Jan. 13: <Game Name>, $Amount."
     re.compile(r"[A-Z][a-z]{2}\.?\s+\d{1,2}:\s+([^,\n]{2,60}?),\s*\$"),
-    # "<prize-prefix> <GAME> Scratch-Off"
-    re.compile(
-        r"(?:\$[\d,]+\s+|the\s+)([A-Z][\w!&'\- ]{2,60}?)\s+Scratch[-\s]?[Oo]ff",
-    ),
-    # "for the <GAME> in <Location>"  (where GAME ends before " in <Place>")
+    # "for the <GAME> in <Location>" — prose lede form. Tried before the
+    # generic "Scratch-Off" pattern because NJ's headline often reads
+    # "$X Million in Cash Blitz Scratch-Off" (where "Million in" is prize
+    # framing, not part of the game name) — we want the prose to win.
     re.compile(
         r"for\s+(?:the\s+)?(\$?[\d,]*\s*[A-Z][\w!&'\- ]{2,60}?)\s+in\s+[A-Z]",
     ),
-    # "prize in the <GAME>" used in WeeklyWins lede
+    # "prize in the <GAME>" — alternative lede form
     re.compile(
         r"prize\s+in\s+the\s+(\$?[\d,]*\s*[A-Z][\w!&'\- ]{2,60}?)(?=[.,])",
     ),
-    # Inline lede: "$X,XXX,XXX <GAME Name> is/was/has/game"
+    # Inline: "$X,XXX,XXX <GAME Name> is/was/has/game"  ("$1,000,000 Ultimate Spectacular is...")
     re.compile(
         r"\$[\d,]+\s+([A-Z][\w!&'\-]+(?:\s+[A-Z][\w!&'\-]+){1,5})\s+(?:is|was|has|game)\b",
+    ),
+    # Fallback: "<prize-prefix> <GAME> Scratch-Off" — catches anything the
+    # prose forms missed, but last because headline framing pollutes it.
+    re.compile(
+        r"(?:\$[\d,]+\s+|the\s+)([A-Z][\w!&'\- ]{2,60}?)\s+Scratch[-\s]?[Oo]ff",
     ),
 ]
 
