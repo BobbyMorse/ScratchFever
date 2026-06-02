@@ -77,7 +77,7 @@ async def verify_twilio(request: Request) -> None:
 
 # ── TwiML endpoint ────────────────────────────────────────────────────────────
 
-@router.post("/caller/twiml/{queue_id}", include_in_schema=False)
+@router.post("/caller/twiml/{queue_id}", include_in_schema=False, dependencies=[Depends(verify_twilio)])
 async def twiml_handler(queue_id: int):
     ctx = _pending_calls.get(queue_id)
     if not ctx:
