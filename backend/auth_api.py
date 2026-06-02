@@ -27,20 +27,34 @@ _LOGIN_WINDOW_SEC = 60
 _LOGIN_MAX_PER_WINDOW = 10
 _login_attempts: dict[str, deque[float]] = {}
 
+# Tighter throttle for /api/auth/register — legitimate users register once.
+_REGISTER_WINDOW_SEC = 3600
+_REGISTER_MAX_PER_WINDOW = 5
+_register_attempts: dict[str, deque[float]] = {}
 
-def _check_login_rate(ip: str) -> None:
+
+def _check_rate(store: dict[str, deque[float]], ip: str, window_sec: int, max_per_window: int, detail: str) -> None:
     now = time.monotonic()
-    cutoff = now - _LOGIN_WINDOW_SEC
-    dq = _login_attempts.setdefault(ip, deque())
+    cutoff = now - window_sec
+    dq = store.setdefault(ip, deque())
     while dq and dq[0] < cutoff:
         dq.popleft()
-    if len(dq) >= _LOGIN_MAX_PER_WINDOW:
-        raise HTTPException(status_code=429, detail="Too many login attempts. Try again in a minute.")
+    if len(dq) >= max_per_window:
+        raise HTTPException(status_code=429, detail=detail)
     dq.append(now)
-    if len(_login_attempts) > 10000:
-        # Bound memory under attack: drop the oldest half of tracked IPs.
-        for k in list(_login_attempts.keys())[:5000]:
-            _login_attempts.pop(k, None)
+    if len(store) > 10000:
+        for k in list(store.keys())[:5000]:
+            store.pop(k, None)
+
+
+def _check_login_rate(ip: str) -> None:
+    _check_rate(_login_attempts, ip, _LOGIN_WINDOW_SEC, _LOGIN_MAX_PER_WINDOW,
+                "Too many login attempts. Try again in a minute.")
+
+
+def _check_register_rate(ip: str) -> None:
+    _check_rate(_register_attempts, ip, _REGISTER_WINDOW_SEC, _REGISTER_MAX_PER_WINDOW,
+                "Too many signups from this network. Try again later.")
 
 
 class LoginBody(BaseModel):
