@@ -1894,7 +1894,7 @@ function renderModal(g) {
     </div>` : ""}
     ${g.ev_approximate ? `<div style="background:rgba(255,160,0,.1);border:1px solid rgba(255,160,0,.3);border-radius:8px;padding:.6rem .85rem;margin:.75rem 0;font-size:.82rem;color:#c87800">
       <strong>Estimated EV</strong> — ${g.state_code === "ME"
-        ? `${g.state_name} publishes the total unclaimed prize pool and percent unsold, but only the top prize tiers per game. EV is computed from the aggregate unclaimed dollar value divided by remaining tickets; small-prize tiers are not enumerated individually.`
+        ? `${g.state_name} publishes the total unclaimed prize pool, percent unsold, and only the top prize tiers per game. The top-tier remaining value is taken at face; the small-prize remainder is pro-rated by percent unsold, since Maine's "Total Unclaimed" also includes prizes won on already-sold tickets that haven't been redeemed.`
         : `${g.state_name} only publishes top-prize remaining counts. The top-prize depletion rate is extrapolated to estimate remaining counts for every prize tier, total ticket sales, and EV. Real EV may differ.`}
     </div>` : ""}
 
