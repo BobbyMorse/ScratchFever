@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (pytest + import smoke)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Import smoke test (backend.main)
+        run: python -c "import backend.main; print('backend.main imports OK')"
+
+      - name: pytest
+        run: pytest tests/ -q
+
+  frontend:
+    name: Frontend (syntax + cache-buster gate)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: node --check on every JS file under frontend/js
+        run: |
+          set -e
+          shopt -s nullglob
+          for f in frontend/js/*.js; do
+            echo "Checking $f"
+            node --check "$f"
+          done
+
+      - name: Cache-buster gate (app.js changed → index.html ?v= must bump)
+        if: github.event_name == 'pull_request'
+        run: python scripts/check_cache_buster.py
