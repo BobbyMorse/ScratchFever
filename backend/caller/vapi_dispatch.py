@@ -412,61 +412,95 @@ async def _dispatch_calls(
     ) as client:
 
         async def _one(t: dict):
-            payload = {
-                "assistantId":    env["assistant_id"],
-                "phoneNumberId":  _next_phone_number_id(),
-                "customer":       {"number": t["phone_e164"]},
-                "assistantOverrides": {
-                    "variableValues": {
-                        "store_id":       t.get("external_id") or "",
-                        "store_name":     t.get("name") or "",
-                        "store_city":     t.get("city") or "",
-                        "store_phone":    t["phone_e164"],
-                        "state_code":     t.get("state_code") or "",
-                        "ticketsToCheck": tickets_text,
-                    },
-                },
-            }
-            async with sem:
-                try:
-                    resp = await client.post("/call", json=payload)
-                    ok = 200 <= resp.status_code < 300
-                    data: dict[str, Any] = {}
-                    try:
-                        data = resp.json()
-                    except Exception:
-                        data = {"text": resp.text[:300]}
-                    call_id = data.get("id") if ok else None
-                    results.append({
-                        "name":    t.get("name"),
-                        "city":    t.get("city"),
-                        "ok":      ok,
-                        "status":  resp.status_code,
-                        "call_id": call_id,
-                        "error":   None if ok else (data.get("message") or data.get("text") or "unknown"),
-                    })
-                    if ok and call_id:
-                        placeholders.append({
-                            "vapi_call_id":         call_id,
-                            "to_phone":             t["phone_e164"],
-                            "state_code":           t.get("state_code"),
-                            "retailer_external_id": t.get("external_id"),
-                            "retailer_name":        t.get("name"),
-                            "retailer_city":        t.get("city"),
-                            "game_name":            tickets_label,
-                            "game_price":           None,
-                            "game_number":          None,
-                        })
-                except Exception as exc:
-                    logger.exception("VAPI dispatch failed for %s", t.get("name"))
+            # Try up to (number_count) attempts: on each daily-cap error, mark
+            # that number exhausted and pick a different one. Bounded by the
+            # number of available IDs so we don't loop forever.
+            tried_pids: set[str] = set()
+            last_error: Optional[str] = None
+            last_status: int = 0
+            while True:
+                pid = await _pick_phone_number_id(env["private_key"])
+                if not pid or pid in tried_pids:
+                    # No more numbers to try
                     results.append({
                         "name":    t.get("name"),
                         "city":    t.get("city"),
                         "ok":      False,
-                        "status":  0,
+                        "status":  last_status,
                         "call_id": None,
-                        "error":   str(exc),
+                        "error":   last_error or "No available VAPI phone numbers (all exhausted)",
                     })
+                    return
+                tried_pids.add(pid)
+
+                payload = {
+                    "assistantId":    env["assistant_id"],
+                    "phoneNumberId":  pid,
+                    "customer":       {"number": t["phone_e164"]},
+                    "assistantOverrides": {
+                        "variableValues": {
+                            "store_id":       t.get("external_id") or "",
+                            "store_name":     t.get("name") or "",
+                            "store_city":     t.get("city") or "",
+                            "store_phone":    t["phone_e164"],
+                            "state_code":     t.get("state_code") or "",
+                            "ticketsToCheck": tickets_text,
+                        },
+                    },
+                }
+
+                async with sem:
+                    try:
+                        resp = await client.post("/call", json=payload)
+                    except Exception as exc:
+                        logger.exception("VAPI dispatch failed for %s", t.get("name"))
+                        results.append({
+                            "name":    t.get("name"),
+                            "city":    t.get("city"),
+                            "ok":      False,
+                            "status":  0,
+                            "call_id": None,
+                            "error":   str(exc),
+                        })
+                        return
+
+                ok = 200 <= resp.status_code < 300
+                data: dict[str, Any] = {}
+                try:
+                    data = resp.json()
+                except Exception:
+                    data = {"text": resp.text[:300]}
+                err_msg = None if ok else (data.get("message") or data.get("text") or "unknown")
+
+                # Daily-cap error → mark this number dead for today, try next
+                if not ok and _is_daily_limit_error(err_msg):
+                    _mark_exhausted(pid)
+                    last_error  = err_msg
+                    last_status = resp.status_code
+                    continue
+
+                call_id = data.get("id") if ok else None
+                results.append({
+                    "name":    t.get("name"),
+                    "city":    t.get("city"),
+                    "ok":      ok,
+                    "status":  resp.status_code,
+                    "call_id": call_id,
+                    "error":   err_msg,
+                })
+                if ok and call_id:
+                    placeholders.append({
+                        "vapi_call_id":         call_id,
+                        "to_phone":             t["phone_e164"],
+                        "state_code":           t.get("state_code"),
+                        "retailer_external_id": t.get("external_id"),
+                        "retailer_name":        t.get("name"),
+                        "retailer_city":        t.get("city"),
+                        "game_name":            tickets_label,
+                        "game_price":           None,
+                        "game_number":          None,
+                    })
+                return
 
         await asyncio.gather(*(_one(t) for t in valid))
 
