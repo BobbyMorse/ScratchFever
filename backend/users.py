@@ -63,6 +63,7 @@ async def init_users_db():
         # Mirror of the RevenueCat "pro" entitlement, updated by the RC webhook.
         # NULL or past = not Pro; future = Pro until that timestamp.
         await conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS pro_until TIMESTAMPTZ")
+        await conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS prefs JSONB NOT NULL DEFAULT '{}'::jsonb")
 
 
 async def create_user(email: str, password: str, role: str = "member", username: str = None) -> dict:
