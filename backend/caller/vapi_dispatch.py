@@ -401,9 +401,14 @@ async def _dispatch_calls(
     targets: list[dict],
     tickets: list[dict],
     env: dict,
+    force_phone_number_id: Optional[str] = None,
 ) -> tuple[list[dict], list[dict]]:
     """POSTs to VAPI for each target. Inserts placeholder vapi_calls rows for
     successful dispatches so the dashboard reflects them immediately.
+
+    If force_phone_number_id is given, every call uses that specific number and
+    rotation is skipped — used by test_call's "Send from" picker so the user can
+    A/B test Twilio vs VAPI numbers from the UI.
 
     Returns (results, skipped).
     """
