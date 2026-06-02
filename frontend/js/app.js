@@ -1468,6 +1468,7 @@ function renderBigWinsMap() {
   // Leaflet sometimes needs a kick if container was display:none when init ran
   setTimeout(() => bigwinsMap && bigwinsMap.invalidateSize(), 50);
   bigwinsMapMarkers.clearLayers();
+  renderBigWinsDarkLayer();
 
   const state = document.getElementById("bigwinsStateFilter")?.value || "";
   const game = document.getElementById("bigwinsGameFilter")?.value || "";
