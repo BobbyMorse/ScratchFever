@@ -1414,6 +1414,55 @@ function initBigWinsMap() {
   setupMapAutoResize(bigwinsMap);
 }
 
+async function loadBigWinsGeo() {
+  if (bigwinsGeoData) return bigwinsGeoData;
+  if (bigwinsGeoLoading) return bigwinsGeoLoading;
+  bigwinsGeoLoading = (async () => {
+    try {
+      const res = await fetch("/static/data/us-states.geojson");
+      if (res.ok) bigwinsGeoData = await res.json();
+    } catch (e) {
+      console.warn("bigwins geojson:", e);
+    } finally {
+      bigwinsGeoLoading = null;
+    }
+    return bigwinsGeoData;
+  })();
+  return bigwinsGeoLoading;
+}
+
+async function renderBigWinsDarkLayer() {
+  if (!bigwinsMap) return;
+  const geo = await loadBigWinsGeo();
+  if (!geo) return;
+  if (bigwinsMapDarkLayer) {
+    bigwinsMap.removeLayer(bigwinsMapDarkLayer);
+    bigwinsMapDarkLayer = null;
+  }
+  const feedSet = new Set(bigwinsMapFeedStates);
+  // Filter to states without a feed, then render as a dimmed polygon layer
+  // below the win markers so basemap labels are still readable through it.
+  const dark = {
+    type: "FeatureCollection",
+    features: (geo.features || []).filter(f => {
+      const code = BIGWINS_NAME_TO_CODE[f.properties && f.properties.name];
+      return code && !feedSet.has(code);
+    }),
+  };
+  bigwinsMapDarkLayer = L.geoJSON(dark, {
+    interactive: false,
+    style: {
+      fillColor: "#0f172a",
+      color: "#1e293b",
+      weight: 0.6,
+      fillOpacity: 0.55,
+    },
+  });
+  bigwinsMapDarkLayer.addTo(bigwinsMap);
+  // Keep markers on top of the polygon layer.
+  if (bigwinsMapMarkers) bigwinsMapMarkers.bringToFront();
+}
+
 function renderBigWinsMap() {
   initBigWinsMap();
   // Leaflet sometimes needs a kick if container was display:none when init ran
