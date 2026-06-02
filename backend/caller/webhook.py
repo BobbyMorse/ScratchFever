@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 import os
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Form, HTTPException, Request
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, Form, HTTPException, Request
 from fastapi.responses import Response
 
 from backend.caller.db import (
