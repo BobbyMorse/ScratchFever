@@ -29,11 +29,14 @@ ARTICLE_RE = re.compile(
     re.DOTALL,
 )
 DATE_RE = re.compile(r'<h3>\s*(\d{1,2})\.(\d{1,2})\.(\d{2,4})\s*</h3>')
-# "$50,000 Millionaire Club Scratch-off Winner!" — capture prize + game name.
+# Every winner is "$AMOUNT NAME Winner!" — we capture all (scratch, draw, fast
+# play) so retailer pairing stays positional, then filter on "Scratch-off"
+# in the name to keep only scratch-off wins.
 STRONG_RE = re.compile(
-    r'<strong>\s*\$([\d,]+(?:\.\d+)?)\s+(.+?)\s+Scratch-off\s+Winner!?\s*</strong>',
+    r'<strong>\s*\$([\d,]+(?:\.\d+)?)\s+(.+?)\s+Winner!?\s*</strong>',
     re.IGNORECASE,
 )
+SCRATCH_RE = re.compile(r'\bScratch-off\b', re.IGNORECASE)
 # "Ticket sold at NAME in CITY, KY" (real data also has the typo "Ticket old at")
 TICKET_RE = re.compile(
     r'<p>\s*Ticket\s+(?:sold|old)\s+at\s+(.+?)\s+in\s+(.+?),\s*KY\s*</p>',
