@@ -282,6 +282,7 @@ function _setUser(user) {
     caller.style.display     = "none";
     const dataStatusBtn = document.getElementById("dataStatusBtn");
     if (dataStatusBtn) dataStatusBtn.style.display = "none";
+    if (proChip) proChip.style.display = "none";
     if (proCta) proCta.style.display = "";
     document.getElementById("playsTabBtn").style.display = "none";
     document.getElementById("playsLoginNudge").style.display = "";

@@ -1,0 +1,32 @@
+#!/bin/sh
+# Auto-bump the app.js cache-buster in frontend/index.html when
+# frontend/js/app.js is part of this commit.
+#
+# Enable once per clone:
+#     git config core.hooksPath .githooks
+
+set -e
+
+APP_JS="frontend/js/app.js"
+INDEX="frontend/index.html"
+
+if ! git diff --cached --name-only | grep -qx "$APP_JS"; then
+    exit 0
+fi
+
+if [ ! -f "$INDEX" ]; then
+    echo "[pre-commit] $INDEX not found; skipping cache-buster bump."
+    exit 0
+fi
+
+CURRENT=$(grep -oE 'app\.js\?v=[0-9]+' "$INDEX" | head -1 | grep -oE '[0-9]+' || true)
+if [ -z "$CURRENT" ]; then
+    echo "[pre-commit] WARNING: could not find app.js?v=N in $INDEX; commit allowed."
+    exit 0
+fi
+
+NEXT=$((CURRENT + 1))
+sed -i.bak "s|app\.js?v=${CURRENT}|app.js?v=${NEXT}|g" "$INDEX"
+rm -f "${INDEX}.bak"
+git add "$INDEX"
+echo "[pre-commit] Bumped app.js cache-buster: v${CURRENT} -> v${NEXT}"
