@@ -1778,6 +1778,57 @@
         </div>
       </div><!-- /tab-health -->
 
+      <!-- ══════════════ COVERAGE & FAQ TAB ══════════════ -->
+      <div id="tab-coverage" class="tab-content" style="display:none">
+        <section class="coverage-page">
+          <div class="coverage-page-header">
+            <div>
+              <h2 class="coverage-page-title">Coverage &amp; FAQ</h2>
+              <p class="coverage-page-sub">What we track, by state. Hover a state for detail. Live from production.</p>
+            </div>
+          </div>
+
+          <div class="cov-toggle" role="tablist">
+            <button class="cov-tab active" data-layer="ev" onclick="setCovLayer('ev')">EV Data</button>
+            <button class="cov-tab" data-layer="retailers" onclick="setCovLayer('retailers')">Retailers</button>
+            <button class="cov-tab" data-layer="winners" onclick="setCovLayer('winners')">Big Winners</button>
+          </div>
+
+          <div id="covMapBig" class="cov-map-big"></div>
+          <div class="cov-legend-big" id="covLegend"></div>
+          <div class="cov-explainer" id="covExplainer"></div>
+
+          <div class="info-faq">
+            <h3>Questions</h3>
+
+            <div class="info-faq-item">
+              <p class="info-faq-q">What is "The Chase"?</p>
+              <p class="info-faq-a">"The Chase" is the hunt for scratch games where most of the tickets have been sold but the top prize hasn't been claimed yet. When that happens, every remaining ticket carries a bigger share of the prize pool — the expected return per dollar can be two, three, sometimes ten times what it was at launch. The catch: these books are <strong>hard to find</strong>. Cashiers will tell you stories about the guy who walked in last week and bought six full books ($6,000 worth) of the exact ticket you're hunting. That's why our retailer inventory data exists — to point you at stores that still have stock before someone else clears them out.</p>
+            </div>
+
+            <div class="info-faq-item">
+              <p class="info-faq-q">What's the difference between Full data and Estimated?</p>
+              <p class="info-faq-a"><strong>Full data</strong> means the state lottery publishes every prize tier with both the total minted and the unclaimed count. We compute EV directly from those numbers. <strong>Estimated</strong> applies when a state only publishes counts for the top prize tiers; we use that top-tier sell-through rate to extrapolate depletion across the smaller tiers. Estimated games are flagged with an "Estimated EV" banner in the modal.</p>
+            </div>
+
+            <div class="info-faq-item">
+              <p class="info-faq-q">Why don't some states show full data?</p>
+              <p class="info-faq-a">Every state lottery is required by law to publish prize odds, but each commission posts them differently — some sites publish only top-prize counts, others sit behind bot challenges or authentication walls. We're actively working through the holdouts.</p>
+            </div>
+
+            <div class="info-faq-item">
+              <p class="info-faq-q">How often is data updated?</p>
+              <p class="info-faq-a">Game odds and prizes-remaining counts are refreshed every hour from each state lottery's official website. Retailer location data is refreshed monthly.</p>
+            </div>
+
+            <div class="info-faq-item">
+              <p class="info-faq-q">Is the data official?</p>
+              <p class="info-faq-a">Yes. All prize odds and remaining-prize counts are sourced from each state lottery's official website. We read what the state publishes and run the math. ScratchFever is not affiliated with any state lottery commission.</p>
+            </div>
+          </div>
+        </section>
+      </div><!-- /tab-coverage -->
+
     </main>
 
     <footer>
