@@ -135,6 +135,10 @@ DRAW_GAME_PATTERNS: dict[str, tuple[str, ...]] = {
         "powerball", "mega millions", "lotto america", "lucky for life",
         "dakota cash", "millionaire for life",
     ),
+    "MT": (
+        "powerball", "mega millions", "lucky for life", "montana cash",
+        "big sky bonus", "shake a day", "pick 3", "pick 4",
+    ),
 }
 
 
