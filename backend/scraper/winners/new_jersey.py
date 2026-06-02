@@ -230,22 +230,30 @@ class NewJerseyWinnersScraper(WinnersScraper):
 
 # A multi-word capitalized place name: "Jersey City", "Perth Amboy",
 # "Little Falls", "Mullica Hill", or single-word "Lodi"/"Ramsey".
-_PLACE = r"[A-Z][A-Za-z'-]*(?:\s+[A-Z][A-Za-z'-]*){0,3}"
+# Each token must start with a capital — kept case-sensitive even inside
+# IGNORECASE patterns via the (?-i:) inline modifier, since we use this
+# pattern as a stopping rule and case is what distinguishes "in" (skip)
+# from "In" (start of next sentence, still skip) from "Falls" (city).
+_PLACE_RAW = r"[A-Z][A-Za-z'-]*(?:\s+[A-Z][A-Za-z'-]*){0,3}"
+_PLACE = r"(?-i:" + _PLACE_RAW + r")"
 
 # Retailer: starts with capital, no commas (commas separate retailer from
 # address). Periods allowed for "St. Mary's", "Wawa #915" style names.
-_RETAILER = r"[A-Z][^,<\n]{1,80}?"
+_RETAILER = r"(?-i:[A-Z])[^,<\n]{1,80}?"
 
-# Address: anything except <>\n, but stop before " in CITY" or sentence
-# boundary. Periods allowed for "Ave.", "St.", "W. Main St." abbreviations.
-_ADDRESS = r"(?:(?!\s+in\s+[A-Z])[^<\n,]){2,80}"
+# Address: must start with a digit (street numbers do). Allows periods and
+# `#` so "858 Amboy Ave.", "49 W. Main St.", "Route 38 #4B" all parse.
+# Stops before " in <Place>" or first sentence-terminating period.
+_ADDRESS = r"\d[\w\d .#&'-]{1,79}?"
+
+# Lead phrases that precede a retailer callout.
+_LEAD = r"(?:at|sold\s+at|drawn\s+at|purchased\s+at|played\s+at|recorded\s+at|ticket\s+(?:was\s+)?(?:sold|drawn|played|purchased)\s+at)"
 
 # Anchor patterns scan the prose for retailer location callouts. Order
 # matters — most specific first; later passes use a "no overlap" rule.
 ANCHOR_FULL = re.compile(
-    r"(?:at|sold\s+at|drawn\s+at|purchased\s+at|played\s+at|recorded\s+at|ticket\s+was\s+sold\s+at)\s+"
-    r"(?:the\s+)?(" + _RETAILER + r"),\s+"
-    r"(" + _ADDRESS + r")[.,]?\s+in\s+"
+    _LEAD + r"\s+(?:the\s+)?(" + _RETAILER + r"),\s+"
+    r"(" + _ADDRESS + r")\.?,?\s+in\s+"
     r"(" + _PLACE + r")"
     r"(?:,?\s+in\s+(" + _PLACE + r")\s+County)?"
     r"(?:,\s*(" + _PLACE + r")\s+County)?",
@@ -259,10 +267,10 @@ ANCHOR_COUNTY_FIRST = re.compile(
 )
 # "at Krauzer's, 49 W. Main St. in Ramsey"  (no county trailer)
 ANCHOR_ADDR_CITY = re.compile(
-    r"(?:at|sold\s+at|drawn\s+at|purchased\s+at|played\s+at|recorded\s+at)\s+"
-    r"(?:the\s+)?(" + _RETAILER + r"),\s+"
-    r"(" + _ADDRESS + r")[.,]?\s+in\s+"
+    _LEAD + r"\s+(?:the\s+)?(" + _RETAILER + r"),\s+"
+    r"(" + _ADDRESS + r")\.?,?\s+in\s+"
     r"(" + _PLACE + r")",
+    re.IGNORECASE,
 )
 
 
