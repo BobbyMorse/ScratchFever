@@ -440,11 +440,16 @@ async def _dispatch_calls(
             # Try up to (number_count) attempts: on each daily-cap error, mark
             # that number exhausted and pick a different one. Bounded by the
             # number of available IDs so we don't loop forever.
+            # When force_phone_number_id is set, single attempt with that ID —
+            # the user explicitly chose it and we shouldn't silently substitute.
             tried_pids: set[str] = set()
             last_error: Optional[str] = None
             last_status: int = 0
             while True:
-                pid = await _pick_phone_number_id(env["private_key"])
+                if force_phone_number_id:
+                    pid = force_phone_number_id if force_phone_number_id not in tried_pids else None
+                else:
+                    pid = await _pick_phone_number_id(env["private_key"])
                 if not pid or pid in tried_pids:
                     # No more numbers to try
                     results.append({
