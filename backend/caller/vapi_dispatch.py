@@ -577,9 +577,13 @@ async def _ensure_dispatch_ready(env: dict) -> None:
 @router.get("/config")
 async def vapi_config(_user: dict = Depends(require_admin)):
     env       = _vapi_env()
-    all_ids   = await _all_phone_number_ids(env["private_key"])
+    pairs     = await _all_phone_numbers(env["private_key"])
+    all_ids   = [pid for pid, _ in pairs]
     avail_ids = [pid for pid in all_ids if not _is_exhausted(pid)]
     source    = "env" if _env_phone_number_ids() else ("vapi_api" if all_ids else "none")
+    provider_counts: dict[str, int] = {}
+    for _, prov in pairs:
+        provider_counts[prov] = provider_counts.get(prov, 0) + 1
     return {
         "configured":             bool(env["private_key"] and env["assistant_id"] and all_ids),
         "has_private_key":        bool(env["private_key"]),
@@ -591,6 +595,8 @@ async def vapi_config(_user: dict = Depends(require_admin)):
         "available_number_count": len(avail_ids),
         "exhausted_today":        sorted(set(all_ids) - set(avail_ids)),
         "phone_number_source":    source,  # "env" | "vapi_api" | "none"
+        "providers":              provider_counts,  # {"vapi": 2, "twilio": 1, ...}
+        "byo_count":              sum(c for p, c in provider_counts.items() if p != "vapi"),
     }
 
 
