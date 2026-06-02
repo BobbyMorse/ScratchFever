@@ -690,9 +690,8 @@ class DispatchBody(BaseModel):
 async def vapi_dispatch(body: DispatchBody, _user: dict = Depends(require_admin)):
     """Ad-hoc dispatch by explicit retailer_ids (used by checkbox-list UIs)."""
     env = _vapi_env()
-    if not body.dry_run and not all(env.values()):
-        missing = [k for k, v in env.items() if not v]
-        raise HTTPException(status_code=400, detail=f"VAPI not configured — missing env: {', '.join(missing)}")
+    if not body.dry_run:
+        await _ensure_dispatch_ready(env)
 
     async with get_pool().acquire() as conn:
         rows = await conn.fetch(
@@ -738,9 +737,8 @@ async def vapi_dispatch_campaign(body: CampaignBody, _user: dict = Depends(requi
     """Campaign-style dispatch: pick top-N retailers for a state and fire.
     Skips retailers we already successfully talked to within cooldown_hours."""
     env = _vapi_env()
-    if not body.dry_run and not all(env.values()):
-        missing = [k for k, v in env.items() if not v]
-        raise HTTPException(status_code=400, detail=f"VAPI not configured — missing env: {', '.join(missing)}")
+    if not body.dry_run:
+        await _ensure_dispatch_ready(env)
 
     targets, excluded = await _select_scored_retailers(
         body.state.upper(), body.max_stores, body.cooldown_hours
@@ -816,9 +814,8 @@ async def vapi_dispatch_selected(body: DispatchSelectedBody, _user: dict = Depen
     identified by their `external_id` (the same key used as VAPI `store_id`).
     Order in `selected_external_ids` is the dial order."""
     env = _vapi_env()
-    if not body.dry_run and not all(env.values()):
-        missing = [k for k, v in env.items() if not v]
-        raise HTTPException(status_code=400, detail=f"VAPI not configured — missing env: {', '.join(missing)}")
+    if not body.dry_run:
+        await _ensure_dispatch_ready(env)
 
     candidates = await _all_scored_candidates(body.state.upper())
     by_id = {c["external_id"]: c for c in candidates}
