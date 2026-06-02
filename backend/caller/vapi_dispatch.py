@@ -632,6 +632,12 @@ async def vapi_config(_user: dict = Depends(require_admin)):
     provider_counts: dict[str, int] = {}
     for _, prov in pairs:
         provider_counts[prov] = provider_counts.get(prov, 0) + 1
+    # Detail fetch only when we're using VAPI auto-discovery; env-pinned IDs
+    # have no number/name metadata we can surface.
+    details = await _discover_vapi_phone_number_details(env["private_key"]) if (env["private_key"] and not _env_phone_number_ids()) else []
+    details_with_status = [
+        {**d, "exhausted": _is_exhausted(d["id"])} for d in details
+    ]
     return {
         "configured":             bool(env["private_key"] and env["assistant_id"] and all_ids),
         "has_private_key":        bool(env["private_key"]),
@@ -645,6 +651,7 @@ async def vapi_config(_user: dict = Depends(require_admin)):
         "phone_number_source":    source,  # "env" | "vapi_api" | "none"
         "providers":              provider_counts,  # {"vapi": 2, "twilio": 1, ...}
         "byo_count":              sum(c for p, c in provider_counts.items() if p != "vapi"),
+        "phone_numbers":          details_with_status,  # [{id, number, provider, name, exhausted}]
     }
 
 
