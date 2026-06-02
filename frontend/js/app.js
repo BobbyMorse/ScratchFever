@@ -4090,7 +4090,7 @@ function renderTranscriptBubbles(transcript) {
   if (!lines.length) return `<pre style="font-size:.78rem;white-space:pre-wrap">${escHtml(transcript)}</pre>`;
 
   return lines.map(line => {
-    const aiMatch  = line.match(/^(ai|agent|bot|bland|automated|assistant):\s*(.*)/i);
+    const aiMatch  = line.match(/^(ai|agent|bot|automated|assistant):\s*(.*)/i);
     const humMatch = line.match(/^(human|user|store|person|customer|caller):\s*(.*)/i);
     if (aiMatch) {
       return `<div class="bubble bubble-ai"><span class="bubble-label">AI</span>${escHtml(aiMatch[2])}</div>`;
