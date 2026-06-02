@@ -35,6 +35,7 @@ from backend.scraper.winners.illinois import IllinoisWinnersScraper
 from backend.scraper.winners.nebraska import NebraskaWinnersScraper
 from backend.scraper.winners.iowa import IowaWinnersScraper
 from backend.scraper.winners.south_dakota import SouthDakotaWinnersScraper
+from backend.scraper.winners.montana import MontanaWinnersScraper
 
 logger = logging.getLogger(__name__)
 
