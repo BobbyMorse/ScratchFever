@@ -172,6 +172,11 @@ def main() -> int:
     print(f"  analysisPlan.structuredDataPlan.enabled: {sd.get('enabled')}")
     sm = ((a.get("analysisPlan") or {}).get("summaryPlan") or {})
     print(f"  analysisPlan.summaryPlan.enabled:        {sm.get('enabled')}")
+    print(f"  firstMessage:                    {a.get('firstMessage')!r}")
+    msgs = (a.get("model") or {}).get("messages") or []
+    sys_msg = next((m.get("content", "") for m in msgs if m.get("role") == "system"), "")
+    has_var = "{{ticketsToCheck}}" in sys_msg
+    print(f"  system prompt has ticketsToCheck:        {has_var}")
     return 0
 
 
