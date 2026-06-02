@@ -4683,73 +4683,64 @@ function modalCommunitySection(gameName, gamePrice, stateCode, stateName) {
   const addBtn = `<button class="btn btn-report" onclick="openReportModalForGame(${JSON.stringify(gameName)},${gamePrice != null ? gamePrice : "null"})" style="font-size:.78rem;padding:.3rem .75rem">+ Add Report</button>`;
   const chaseHref = `onclick="viewGameInChase(${escHtml(JSON.stringify(gameName))},${escHtml(JSON.stringify(stateCode || ""))})"`;
 
-  // --- Retailer-confirmed section (summary only) ---
-  const latestByRetailer = {};
-  for (const r of allReports) {
-    if (r.source !== "retailer") continue;
-    const existing = latestByRetailer[r.retailer_id];
-    if (!existing || new Date(r.reported_at) > new Date(existing.reported_at)) {
-      latestByRetailer[r.retailer_id] = r;
+  // Latest-per-retailer within a source bucket. We bucket *first* so that an
+  // older Store report can still appear even if a User later reported the same
+  // store — each provenance gets its own column.
+  function latestByRetailerInBucket(bucket) {
+    const latest = {};
+    for (const r of allReports) {
+      if (inventorySourceBucket(r.source) !== bucket) continue;
+      const existing = latest[r.retailer_id];
+      if (!existing || new Date(r.reported_at) > new Date(existing.reported_at)) {
+        latest[r.retailer_id] = r;
+      }
     }
+    return Object.values(latest);
   }
-  const retailerConfirmed = Object.values(latestByRetailer);
 
-  let retailerSection = "";
-  if (retailerConfirmed.length) {
+  const sfReports    = latestByRetailerInBucket('scratchfever');
+  const storeReports = latestByRetailerInBucket('store');
+  const userReports  = latestByRetailerInBucket('user');
+
+  function bucketSection(title, reports, viewLabel) {
+    if (!reports.length) return "";
     if (!_currentUser) {
-      retailerSection = `<div class="modal-retailer-section">
-        <div class="modal-community-title" style="margin-bottom:.55rem">🏪 Retailer-Confirmed</div>
+      return `<div class="modal-retailer-section">
+        <div class="modal-community-title" style="margin-bottom:.55rem">${title}</div>
         <div class="modal-community-gate">
-          <span>${retailerConfirmed.length} retailer report${retailerConfirmed.length > 1 ? "s" : ""} for this game.</span>
+          <span>${reports.length} report${reports.length > 1 ? "s" : ""} for this game.</span>
           <button class="btn btn-login" onclick="closeModal();openAuthModal('login')" style="font-size:.78rem;padding:.3rem .75rem">Log In to See</button>
           <button class="btn btn-register" onclick="closeModal();openAuthModal('register')" style="font-size:.78rem;padding:.3rem .75rem">Join Free</button>
         </div>
       </div>`;
-    } else {
-      const rIn  = retailerConfirmed.filter(r => r.has_stock).length;
-      const rOut = retailerConfirmed.length - rIn;
-      const summary = `<span style="color:var(--text-muted);font-weight:400;font-size:.82rem">${retailerConfirmed.length} store${retailerConfirmed.length > 1 ? "s" : ""} · <span style="color:var(--green);font-weight:600">${rIn} in</span> · <span style="color:var(--red);font-weight:600">${rOut} out</span></span>`;
-      retailerSection = `<div class="modal-retailer-section">
-        <div class="modal-community-title" style="margin-bottom:.55rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
-          <span>🏪 Retailer-Confirmed</span>${summary}
-        </div>
-        <button class="modal-view-all-chase" ${chaseHref}>View ${retailerConfirmed.length} retailer-confirmed store${retailerConfirmed.length > 1 ? "s" : ""} in The Chase →</button>
-      </div>`;
     }
-  }
-
-  // --- Member inventory section (summary only) ---
-  const reports = allReports.filter(r => r.source !== "retailer");
-
-  if (!reports.length && !retailerSection) {
-    return `<div class="modal-community-section">
-      <div class="modal-community-title" style="display:flex;align-items:center;justify-content:space-between">
-        <span>📍 Inventory</span>${addBtn}
+    const nIn  = reports.filter(r => r.has_stock).length;
+    const nOut = reports.length - nIn;
+    const summary = `<span style="color:var(--text-muted);font-weight:400;font-size:.82rem">${reports.length} store${reports.length > 1 ? "s" : ""} · <span style="color:var(--green);font-weight:600">${nIn} in</span> · <span style="color:var(--red);font-weight:600">${nOut} out</span></span>`;
+    return `<div class="modal-retailer-section">
+      <div class="modal-community-title" style="margin-bottom:.55rem;display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
+        <span>${title}</span>${summary}
       </div>
-      <div class="profile-no-reports">No inventory data yet for this game in ${stateCode || "your state"}.</div>
+      <button class="modal-view-all-chase" ${chaseHref}>View ${reports.length} ${viewLabel} in The Chase →</button>
     </div>`;
   }
 
-  const cIn  = reports.filter(r => r.has_stock).length;
-  const cOut = reports.length - cIn;
-  const cSummary = reports.length
-    ? `<span style="color:var(--text-muted);font-weight:400;font-size:.82rem">${reports.length} store${reports.length > 1 ? "s" : ""} · <span style="color:var(--green);font-weight:600">${cIn} in</span> · <span style="color:var(--red);font-weight:600">${cOut} out</span></span>`
-    : "";
+  const sfSection    = bucketSection("⚡ ScratchFever-Verified", sfReports,    `ScratchFever-verified store${sfReports.length > 1 ? "s" : ""}`);
+  const storeSection = bucketSection("🏪 Store-Confirmed",       storeReports, `store-confirmed location${storeReports.length > 1 ? "s" : ""}`);
+  const userSection  = bucketSection("👤 Member Reports",        userReports,  `member-reported store${userReports.length > 1 ? "s" : ""}`);
 
-  const communitySection = reports.length ? `<div class="modal-community-section">
+  // Header lives at the top with the + Add Report CTA, no matter which buckets
+  // have data; falls back to empty-state copy when every bucket is empty.
+  const totalCount = sfReports.length + storeReports.length + userReports.length;
+  const header = `<div class="modal-community-section">
     <div class="modal-community-title" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap">
       <span>📍 Inventory <span style="color:var(--text-muted);font-weight:400;font-size:.82rem">(${stateCode || ""})</span></span>
-      <span style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap">${cSummary}${addBtn}</span>
+      ${addBtn}
     </div>
-    <button class="modal-view-all-chase" ${chaseHref}>View ${reports.length} store${reports.length > 1 ? "s" : ""} in The Chase →</button>
-  </div>` : `<div class="modal-community-section">
-    <div class="modal-community-title" style="display:flex;align-items:center;justify-content:space-between">
-      <span>📍 Inventory</span>${addBtn}
-    </div>
-    <div class="profile-no-reports">No inventory data yet for this game in ${stateCode || "your state"}.</div>
+    ${totalCount === 0 ? `<div class="profile-no-reports">No inventory data yet for this game in ${stateCode || "your state"}.</div>` : ""}
   </div>`;
 
-  return retailerSection + communitySection;
+  return header + sfSection + storeSection + userSection;
 }
 
 function openReportModalForStore(retailerId) {
