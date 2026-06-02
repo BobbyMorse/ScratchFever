@@ -2612,6 +2612,7 @@ function openCallDetail(callId) {
     `Duration ${dur}`,
     `Confidence ${conf}`,
     c.ended_reason ? `Ended: ${c.ended_reason}` : null,
+    c.is_voicemail ? "Voicemail" : null,
   ].filter(Boolean).map(escHtml).join(" · ");
 
   document.getElementById("callDetailBody").innerHTML = `
