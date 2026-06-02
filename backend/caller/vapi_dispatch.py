@@ -539,6 +539,21 @@ async def _insert_placeholders(rows: list[dict]) -> None:
 
 # ── Endpoints ────────────────────────────────────────────────────────────────
 
+async def _ensure_dispatch_ready(env: dict) -> None:
+    """Validate that we have private_key + assistant_id AND at least one
+    non-exhausted VAPI phone number to dial from. Raises 400 on failure with
+    a precise reason."""
+    if not env.get("private_key") or not env.get("assistant_id"):
+        missing = [k for k, v in env.items() if not v]
+        raise HTTPException(status_code=400, detail=f"VAPI not configured — missing env: {', '.join(missing)}")
+    avail = await _available_phone_number_ids(env["private_key"])
+    if not avail:
+        all_ids = await _all_phone_number_ids(env["private_key"])
+        if not all_ids:
+            raise HTTPException(status_code=400, detail="No VAPI phone numbers found on this account. Create one in the VAPI dashboard.")
+        raise HTTPException(status_code=429, detail=f"All {len(all_ids)} VAPI numbers have hit their daily cap. Create another number in VAPI or wait until midnight UTC reset.")
+
+
 @router.get("/config")
 async def vapi_config(_user: dict = Depends(require_admin)):
     env       = _vapi_env()
