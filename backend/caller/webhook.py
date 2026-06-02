@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 import os
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Form, Request
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Form, HTTPException, Request
 from fastapi.responses import Response
 
 from backend.caller.db import (
@@ -39,6 +39,40 @@ def register_call(queue_id: int, campaign: dict, queue_item: dict):
 
 def _base_url() -> str:
     return os.getenv("CALLER_BASE_URL", "http://localhost:8000").rstrip("/")
+
+
+async def verify_twilio(request: Request) -> None:
+    """
+    Reject inbound POSTs that don't carry a valid X-Twilio-Signature.
+    Skips verification when TWILIO_AUTH_TOKEN is unset AND TWILIO_VERIFY_OFF=1
+    (local dev only — production must keep this on).
+    """
+    auth_token = os.getenv("TWILIO_AUTH_TOKEN")
+    if not auth_token:
+        if os.getenv("TWILIO_VERIFY_OFF") == "1":
+            return
+        raise HTTPException(status_code=503, detail="Twilio auth not configured")
+
+    signature = request.headers.get("X-Twilio-Signature", "")
+    if not signature:
+        raise HTTPException(status_code=403, detail="missing Twilio signature")
+
+    # Twilio signs the full URL it called + sorted form params.
+    # Reconstruct the public URL — behind Railway/Render, the proxy sets these.
+    forwarded_proto = request.headers.get("x-forwarded-proto", request.url.scheme)
+    forwarded_host = request.headers.get("x-forwarded-host") or request.headers.get("host") or request.url.netloc
+    url = f"{forwarded_proto}://{forwarded_host}{request.url.path}"
+    if request.url.query:
+        url = f"{url}?{request.url.query}"
+
+    form = await request.form()
+    params = {k: v for k, v in form.items()}
+
+    from twilio.request_validator import RequestValidator
+    validator = RequestValidator(auth_token)
+    if not validator.validate(url, params, signature):
+        logger.warning("Twilio signature failed: url=%s sig=%s", url, signature[:8] + "…")
+        raise HTTPException(status_code=403, detail="bad Twilio signature")
 
 
 # ── TwiML endpoint ────────────────────────────────────────────────────────────
