@@ -114,6 +114,44 @@ def _is_exhausted(pid: str) -> bool:
         return _EXHAUSTED_TODAY.get(pid) == _today_utc()
 
 
+_VAPI_NUMBER_DETAIL_CACHE: Optional[tuple[float, list[dict]]] = None
+
+
+async def _discover_vapi_phone_number_details(private_key: str) -> list[dict]:
+    """Like _discover_vapi_phone_numbers but returns full {id, number, provider,
+    name} records — used by /config to surface a picker in the UI."""
+    global _VAPI_NUMBER_DETAIL_CACHE
+    import time
+    now = time.time()
+    if _VAPI_NUMBER_DETAIL_CACHE and (now - _VAPI_NUMBER_DETAIL_CACHE[0] < _VAPI_NUMBERS_TTL_SEC):
+        return _VAPI_NUMBER_DETAIL_CACHE[1]
+    try:
+        async with httpx.AsyncClient(timeout=10.0, headers={"User-Agent": "scratchfever/1.0"}) as c:
+            r = await c.get(
+                f"{VAPI_API_BASE}/phone-number",
+                headers={"Authorization": f"Bearer {private_key}"},
+            )
+            if r.status_code != 200:
+                logger.warning("VAPI phone-number details fetch failed: %s %s", r.status_code, r.text[:200])
+                return _VAPI_NUMBER_DETAIL_CACHE[1] if _VAPI_NUMBER_DETAIL_CACHE else []
+            data = r.json()
+            details = [
+                {
+                    "id":       n.get("id"),
+                    "number":   n.get("number"),
+                    "provider": (n.get("provider") or "vapi").lower(),
+                    "name":     n.get("name") or "",
+                }
+                for n in data
+                if isinstance(n, dict) and n.get("id")
+            ]
+    except Exception:
+        logger.exception("VAPI phone-number detail discovery failed")
+        return _VAPI_NUMBER_DETAIL_CACHE[1] if _VAPI_NUMBER_DETAIL_CACHE else []
+    _VAPI_NUMBER_DETAIL_CACHE = (now, details)
+    return details
+
+
 async def _discover_vapi_phone_numbers(private_key: str) -> list[tuple[str, str]]:
     """GET /phone-number on VAPI to enumerate every number tied to the account.
     Returns list of (id, provider) tuples. Cached for _VAPI_NUMBERS_TTL_SEC to
