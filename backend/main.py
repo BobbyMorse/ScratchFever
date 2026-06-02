@@ -141,11 +141,26 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="ScratchFever", description="Scratch-off lottery EV tracker", lifespan=lifespan)
 
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+_DEFAULT_CORS_ORIGINS = [
+    "https://scratchfever.app",
+    "https://www.scratchfever.app",
+    "https://api.scratchfever.app",
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+_cors_env = os.getenv("CORS_ORIGINS", "").strip()
+_cors_origins = [o.strip() for o in _cors_env.split(",") if o.strip()] if _cors_env else _DEFAULT_CORS_ORIGINS
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=_cors_origins,
+    allow_origin_regex=r"^exp://.*|^https://.*\.expo\.dev$",
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
+    allow_credentials=True,
 )
 
 app.include_router(auth_router)
