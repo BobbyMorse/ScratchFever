@@ -4356,7 +4356,7 @@ function storeProfileHtml(retailerId) {
     const gPrice = g.price != null ? g.price : '';
     const meta   = `$${g.price ?? '?'} · ${g.return_pct != null ? g.return_pct.toFixed(1) + '% EV' : '—'}`;
     const updLine = status
-      ? `<div class="inv-upd">Updated ${timeAgo(parseReportedAt(status.reported_at))}${status.reporter_username ? ` · @${escHtml(status.reporter_username)}` : ''}${status.notes ? ` · <em>${escHtml(status.notes)}</em>` : ''}</div>`
+      ? `<div class="inv-upd">${inventorySourceBadgeHtml(status.source)} Updated ${timeAgo(parseReportedAt(status.reported_at))}${status.reporter_username ? ` · @${escHtml(status.reporter_username)}` : ''}${status.notes ? ` · <em>${escHtml(status.notes)}</em>` : ''}</div>`
       : '';
     return `<div class="inv-game-row" data-game-status="${filterVal}">
       <div class="inv-accent ${accentClass}"></div>
