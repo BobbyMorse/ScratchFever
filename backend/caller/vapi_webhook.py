@@ -240,7 +240,10 @@ def _extract(payload: dict) -> dict:
 def _verify_secret(provided: Optional[str]) -> None:
     expected = os.getenv("VAPI_WEBHOOK_SECRET")
     if not expected:
-        return  # secret not configured -> dev mode, accept everything
+        # Fail closed in production. To run unauthenticated locally, set VAPI_VERIFY_OFF=1.
+        if os.getenv("VAPI_VERIFY_OFF") == "1":
+            return
+        raise HTTPException(status_code=503, detail="VAPI_WEBHOOK_SECRET not configured")
     if not provided or not hmac.compare_digest(provided.strip(), expected.strip()):
         raise HTTPException(status_code=401, detail="bad signature")
 
