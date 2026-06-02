@@ -5,72 +5,64 @@ and lighter, so this can run on a tighter schedule.
 """
 from __future__ import annotations
 import asyncio
+import importlib
 import logging
 
 from backend.database import get_pool, upsert_reported_wins
-from backend.scraper.winners.massachusetts import MassachusettsWinnersScraper
-from backend.scraper.winners.michigan import MichiganWinnersScraper
-from backend.scraper.winners.rhode_island import RhodeIslandWinnersScraper
-from backend.scraper.winners.pennsylvania import PennsylvaniaWinnersScraper
-from backend.scraper.winners.georgia import GeorgiaWinnersScraper
-from backend.scraper.winners.wisconsin import WisconsinWinnersScraper
-from backend.scraper.winners.oklahoma import OklahomaWinnersScraper
-from backend.scraper.winners.connecticut import ConnecticutWinnersScraper
-from backend.scraper.winners.vermont import VermontWinnersScraper
-from backend.scraper.winners.missouri import MissouriWinnersScraper
-from backend.scraper.winners.arkansas import ArkansasWinnersScraper
-from backend.scraper.winners.minnesota import MinnesotaWinnersScraper
-from backend.scraper.winners.washington import WashingtonWinnersScraper
-from backend.scraper.winners.louisiana import LouisianaWinnersScraper
-from backend.scraper.winners.indiana import IndianaWinnersScraper
-from backend.scraper.winners.delaware import DelawareWinnersScraper
-from backend.scraper.winners.texas import TexasWinnersScraper
-from backend.scraper.winners.new_mexico import NewMexicoWinnersScraper
-from backend.scraper.winners.mississippi import MississippiWinnersScraper
-from backend.scraper.winners.arizona import ArizonaWinnersScraper
-from backend.scraper.winners.new_hampshire import NewHampshireWinnersScraper
-from backend.scraper.winners.florida import FloridaWinnersScraper
-from backend.scraper.winners.new_york import NewYorkWinnersScraper
-from backend.scraper.winners.illinois import IllinoisWinnersScraper
-from backend.scraper.winners.nebraska import NebraskaWinnersScraper
-from backend.scraper.winners.iowa import IowaWinnersScraper
-from backend.scraper.winners.south_dakota import SouthDakotaWinnersScraper
-from backend.scraper.winners.montana import MontanaWinnersScraper
-from backend.scraper.winners.kentucky import KentuckyWinnersScraper
 
 logger = logging.getLogger(__name__)
 
-ALL_WINNERS_SCRAPERS = [
-    MassachusettsWinnersScraper,
-    MichiganWinnersScraper,
-    RhodeIslandWinnersScraper,
-    PennsylvaniaWinnersScraper,
-    GeorgiaWinnersScraper,
-    WisconsinWinnersScraper,
-    OklahomaWinnersScraper,
-    ConnecticutWinnersScraper,
-    VermontWinnersScraper,
-    MissouriWinnersScraper,
-    ArkansasWinnersScraper,
-    MinnesotaWinnersScraper,
-    WashingtonWinnersScraper,
-    LouisianaWinnersScraper,
-    IndianaWinnersScraper,
-    DelawareWinnersScraper,
-    TexasWinnersScraper,
-    NewMexicoWinnersScraper,
-    MississippiWinnersScraper,
-    ArizonaWinnersScraper,
-    NewHampshireWinnersScraper,
-    FloridaWinnersScraper,
-    NewYorkWinnersScraper,
-    IllinoisWinnersScraper,
-    NebraskaWinnersScraper,
-    IowaWinnersScraper,
-    SouthDakotaWinnersScraper,
-    MontanaWinnersScraper,
-    KentuckyWinnersScraper,
+# (module_suffix, class_name) — kept as data so a broken/missing module never
+# nukes the whole registry. Bad ones get logged + skipped at import time.
+# Without this guard, one missing scraper module 500s every endpoint that
+# imports the runner (Data Status, Big Wins map, etc.).
+_SCRAPER_SPECS: list[tuple[str, str]] = [
+    ("massachusetts",  "MassachusettsWinnersScraper"),
+    ("michigan",       "MichiganWinnersScraper"),
+    ("rhode_island",   "RhodeIslandWinnersScraper"),
+    ("pennsylvania",   "PennsylvaniaWinnersScraper"),
+    ("georgia",        "GeorgiaWinnersScraper"),
+    ("wisconsin",      "WisconsinWinnersScraper"),
+    ("oklahoma",       "OklahomaWinnersScraper"),
+    ("connecticut",    "ConnecticutWinnersScraper"),
+    ("vermont",        "VermontWinnersScraper"),
+    ("missouri",       "MissouriWinnersScraper"),
+    ("arkansas",       "ArkansasWinnersScraper"),
+    ("minnesota",      "MinnesotaWinnersScraper"),
+    ("washington",     "WashingtonWinnersScraper"),
+    ("louisiana",      "LouisianaWinnersScraper"),
+    ("indiana",        "IndianaWinnersScraper"),
+    ("delaware",       "DelawareWinnersScraper"),
+    ("texas",          "TexasWinnersScraper"),
+    ("new_mexico",     "NewMexicoWinnersScraper"),
+    ("mississippi",    "MississippiWinnersScraper"),
+    ("arizona",        "ArizonaWinnersScraper"),
+    ("new_hampshire",  "NewHampshireWinnersScraper"),
+    ("florida",        "FloridaWinnersScraper"),
+    ("new_york",       "NewYorkWinnersScraper"),
+    ("illinois",       "IllinoisWinnersScraper"),
+    ("nebraska",       "NebraskaWinnersScraper"),
+    ("iowa",           "IowaWinnersScraper"),
+    ("south_dakota",   "SouthDakotaWinnersScraper"),
+    ("montana",        "MontanaWinnersScraper"),
+    ("new_jersey",     "NewJerseyWinnersScraper"),
+    ("kentucky",       "KentuckyWinnersScraper"),
 ]
+
+
+def _load_scrapers() -> list[type]:
+    loaded: list[type] = []
+    for module_suffix, class_name in _SCRAPER_SPECS:
+        module_path = f"backend.scraper.winners.{module_suffix}"
+        try:
+            mod = importlib.import_module(module_path)
+            loaded.append(getattr(mod, class_name))
+        except Exception as e:
+            logger.error("Skipping winners scraper %s.%s: %s", module_path, class_name, e)
+    return loaded
+
+
+ALL_WINNERS_SCRAPERS = _load_scrapers()
 
 WINNERS_FEED_STATES = sorted({s.state_code for s in ALL_WINNERS_SCRAPERS})
 
