@@ -256,12 +256,15 @@ function _setUser(user) {
   const accountBtn = document.getElementById("accountTabBtn");
   const caller     = document.getElementById("callerTabBtn");
   const proCta     = document.getElementById("sidebarProCta");
+  const proChip    = accountBtn ? accountBtn.querySelector(".sidebar-pro-chip") : null;
 
   if (user) {
     document.getElementById("userDisplayName").textContent = user.username || user.email.split("@")[0];
     btn.style.display        = "none";
     accountBtn.style.display = "";
-    if (proCta) proCta.style.display = "none";
+    // Sidebar CTA hides once user is Pro; non-Pro logged-in users still see the upsell.
+    if (proCta) proCta.style.display = user.is_pro ? "none" : "";
+    if (proChip) proChip.style.display = user.is_pro ? "" : "none";
     const isAdmin = user.role === "admin";
     caller.style.display = isAdmin ? "" : "none";
     const dataStatusBtn = document.getElementById("dataStatusBtn");
