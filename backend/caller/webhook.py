@@ -291,7 +291,7 @@ async def ivr_twiml(queue_id: int):
     return Response(content=twiml, media_type="application/xml")
 
 
-@router.post("/caller/ivr/gather/{queue_id}", include_in_schema=False)
+@router.post("/caller/ivr/gather/{queue_id}", include_in_schema=False, dependencies=[Depends(verify_twilio)])
 async def ivr_gather(queue_id: int, request: Request):
     form     = await request.form()
     digit    = form.get("Digits", "")
