@@ -149,39 +149,6 @@ class CallRunner:
             await update_queue_status(queue_id, "failed")
             return None
 
-    async def _initiate_bland_call(self, queue_item: dict, campaign: dict,
-                                    to_number: str) -> str | None:
-        base_url = os.getenv("CALLER_BASE_URL", "").rstrip("/")
-        if not base_url:
-            logger.error("CALLER_BASE_URL not set — needed for Bland webhook")
-            return None
-
-        queue_id = queue_item["id"]
-        webhook_url = f"{base_url}/caller/bland/webhook"
-        game_info = {
-            "game_name":   campaign["game_name"],
-            "game_number": campaign.get("game_number", ""),
-            "game_price":  campaign.get("game_price", 0),
-        }
-        metadata = {"queue_id": queue_id, "campaign_id": campaign["id"]}
-
-        try:
-            from backend.caller.bland import initiate_call as bland_call
-            from backend.caller.webhook import register_call
-            register_call(queue_id, campaign, queue_item)
-
-            call_id = await bland_call(to_number, game_info, webhook_url, metadata)
-            await mark_calling(queue_id, call_id)
-            logger.info("Bland call to %s (%s) call_id=%s",
-                        queue_item["name"], to_number, call_id)
-            return call_id
-
-        except Exception as exc:
-            logger.error("Bland call failed for %s: %s", queue_item["name"], exc)
-            from backend.caller.db import update_queue_status
-            await update_queue_status(queue_id, "failed")
-            return None
-
     async def _initiate_twilio_call(self, queue_item: dict, campaign: dict,
                                      to_number: str) -> str | None:
         account_sid = os.getenv("TWILIO_ACCOUNT_SID")
