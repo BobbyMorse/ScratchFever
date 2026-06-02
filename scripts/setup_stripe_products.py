@@ -81,7 +81,7 @@ def main() -> int:
     env_lines: list[str] = []
     for plan in PLANS:
         price_id = find_or_create_price(product_id, plan)
-        print(f"  {plan['label']:<8} → {price_id}  (${plan['amount_cents'] / 100:.2f}/{plan['interval']})")
+        print(f"  {plan['label']:<8} -> {price_id}  (${plan['amount_cents'] / 100:.2f}/{plan['interval']})")
         env_lines.append(f"{plan['env']}={price_id}")
 
     print("\nPaste these into .env:\n")
