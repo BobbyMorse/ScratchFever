@@ -45,8 +45,8 @@ _SCRAPER_SPECS: list[tuple[str, str]] = [
     ("iowa",           "IowaWinnersScraper"),
     ("south_dakota",   "SouthDakotaWinnersScraper"),
     ("montana",        "MontanaWinnersScraper"),
-    ("new_jersey",     "NewJerseyWinnersScraper"),
     ("kentucky",       "KentuckyWinnersScraper"),
+    ("oregon",         "OregonWinnersScraper"),
 ]
 
 
