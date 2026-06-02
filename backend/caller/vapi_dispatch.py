@@ -430,13 +430,15 @@ async def _insert_placeholders(rows: list[dict]) -> None:
 @router.get("/config")
 async def vapi_config(_user: dict = Depends(require_admin)):
     env = _vapi_env()
+    ids = env["phone_number_ids"]
     return {
-        "configured":       all(env.values()),
-        "has_private_key":  bool(env["private_key"]),
-        "has_assistant_id": bool(env["assistant_id"]),
-        "has_phone_number": bool(env["phone_number_id"]),
-        "assistant_id":     env["assistant_id"],
-        "phone_number_id":  env["phone_number_id"],
+        "configured":         bool(env["private_key"] and env["assistant_id"] and ids),
+        "has_private_key":    bool(env["private_key"]),
+        "has_assistant_id":   bool(env["assistant_id"]),
+        "has_phone_number":   bool(ids),
+        "assistant_id":       env["assistant_id"],
+        "phone_number_ids":   ids,
+        "phone_number_count": len(ids),
     }
 
 
