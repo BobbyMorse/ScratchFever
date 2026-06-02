@@ -4271,6 +4271,7 @@ function getPerGameStatuses(retailerId) {
         reporter_username: r.reporter_username,
         notes: r.notes,
         game_name: r.game_name,
+        source: r.source,
       };
     }
   }
