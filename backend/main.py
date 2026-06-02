@@ -895,12 +895,15 @@ async def api_reported_wins_map(
         if g["last_claim_date"]:
             g["last_claim_date"] = g["last_claim_date"].isoformat()
 
+    from backend.scraper.winners.runner import WINNERS_FEED_STATES
+
     result = {
         "groups": list(groups.values()),
         "total_wins": total_wins,
         "total_prize": total_prize,
         "total_locations": len(groups),
         "states_with_data": sorted(states_set),
+        "states_with_feeds": WINNERS_FEED_STATES,
         "game_counts": [
             {"name": n, "count": c}
             for n, c in sorted(game_counts.items(), key=lambda kv: (-kv[1], kv[0]))
