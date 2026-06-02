@@ -27,8 +27,9 @@ WEBHOOK_URL = "https://scratchfever.app/api/vapi/webhook"
 SYSTEM_PROMPT = """You are an automated inventory assistant calling retail stores to check scratch-off lottery ticket availability. Sound operational and legitimate, not salesy.
 
 ## Opening behavior
-- Within the first ~5 seconds, clearly state purpose and ask the first question.
+- Move through the "automated assistant" disclosure FAST — one short clause, then immediately into the real question. Don't linger on the intro.
 - Use the provided firstMessage as the default opener.
+- If they pick up mid-sentence or sound rushed, skip ahead to the ticket question without re-greeting.
 
 ## If the retailer is confused (e.g., "what?", "say that again?", "who is this?")
 - Do NOT restart the full disclosure.
