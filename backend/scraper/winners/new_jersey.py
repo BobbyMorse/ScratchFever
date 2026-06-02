@@ -228,30 +228,34 @@ class NewJerseyWinnersScraper(WinnersScraper):
 
 # ── parsing helpers ──────────────────────────────────────────────────────────
 
-# Anchor: "[at|at the] <RETAILER>, <ADDRESS>, in <CITY> in <COUNTY> County"
-# We extract each match as a window into the prose, then look around it for
-# the matching prize + game name. Order matters — most specific first.
+# A multi-word capitalized place name: "Jersey City", "Perth Amboy",
+# "Little Falls", "Mullica Hill", or single-word "Lodi"/"Ramsey".
+# Allows lowercase connectors like "of"/"the" only mid-name.
+_PLACE = r"[A-Z][A-Za-z'-]*(?:\s+[A-Z][A-Za-z'-]*){0,3}"
+
+# Anchor patterns scan the prose for retailer location callouts. Order
+# matters — most specific first; later passes use a "no overlap" rule.
 ANCHOR_FULL = re.compile(
     r"(?:at|sold\s+at|drawn\s+at|purchased\s+at|played\s+at|recorded\s+at|ticket\s+was\s+sold\s+at)\s+"
-    r"(?:the\s+)?([^,.<\n]{2,80}?),\s+"
+    r"(?:the\s+)?([A-Z][^,.<\n]{1,80}?),\s+"
     r"([^,.<\n]{2,80}?),?\s+in\s+"
-    r"([A-Z][A-Za-z .'-]{1,60}?)(?:,\s*([A-Z][A-Za-z .'-]{1,30}?)\s+County)?\b",
+    r"(" + _PLACE + r")"
+    r"(?:,?\s+in\s+(" + _PLACE + r")\s+County)?"
+    r"(?:,\s*(" + _PLACE + r")\s+County)?",
     re.IGNORECASE,
 )
 # "at Big O Stop in Bergen County's Lodi"  (county-first NJ phrasing)
 ANCHOR_COUNTY_FIRST = re.compile(
-    r"at\s+(?:the\s+)?([^,.<\n]{2,80}?)\s+in\s+"
-    r"([A-Z][A-Za-z .'-]{1,30}?)\s+County[A-Za-z’']*\s+"
-    r"([A-Z][A-Za-z .'-]{1,60})",
-    re.IGNORECASE,
+    r"at\s+(?:the\s+)?([A-Z][^,.<\n]{1,80}?)\s+in\s+"
+    r"(" + _PLACE + r")\s+County[’']?s\s+"
+    r"(" + _PLACE + r")",
 )
 # "at Krauzer's, 49 W. Main St. in Ramsey"  (address + city, no county)
 ANCHOR_ADDR_CITY = re.compile(
     r"(?:at|sold\s+at|drawn\s+at|purchased\s+at|played\s+at|recorded\s+at)\s+"
-    r"(?:the\s+)?([^,.<\n]{2,80}?),\s+"
+    r"(?:the\s+)?([A-Z][^,.<\n]{1,80}?),\s+"
     r"([^,.<\n]{2,80}?)\s+in\s+"
-    r"([A-Z][A-Za-z .'-]{1,60}?)(?=[.,]|\s+(?:and|Two|One|Three|Four|The|Other|However|More))",
-    re.IGNORECASE,
+    r"(" + _PLACE + r")",
 )
 
 
