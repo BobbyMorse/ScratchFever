@@ -440,14 +440,19 @@ async def vapi_stats(_user: dict = Depends(require_admin)):
               COUNT(*) FILTER (WHERE has_game = TRUE)                         AS hits,
               COUNT(*) FILTER (WHERE ended_at IS NULL
                                  AND received_at > NOW() - INTERVAL '15 min') AS in_flight,
-              COUNT(*) FILTER (WHERE received_at > NOW() - INTERVAL '24 hours') AS calls_today
+              COUNT(*) FILTER (WHERE received_at > NOW() - INTERVAL '24 hours') AS calls_today,
+              COUNT(*) FILTER (WHERE is_voicemail = TRUE)                     AS voicemails,
+              COUNT(*) FILTER (WHERE is_voicemail = TRUE
+                                 AND received_at > NOW() - INTERVAL '24 hours') AS voicemails_today
             FROM vapi_calls
         """)
     return {
-        "total_calls": int(row["total_calls"] or 0),
-        "hits":        int(row["hits"] or 0),
-        "in_flight":   int(row["in_flight"] or 0),
-        "calls_today": int(row["calls_today"] or 0),
+        "total_calls":      int(row["total_calls"] or 0),
+        "hits":             int(row["hits"] or 0),
+        "in_flight":        int(row["in_flight"] or 0),
+        "calls_today":      int(row["calls_today"] or 0),
+        "voicemails":       int(row["voicemails"] or 0),
+        "voicemails_today": int(row["voicemails_today"] or 0),
     }
 
 
