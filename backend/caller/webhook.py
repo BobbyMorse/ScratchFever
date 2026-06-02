@@ -220,7 +220,7 @@ async def conversation_ws(websocket: WebSocket, queue_id: int):
 
 # ── Twilio status callback ────────────────────────────────────────────────────
 
-@router.post("/caller/status/{queue_id}", include_in_schema=False)
+@router.post("/caller/status/{queue_id}", include_in_schema=False, dependencies=[Depends(verify_twilio)])
 async def status_callback(queue_id: int, request: Request):
     form = await request.form()
     call_status = form.get("CallStatus", "")
