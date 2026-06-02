@@ -1423,6 +1423,10 @@ async function loadBigWinsMap() {
   // state and game filters apply client-side off the loaded groups.
   const effectiveMin = Math.max(minPrize, 10000);
   const key = `${days}|${effectiveMin}`;
+  // The list-view loading banner is shown by default; hide it whenever the
+  // map path runs since the map uses its own indicator in bigwinsMapStats.
+  const listLoadingEl = document.getElementById("bigwinsLoading");
+  if (listLoadingEl) listLoadingEl.style.display = "none";
   if (bigwinsMapKey === key && bigwinsMapGroups.length) return;
   if (bigwinsMapLoading) return bigwinsMapLoading;
   const statsEl = document.getElementById("bigwinsMapStats");
