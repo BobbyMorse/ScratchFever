@@ -241,10 +241,12 @@ _PLACE = r"(?-i:" + _PLACE_RAW + r")"
 # address). Periods allowed for "St. Mary's", "Wawa #915" style names.
 _RETAILER = r"(?-i:[A-Z])[^,<\n]{1,80}?"
 
-# Address: must start with a digit (street numbers do). Allows periods and
-# `#` so "858 Amboy Ave.", "49 W. Main St.", "Route 38 #4B" all parse.
-# Stops before " in <Place>" or first sentence-terminating period.
-_ADDRESS = r"\d[\w\d .#&'-]{1,79}?"
+# Address: must start with a digit (street numbers do). Token-based so we
+# can cap at ~4 tokens after the leading number — prevents the regex from
+# greedily swallowing the next sentence when the prose reads
+# "...at Foo, 1740 Route 38. The game that started in March has...".
+# Allows periods and `#` for "Ave.", "St.", "W.", "Wawa #915" etc.
+_ADDRESS = r"\d+(?:\s+[\w#&'-]+\.?){1,4}"
 
 # Lead phrases that precede a retailer callout.
 _LEAD = r"(?:at|sold\s+at|drawn\s+at|purchased\s+at|played\s+at|recorded\s+at|ticket\s+(?:was\s+)?(?:sold|drawn|played|purchased)\s+at)"
