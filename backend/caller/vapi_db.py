@@ -162,6 +162,7 @@ async def recent_vapi_calls(limit: int = 50) -> list[dict]:
                    game_name, game_price, has_game, confidence, can_order, summary, notes,
                    transcript, per_ticket_results, is_voicemail
             FROM vapi_calls
+            WHERE COALESCE(retailer_external_id, '') <> 'test'
             ORDER BY received_at DESC
             LIMIT $1
             """,
