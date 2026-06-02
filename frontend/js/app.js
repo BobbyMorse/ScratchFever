@@ -1386,6 +1386,7 @@ async function loadBigWinsMap() {
       const data = await res.json();
       bigwinsMapGroups = data.groups || [];
       bigwinsMapStates = data.states_with_data || [];
+      bigwinsMapFeedStates = data.states_with_feeds || [];
       bigwinsMapGameCounts = data.game_counts || [];
       bigwinsMapTotalWins = data.total_wins || 0;
       bigwinsMapTotalPrize = data.total_prize || 0;
