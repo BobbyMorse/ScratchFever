@@ -2676,6 +2676,8 @@ async function loadCallerData() {
       }
     }
 
+    populateTestPhoneNumberPicker(config.phone_numbers || []);
+
     _callerRecent = recent.calls || [];
     renderCallerRecent();
   } catch (e) {
