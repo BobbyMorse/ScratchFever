@@ -767,7 +767,8 @@ function lastReportCellHtml(rid) {
   if (!s) return `<span style="color:var(--text-muted);font-size:.8rem">—</span>`;
   const icon = s.has_stock ? "✅" : "❌";
   const ago  = timeAgo(parseReportedAt(s.reported_at));
-  return `<span style="font-size:.8rem;white-space:nowrap;line-height:1.4">${icon}<br><span style="color:var(--text-muted);font-size:.72rem">${ago}</span></span>`;
+  const badge = inventorySourceBadgeHtml(s.source);
+  return `<span style="font-size:.8rem;white-space:nowrap;line-height:1.4">${icon}<br><span style="color:var(--text-muted);font-size:.72rem">${ago}</span><br>${badge}</span>`;
 }
 
 function updateLastReportCells() {
