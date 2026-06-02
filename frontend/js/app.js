@@ -1416,6 +1416,11 @@ function initBigWinsMap() {
     attribution: "&copy; OpenStreetMap contributors",
     maxZoom: 19,
   }).addTo(bigwinsMap);
+  // Dedicated low-z pane so the no-feed shading sits between the tiles and
+  // win markers. Markers live in overlayPane (z 400); this pane is at 350.
+  bigwinsMap.createPane("bigwinsDark");
+  bigwinsMap.getPane("bigwinsDark").style.zIndex = 350;
+  bigwinsMap.getPane("bigwinsDark").style.pointerEvents = "none";
   bigwinsMapMarkers = L.layerGroup().addTo(bigwinsMap);
   setupMapAutoResize(bigwinsMap);
 }
