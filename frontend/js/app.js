@@ -1927,7 +1927,11 @@ function switchTab(name) {
   }
   if (name === "bigwins" && !bigwinsLoaded) {
     bigwinsLoaded = true;
-    loadBigWins();
+    if (bigwinsView === "map") {
+      loadBigWinsMap().then(() => renderBigWinsMap());
+    } else {
+      loadBigWins();
+    }
   }
   if (name === "health") {
     loadStateHealth();
