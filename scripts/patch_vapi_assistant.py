@@ -129,6 +129,17 @@ def main() -> int:
     patch = {
         "server": {"url": WEBHOOK_URL},
         "serverMessages": ["end-of-call-report"],
+        "firstMessage": (
+            "Hi — automated inventory check for scratch tickets. "
+            "Do you currently sell them?"
+        ),
+        "model": {
+            "provider": "anthropic",
+            "model": "claude-haiku-4-5-20251001",
+            "messages": [
+                {"role": "system", "content": SYSTEM_PROMPT},
+            ],
+        },
         "analysisPlan": {
             "structuredDataPlan": {
                 "enabled": True,
