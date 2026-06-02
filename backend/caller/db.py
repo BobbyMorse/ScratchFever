@@ -104,7 +104,7 @@ def normalize_phone(phone: str) -> str | None:
 
 async def create_campaign(game_name: str, game_number: str, game_price: float,
                           target_tiers: str = "ELITE,GOOD", max_stores: int = 200,
-                          call_backend: str = "bland") -> int:
+                          call_backend: str = "twilio_ivr") -> int:
     async with get_pool().acquire() as conn:
         row = await conn.fetchrow(
             """INSERT INTO call_campaigns
