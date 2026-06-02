@@ -52,14 +52,12 @@ MAX_BATCH = 500
 CONCURRENCY = 5
 
 
-def _phone_number_ids() -> list[str]:
-    """All configured VAPI phoneNumberIds. Two env-var shapes supported:
-      VAPI_PHONE_NUMBER_IDS = "id1,id2,id3"   ← preferred; round-robins
+def _env_phone_number_ids() -> list[str]:
+    """Explicit env-var override, for cases where you want to force a specific
+    subset. Empty list → fall back to VAPI account auto-discovery.
+      VAPI_PHONE_NUMBER_IDS = "id1,id2,id3"
       VAPI_PHONE_NUMBER_ID  = "id"            ← legacy single, still honored
-
-    Each VAPI-purchased free number has its own daily outbound cap, so
-    stacking 2-10 of them and rotating per-call multiplies headroom
-    without needing Twilio import."""
+    """
     multi = os.getenv("VAPI_PHONE_NUMBER_IDS", "")
     ids = [s.strip() for s in multi.split(",") if s.strip()]
     if ids:
@@ -68,31 +66,111 @@ def _phone_number_ids() -> list[str]:
     return [single] if single else []
 
 
-_PHONE_CYCLE: Optional[Any] = None
-_PHONE_CYCLE_KEY: Optional[tuple] = None
-_PHONE_CYCLE_LOCK = threading.Lock()
+# ── Auto-discovery + per-day exhaustion tracking ─────────────────────────────
+#
+# Goal: zero Railway maintenance. Create a phone number in VAPI's dashboard,
+# the dispatcher picks it up on the next call. If a number hits VAPI's daily
+# cap mid-session, mark it dead for today and use the next one transparently.
+
+_VAPI_NUMBERS_CACHE: Optional[tuple[float, list[str]]] = None
+_VAPI_NUMBERS_TTL_SEC = 60  # short — user may create numbers live
+_VAPI_NUMBERS_LOCK = asyncio.Lock()
+
+_EXHAUSTED_TODAY: dict[str, str] = {}  # phone_number_id → ISO date stamped
+_EXHAUSTED_LOCK = threading.Lock()
+
+_ROTATION_COUNTER = 0
+_ROTATION_LOCK = threading.Lock()
+
+DAILY_LIMIT_MARKERS = (
+    "daily outbound call limit",
+    "daily limit",
+    "import your own twilio",
+)
 
 
-def _next_phone_number_id() -> Optional[str]:
-    """Round-robin across all configured phoneNumberIds. Rebuilds the cycle
-    if the configured list changes (e.g., env reloaded)."""
-    global _PHONE_CYCLE, _PHONE_CYCLE_KEY
-    ids = _phone_number_ids()
+def _today_utc() -> str:
+    return dt.datetime.now(dt.timezone.utc).date().isoformat()
+
+
+def _is_daily_limit_error(error_str: Optional[str]) -> bool:
+    if not error_str:
+        return False
+    low = error_str.lower()
+    return any(m in low for m in DAILY_LIMIT_MARKERS)
+
+
+def _mark_exhausted(pid: str) -> None:
+    with _EXHAUSTED_LOCK:
+        _EXHAUSTED_TODAY[pid] = _today_utc()
+    logger.info("VAPI phoneNumberId %s marked exhausted for %s", pid, _today_utc())
+
+
+def _is_exhausted(pid: str) -> bool:
+    with _EXHAUSTED_LOCK:
+        return _EXHAUSTED_TODAY.get(pid) == _today_utc()
+
+
+async def _discover_vapi_phone_numbers(private_key: str) -> list[str]:
+    """GET /phone-number on VAPI to enumerate every number tied to the account.
+    Cached for _VAPI_NUMBERS_TTL_SEC to avoid hammering VAPI on every dispatch."""
+    global _VAPI_NUMBERS_CACHE
+    import time
+    now = time.time()
+    async with _VAPI_NUMBERS_LOCK:
+        if _VAPI_NUMBERS_CACHE and (now - _VAPI_NUMBERS_CACHE[0] < _VAPI_NUMBERS_TTL_SEC):
+            return _VAPI_NUMBERS_CACHE[1]
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as c:
+                r = await c.get(
+                    f"{VAPI_API_BASE}/phone-number",
+                    headers={"Authorization": f"Bearer {private_key}"},
+                )
+                if r.status_code != 200:
+                    logger.warning("VAPI phone-number list failed: %s %s", r.status_code, r.text[:200])
+                    return _VAPI_NUMBERS_CACHE[1] if _VAPI_NUMBERS_CACHE else []
+                data = r.json()
+                ids = [n["id"] for n in data if isinstance(n, dict) and n.get("id")]
+        except Exception:
+            logger.exception("VAPI phone-number discovery failed")
+            return _VAPI_NUMBERS_CACHE[1] if _VAPI_NUMBERS_CACHE else []
+        _VAPI_NUMBERS_CACHE = (now, ids)
+        return ids
+
+
+async def _all_phone_number_ids(private_key: Optional[str]) -> list[str]:
+    """Env override > VAPI account auto-discovery. Used by /config to show
+    everything available (regardless of exhaustion)."""
+    explicit = _env_phone_number_ids()
+    if explicit:
+        return explicit
+    if not private_key:
+        return []
+    return await _discover_vapi_phone_numbers(private_key)
+
+
+async def _available_phone_number_ids(private_key: Optional[str]) -> list[str]:
+    """All phoneNumberIds NOT marked exhausted today."""
+    ids = await _all_phone_number_ids(private_key)
+    return [pid for pid in ids if not _is_exhausted(pid)]
+
+
+async def _pick_phone_number_id(private_key: Optional[str]) -> Optional[str]:
+    """Round-robin across the currently-available (non-exhausted) numbers."""
+    global _ROTATION_COUNTER
+    ids = await _available_phone_number_ids(private_key)
     if not ids:
         return None
-    key = tuple(ids)
-    with _PHONE_CYCLE_LOCK:
-        if _PHONE_CYCLE_KEY != key:
-            _PHONE_CYCLE = itertools.cycle(ids)
-            _PHONE_CYCLE_KEY = key
-        return next(_PHONE_CYCLE)
+    with _ROTATION_LOCK:
+        pid = ids[_ROTATION_COUNTER % len(ids)]
+        _ROTATION_COUNTER += 1
+    return pid
 
 
 def _vapi_env() -> dict[str, Any]:
     return {
-        "private_key":      os.getenv("VAPI_PRIVATE_KEY"),
-        "assistant_id":     os.getenv("VAPI_ASSISTANT_ID"),
-        "phone_number_ids": _phone_number_ids(),
+        "private_key":  os.getenv("VAPI_PRIVATE_KEY"),
+        "assistant_id": os.getenv("VAPI_ASSISTANT_ID"),
     }
 
 
