@@ -57,7 +57,13 @@ HUB_URL = f"{BASE_URL}/games-hub/instant-tickets"
 _OVERALL_ODDS_IN_RE = re.compile(r"1\s*in\s*([\d,.]+)", re.IGNORECASE)
 _OVERALL_ODDS_TO_RE = re.compile(r"([\d,.]+)\s*to\s*1", re.IGNORECASE)
 _HUB_DETAIL_HREF = "/games-hub/instant-tickets/"
-_IMPERSONATE = "chrome120"
+# Cloudflare's bot detector ML-classifies JA3/JA4 fingerprints over time, so a
+# single fixed impersonation degrades. Rotating across recent Chrome/Safari/
+# Firefox targets per-request blends in with normal browser distribution.
+_IMPERSONATE_POOL = (
+    "chrome146", "chrome145", "chrome142", "chrome136", "chrome131",
+    "safari260", "safari184", "safari180", "firefox147",
+)
 
 
 def _parse_int(text: str) -> int | None:
