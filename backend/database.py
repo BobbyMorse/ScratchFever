@@ -13,6 +13,31 @@ def clear_games_cache():
     _games_cache.clear()
 
 
+async def add_column_if_missing(conn, table: str, column: str, type_def: str) -> bool:
+    """Idempotent ADD COLUMN that takes no lock on the steady-state path.
+
+    `ALTER TABLE … ADD COLUMN IF NOT EXISTS` still grabs an AccessExclusiveLock
+    to evaluate the IF check, which deadlocks deploys when the old container's
+    scraper is mid-INSERT. We check information_schema first (regular SELECT,
+    no lock), and only run the ALTER on the rare "actually need to migrate"
+    path — wrapped in a short lock_timeout so a real conflict fails fast
+    instead of hanging the whole startup.
+
+    Returns True if the ALTER ran, False if the column was already present.
+    """
+    exists = await conn.fetchval(
+        """SELECT 1 FROM information_schema.columns
+           WHERE table_schema = current_schema() AND table_name=$1 AND column_name=$2""",
+        table, column,
+    )
+    if exists:
+        return False
+    async with conn.transaction():
+        await conn.execute("SET LOCAL lock_timeout = '5s'")
+        await conn.execute(f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} {type_def}")
+    return True
+
+
 async def init_db():
     global _pool
     db_url = os.environ.get("DATABASE_URL")
