@@ -438,8 +438,12 @@ async function submitRegister() {
     if (!res.ok) throw new Error(data.detail || "Registration failed");
     localStorage.setItem("sf_token", data.token);
     _setUser({ email: data.email, username: data.username, role: data.role });
+    await restoreSession();
     _hydratePrefsFromServer();
     closeAuthModal();
+    // First-time signups: nudge them straight into the paywall so the funnel
+    // doesn't dead-end on "account created" silence.
+    if (!_currentUser?.is_pro) setTimeout(() => openPaywall(), 250);
     loadCommunityReports();
     loadGameCounts(); loadRetailerCounts(); loadRetailerLatest();
   } catch (e) {
