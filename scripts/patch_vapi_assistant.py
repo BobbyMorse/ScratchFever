@@ -148,6 +148,10 @@ def main() -> int:
                 {"role": "system", "content": SYSTEM_PROMPT},
             ],
         },
+        "voice": {
+            "provider": "vapi",
+            "voiceId": "Elliot",
+        },
         "analysisPlan": {
             "structuredDataPlan": {
                 "enabled": True,
