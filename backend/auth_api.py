@@ -98,14 +98,19 @@ async def register(body: RegisterBody, request: Request):
 
 @router.get("/api/auth/me")
 async def get_me(user: dict = Depends(require_member)):
-    pro = await is_user_pro(user["uid"])
+    db_user = await get_user_by_id(user["uid"]) or {}
+    pro_until = db_user.get("pro_until")
+    import datetime as _dt
+    is_pro = bool(pro_until and pro_until > _dt.datetime.now(_dt.timezone.utc))
     prefs = await get_user_prefs(user["uid"])
     return {
         "id": user["uid"],
         "email": user["email"],
         "username": user.get("username"),
         "role": user["role"],
-        "is_pro": pro,
+        "is_pro": is_pro,
+        "pro_until": pro_until.isoformat() if pro_until else None,
+        "has_stripe": bool(db_user.get("stripe_customer_id")),
         "prefs": prefs,
     }
 
