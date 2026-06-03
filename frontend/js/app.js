@@ -375,6 +375,129 @@ function closeAuthModal() {
   document.getElementById("authModalOverlay").classList.remove("open");
 }
 
+// ── Paywall / Stripe billing ────────────────────────────────────────────────
+let _paywallPlan = "yearly";
+
+function openPaywallOrLogin() {
+  // Sidebar CTA path: anonymous users see signup first, then we re-open the paywall
+  // after they're authed (handled in submitRegister).
+  if (!_currentUser) { openAuthModal("register"); return; }
+  openPaywall();
+}
+
+function openPaywall() {
+  const overlay = document.getElementById("paywallOverlay");
+  if (!overlay) return;
+  overlay.classList.add("open");
+  selectPaywallPlan(_paywallPlan);
+  const msg = document.getElementById("paywallMsg");
+  if (msg) msg.style.display = "none";
+  const betaMsg = document.getElementById("betaCodeMsg");
+  if (betaMsg) betaMsg.style.display = "none";
+}
+
+function closePaywall() {
+  document.getElementById("paywallOverlay")?.classList.remove("open");
+}
+
+function selectPaywallPlan(plan) {
+  _paywallPlan = (plan === "monthly") ? "monthly" : "yearly";
+  document.getElementById("paywallPlanMonthly")?.classList.toggle("paywall-plan-active", _paywallPlan === "monthly");
+  document.getElementById("paywallPlanYearly")?.classList.toggle("paywall-plan-active", _paywallPlan === "yearly");
+  const cta = document.getElementById("paywallCheckoutBtn");
+  if (cta) cta.textContent = _paywallPlan === "monthly" ? "Continue with Monthly →" : "Continue with Yearly →";
+}
+
+function togglePaywallBeta() {
+  const form = document.getElementById("paywallBetaForm");
+  if (!form) return;
+  form.style.display = form.style.display === "none" ? "flex" : "none";
+  if (form.style.display === "flex") document.getElementById("betaCodeInput")?.focus();
+}
+
+async function startCheckout() {
+  if (!_currentUser) { closePaywall(); openAuthModal("register"); return; }
+  const btn = document.getElementById("paywallCheckoutBtn");
+  const msg = document.getElementById("paywallMsg");
+  const original = btn?.textContent;
+  if (btn) { btn.disabled = true; btn.textContent = "Redirecting to Stripe…"; }
+  try {
+    const res = await fetch("/api/billing/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders() },
+      body: JSON.stringify({ plan: _paywallPlan }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.url) throw new Error(data.detail || "Checkout unavailable");
+    window.location.href = data.url;
+  } catch (e) {
+    if (btn) { btn.disabled = false; btn.textContent = original || "Continue →"; }
+    if (msg) { msg.style.display = ""; msg.className = "caller-msg err"; msg.textContent = e.message; }
+  }
+}
+
+async function openCustomerPortal() {
+  if (!_currentUser) { openAuthModal("login"); return; }
+  try {
+    const res = await fetch("/api/billing/portal", {
+      method: "POST", headers: authHeaders(),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.url) throw new Error(data.detail || "Portal unavailable");
+    window.location.href = data.url;
+  } catch (e) {
+    alert(e.message);
+  }
+}
+
+async function redeemBetaCode() {
+  if (!_currentUser) { closePaywall(); openAuthModal("register"); return; }
+  const input = document.getElementById("betaCodeInput");
+  const msg = document.getElementById("betaCodeMsg");
+  const code = (input?.value || "").trim();
+  if (!code) { _authMsg(msg, "Enter a code.", "err"); return; }
+  try {
+    const res = await fetch("/api/billing/redeem", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...authHeaders() },
+      body: JSON.stringify({ code }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Could not redeem code");
+    _authMsg(msg, `Pro unlocked for ${data.duration_days} days — enjoy!`, "ok");
+    await restoreSession();
+    setTimeout(() => { closePaywall(); }, 1400);
+  } catch (e) {
+    _authMsg(msg, e.message, "err");
+  }
+}
+
+// Detect Stripe redirect-back so we refresh entitlement immediately rather
+// than waiting on the webhook + a page reload to catch up.
+async function _handleBillingReturn() {
+  const params = new URLSearchParams(window.location.search);
+  const status = params.get("billing");
+  if (!status) return;
+  // Strip the params from the URL so a refresh doesn't re-trigger.
+  params.delete("billing");
+  params.delete("session_id");
+  const clean = window.location.pathname + (params.toString() ? "?" + params.toString() : "");
+  window.history.replaceState({}, "", clean);
+
+  if (status !== "success") return;
+  // Poll /me briefly while the webhook flips pro_until on the server.
+  for (let i = 0; i < 10; i++) {
+    await restoreSession();
+    if (_currentUser?.is_pro) {
+      alert("You're Pro! 🎯  Thanks for backing ScratchFever.");
+      return;
+    }
+    await new Promise(r => setTimeout(r, 800));
+  }
+  // Webhook hasn't landed yet — still show a friendly note.
+  alert("Payment received! Your Pro access will activate in a moment.");
+}
+
 function switchAuthTab(tab) {
   document.getElementById("authFormLogin").style.display    = tab === "login"    ? "" : "none";
   document.getElementById("authFormRegister").style.display = tab === "register" ? "" : "none";
