@@ -152,22 +152,22 @@ async def init_db():
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_ir_reported ON inventory_reports(reported_at DESC)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_claims_detected ON prize_claims(detected_at DESC)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_claims_prize_detected ON prize_claims(prize_amount, detected_at DESC)")
-        await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS jackpot_odds_one_in REAL")
-        await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS how_to_play TEXT")
-        await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS end_date DATE")
-        await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS ev_approximate BOOLEAN DEFAULT FALSE")
+        await add_column_if_missing(conn, "games", "jackpot_odds_one_in", "REAL")
+        await add_column_if_missing(conn, "games", "how_to_play", "TEXT")
+        await add_column_if_missing(conn, "games", "end_date", "DATE")
+        await add_column_if_missing(conn, "games", "ev_approximate", "BOOLEAN DEFAULT FALSE")
         # Game launch date — enables sell-through velocity (tickets/day) and "days on sale" UI.
-        await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS start_date DATE")
+        await add_column_if_missing(conn, "games", "start_date", "DATE")
         # Annuity metadata for the top prize. cash_value is what EV math uses; face stays in top_prize.
-        await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS top_prize_is_annuity BOOLEAN DEFAULT FALSE")
-        await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS top_prize_cash_value REAL")
-        await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS top_prize_annuity_years INTEGER")
-        await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS top_prize_annuity_annual REAL")
+        await add_column_if_missing(conn, "games", "top_prize_is_annuity", "BOOLEAN DEFAULT FALSE")
+        await add_column_if_missing(conn, "games", "top_prize_cash_value", "REAL")
+        await add_column_if_missing(conn, "games", "top_prize_annuity_years", "INTEGER")
+        await add_column_if_missing(conn, "games", "top_prize_annuity_annual", "REAL")
         # Second-chance drawing surface (most games run them; few are scraped today).
-        await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS has_second_chance BOOLEAN DEFAULT FALSE")
-        await conn.execute("ALTER TABLE games ADD COLUMN IF NOT EXISTS second_chance_url TEXT")
+        await add_column_if_missing(conn, "games", "has_second_chance", "BOOLEAN DEFAULT FALSE")
+        await add_column_if_missing(conn, "games", "second_chance_url", "TEXT")
         # State-published per-tier claim date (distinct from prize_claims delta detection).
-        await conn.execute("ALTER TABLE prize_tiers ADD COLUMN IF NOT EXISTS last_claimed_at TIMESTAMPTZ")
+        await add_column_if_missing(conn, "prize_tiers", "last_claimed_at", "TIMESTAMPTZ")
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS game_weekly_sales (
                 id SERIAL PRIMARY KEY,
