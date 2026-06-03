@@ -605,6 +605,9 @@ function syncHeaderHeight() {
   // Deep-link: /?store=<id>&state=<code> — open that store's profile inline.
   // Used by the retailer dashboard's "View public page" link.
   openStoreFromUrl();
+
+  // Catch ?billing=success/cancel after Stripe Checkout redirect.
+  _handleBillingReturn();
 })();
 
 async function openStoreFromUrl() {
