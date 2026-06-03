@@ -149,6 +149,13 @@ async def find_retailer_by_phone(phone_digits: str) -> Optional[dict]:
     return dict(row) if row else None
 
 
+async def delete_vapi_call(call_id: int) -> bool:
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        result = await conn.execute("DELETE FROM vapi_calls WHERE id = $1", call_id)
+    return result.endswith(" 1")
+
+
 async def recent_vapi_calls(limit: int = 50) -> list[dict]:
     pool = get_pool()
     async with pool.acquire() as conn:

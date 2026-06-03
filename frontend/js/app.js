@@ -2847,7 +2847,7 @@ async function loadCallerData() {
     renderCallerRecent();
   } catch (e) {
     const body = document.getElementById("callerRecentBody");
-    if (body) body.innerHTML = `<tr><td colspan="9" class="loading-cell">Failed to load caller data. Is the server running?</td></tr>`;
+    if (body) body.innerHTML = `<tr><td colspan="10" class="loading-cell">Failed to load caller data. Is the server running?</td></tr>`;
   }
 }
 
@@ -2857,7 +2857,7 @@ function renderCallerRecent() {
   const tbody = document.getElementById("callerRecentBody");
   if (!tbody) return;
   if (!_callerRecent.length) {
-    tbody.innerHTML = `<tr><td colspan="9" class="loading-cell">No calls yet — start a dispatch above.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" class="loading-cell">No calls yet — start a dispatch above.</td></tr>`;
     return;
   }
   tbody.innerHTML = _callerRecent.map(c => {
@@ -2881,8 +2881,23 @@ function renderCallerRecent() {
       <td>${dur}</td>
       <td><span style="color:var(--text-muted);font-size:.78rem">${escHtml(c.ended_reason || "—")}</span></td>
       <td><span style="display:inline-block;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle">${summaryCell}</span></td>
+      <td><button onclick="deleteCallerCall(${c.id}, this)" title="Delete this call" aria-label="Delete call" style="background:transparent;border:none;cursor:pointer;font-size:1rem;color:var(--text-muted);padding:.15rem .35rem;border-radius:4px" onmouseover="this.style.background='rgba(239,68,68,0.12)';this.style.color='#dc2626'" onmouseout="this.style.background='transparent';this.style.color='var(--text-muted)'">🗑</button></td>
     </tr>`;
   }).join("");
+}
+
+async function deleteCallerCall(callId, btn) {
+  if (!confirm("Delete this call from the log? This can't be undone.")) return;
+  if (btn) { btn.disabled = true; btn.textContent = "…"; }
+  try {
+    const res = await callerFetch(`/api/vapi/calls/${callId}`, { method: "DELETE" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    _callerRecent = _callerRecent.filter(c => c.id !== callId);
+    renderCallerRecent();
+  } catch (e) {
+    alert("Failed to delete call: " + (e && e.message ? e.message : e));
+    if (btn) { btn.disabled = false; btn.textContent = "🗑"; }
+  }
 }
 
 function openCallDetail(callId) {

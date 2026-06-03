@@ -42,6 +42,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from backend.database import add_inventory_report, get_pool
 from backend.users import require_admin
 from backend.caller.vapi_db import (
+    delete_vapi_call,
     find_retailer_by_phone,
     insert_vapi_call,
     recent_vapi_calls,
@@ -396,3 +397,11 @@ async def vapi_recent(limit: int = 50, _user: dict = Depends(require_admin)):
             except Exception:
                 c["per_ticket_results"] = None
     return {"calls": calls, "count": len(calls)}
+
+
+@router.delete("/calls/{call_id}")
+async def vapi_delete_call(call_id: int, _user: dict = Depends(require_admin)):
+    deleted = await delete_vapi_call(call_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Call not found")
+    return {"ok": True, "deleted_id": call_id}

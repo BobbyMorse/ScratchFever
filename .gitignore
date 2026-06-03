@@ -30,3 +30,6 @@ test_map.html
 .DS_Store
 Thumbs.db
 scripts/_winners_probe_*.html
+
+# VAPI local exports (contain secrets)
+vapi_*.json
