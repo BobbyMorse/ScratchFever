@@ -15,7 +15,7 @@ from typing import Optional
 
 from fastapi import Header, HTTPException
 
-from backend.database import get_pool
+from backend.database import get_pool, add_column_if_missing
 
 logger = logging.getLogger(__name__)
 
