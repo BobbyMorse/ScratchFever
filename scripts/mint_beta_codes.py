@@ -37,6 +37,18 @@ async def mint(count: int, days: int, note: str | None) -> list[str]:
         sys.exit(1)
     conn = await asyncpg.connect(dsn)
     try:
+        # Idempotent — matches the schema init in backend/users.py. Lets the
+        # script run before the next API deploy ships those migrations.
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS beta_codes (
+                code TEXT PRIMARY KEY,
+                duration_days INTEGER NOT NULL,
+                note TEXT,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                redeemed_by_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+                redeemed_at TIMESTAMPTZ
+            )
+        """)
         codes: list[str] = []
         attempts = 0
         while len(codes) < count and attempts < count * 4:
