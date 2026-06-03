@@ -63,12 +63,12 @@ async def init_users_db():
         # Mirror of the "pro" entitlement. Source of truth is whichever billing
         # provider granted it — Stripe (web) and RevenueCat (mobile) both write here.
         # NULL or past = not Pro; future = Pro until that timestamp.
-        await conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS pro_until TIMESTAMPTZ")
-        await conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS prefs JSONB NOT NULL DEFAULT '{}'::jsonb")
+        await add_column_if_missing(conn, "users", "pro_until", "TIMESTAMPTZ")
+        await add_column_if_missing(conn, "users", "prefs", "JSONB NOT NULL DEFAULT '{}'::jsonb")
         # Stripe customer + subscription IDs so the webhook can look users up,
         # and so we can open a Customer Portal session for cancel/update.
-        await conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT")
-        await conn.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_subscription_id TEXT")
+        await add_column_if_missing(conn, "users", "stripe_customer_id", "TEXT")
+        await add_column_if_missing(conn, "users", "stripe_subscription_id", "TEXT")
         await conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_users_stripe_customer ON users(stripe_customer_id) WHERE stripe_customer_id IS NOT NULL"
         )
