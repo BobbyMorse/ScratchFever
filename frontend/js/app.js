@@ -408,6 +408,7 @@ async function submitLogin() {
     if (!res.ok) throw new Error(data.detail || "Login failed");
     localStorage.setItem("sf_token", data.token);
     _setUser({ email: data.email, username: data.username, role: data.role });
+    await restoreSession();   // pulls is_pro / pro_until / has_stripe via /api/auth/me
     _hydratePrefsFromServer();
     closeAuthModal();
     loadCommunityReports();
