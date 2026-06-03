@@ -45,12 +45,9 @@ async def init_vapi_db() -> None:
             )
         """)
         # Backfill for existing prod DBs that predate the per_ticket_results column.
-        await conn.execute(
-            "ALTER TABLE vapi_calls ADD COLUMN IF NOT EXISTS per_ticket_results JSONB"
-        )
-        await conn.execute(
-            "ALTER TABLE vapi_calls ADD COLUMN IF NOT EXISTS is_voicemail BOOLEAN"
-        )
+        from backend.database import add_column_if_missing
+        await add_column_if_missing(conn, "vapi_calls", "per_ticket_results", "JSONB")
+        await add_column_if_missing(conn, "vapi_calls", "is_voicemail", "BOOLEAN")
         await conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_vapi_received ON vapi_calls(received_at DESC)"
         )
