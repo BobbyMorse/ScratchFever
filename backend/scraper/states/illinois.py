@@ -111,20 +111,24 @@ class IllinoisScraper(BaseScraper):
     scraper_timeout = 600
 
     # ── Cloudflare-impersonating fetcher ───────────────────────────────────────
-    def _cf_get(self, url: str, retries: int = 2) -> str:
-        # Cloudflare occasionally 403s a request even with a valid JA3; a small
-        # retry budget recovers reliably without spamming the edge.
+    def _cf_get(self, url: str, retries: int = 4) -> str:
+        # Cloudflare 403s burst on illinoislottery.com — observed ~6 of 8 runs
+        # failing with a fixed chrome120 fingerprint. Rotate impersonations and
+        # back off exponentially with jitter to ride out edge bans.
         last_exc: Exception | None = None
+        pool = list(_IMPERSONATE_POOL)
+        random.shuffle(pool)
         for attempt in range(retries + 1):
+            impersonate = pool[attempt % len(pool)]
             try:
-                resp = cffi_requests.get(url, impersonate=_IMPERSONATE, timeout=30)
+                resp = cffi_requests.get(url, impersonate=impersonate, timeout=30)
                 resp.raise_for_status()
                 return resp.text
             except Exception as e:
                 last_exc = e
                 if attempt < retries:
-                    import time as _t
-                    _t.sleep(1.5 * (attempt + 1))
+                    # 1.5, 3, 6, 12 seconds + 0-1s jitter
+                    _time.sleep(1.5 * (2 ** attempt) + random.random())
         raise last_exc  # type: ignore[misc]
 
     def _cf_soup(self, url: str) -> BeautifulSoup:
