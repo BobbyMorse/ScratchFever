@@ -299,14 +299,14 @@ async def init_retailer_db():
             )
         """)
         # Owner-editable profile fields, added incrementally so existing prod rows stay intact.
-        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS description TEXT")
-        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS website TEXT")
-        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS contact_email TEXT")
-        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS hours_text TEXT")
-        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS photo_url TEXT")
-        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS banner_text TEXT")
-        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS banner_until TIMESTAMPTZ")
-        await conn.execute("ALTER TABLE retailer_profiles ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW()")
+        await add_column_if_missing(conn, "retailer_profiles", "description", "TEXT")
+        await add_column_if_missing(conn, "retailer_profiles", "website", "TEXT")
+        await add_column_if_missing(conn, "retailer_profiles", "contact_email", "TEXT")
+        await add_column_if_missing(conn, "retailer_profiles", "hours_text", "TEXT")
+        await add_column_if_missing(conn, "retailer_profiles", "photo_url", "TEXT")
+        await add_column_if_missing(conn, "retailer_profiles", "banner_text", "TEXT")
+        await add_column_if_missing(conn, "retailer_profiles", "banner_until", "TIMESTAMPTZ")
+        await add_column_if_missing(conn, "retailer_profiles", "updated_at", "TIMESTAMPTZ DEFAULT NOW()")
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS retailer_posts (
                 id SERIAL PRIMARY KEY,
