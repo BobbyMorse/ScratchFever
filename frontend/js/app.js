@@ -2967,12 +2967,27 @@ function _scheduleCallerLivePoll() {
 function renderCallerRecent() {
   const tbody = document.getElementById("callerRecentBody");
   if (!tbody) return;
+  const filterSel = document.getElementById("cfRecentFilter");
+  if (filterSel && filterSel.value !== _callerRecentFilter) filterSel.value = _callerRecentFilter;
+  const countEl = document.getElementById("cfRecentFilterCount");
   if (!_callerRecent.length) {
+    if (countEl) countEl.textContent = "";
     tbody.innerHTML = `<tr><td colspan="10" class="loading-cell">No calls yet — start a dispatch above.</td></tr>`;
     _scheduleCallerLivePoll();
     return;
   }
-  tbody.innerHTML = _callerRecent.map(c => {
+  const filtered = _callerRecent.filter(c => _callMatchesFilter(c, _callerRecentFilter));
+  if (countEl) {
+    countEl.textContent = _callerRecentFilter === "all"
+      ? `${_callerRecent.length} calls`
+      : `${filtered.length} of ${_callerRecent.length}`;
+  }
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="10" class="loading-cell">No calls match this filter. <a href="javascript:void(0)" onclick="document.getElementById('cfRecentFilter').value='all'; onCallerRecentFilterChange()">Show all</a></td></tr>`;
+    _scheduleCallerLivePoll();
+    return;
+  }
+  tbody.innerHTML = filtered.map(c => {
     const resultHtml = renderResultCell(c);
     const conf = c.confidence != null ? `${Math.round(parseFloat(c.confidence) * 100)}%` : "—";
     const dur  = c.duration_sec != null ? `${Math.round(parseFloat(c.duration_sec))}s` : "—";
