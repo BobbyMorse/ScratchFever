@@ -327,6 +327,17 @@ async def vapi_webhook(
     is_test = parsed["retailer_external_id"] == "test"
     has_retailer = bool(parsed["retailer_external_id"]) and not is_test
 
+    # Idempotency guard: only mirror once per call. The end-of-call-report
+    # can be re-delivered by VAPI and the backfill script can also call into
+    # this code path; without the guard we'd double-count inventory.
+    async with get_pool().acquire() as conn:
+        already_mirrored = await conn.fetchval(
+            "SELECT inventory_mirrored_at IS NOT NULL FROM vapi_calls WHERE id = $1",
+            call_id,
+        )
+    if already_mirrored:
+        return {"ok": True, "call_id": call_id, "inventory_rows_written": 0, "already_mirrored": True}
+
     if parsed.get("is_voicemail"):
         logger.info(
             "VAPI call %s detected as voicemail (ended_reason=%s) — skipping inventory mirror",
