@@ -427,6 +427,13 @@ async def vapi_webhook(
             parsed["vapi_call_id"],
         )
 
+    if inventory_rows_written > 0:
+        async with get_pool().acquire() as conn:
+            await conn.execute(
+                "UPDATE vapi_calls SET inventory_mirrored_at = NOW() WHERE id = $1",
+                call_id,
+            )
+
     return {"ok": True, "call_id": call_id, "inventory_rows_written": inventory_rows_written}
 
 
