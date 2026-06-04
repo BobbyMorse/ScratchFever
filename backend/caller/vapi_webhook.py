@@ -443,3 +443,82 @@ async def vapi_delete_call(call_id: int, _user: dict = Depends(require_admin)):
     if not deleted:
         raise HTTPException(status_code=404, detail="Call not found")
     return {"ok": True, "deleted_id": call_id}
+
+
+def _parse_vapi_iso(value: Optional[str]) -> Optional[dt.datetime]:
+    if not value:
+        return None
+    try:
+        return dt.datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except Exception:
+        return None
+
+
+@router.post("/reconcile_inflight")
+async def vapi_reconcile_inflight(_user: dict = Depends(require_admin)):
+    """Pull status from VAPI for every local call that's stuck without an
+    ended_reason. Most stuck rows are calls that VAPI ended with a non-conversational
+    reason (transport error, did-not-answer, voicemail-without-leave) — those don't
+    trigger an end-of-call-report webhook, so the local row stays "In flight" forever
+    until we ask VAPI directly."""
+    key = os.getenv("VAPI_PRIVATE_KEY")
+    if not key:
+        raise HTTPException(status_code=503, detail="VAPI_PRIVATE_KEY not configured")
+
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(
+            """
+            SELECT id, vapi_call_id
+            FROM vapi_calls
+            WHERE vapi_call_id IS NOT NULL
+              AND ended_at IS NULL
+              AND ended_reason IS NULL
+              AND received_at > NOW() - INTERVAL '7 days'
+            ORDER BY received_at DESC
+            LIMIT 200
+            """
+        )
+
+    updated = 0
+    still_pending = 0
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        for r in rows:
+            try:
+                resp = await client.get(
+                    f"https://api.vapi.ai/call/{r['vapi_call_id']}",
+                    headers={"Authorization": f"Bearer {key}"},
+                )
+            except Exception as exc:
+                logger.warning("reconcile GET /call/%s failed: %s", r["vapi_call_id"], exc)
+                continue
+            if resp.status_code != 200:
+                continue
+            d = resp.json()
+            if d.get("status") != "ended":
+                still_pending += 1
+                continue
+
+            started = _parse_vapi_iso(d.get("startedAt") or d.get("createdAt"))
+            ended   = _parse_vapi_iso(d.get("endedAt") or d.get("createdAt"))
+            dur = None
+            sa = _parse_vapi_iso(d.get("startedAt"))
+            ea = _parse_vapi_iso(d.get("endedAt"))
+            if sa and ea:
+                dur = (ea - sa).total_seconds()
+
+            async with pool.acquire() as conn:
+                await conn.execute(
+                    """
+                    UPDATE vapi_calls SET
+                        started_at   = COALESCE(started_at, $1),
+                        ended_at     = COALESCE(ended_at,   $2),
+                        duration_sec = COALESCE(duration_sec, $3),
+                        ended_reason = COALESCE(ended_reason, $4)
+                    WHERE id = $5
+                    """,
+                    started, ended, dur, d.get("endedReason"), r["id"],
+                )
+            updated += 1
+
+    return {"checked": len(rows), "updated": updated, "still_pending": still_pending}
