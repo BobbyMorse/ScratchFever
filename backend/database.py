@@ -997,4 +997,13 @@ async def get_recent_inventory_reports(conn, limit: int = 200,
     """, *params)
     cols = ["id", "retailer_id", "retailer_name", "retailer_city", "lat", "lng",
             "game_name", "game_price", "has_stock", "source", "reporter_username", "notes", "reported_at"]
-    return [dict(zip(cols, r)) for r in rows]
+    out = [dict(zip(cols, r)) for r in rows]
+    # Defense in depth: never expose the reporter username or notes for
+    # operator-side automated sources (vapi_call). The frontend already
+    # hides these, but redacting at the API too means scrapers/API users
+    # never see AI-implementation tells or paraphrased customer speech.
+    for row in out:
+        if row.get("source") == "vapi_call":
+            row["reporter_username"] = None
+            row["notes"] = None
+    return out
