@@ -406,8 +406,39 @@ async def vapi_recent(limit: int = 50, _user: dict = Depends(require_admin)):
     return {"calls": calls, "count": len(calls)}
 
 
+async def _delete_call_on_vapi(vapi_call_id: str) -> bool:
+    """Best-effort DELETE on VAPI's side so the call (and any artifacts they
+    retain) is removed from their dashboard too. Returns True on 2xx/404
+    (treat already-gone as success). Never raises — local deletion still
+    proceeds even if VAPI's side fails."""
+    key = os.getenv("VAPI_PRIVATE_KEY")
+    if not key or not vapi_call_id:
+        return False
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as c:
+            r = await c.delete(
+                f"https://api.vapi.ai/call/{vapi_call_id}",
+                headers={"Authorization": f"Bearer {key}"},
+            )
+        if r.status_code in (200, 204, 404):
+            return True
+        logger.warning("VAPI DELETE /call/%s -> %s: %s",
+                       vapi_call_id, r.status_code, r.text[:200])
+        return False
+    except Exception as exc:
+        logger.warning("VAPI DELETE /call/%s failed: %s", vapi_call_id, exc)
+        return False
+
+
 @router.delete("/calls/{call_id}")
 async def vapi_delete_call(call_id: int, _user: dict = Depends(require_admin)):
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        vapi_call_id = await conn.fetchval(
+            "SELECT vapi_call_id FROM vapi_calls WHERE id = $1", call_id
+        )
+    if vapi_call_id:
+        await _delete_call_on_vapi(vapi_call_id)
     deleted = await delete_vapi_call(call_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Call not found")
