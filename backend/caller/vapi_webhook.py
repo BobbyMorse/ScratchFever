@@ -237,10 +237,10 @@ def _extract(payload: dict) -> dict:
         "can_order":            can_order,
         "summary":              summary,
         "notes":                extracted_notes,
-        "transcript":           transcript,
+        "transcript":           None,
         "per_ticket":           per_ticket,
         "per_ticket_results":   per_ticket,
-        "raw_payload":          payload,
+        "raw_payload":          None,
     }
 
 
