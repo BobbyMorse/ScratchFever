@@ -253,10 +253,11 @@ def main() -> int:
                 "enabled": True,
                 "schema": STRUCTURED_SCHEMA,
             },
-            "summaryPlan": {
-                "enabled": True,
-                "messages": SUMMARY_PROMPT_MESSAGES,
-            },
+            # Use VAPI's default summary prompt — overriding `messages` without
+            # the right `{{transcript}}` placeholder makes VAPI emit no summary
+            # at all. The default is good enough; disposition/funnel detail
+            # lives in structuredData instead.
+            "summaryPlan": {"enabled": True},
         },
         # Two-party-consent states (MA, CA, FL, IL, MD, MT, NV, NH, PA, WA, CT) —
         # never store the audio. Transcript still streams during the call so
