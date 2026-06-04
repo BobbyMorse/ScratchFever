@@ -461,6 +461,39 @@ def _parse_vapi_iso(value: Optional[str]) -> Optional[dt.datetime]:
         return None
 
 
+async def _persist_terminal_status(msg: dict) -> None:
+    """Update only the terminal-state fields (ended_at, ended_reason, duration)
+    when VAPI sends a status-update with status=ended. Doesn't touch transcript,
+    summary, or per_ticket_results — those come in the separate end-of-call-report
+    if they exist. Idempotent: only fills in NULLs."""
+    call = msg.get("call") or {}
+    vapi_call_id = call.get("id") or msg.get("callId")
+    if not vapi_call_id:
+        return
+    ended_reason = _pick(msg, "endedReason", "ended_reason")
+    started = _parse_vapi_iso(_pick(msg, "startedAt", "started_at"))
+    ended   = _parse_vapi_iso(_pick(msg, "endedAt",   "ended_at"))
+    duration = _to_float(_pick(msg, "durationSeconds", "duration_sec", "duration"))
+    if duration is None and started and ended:
+        duration = (ended - started).total_seconds()
+
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        # If a row exists, fill in any NULL terminal fields. If not, leave it —
+        # the dispatcher placeholder + end-of-call-report path will create it.
+        await conn.execute(
+            """
+            UPDATE vapi_calls SET
+                started_at   = COALESCE(started_at,   $2),
+                ended_at     = COALESCE(ended_at,     $3),
+                duration_sec = COALESCE(duration_sec, $4),
+                ended_reason = COALESCE(ended_reason, $5)
+            WHERE vapi_call_id = $1
+            """,
+            vapi_call_id, started, ended, duration, ended_reason,
+        )
+
+
 @router.post("/reconcile_inflight")
 async def vapi_reconcile_inflight(_user: dict = Depends(require_admin)):
     """Pull status from VAPI for every local call that's stuck without an
