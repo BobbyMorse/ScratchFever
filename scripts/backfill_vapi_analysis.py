@@ -58,10 +58,12 @@ async def main() -> int:
 
     async with pool.acquire() as conn:
         rows = await conn.fetch("""
-            SELECT id, vapi_call_id
+            SELECT id, vapi_call_id, retailer_external_id, retailer_name, retailer_city,
+                   to_phone, ended_at, is_voicemail, inventory_mirrored_at
             FROM vapi_calls
             WHERE vapi_call_id IS NOT NULL
-              AND (summary IS NULL OR customer_disposition IS NULL)
+              AND (summary IS NULL OR customer_disposition IS NULL
+                   OR (inventory_mirrored_at IS NULL AND per_ticket_results IS NOT NULL))
               AND received_at > NOW() - INTERVAL '7 days'
             ORDER BY received_at DESC
             LIMIT 200
@@ -69,6 +71,7 @@ async def main() -> int:
     print(f"Backfilling {len(rows)} rows.")
 
     updated = 0
+    inv_written = 0
     async with httpx.AsyncClient(timeout=15.0) as client:
         for r in rows:
             try:
