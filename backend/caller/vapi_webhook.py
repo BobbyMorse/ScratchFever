@@ -210,6 +210,12 @@ def _extract(payload: dict) -> dict:
     ended_reason = _pick(msg, "endedReason", "ended_reason")
     is_voicemail = _detect_voicemail(ended_reason, transcript)
 
+    # Two-party-consent compliance: we use the transcript only transiently
+    # (voicemail detection above + structured extraction by VAPI's analysis
+    # plan). Nothing about the conversation content gets persisted — neither
+    # the verbatim transcript nor the raw webhook payload, which would
+    # otherwise carry messages[] and transcript fields.
+
     return {
         "vapi_call_id":         call.get("id") or msg.get("callId"),
         "started_at":           started_at,
