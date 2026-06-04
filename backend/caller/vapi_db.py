@@ -52,6 +52,17 @@ async def init_vapi_db() -> None:
         # in-progress, forwarding, ended). Lets the UI show real-time progress
         # without polling VAPI directly.
         await add_column_if_missing(conn, "vapi_calls", "live_status", "TEXT")
+        # Call-funnel and disposition fields extracted by VAPI's analysisPlan.
+        # We persist them as discrete columns so the dashboard can show
+        # per-call performance ("answered? confirmed? actually checked?") at
+        # a glance and filter on them later.
+        await add_column_if_missing(conn, "vapi_calls", "answered_phone",             "BOOLEAN")
+        await add_column_if_missing(conn, "vapi_calls", "confirmed_sells_scratch",    "BOOLEAN")
+        await add_column_if_missing(conn, "vapi_calls", "inventory_actually_checked", "BOOLEAN")
+        await add_column_if_missing(conn, "vapi_calls", "tickets_asked_count",        "INTEGER")
+        await add_column_if_missing(conn, "vapi_calls", "tickets_answered_count",     "INTEGER")
+        await add_column_if_missing(conn, "vapi_calls", "customer_disposition",       "TEXT")
+        await add_column_if_missing(conn, "vapi_calls", "ended_early_reason",         "TEXT")
         await conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_vapi_received ON vapi_calls(received_at DESC)"
         )
