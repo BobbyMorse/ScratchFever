@@ -2903,6 +2903,38 @@ async function loadCallerData() {
 }
 
 let _callerRecent = [];
+let _callerRecentFilter = "success";
+
+function _classifyCall(c) {
+  // Returns one of: in_flight | voicemail | in_stock | out_of_stock | no_answer
+  if (!_isLiveTerminal(c)) return "in_flight";
+  if (c.is_voicemail) return "voicemail";
+  if (Array.isArray(c.per_ticket_results) && c.per_ticket_results.length) {
+    const yes = c.per_ticket_results.filter(t => t && t.has_game === true).length;
+    return yes > 0 ? "in_stock" : "out_of_stock";
+  }
+  if (c.has_game === true)  return "in_stock";
+  if (c.has_game === false) return "out_of_stock";
+  return "no_answer";
+}
+
+function _callMatchesFilter(c, filter) {
+  if (filter === "all" || !filter) return true;
+  const k = _classifyCall(c);
+  if (filter === "success")      return k === "in_stock" || k === "out_of_stock";
+  if (filter === "in_stock")     return k === "in_stock";
+  if (filter === "out_of_stock") return k === "out_of_stock";
+  if (filter === "no_answer")    return k === "no_answer";
+  if (filter === "voicemail")    return k === "voicemail";
+  if (filter === "in_flight")    return k === "in_flight";
+  return true;
+}
+
+function onCallerRecentFilterChange() {
+  const sel = document.getElementById("cfRecentFilter");
+  _callerRecentFilter = sel ? sel.value : "all";
+  renderCallerRecent();
+}
 
 let _callerRecentPollTimer = null;
 let _callerPollTickCount = 0;
