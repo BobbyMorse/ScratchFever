@@ -592,8 +592,8 @@ async def _insert_placeholders(rows: list[dict]) -> None:
                     INSERT INTO vapi_calls (
                         vapi_call_id, started_at, to_phone, state_code,
                         retailer_external_id, retailer_name, retailer_city,
-                        game_name, game_price, game_number, raw_payload
-                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb)
+                        game_name, game_price, game_number, raw_payload, live_status
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb, 'queued')
                     ON CONFLICT (vapi_call_id) DO NOTHING
                     """,
                     r["vapi_call_id"], now, r["to_phone"], r["state_code"],
