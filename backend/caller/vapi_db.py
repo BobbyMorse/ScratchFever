@@ -165,10 +165,10 @@ async def recent_vapi_calls(limit: int = 50) -> list[dict]:
     async with pool.acquire() as conn:
         rows = await conn.fetch(
             """
-            SELECT id, vapi_call_id, received_at, ended_at, duration_sec, ended_reason,
+            SELECT id, vapi_call_id, received_at, started_at, ended_at, duration_sec, ended_reason,
                    to_phone, state_code, retailer_external_id, retailer_name, retailer_city,
                    game_name, game_price, has_game, confidence, can_order, summary, notes,
-                   transcript, per_ticket_results, is_voicemail
+                   transcript, per_ticket_results, is_voicemail, live_status
             FROM vapi_calls
             WHERE COALESCE(retailer_external_id, '') <> 'test'
             ORDER BY received_at DESC
