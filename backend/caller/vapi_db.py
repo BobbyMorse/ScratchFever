@@ -63,6 +63,9 @@ async def init_vapi_db() -> None:
         await add_column_if_missing(conn, "vapi_calls", "tickets_answered_count",     "INTEGER")
         await add_column_if_missing(conn, "vapi_calls", "customer_disposition",       "TEXT")
         await add_column_if_missing(conn, "vapi_calls", "ended_early_reason",         "TEXT")
+        # Set when per_ticket_results were mirrored into inventory_reports so
+        # backfills/reconciles can stay idempotent (no duplicate inventory writes).
+        await add_column_if_missing(conn, "vapi_calls", "inventory_mirrored_at",      "TIMESTAMPTZ")
         await conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_vapi_received ON vapi_calls(received_at DESC)"
         )
