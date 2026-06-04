@@ -26,7 +26,7 @@ import sys
 import httpx
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from backend.database import get_pool, init_db  # noqa: E402
+from backend.database import get_pool, init_db, add_inventory_report  # noqa: E402
 
 
 def _to_bool(v):
