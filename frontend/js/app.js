@@ -2908,6 +2908,7 @@ function renderCallerRecent() {
       <td><button onclick="deleteCallerCall(${c.id}, this)" title="Delete this call" aria-label="Delete call" style="background:transparent;border:none;cursor:pointer;font-size:1rem;color:var(--text-muted);padding:.15rem .35rem;border-radius:4px" onmouseover="this.style.background='rgba(239,68,68,0.12)';this.style.color='#dc2626'" onmouseout="this.style.background='transparent';this.style.color='var(--text-muted)'">🗑</button></td>
     </tr>`;
   }).join("");
+  _scheduleCallerLivePoll();
 }
 
 async function deleteCallerCall(callId, btn) {
