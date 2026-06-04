@@ -116,8 +116,11 @@ STRUCTURED_SCHEMA = {
                     "notes": {
                         "type": "string",
                         "description": (
-                            "Anything specific the store said about THIS "
-                            "ticket — low stock, sold out yesterday, etc."
+                            "Brief PARAPHRASE of what the store said about THIS "
+                            "ticket (e.g., 'recently sold out', 'low stock', "
+                            "'never carried it'). DO NOT include verbatim "
+                            "quotes from what the customer said — paraphrase "
+                            "only. Never use quotation marks. Max ~80 chars."
                         ),
                     },
                 },
