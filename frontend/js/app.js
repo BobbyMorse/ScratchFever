@@ -3196,7 +3196,7 @@ function renderDispositionBadge(c) {
 function renderResultCell(c) {
   // Compact ratio for the table row: "2/3 in stock", color-coded.
   if (c.is_voicemail) {
-    return `<span class="badge badge-status-paused" title="Reached a voicemail greeting — no inventory data captured">Voicemail</span>`;
+    return `<span class="badge badge-yellow" title="Reached a voicemail greeting — no inventory data captured">Voicemail</span>`;
   }
   const hasInventory = (Array.isArray(c.per_ticket_results) && c.per_ticket_results.length) || c.has_game != null;
   const isTerminal = _isLiveTerminal(c);
@@ -3210,13 +3210,13 @@ function renderResultCell(c) {
     const total = c.per_ticket_results.length;
     const yes = c.per_ticket_results.filter(t => t && t.has_game === true).length;
     let cls;
-    if (yes === total)   cls = "badge-green";          // all in stock
-    else if (yes === 0)  cls = "badge-status-idle";    // none
-    else                 cls = "badge-status-paused";  // partial (highlight)
+    if (yes === total)   cls = "badge-green";   // all in stock
+    else if (yes === 0)  cls = "badge-red";     // none
+    else                 cls = "badge-yellow";  // partial
     return `<span class="badge ${cls}" title="${yes} of ${total} tickets in stock">${yes}/${total} in stock</span>${renderDispositionBadge(c)}`;
   }
   if (c.has_game === true)  return `<span class="badge badge-green">1/1 in stock</span>`;
-  if (c.has_game === false) return `<span class="badge badge-status-idle">0/1 in stock</span>`;
+  if (c.has_game === false) return `<span class="badge badge-red">0/1 in stock</span>`;
   // Call ended without inventory data — show why (no-answer, busy, hangup, error, etc.)
   const reason = (c.ended_reason || "").toLowerCase();
   if (reason) {
