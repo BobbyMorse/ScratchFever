@@ -256,6 +256,13 @@ def _extract(payload: dict) -> dict:
         "per_ticket":           per_ticket,
         "per_ticket_results":   per_ticket,
         "raw_payload":          None,
+        "answered_phone":             answered_phone,
+        "confirmed_sells_scratch":    confirmed_sells_scratch,
+        "inventory_actually_checked": inventory_actually_checked,
+        "tickets_asked_count":        tickets_asked_count,
+        "tickets_answered_count":     tickets_answered_count,
+        "customer_disposition":       customer_disposition,
+        "ended_early_reason":         ended_early_reason,
     }
 
 
