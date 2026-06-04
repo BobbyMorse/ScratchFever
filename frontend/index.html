@@ -1420,7 +1420,7 @@
         <section class="table-section" id="callerCampaignsSection">
           <div class="table-meta">
             <span id="callerRecentTitle">Recent VAPI calls</span>
-            <button class="btn" onclick="loadCallerData()" style="font-size:.75rem;padding:.28rem .7rem">↻ Refresh</button>
+            <button class="btn" id="cfRecentRefreshBtn" onclick="reconcileAndRefreshCalls()" title="Asks VAPI for the actual status of any 'In flight' rows, then reloads" style="font-size:.75rem;padding:.28rem .7rem">↻ Refresh</button>
           </div>
           <div class="table-scroll">
             <table id="callerRecentTable">
