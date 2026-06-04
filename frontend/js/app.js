@@ -3112,7 +3112,7 @@ function renderResultCell(c) {
     if (yes === total)   cls = "badge-green";          // all in stock
     else if (yes === 0)  cls = "badge-status-idle";    // none
     else                 cls = "badge-status-paused";  // partial (highlight)
-    return `<span class="badge ${cls}" title="${yes} of ${total} tickets in stock">${yes}/${total} in stock</span>`;
+    return `<span class="badge ${cls}" title="${yes} of ${total} tickets in stock">${yes}/${total} in stock</span>${renderDispositionBadge(c)}`;
   }
   if (c.has_game === true)  return `<span class="badge badge-green">1/1 in stock</span>`;
   if (c.has_game === false) return `<span class="badge badge-status-idle">0/1 in stock</span>`;
