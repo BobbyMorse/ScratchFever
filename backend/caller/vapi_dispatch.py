@@ -888,6 +888,9 @@ class DispatchSelectedBody(BaseModel):
     selected_external_ids: list[str] = Field(..., min_length=1, max_length=MAX_BATCH)
     tickets: list[TicketSpec] = Field(..., min_length=1, max_length=20)
     dry_run: bool = False
+    # Optional override — pin the entire batch to this VAPI phoneNumberId.
+    # When omitted, the BYO-preference rotation picks per call.
+    phone_number_id: Optional[str] = None
 
 
 @router.post("/dispatch_selected")
