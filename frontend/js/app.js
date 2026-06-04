@@ -1935,7 +1935,7 @@ function renderTable() {
 
   const tbody = document.getElementById("gamesBody");
   if (!games.length) {
-    tbody.innerHTML = `<tr><td colspan="16" class="loading-cell">No games match your filters.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="15" class="loading-cell">No games match your filters.</td></tr>`;
     return;
   }
 
