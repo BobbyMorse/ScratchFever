@@ -3019,6 +3019,79 @@ function _isLiveTerminal(c) {
   return c.ended_at != null || c.ended_reason != null;
 }
 
+const _DISPOSITION_META = {
+  cooperative:  { emoji: "🙂", label: "Cooperative" },
+  rushed:       { emoji: "⏩", label: "Rushed" },
+  frustrated:   { emoji: "😤", label: "Frustrated" },
+  confused:     { emoji: "😕", label: "Confused" },
+  rude:         { emoji: "😠", label: "Rude" },
+  uninterested: { emoji: "🙄", label: "Uninterested" },
+  no_speech:    { emoji: "🤐", label: "No speech" },
+  unknown:      { emoji: "❓", label: "Unknown" },
+};
+
+function _yesNoUnk(v) {
+  if (v === true)  return { sym: "✓", cls: "yes", txt: "Yes" };
+  if (v === false) return { sym: "✗", cls: "no",  txt: "No"  };
+  return { sym: "—", cls: "unk", txt: "Unknown" };
+}
+
+function renderCallFunnelBlock(c) {
+  // Show the full call funnel: answered → confirmed sells → checked → tickets answered.
+  // Plus disposition + early-end reason. Only render if we have any signal.
+  const hasAny = c.answered_phone != null
+              || c.confirmed_sells_scratch != null
+              || c.inventory_actually_checked != null
+              || c.tickets_asked_count != null
+              || c.tickets_answered_count != null
+              || c.customer_disposition
+              || c.ended_early_reason;
+  if (!hasAny) return "";
+
+  const a = _yesNoUnk(c.answered_phone);
+  const s = _yesNoUnk(c.confirmed_sells_scratch);
+  const k = _yesNoUnk(c.inventory_actually_checked);
+
+  const stage = (label, st) =>
+    `<span class="cf-funnel-stage cf-funnel-${st.cls}" title="${escHtml(label + ': ' + st.txt)}">
+       <span class="cf-funnel-sym">${st.sym}</span>${escHtml(label)}
+     </span>`;
+
+  const tixAsked   = c.tickets_asked_count    != null ? c.tickets_asked_count    : "—";
+  const tixAnswered= c.tickets_answered_count != null ? c.tickets_answered_count : "—";
+  const tixCls = (typeof c.tickets_answered_count === "number" && c.tickets_answered_count > 0) ? "yes" : "unk";
+
+  const dispMeta = c.customer_disposition ? _DISPOSITION_META[c.customer_disposition] : null;
+  const dispRow = dispMeta
+    ? `<div style="margin-top:.4rem;font-size:.82rem"><strong>Customer:</strong> ${dispMeta.emoji} ${escHtml(dispMeta.label)}</div>`
+    : "";
+  const earlyRow = c.ended_early_reason
+    ? `<div style="margin-top:.15rem;font-size:.82rem"><strong>Ended early:</strong> ${escHtml(c.ended_early_reason)}</div>`
+    : "";
+
+  return `<div class="call-detail-section">
+    <div class="call-detail-section-label">Call funnel</div>
+    <div style="display:flex;gap:.45rem;flex-wrap:wrap">
+      ${stage("Answered",    a)}
+      ${stage("Sells scratch", s)}
+      ${stage("Actually checked", k)}
+      <span class="cf-funnel-stage cf-funnel-${tixCls}" title="Bot asked about ${tixAsked} tickets, customer answered ${tixAnswered}">
+        <span class="cf-funnel-sym">${tixAnswered}/${tixAsked}</span>tickets answered
+      </span>
+    </div>
+    ${dispRow}
+    ${earlyRow}
+  </div>`;
+}
+
+function renderDispositionBadge(c) {
+  // Tiny inline disposition emoji to tag on the Result cell.
+  if (!c.customer_disposition) return "";
+  const m = _DISPOSITION_META[c.customer_disposition];
+  if (!m) return "";
+  return ` <span title="${escHtml(m.label)}" style="margin-left:.2rem;font-size:.85rem">${m.emoji}</span>`;
+}
+
 function renderResultCell(c) {
   // Compact ratio for the table row: "2/3 in stock", color-coded.
   if (c.is_voicemail) {
