@@ -2975,15 +2975,29 @@ function formatTranscript(text) {
   }).join("\n");
 }
 
+const _LIVE_STATUS_LABELS = {
+  "queued":      { label: "Queued",      cls: "badge-status-idle",   spin: true,  title: "Waiting for VAPI to start the call" },
+  "ringing":     { label: "Ringing",     cls: "badge-status-paused", spin: true,  title: "Line is ringing" },
+  "in-progress": { label: "On call",     cls: "badge-green",         spin: true,  title: "Connected — conversation in progress" },
+  "forwarding":  { label: "Forwarding",  cls: "badge-status-paused", spin: true,  title: "Being forwarded" },
+};
+
+function _isLiveTerminal(c) {
+  return c.ended_at != null || c.ended_reason != null;
+}
+
 function renderResultCell(c) {
   // Compact ratio for the table row: "2/3 in stock", color-coded.
   if (c.is_voicemail) {
     return `<span class="badge badge-status-paused" title="Reached a voicemail greeting — no inventory data captured">Voicemail</span>`;
   }
   const hasInventory = (Array.isArray(c.per_ticket_results) && c.per_ticket_results.length) || c.has_game != null;
-  const isTerminal = c.ended_at != null || c.ended_reason != null;
+  const isTerminal = _isLiveTerminal(c);
   if (!isTerminal && !hasInventory) {
-    return `<span class="badge badge-status-paused">In flight</span>`;
+    const live = (c.live_status || "queued").toLowerCase();
+    const cfg = _LIVE_STATUS_LABELS[live] || { label: "In flight", cls: "badge-status-paused", spin: true, title: live };
+    const dot = cfg.spin ? `<span class="live-dot"></span>` : "";
+    return `<span class="badge ${cfg.cls}" title="${escHtml(cfg.title)}">${dot}${escHtml(cfg.label)}</span>`;
   }
   if (Array.isArray(c.per_ticket_results) && c.per_ticket_results.length) {
     const total = c.per_ticket_results.length;
