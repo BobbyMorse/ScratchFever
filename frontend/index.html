@@ -1419,6 +1419,16 @@
         <section class="table-section" id="callerCampaignsSection">
           <div class="table-meta">
             <span id="callerRecentTitle">Recent VAPI calls</span>
+            <span id="cfRecentFilterCount" style="color:var(--text-muted);font-size:.75rem;font-weight:600"></span>
+            <select id="cfRecentFilter" onchange="onCallerRecentFilterChange()" title="Filter by call outcome" style="font-size:.75rem;padding:.25rem .55rem;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);margin-left:auto">
+              <option value="all">All calls</option>
+              <option value="success" selected>✓ Inventory checked</option>
+              <option value="in_stock">In stock (≥1)</option>
+              <option value="out_of_stock">Out of stock</option>
+              <option value="no_answer">No answer / silence</option>
+              <option value="voicemail">Voicemail</option>
+              <option value="in_flight">In flight</option>
+            </select>
             <button class="btn" id="cfRecentRefreshBtn" onclick="reconcileAndRefreshCalls()" title="Asks VAPI for the actual status of any 'In flight' rows, then reloads" style="font-size:.75rem;padding:.28rem .7rem">↻ Refresh</button>
           </div>
           <div class="table-scroll">
