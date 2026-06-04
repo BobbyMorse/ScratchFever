@@ -771,6 +771,20 @@ body {
 .badge-yellow { background: var(--yellow-dim); color: var(--yellow); border: 1px solid rgba(245,158,11,0.25); }
 .badge-red    { background: var(--red-dim);    color: var(--red);    border: 1px solid rgba(239,68,68,0.25); }
 
+.live-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  margin-right: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: live-dot-pulse 1.1s ease-in-out infinite;
+  vertical-align: middle;
+}
+@keyframes live-dot-pulse {
+  0%, 100% { opacity: 0.35; transform: scale(0.85); }
+  50%      { opacity: 1;    transform: scale(1.15); }
+}
+
 /*
  * STICKY HEADER CONTRACT — do not change without reading this.
  *
