@@ -128,6 +128,50 @@ STRUCTURED_SCHEMA = {
             "type": "string",
             "description": "Overall observations about the call (max 240 chars).",
         },
+        "answered_phone": {
+            "type": "boolean",
+            "description": (
+                "True if a real voice (human OR clearly-human IVR menu) answered "
+                "the line and spoke to the bot. False if it was a voicemail "
+                "greeting, the customer never picked up, the line was busy, or "
+                "the call ended at transport/error before anyone spoke."
+            ),
+        },
+        "confirmed_sells_scratch": {
+            "type": "boolean",
+            "description": (
+                "True if the person on the line explicitly confirmed the store "
+                "sells scratch-off tickets ('yeah we have them', 'yes', etc.). "
+                "False if they said no, the store doesn't carry them, or "
+                "redirected elsewhere. Null if the call ended before they "
+                "answered that question."
+            ),
+        },
+        "inventory_actually_checked": {
+            "type": "boolean",
+            "description": (
+                "True if the person clearly took time to LOOK at inventory "
+                "(audible pause, moving away from phone, 'let me check', "
+                "checking with coworker, etc.). False if they answered "
+                "instantly off the top of their head without checking. Null "
+                "if not enough signal to tell."
+            ),
+        },
+        "tickets_asked_count": {
+            "type": "integer",
+            "description": (
+                "How many DISTINCT tickets from ticketsToCheck the bot actually "
+                "got to ask about during the call (0 if the call ended before "
+                "any ticket-specific question)."
+            ),
+        },
+        "tickets_answered_count": {
+            "type": "integer",
+            "description": (
+                "How many tickets the customer gave a definite yes/no answer "
+                "on. Always ≤ tickets_asked_count."
+            ),
+        },
         "customer_disposition": {
             "type": "string",
             "enum": [
@@ -164,22 +208,6 @@ STRUCTURED_SCHEMA = {
     },
     "required": ["per_ticket_results"],
 }
-
-
-SUMMARY_PROMPT_MESSAGES = [
-    {
-        "role": "system",
-        "content": (
-            "You are summarizing an outbound inventory-check call. In one "
-            "short paragraph (max 3 sentences), capture: (1) whether the "
-            "store confirmed selling scratch tickets, (2) inventory result "
-            "per ticket asked, (3) the customer's apparent tone — note "
-            "explicitly if they sounded rushed, frustrated, confused, or "
-            "uninterested, and (4) if they ended the call early, why. Be "
-            "direct and factual — no fluff."
-        ),
-    }
-]
 
 
 def main() -> int:
