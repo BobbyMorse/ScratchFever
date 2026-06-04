@@ -1325,6 +1325,12 @@
                 <label>Recall window (days)</label>
                 <input type="number" id="cfCooldownDays" value="7" min="0" max="365" onchange="onCooldownChange()" title="Defines the 'Called within window' badge — stores called inside this window are flagged" />
               </div>
+              <div class="filter-group" style="min-width:220px">
+                <label>Send from</label>
+                <select id="cfDispatchPhoneNumberId" title="Which VAPI phone number to dial from. Auto uses the BYO-preference rotation.">
+                  <option value="">Auto (BYO preferred)</option>
+                </select>
+              </div>
               <div class="filter-group" style="justify-content:flex-end;align-items:flex-end;gap:.4rem;flex-direction:row">
                 <button class="btn" id="cfDryRunBtn" onclick="dispatchSelectedStores(true)" title="Preview who would be called without dialing">Preview</button>
                 <button class="btn btn-call-create" id="cfCreateBtn" onclick="dispatchSelectedStores(false)">📞 Start Calls</button>
