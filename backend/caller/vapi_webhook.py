@@ -271,14 +271,18 @@ async def vapi_webhook(
     if isinstance(payload, dict):
         msg_type = (payload.get("message") or {}).get("type") or payload.get("type") or ""
 
-    # status-update messages with status=ended cover failure modes that don't
-    # produce an end-of-call-report (transport errors, did-not-answer, busy).
-    # We persist just the terminal-state fields so the row stops being "In flight".
+    # status-update messages cover the full call lifecycle: queued → ringing →
+    # in-progress → forwarding → ended. We persist each tick to `live_status`
+    # so the UI can show real-time progress. The ended tick also covers failure
+    # modes that don't produce an end-of-call-report (transport errors,
+    # did-not-answer, busy) — terminal fields get written then too.
     if msg_type == "status-update":
         m = payload.get("message") or {}
-        if (m.get("status") or "").lower() == "ended":
+        status = (m.get("status") or "").lower()
+        await _persist_live_status(m, status)
+        if status == "ended":
             await _persist_terminal_status(m)
-        return {"ok": True, "kind": "status-update"}
+        return {"ok": True, "kind": "status-update", "status": status}
 
     # Non-end-of-call messages we don't care about.
     if msg_type and msg_type != "end-of-call-report":
