@@ -239,9 +239,9 @@
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
               Apply Filters
             </button>
-            <label class="toggle-pill" title="Show nearly sold-out games">
-              <input type="checkbox" id="hideSuspicious" onchange="renderTable()" />
-              UltraRare
+            <label class="toggle-pill" title="Hide states with incomplete data (EV is estimated)">
+              <input type="checkbox" id="hideEstimated" checked onchange="renderTable()" />
+              Hide Estimated
             </label>
             <label class="toggle-pill" title="Hide states without ticket data">
               <input type="checkbox" id="hideNoData" checked onchange="renderTable()" />
