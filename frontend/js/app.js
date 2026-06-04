@@ -4906,8 +4906,14 @@ function storeProfileHtml(retailerId) {
     const gName  = escHtml(g.name);
     const gPrice = g.price != null ? g.price : '';
     const meta   = `$${g.price ?? '?'} · ${g.return_pct != null ? g.return_pct.toFixed(1) + '% EV' : '—'}`;
+    // For operator-side automated sources (vapi_call, etc.) we hide the
+    // reporter username and any notes — both would leak implementation
+    // details (AI involvement, paraphrased customer speech) to public viewers.
+    const isOperatorAuto = status && (status.source === "vapi_call");
+    const showReporter = status && status.reporter_username && !isOperatorAuto;
+    const showNotes    = status && status.notes && !isOperatorAuto;
     const updLine = status
-      ? `<div class="inv-upd">${inventorySourceBadgeHtml(status.source)} Updated ${timeAgo(parseReportedAt(status.reported_at))}${status.reporter_username ? ` · @${escHtml(status.reporter_username)}` : ''}${status.notes ? ` · <em>${escHtml(status.notes)}</em>` : ''}</div>`
+      ? `<div class="inv-upd">${inventorySourceBadgeHtml(status.source)} Updated ${timeAgo(parseReportedAt(status.reported_at))}${showReporter ? ` · @${escHtml(status.reporter_username)}` : ''}${showNotes ? ` · <em>${escHtml(status.notes)}</em>` : ''}</div>`
       : '';
     return `<div class="inv-game-row" data-game-status="${filterVal}">
       <div class="inv-accent ${accentClass}"></div>
