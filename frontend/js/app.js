@@ -610,6 +610,21 @@ function syncHeaderHeight() {
   _handleBillingReturn();
 })();
 
+async function openRetailerInventory(externalId, stateCode) {
+  // Programmatic version of openStoreFromUrl — used by the Recent VAPI calls
+  // table to jump straight from a call row into the retailer's inventory view
+  // without a full page reload.
+  if (!externalId) return;
+  const params = new URLSearchParams(window.location.search);
+  params.set("store", String(externalId));
+  if (stateCode) params.set("state", String(stateCode).toUpperCase());
+  // Update URL so back/forward works and the row stays linkable.
+  try {
+    history.replaceState(null, "", window.location.pathname + "?" + params.toString());
+  } catch (_) {}
+  await openStoreFromUrl();
+}
+
 async function openStoreFromUrl() {
   const params = new URLSearchParams(window.location.search);
   const storeId = params.get("store");
