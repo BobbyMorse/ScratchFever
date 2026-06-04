@@ -208,6 +208,20 @@ def _extract(payload: dict) -> dict:
     summary = msg.get("summary") or analysis.get("summary")
     transcript = msg.get("transcript") or analysis.get("transcript")
 
+    # Funnel / disposition fields from the structured-data extractor.
+    answered_phone             = _to_bool(_pick(structured, "answered_phone", "answeredPhone"))
+    confirmed_sells_scratch    = _to_bool(_pick(structured, "confirmed_sells_scratch", "confirmedSellsScratch"))
+    inventory_actually_checked = _to_bool(_pick(structured, "inventory_actually_checked", "inventoryActuallyChecked"))
+    customer_disposition       = _pick(structured, "customer_disposition", "customerDisposition")
+    ended_early_reason         = _pick(structured, "ended_early_reason", "endedEarlyReason")
+    def _maybe_int(v):
+        try:
+            return int(v) if v is not None else None
+        except Exception:
+            return None
+    tickets_asked_count    = _maybe_int(_pick(structured, "tickets_asked_count", "ticketsAskedCount"))
+    tickets_answered_count = _maybe_int(_pick(structured, "tickets_answered_count", "ticketsAnsweredCount"))
+
     ended_reason = _pick(msg, "endedReason", "ended_reason")
     is_voicemail = _detect_voicemail(ended_reason, transcript)
 
