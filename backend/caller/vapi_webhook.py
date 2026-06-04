@@ -465,6 +465,21 @@ def _parse_vapi_iso(value: Optional[str]) -> Optional[dt.datetime]:
         return None
 
 
+async def _persist_live_status(msg: dict, status: str) -> None:
+    """Write the current VAPI lifecycle status (queued/ringing/in-progress/
+    forwarding/ended) to the row so the UI can show real-time progress."""
+    call = msg.get("call") or {}
+    vapi_call_id = call.get("id") or msg.get("callId")
+    if not vapi_call_id or not status:
+        return
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        await conn.execute(
+            "UPDATE vapi_calls SET live_status = $2 WHERE vapi_call_id = $1",
+            vapi_call_id, status,
+        )
+
+
 async def _persist_terminal_status(msg: dict) -> None:
     """Update only the terminal-state fields (ended_at, ended_reason, duration)
     when VAPI sends a status-update with status=ended. Doesn't touch transcript,
