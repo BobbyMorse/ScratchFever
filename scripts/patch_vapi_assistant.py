@@ -206,10 +206,10 @@ STRUCTURED_SCHEMA = {
             "type": "string",
             "description": (
                 "If the customer ended the call BEFORE all tickets were answered, "
-                "one short phrase on why (max 80 chars). Examples: 'busy with "
-                "customers', 'didn't want to talk to AI', 'wrong department', "
-                "'frustrated by question'. Empty string if all tickets were "
-                "covered."
+                "a short PARAPHRASE on why (max 80 chars). Examples: busy with "
+                "customers, didn't want to talk to AI, wrong department, "
+                "frustrated by question. DO NOT quote the customer verbatim. "
+                "Empty string if all tickets were covered."
             ),
         },
     },
