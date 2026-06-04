@@ -3592,6 +3592,7 @@ async function dispatchSelectedStores(dryRun) {
   showCallerMsg("", "");
 
   try {
+    const pickedNumberId = document.getElementById("cfDispatchPhoneNumberId")?.value || null;
     const res = await callerFetch("/api/vapi/dispatch_selected", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -3600,6 +3601,7 @@ async function dispatchSelectedStores(dryRun) {
         tickets,
         selected_external_ids: orderedIds,
         dry_run: !!dryRun,
+        phone_number_id: pickedNumberId,
       }),
     });
     let data = {};
