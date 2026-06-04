@@ -120,7 +120,43 @@ async def main() -> int:
                     structured.get("ended_early_reason"),
                 )
             updated += 1
-    print(f"Updated {updated} rows.")
+
+            # Mirror per-ticket findings into inventory_reports — but only once
+            # per call (inventory_mirrored_at is the idempotency flag).
+            already_mirrored = r["inventory_mirrored_at"] is not None
+            has_retailer = bool(r["retailer_external_id"]) and r["retailer_external_id"] != "test"
+            if not already_mirrored and has_retailer and per_ticket and not r["is_voicemail"]:
+                rows_this_call = 0
+                async with pool.acquire() as conn:
+                    for t in per_ticket:
+                        if not isinstance(t, dict):
+                            continue
+                        t_name = (t.get("name") or "").strip()
+                        t_has  = _to_bool(t.get("has_game"))
+                        if not t_name or t_has is None:
+                            continue
+                        await add_inventory_report(
+                            conn,
+                            retailer_id=r["retailer_external_id"],
+                            retailer_name=r["retailer_name"],
+                            retailer_city=r["retailer_city"],
+                            game_name=t_name,
+                            game_price=None,
+                            has_stock=bool(t_has),
+                            source="vapi_call",
+                            reporter_username="vapi",
+                            notes=(t.get("notes") or None),
+                            reported_at=r["ended_at"],
+                        )
+                        rows_this_call += 1
+                if rows_this_call > 0:
+                    async with pool.acquire() as conn:
+                        await conn.execute(
+                            "UPDATE vapi_calls SET inventory_mirrored_at = NOW() WHERE id = $1",
+                            r["id"],
+                        )
+                    inv_written += rows_this_call
+    print(f"Updated {updated} rows.  Mirrored {inv_written} inventory rows.")
     return 0
 
 
