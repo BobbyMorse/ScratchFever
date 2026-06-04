@@ -2954,6 +2954,8 @@ function openCallDetail(callId) {
        </div>`
     : "";
 
+  const funnelBlock = renderCallFunnelBlock(c);
+
   const transcriptBlock = c.transcript
     ? `<div class="call-detail-section">
          <div class="call-detail-section-label">Transcript</div>
