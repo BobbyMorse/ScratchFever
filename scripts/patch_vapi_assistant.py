@@ -225,7 +225,10 @@ def main() -> int:
                 "enabled": True,
                 "schema": STRUCTURED_SCHEMA,
             },
-            "summaryPlan": {"enabled": True},
+            "summaryPlan": {
+                "enabled": True,
+                "messages": SUMMARY_PROMPT_MESSAGES,
+            },
         },
         # Two-party-consent states (MA, CA, FL, IL, MD, MT, NV, NH, PA, WA, CT) —
         # never store the audio. Transcript still streams during the call so
