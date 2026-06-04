@@ -3650,9 +3650,6 @@ function _formatApiError(data, status) {
 }
 
 function populateTestPhoneNumberPicker(nums) {
-  const sel = document.getElementById("cfTestPhoneNumberId");
-  if (!sel) return;
-  const prev = sel.value;
   // BYO (twilio/vonage/telnyx/...) first, vapi last — same order as the
   // backend's BYO-preference picker so "Auto" picks the top non-vapi entry.
   const sorted = [...nums].sort((a, b) => {
@@ -3665,8 +3662,14 @@ function populateTestPhoneNumberPicker(nums) {
     const label = `${(n.provider || "").toUpperCase()}: ${n.number || n.id}${n.name ? ` — ${n.name}` : ""}${n.exhausted ? " (capped today)" : ""}`;
     opts.push(`<option value="${escHtml(n.id)}">${escHtml(label)}</option>`);
   }
-  sel.innerHTML = opts.join("");
-  if (prev && sorted.some(n => n.id === prev)) sel.value = prev;
+  const html = opts.join("");
+  for (const id of ["cfTestPhoneNumberId", "cfDispatchPhoneNumberId"]) {
+    const sel = document.getElementById(id);
+    if (!sel) continue;
+    const prev = sel.value;
+    sel.innerHTML = html;
+    if (prev && sorted.some(n => n.id === prev)) sel.value = prev;
+  }
 }
 
 async function sendTestCall() {
