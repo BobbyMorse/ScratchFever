@@ -128,9 +128,58 @@ STRUCTURED_SCHEMA = {
             "type": "string",
             "description": "Overall observations about the call (max 240 chars).",
         },
+        "customer_disposition": {
+            "type": "string",
+            "enum": [
+                "cooperative",
+                "rushed",
+                "frustrated",
+                "confused",
+                "rude",
+                "uninterested",
+                "no_speech",
+                "unknown",
+            ],
+            "description": (
+                "Best read of the customer's tone/mood across the call. "
+                "'cooperative' = engaged and answered. 'rushed' = answered but "
+                "wanted to get off fast. 'frustrated' = annoyed, raised voice, "
+                "or curt with the bot. 'confused' = didn't understand what was "
+                "being asked. 'rude' = hostile or insulting. 'uninterested' = "
+                "dismissive, declined to engage. 'no_speech' = call ended before "
+                "the customer said anything meaningful. 'unknown' only if truly "
+                "unreadable."
+            ),
+        },
+        "ended_early_reason": {
+            "type": "string",
+            "description": (
+                "If the customer ended the call BEFORE all tickets were answered, "
+                "one short phrase on why (max 80 chars). Examples: 'busy with "
+                "customers', 'didn't want to talk to AI', 'wrong department', "
+                "'frustrated by question'. Empty string if all tickets were "
+                "covered."
+            ),
+        },
     },
     "required": ["per_ticket_results"],
 }
+
+
+SUMMARY_PROMPT_MESSAGES = [
+    {
+        "role": "system",
+        "content": (
+            "You are summarizing an outbound inventory-check call. In one "
+            "short paragraph (max 3 sentences), capture: (1) whether the "
+            "store confirmed selling scratch tickets, (2) inventory result "
+            "per ticket asked, (3) the customer's apparent tone — note "
+            "explicitly if they sounded rushed, frustrated, confused, or "
+            "uninterested, and (4) if they ended the call early, why. Be "
+            "direct and factual — no fluff."
+        ),
+    }
+]
 
 
 def main() -> int:
