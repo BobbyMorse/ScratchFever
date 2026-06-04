@@ -2853,11 +2853,35 @@ async function loadCallerData() {
 
 let _callerRecent = [];
 
+let _callerRecentPollTimer = null;
+const _CALLER_POLL_INTERVAL_MS = 2500;
+
+function _scheduleCallerLivePoll() {
+  // Auto-poll while any visible call is still mid-flight. Stop the moment
+  // every row has a terminal status so we don't pound the backend forever.
+  if (_callerRecentPollTimer) {
+    clearTimeout(_callerRecentPollTimer);
+    _callerRecentPollTimer = null;
+  }
+  const hasLive = _callerRecent.some(c => !_isLiveTerminal(c));
+  if (!hasLive) return;
+  _callerRecentPollTimer = setTimeout(async () => {
+    _callerRecentPollTimer = null;
+    try {
+      // Best-effort reconcile so VAPI-confirmed status flows in even if a
+      // status-update webhook got dropped or delayed.
+      await callerFetch("/api/vapi/reconcile_inflight", { method: "POST" });
+    } catch (_) {}
+    try { await loadCallerData(); } catch (_) {}
+  }, _CALLER_POLL_INTERVAL_MS);
+}
+
 function renderCallerRecent() {
   const tbody = document.getElementById("callerRecentBody");
   if (!tbody) return;
   if (!_callerRecent.length) {
     tbody.innerHTML = `<tr><td colspan="10" class="loading-cell">No calls yet — start a dispatch above.</td></tr>`;
+    _scheduleCallerLivePoll();
     return;
   }
   tbody.innerHTML = _callerRecent.map(c => {
