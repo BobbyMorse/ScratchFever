@@ -2818,24 +2818,6 @@ function fmtDate(dt) {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "America/New_York" });
 }
 
-// ── Launch campaign from EV table ─────────────────────────────────────────────
-function launchCampaign(name, price, _gameId, stateCode) {
-  switchTab("caller");
-  if (stateCode) {
-    const stateSel = document.getElementById("cfStateSelect");
-    if (stateSel && stateSel.value !== stateCode) {
-      stateSel.value = stateCode;
-      onCallerStateSelect();
-    }
-  }
-  if (name) {
-    _selectedTickets.add(name);
-    renderTicketsPicker();
-  }
-  const btn = document.getElementById("cfCreateBtn");
-  if (btn) btn.scrollIntoView({ behavior: "smooth", block: "center" });
-}
-
 // ── Call Agent ────────────────────────────────────────────────────────────────
 let callerLoaded = false;
 let _callerCampaigns = [];
