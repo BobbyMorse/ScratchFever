@@ -37,6 +37,7 @@ import os
 import re
 from typing import Any, Optional
 
+import httpx
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 
 from backend.database import add_inventory_report, get_pool
