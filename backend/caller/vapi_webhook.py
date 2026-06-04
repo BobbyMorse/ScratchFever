@@ -271,9 +271,16 @@ async def vapi_webhook(
     if isinstance(payload, dict):
         msg_type = (payload.get("message") or {}).get("type") or payload.get("type") or ""
 
-    # Only the end-of-call report carries the transcript + structured data.
-    # Other server-messages (status updates, transcripts mid-call, etc.) get
-    # acknowledged with 200 but no DB write.
+    # status-update messages with status=ended cover failure modes that don't
+    # produce an end-of-call-report (transport errors, did-not-answer, busy).
+    # We persist just the terminal-state fields so the row stops being "In flight".
+    if msg_type == "status-update":
+        m = payload.get("message") or {}
+        if (m.get("status") or "").lower() == "ended":
+            await _persist_terminal_status(m)
+        return {"ok": True, "kind": "status-update"}
+
+    # Non-end-of-call messages we don't care about.
     if msg_type and msg_type != "end-of-call-report":
         logger.info("VAPI webhook ignored (type=%s)", msg_type)
         return {"ok": True, "ignored": msg_type}
