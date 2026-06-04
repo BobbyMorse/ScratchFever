@@ -2983,6 +2983,7 @@ function openCallDetail(callId) {
       <div class="call-detail-meta">${meta}</div>
       <div style="font-size:.85rem;margin-top:.2rem"><strong>Asked about:</strong> ${escHtml(c.game_name || "—")}</div>
     </div>
+    ${funnelBlock}
     ${perTicketBlock}
     ${summaryBlock}
     ${transcriptBlock}
