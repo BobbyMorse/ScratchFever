@@ -610,19 +610,75 @@ function syncHeaderHeight() {
   _handleBillingReturn();
 })();
 
-async function openRetailerInventory(externalId, stateCode) {
-  // Programmatic version of openStoreFromUrl — used by the Recent VAPI calls
-  // table to jump straight from a call row into the retailer's inventory view
-  // without a full page reload.
-  if (!externalId) return;
-  const params = new URLSearchParams(window.location.search);
-  params.set("store", String(externalId));
-  if (stateCode) params.set("state", String(stateCode).toUpperCase());
-  // Update URL so back/forward works and the row stays linkable.
+function _phoneDigits10(s) {
+  return String(s || "").replace(/\D/g, "").slice(-10);
+}
+
+function _findRetailerByPhone(phone, stateCode) {
+  // The state's retailer table is keyed by a different id than VAPI's
+  // retailer_external_id, so we re-match on phone (last 10 digits).
+  const target = _phoneDigits10(phone);
+  if (target.length < 10) return null;
+  const stateArrays = {
+    MA: () => (typeof allRetailers   !== "undefined" ? allRetailers   : []),
+    AZ: () => (typeof allAzRetailers !== "undefined" ? allAzRetailers : []),
+    RI: () => (typeof allRiRetailers !== "undefined" ? allRiRetailers : []),
+    FL: () => (typeof allFlRetailers !== "undefined" ? allFlRetailers : []),
+    GA: () => (typeof allGaRetailers !== "undefined" ? allGaRetailers : []),
+    NY: () => (typeof allNyRetailers !== "undefined" ? allNyRetailers : []),
+    VA: () => (typeof allVaRetailers !== "undefined" ? allVaRetailers : []),
+    DC: () => (typeof allDcRetailers !== "undefined" ? allDcRetailers : []),
+    VT: () => (typeof allVtRetailers !== "undefined" ? allVtRetailers : []),
+  };
+  const getter = stateArrays[(stateCode || "MA").toUpperCase()]
+    || (typeof GEN_STATES !== "undefined" && GEN_STATES[stateCode]
+        ? () => ((typeof allGenRetailers !== "undefined" && allGenRetailers[stateCode]) || [])
+        : null)
+    || stateArrays.MA;
+  const arr = getter() || [];
+  return arr.find(r => _phoneDigits10(r.phone) === target) || null;
+}
+
+async function openRetailerInventory(externalId, stateCode, phoneFallback) {
+  // From a VAPI call row, jump to the retailer's inventory profile. The
+  // VAPI external_id doesn't match the state retailer table's `id`, so we
+  // load the state, then match on phone digits to find the right row id.
+  if (!stateCode) stateCode = "MA";
+  stateCode = String(stateCode).toUpperCase();
+
+  try { switchTab("ma"); } catch (_) {}
+  try { selectHuntState(stateCode); } catch (_) {}
+
+  // Wait for the state's retailer array to load (cold first time can take a bit).
+  const deadline = Date.now() + 15_000;
+  let match = null;
+  while (Date.now() < deadline) {
+    match = _findRetailerByPhone(phoneFallback, stateCode);
+    if (match) break;
+    await new Promise(r => setTimeout(r, 250));
+  }
+
+  if (!match) {
+    alert(`Couldn't find this retailer in the ${stateCode} list. Phone: ${phoneFallback || '—'}`);
+    return;
+  }
+
+  // Update URL to keep the row permalinkable.
   try {
+    const params = new URLSearchParams(window.location.search);
+    params.set("store", String(match.id));
+    params.set("state", stateCode);
     history.replaceState(null, "", window.location.pathname + "?" + params.toString());
   } catch (_) {}
-  await openStoreFromUrl();
+
+  // Render is also async (lazy table). Try a couple times.
+  for (let i = 0; i < 8; i++) {
+    if (typeof openStoreInventoryFromMap === "function") {
+      try { openStoreInventoryFromMap(match.id); } catch (_) {}
+    }
+    if (typeof _openProfileId !== "undefined" && _openProfileId === String(match.id)) return;
+    await new Promise(r => setTimeout(r, 300));
+  }
 }
 
 async function openStoreFromUrl() {
