@@ -1893,9 +1893,11 @@ async function applyFilters() {
   loadGames();
 }
 
+const ESTIMATED_STATES = new Set(["VT"]);
+
 function renderTable() {
   const search = document.getElementById("searchInput").value.toLowerCase().trim();
-  const showNearSoldOut = document.getElementById("hideSuspicious")?.checked;
+  const hideEstimated = document.getElementById("hideEstimated")?.checked ?? true;
   const hideNoData = document.getElementById("hideNoData")?.checked ?? true;
   let games = allGames;
 
@@ -1903,11 +1905,8 @@ function renderTable() {
     games = games.filter(g => g.tickets_remaining != null);
   }
 
-  if (!showNearSoldOut) {
-    games = games.filter(g => {
-      if (g.tickets_remaining == null) return true;
-      return g.tickets_remaining >= 30000;
-    });
+  if (hideEstimated) {
+    games = games.filter(g => !ESTIMATED_STATES.has(g.state_code));
   }
 
   if (search) {
