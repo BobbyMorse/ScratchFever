@@ -968,14 +968,6 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
 
 .loading-cell { text-align: center; padding: 3rem; color: var(--text-muted); font-size: .88rem; }
 
-.btn-campaign-launch {
-  background: none; border: 1px solid var(--border);
-  color: var(--text-muted); padding: .28rem .5rem;
-  border-radius: 6px; cursor: pointer; font-size: .82rem;
-  transition: background .1s, color .1s; font-family: inherit;
-}
-.btn-campaign-launch:hover { background: var(--bg); color: var(--text); }
-
 /* ── Modal ────────────────────────────────────────── */
 .modal-overlay {
   display: none;
