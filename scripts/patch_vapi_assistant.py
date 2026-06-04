@@ -150,6 +150,18 @@ def main() -> int:
             "provider": "vapi",
             "voiceId": "Elliot",
         },
+        "transcriber": {
+            "provider": "deepgram",
+            "model": "nova-3",
+            "language": "en",
+        },
+        "startSpeakingPlan": {
+            "waitSeconds": 0.2,
+            "smartEndpointingPlan": {"provider": "livekit"},
+        },
+        "responseDelaySeconds": 0,
+        "numWordsToInterruptAssistant": 2,
+        "backgroundDenoisingEnabled": True,
         "analysisPlan": {
             "structuredDataPlan": {
                 "enabled": True,
