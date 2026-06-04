@@ -2971,8 +2971,8 @@ function renderCallerRecent() {
     const summaryCell = hasDetail
       ? `<span class="cf-summary-link" onclick="openCallDetail(${c.id})" title="Click to read transcript">${summaryShort}</span>`
       : summaryShort;
-    const retailerCell = c.retailer_external_id
-      ? `<a href="javascript:void(0)" onclick="openRetailerInventory('${escHtml(c.retailer_external_id)}','${escHtml(c.state_code || 'MA')}'); return false;" title="Open this retailer's inventory" style="font-weight:700;color:inherit;text-decoration:none;border-bottom:1px dashed currentColor">${escHtml(c.retailer_name || "(unknown)")}</a>`
+    const retailerCell = (c.retailer_external_id || c.to_phone)
+      ? `<a href="javascript:void(0)" onclick="openRetailerInventory('${escHtml(c.retailer_external_id || '')}','${escHtml(c.state_code || 'MA')}','${escHtml(c.to_phone || '')}'); return false;" title="Open this retailer's inventory" style="font-weight:700;color:inherit;text-decoration:none;border-bottom:1px dashed currentColor">${escHtml(c.retailer_name || "(unknown)")}</a>`
       : `<strong>${escHtml(c.retailer_name) || "<span style='color:var(--text-muted)'>(unknown)</span>"}</strong>`;
     return `<tr>
       <td><span style="white-space:nowrap">${whenShort}</span></td>
