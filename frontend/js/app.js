@@ -2000,13 +2000,6 @@ function gameRow(g, rank) {
     ? `<span class="game-report-badge" title="In stock at ${reportCount} member-reported location${reportCount > 1 ? 's' : ''}">${reportCount} 📍</span>`
     : "";
 
-  const nameEsc = escHtml(g.name).replace(/'/g, "\\'");
-  const isAdmin = _currentUser && _currentUser.role === "admin";
-  const campaignCell = isAdmin
-    ? `<td onclick="event.stopPropagation()">
-      <button class="btn-campaign-launch" onclick="launchCampaign('${nameEsc}', ${g.price}, '${escHtml(g.game_id)}', '${escHtml(g.state_code || "")}')" title="Create calling campaign for this game">📞</button>
-    </td>`
-    : "";
   return `<tr onclick="openGame(${g.id})">
     <td style="color:var(--text-muted);font-size:.8rem;font-weight:700">${rank}</td>
     <td><span class="state-pill state-${g.state_code}">${g.state_code}</span></td>
@@ -2023,7 +2016,6 @@ function gameRow(g, rank) {
     <td>${pool}</td>
     <td>${startedCell}</td>
     <td style="color:var(--text-muted);font-size:.8rem" title="${updatedFull}">${updated}</td>
-    ${campaignCell}
   </tr>`;
 }
 
