@@ -129,7 +129,11 @@ STRUCTURED_SCHEMA = {
         },
         "summary_notes": {
             "type": "string",
-            "description": "Overall observations about the call (max 240 chars).",
+            "description": (
+                "Brief PARAPHRASE of overall observations about the call "
+                "(max 240 chars). DO NOT include verbatim quotes from what "
+                "the customer said — paraphrase only. Never use quotation marks."
+            ),
         },
         "answered_phone": {
             "type": "boolean",
