@@ -175,6 +175,13 @@ def main() -> int:
             },
             "summaryPlan": {"enabled": True},
         },
+        # Two-party-consent states (MA, CA, FL, IL, MD, MT, NV, NH, PA, WA, CT) —
+        # never store the audio. Transcript still streams during the call so
+        # the LLM and structured extraction work, but no .wav is persisted.
+        "artifactPlan": {
+            "recordingEnabled": False,
+            "videoRecordingEnabled": False,
+        },
     }
 
     print(f"PATCH /assistant/{ASSISTANT_ID}")
