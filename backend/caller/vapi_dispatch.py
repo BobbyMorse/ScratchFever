@@ -933,7 +933,10 @@ async def vapi_dispatch_selected(body: DispatchSelectedBody, _user: dict = Depen
             "preview":      preview,
         }
 
-    results, skipped = await _dispatch_calls(targets, tickets, env)
+    results, skipped = await _dispatch_calls(
+        targets, tickets, env,
+        force_phone_number_id=body.phone_number_id,
+    )
     success = sum(1 for r in results if r["ok"])
     return {
         "selected":     len(targets),
