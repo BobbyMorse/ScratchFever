@@ -3727,6 +3727,23 @@ function showCallerMsg(text, type) {
   el.innerHTML = text;
 }
 
+async function reconcileAndRefreshCalls() {
+  const btn = document.getElementById("cfRecentRefreshBtn");
+  const origLabel = btn ? btn.textContent : "";
+  if (btn) { btn.disabled = true; btn.textContent = "Reconciling…"; }
+  try {
+    await callerFetch("/api/vapi/reconcile_inflight", { method: "POST" });
+  } catch (_) {
+    // Reconcile failure is non-fatal — fall through to the regular reload
+    // so the user still sees whatever data we have.
+  }
+  try {
+    await loadCallerData();
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = origLabel; }
+  }
+}
+
 async function startCampaign(id) {
   try {
     const res = await callerFetch(`/api/caller/campaigns/${id}/start`, { method: "POST" });
