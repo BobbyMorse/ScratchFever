@@ -141,7 +141,10 @@ def main() -> int:
 
     patch = {
         "server": {"url": WEBHOOK_URL},
-        "serverMessages": ["end-of-call-report"],
+        # status-update covers terminal failure modes that never emit an
+        # end-of-call-report (transport errors, customer-did-not-answer, busy)
+        # — without it those calls stay "In flight" forever locally.
+        "serverMessages": ["end-of-call-report", "status-update"],
         "firstMessage": (
             "Hi — quick question, do you sell scratch-off tickets there?"
         ),
