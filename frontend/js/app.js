@@ -2854,24 +2854,29 @@ async function loadCallerData() {
 let _callerRecent = [];
 
 let _callerRecentPollTimer = null;
+let _callerPollTickCount = 0;
 const _CALLER_POLL_INTERVAL_MS = 2500;
+// Every Nth tick, also run reconcile against VAPI as a backstop for dropped
+// status-update webhooks. status-update arrives within ~1s normally, so we
+// only reconcile occasionally (~every 20s of in-flight time).
+const _CALLER_RECONCILE_EVERY_N_TICKS = 8;
 
 function _scheduleCallerLivePoll() {
-  // Auto-poll while any visible call is still mid-flight. Stop the moment
-  // every row has a terminal status so we don't pound the backend forever.
   if (_callerRecentPollTimer) {
     clearTimeout(_callerRecentPollTimer);
     _callerRecentPollTimer = null;
   }
   const hasLive = _callerRecent.some(c => !_isLiveTerminal(c));
-  if (!hasLive) return;
+  if (!hasLive) {
+    _callerPollTickCount = 0;
+    return;
+  }
   _callerRecentPollTimer = setTimeout(async () => {
     _callerRecentPollTimer = null;
-    try {
-      // Best-effort reconcile so VAPI-confirmed status flows in even if a
-      // status-update webhook got dropped or delayed.
-      await callerFetch("/api/vapi/reconcile_inflight", { method: "POST" });
-    } catch (_) {}
+    _callerPollTickCount += 1;
+    if (_callerPollTickCount % _CALLER_RECONCILE_EVERY_N_TICKS === 0) {
+      try { await callerFetch("/api/vapi/reconcile_inflight", { method: "POST" }); } catch (_) {}
+    }
     try { await loadCallerData(); } catch (_) {}
   }, _CALLER_POLL_INTERVAL_MS);
 }
