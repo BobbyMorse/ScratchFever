@@ -2535,18 +2535,28 @@ function renderInventoryCluster(map, layerKey, opts) {
     spiderfyOnMaxZoom: true,
     disableClusteringAtZoom: 16,
     // Color clusters by inventory status, not by count. Green when any child
-    // has in-stock inventory marked; otherwise neutral grey.
+    // has in-stock inventory; red when every checked child is out; otherwise grey.
     iconCreateFunction: (c) => {
       const children = c.getAllChildMarkers();
       let hasInStock = false;
+      let outCount = 0;
+      let checkedCount = 0;
       for (const m of children) {
-        if (m.options.sfStockState === "in") { hasInStock = true; break; }
+        const s = m.options.sfStockState;
+        if (s === "in") { hasInStock = true; break; }
+        if (s === "out") { outCount++; checkedCount++; }
+        else if (s === "unchecked") { /* skip */ }
+        else { checkedCount++; }
       }
-      const inner = hasInStock ? "rgba(0,204,68,1)" : "rgba(150,150,150,0.9)";
+      const allOut = !hasInStock && checkedCount > 0 && outCount === checkedCount;
+      let variant, inner;
+      if (hasInStock) { variant = "sf-cluster-instock"; inner = "rgba(0,204,68,1)"; }
+      else if (allOut) { variant = "sf-cluster-outofstock"; inner = "rgba(204,34,0,1)"; }
+      else { variant = "sf-cluster-neutral"; inner = "rgba(150,150,150,0.9)"; }
       const count = children.length;
       return L.divIcon({
         html: `<div style="background:${inner}"><span>${count}</span></div>`,
-        className: `sf-cluster ${hasInStock ? "sf-cluster-instock" : "sf-cluster-neutral"}`,
+        className: `sf-cluster ${variant}`,
         iconSize: L.point(40, 40),
       });
     },
