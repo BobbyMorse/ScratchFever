@@ -93,28 +93,41 @@ async def insert_vapi_call(row: dict[str, Any]) -> int:
                 retailer_external_id, retailer_name, retailer_city,
                 game_name, game_price, game_number,
                 has_game, confidence, can_order,
-                summary, notes, transcript, per_ticket_results, is_voicemail, raw_payload
+                summary, notes, transcript, per_ticket_results, is_voicemail, raw_payload,
+                answered_phone, confirmed_sells_scratch, inventory_actually_checked,
+                tickets_asked_count, tickets_answered_count,
+                customer_disposition, ended_early_reason
             ) VALUES (
                 $1, $2, $3, $4, $5,
                 $6, $7, $8,
                 $9, $10, $11,
                 $12, $13, $14,
                 $15, $16, $17,
-                $18, $19, $20, $21::jsonb, $22, $23::jsonb
+                $18, $19, $20, $21::jsonb, $22, $23::jsonb,
+                $24, $25, $26,
+                $27, $28,
+                $29, $30
             )
             ON CONFLICT (vapi_call_id) DO UPDATE SET
-                ended_at           = COALESCE(EXCLUDED.ended_at,           vapi_calls.ended_at),
-                duration_sec       = COALESCE(EXCLUDED.duration_sec,       vapi_calls.duration_sec),
-                ended_reason       = COALESCE(EXCLUDED.ended_reason,       vapi_calls.ended_reason),
-                has_game           = COALESCE(EXCLUDED.has_game,           vapi_calls.has_game),
-                confidence         = COALESCE(EXCLUDED.confidence,         vapi_calls.confidence),
-                can_order          = COALESCE(EXCLUDED.can_order,          vapi_calls.can_order),
-                summary            = COALESCE(EXCLUDED.summary,            vapi_calls.summary),
-                notes              = COALESCE(EXCLUDED.notes,              vapi_calls.notes),
-                transcript         = COALESCE(EXCLUDED.transcript,         vapi_calls.transcript),
-                per_ticket_results = COALESCE(EXCLUDED.per_ticket_results, vapi_calls.per_ticket_results),
-                is_voicemail       = COALESCE(EXCLUDED.is_voicemail,       vapi_calls.is_voicemail),
-                raw_payload        = EXCLUDED.raw_payload
+                ended_at                   = COALESCE(EXCLUDED.ended_at,                   vapi_calls.ended_at),
+                duration_sec               = COALESCE(EXCLUDED.duration_sec,               vapi_calls.duration_sec),
+                ended_reason               = COALESCE(EXCLUDED.ended_reason,               vapi_calls.ended_reason),
+                has_game                   = COALESCE(EXCLUDED.has_game,                   vapi_calls.has_game),
+                confidence                 = COALESCE(EXCLUDED.confidence,                 vapi_calls.confidence),
+                can_order                  = COALESCE(EXCLUDED.can_order,                  vapi_calls.can_order),
+                summary                    = COALESCE(EXCLUDED.summary,                    vapi_calls.summary),
+                notes                      = COALESCE(EXCLUDED.notes,                      vapi_calls.notes),
+                transcript                 = COALESCE(EXCLUDED.transcript,                 vapi_calls.transcript),
+                per_ticket_results         = COALESCE(EXCLUDED.per_ticket_results,         vapi_calls.per_ticket_results),
+                is_voicemail               = COALESCE(EXCLUDED.is_voicemail,               vapi_calls.is_voicemail),
+                raw_payload                = EXCLUDED.raw_payload,
+                answered_phone             = COALESCE(EXCLUDED.answered_phone,             vapi_calls.answered_phone),
+                confirmed_sells_scratch    = COALESCE(EXCLUDED.confirmed_sells_scratch,    vapi_calls.confirmed_sells_scratch),
+                inventory_actually_checked = COALESCE(EXCLUDED.inventory_actually_checked, vapi_calls.inventory_actually_checked),
+                tickets_asked_count        = COALESCE(EXCLUDED.tickets_asked_count,        vapi_calls.tickets_asked_count),
+                tickets_answered_count     = COALESCE(EXCLUDED.tickets_answered_count,     vapi_calls.tickets_answered_count),
+                customer_disposition       = COALESCE(EXCLUDED.customer_disposition,       vapi_calls.customer_disposition),
+                ended_early_reason         = COALESCE(EXCLUDED.ended_early_reason,         vapi_calls.ended_early_reason)
             RETURNING id
             """,
             row.get("vapi_call_id"),
@@ -140,6 +153,13 @@ async def insert_vapi_call(row: dict[str, Any]) -> int:
             per_ticket,
             row.get("is_voicemail"),
             raw,
+            row.get("answered_phone"),
+            row.get("confirmed_sells_scratch"),
+            row.get("inventory_actually_checked"),
+            row.get("tickets_asked_count"),
+            row.get("tickets_answered_count"),
+            row.get("customer_disposition"),
+            row.get("ended_early_reason"),
         )
         return new_id
 
