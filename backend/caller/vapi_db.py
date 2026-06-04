@@ -48,6 +48,10 @@ async def init_vapi_db() -> None:
         from backend.database import add_column_if_missing
         await add_column_if_missing(conn, "vapi_calls", "per_ticket_results", "JSONB")
         await add_column_if_missing(conn, "vapi_calls", "is_voicemail", "BOOLEAN")
+        # live_status tracks the VAPI status-update lifecycle (queued, ringing,
+        # in-progress, forwarding, ended). Lets the UI show real-time progress
+        # without polling VAPI directly.
+        await add_column_if_missing(conn, "vapi_calls", "live_status", "TEXT")
         await conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_vapi_received ON vapi_calls(received_at DESC)"
         )
