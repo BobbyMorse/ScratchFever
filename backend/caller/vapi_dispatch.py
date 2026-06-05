@@ -91,6 +91,21 @@ DAILY_LIMIT_MARKERS = (
     "import your own twilio",
 )
 
+# Transport-error endedReasons VAPI reports when the underlying carrier can't
+# place the leg — almost always a misconfigured BYO number (bad Twilio
+# credentials, depleted balance, suspended account). Three of these in a day
+# on the same phoneNumberId → mark it exhausted so dispatches fall back to
+# other numbers instead of bleeding through a dead carrier.
+TRANSPORT_ERROR_MARKERS = (
+    "error-get-transport",
+    "error-vapifault-transport",
+    "error-vapifault-twilio",
+)
+TRANSPORT_ERROR_THRESHOLD = 3
+
+_TRANSPORT_ERRORS_TODAY: dict[str, list[str]] = {}  # pid → list of ISO date stamps
+_TRANSPORT_ERRORS_LOCK = threading.Lock()
+
 
 def _today_utc() -> str:
     return dt.datetime.now(dt.timezone.utc).date().isoformat()
@@ -103,10 +118,41 @@ def _is_daily_limit_error(error_str: Optional[str]) -> bool:
     return any(m in low for m in DAILY_LIMIT_MARKERS)
 
 
+def is_transport_error(ended_reason: Optional[str]) -> bool:
+    if not ended_reason:
+        return False
+    low = ended_reason.lower()
+    return any(m in low for m in TRANSPORT_ERROR_MARKERS)
+
+
 def _mark_exhausted(pid: str) -> None:
     with _EXHAUSTED_LOCK:
         _EXHAUSTED_TODAY[pid] = _today_utc()
     logger.info("VAPI phoneNumberId %s marked exhausted for %s", pid, _today_utc())
+
+
+def record_transport_error(pid: Optional[str], ended_reason: Optional[str]) -> bool:
+    """Increment a per-phoneNumberId transport-error counter for today. When
+    the count crosses TRANSPORT_ERROR_THRESHOLD, mark the number exhausted so
+    the rotation skips it for the rest of the day. Returns True iff we just
+    marked it exhausted on this call."""
+    if not pid or not is_transport_error(ended_reason):
+        return False
+    today = _today_utc()
+    with _TRANSPORT_ERRORS_LOCK:
+        stamps = [s for s in _TRANSPORT_ERRORS_TODAY.get(pid, []) if s == today]
+        stamps.append(today)
+        _TRANSPORT_ERRORS_TODAY[pid] = stamps
+        count = len(stamps)
+    if count >= TRANSPORT_ERROR_THRESHOLD and not _is_exhausted(pid):
+        _mark_exhausted(pid)
+        logger.warning(
+            "VAPI phoneNumberId %s exhausted after %d transport errors today "
+            "(endedReason=%s) — likely misconfigured BYO carrier",
+            pid, count, ended_reason,
+        )
+        return True
+    return False
 
 
 def _is_exhausted(pid: str) -> bool:
