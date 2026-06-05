@@ -291,6 +291,10 @@ def _extract(payload: dict) -> dict:
         "tickets_answered_count":     tickets_answered_count,
         "customer_disposition":       customer_disposition,
         "ended_early_reason":         ended_early_reason,
+        # Underscore prefix → ignored by insert_vapi_call, never hits the DB.
+        # Used in-memory by the Haiku fallback before being discarded with the
+        # rest of the parsed dict at the end of webhook processing.
+        "_transcript_for_extraction": transcript,
     }
 
 
