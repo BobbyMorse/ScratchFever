@@ -100,6 +100,11 @@ async def lifespan(app: FastAPI):
     await seed_admin()
     logger.info("startup: schema init complete")
 
+    # Durable VAPI analysis poller — heals rows whose webhook backstop
+    # didn't survive a process restart. Starts on every boot, no-ops when
+    # VAPI_PRIVATE_KEY is missing. Tracked so we can cancel on shutdown.
+    vapi_poller_task = asyncio.create_task(analysis_poller_loop())
+
     if SCHEDULER_DISABLED:
         logger.info("DISABLE_SCHEDULER=1 — scrapers will NOT run in this process "
                     "(assuming a dedicated worker service is handling them)")
