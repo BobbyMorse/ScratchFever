@@ -1084,6 +1084,25 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
 }
 .cf-list-status-pulse { animation: cfBadgePulse 1.4s ease-in-out infinite; }
 @keyframes cfBadgePulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+
+/* "Has It" pin for the campaign detail map — big and unmissable. */
+.hit-marker { background: transparent; border: none; }
+.hit-marker-inner {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #00ff9c, #00b86b);
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 2px rgba(0,0,0,.35), 0 3px 8px rgba(0,0,0,.35),
+              0 0 0 0 rgba(0,255,136,.7);
+  color: #002a14;
+  font-weight: 900; font-size: 1.15rem; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  animation: hitMarkerPulse 1.8s ease-in-out infinite;
+}
+@keyframes hitMarkerPulse {
+  0%   { box-shadow: 0 0 0 2px rgba(0,0,0,.35), 0 3px 8px rgba(0,0,0,.35), 0 0 0 0   rgba(0,255,136,.7); }
+  70%  { box-shadow: 0 0 0 2px rgba(0,0,0,.35), 0 3px 8px rgba(0,0,0,.35), 0 0 0 14px rgba(0,255,136,0); }
+  100% { box-shadow: 0 0 0 2px rgba(0,0,0,.35), 0 3px 8px rgba(0,0,0,.35), 0 0 0 0   rgba(0,255,136,0); }
+}
 /* Neutralize the default leaflet-cluster orange/yellow/green styling so our
    custom donut renders cleanly. The default CSS targets .marker-cluster div
    with fixed width/height/border-radius — strip it. */
