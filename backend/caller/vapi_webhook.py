@@ -690,6 +690,54 @@ async def vapi_delete_call(call_id: int, _user: dict = Depends(require_admin)):
     return {"ok": True, "deleted_id": call_id}
 
 
+@router.post("/calls/{call_id}/refetch")
+async def vapi_force_refetch(call_id: int, _user: dict = Depends(require_admin)):
+    """Force-pull /call/{id} from VAPI for one local row, apply any analysis,
+    return the raw VAPI response. Diagnostic — lets you see exactly what VAPI
+    has for a stuck row without guessing."""
+    key = os.getenv("VAPI_PRIVATE_KEY")
+    if not key:
+        raise HTTPException(status_code=503, detail="VAPI_PRIVATE_KEY not configured")
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT id, vapi_call_id FROM vapi_calls WHERE id = $1", call_id
+        )
+    if not row or not row["vapi_call_id"]:
+        raise HTTPException(status_code=404, detail="Call not found or has no vapi_call_id")
+
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        try:
+            raw = await client.get(
+                f"https://api.vapi.ai/call/{row['vapi_call_id']}",
+                headers={"Authorization": f"Bearer {key}"},
+            )
+        except Exception as exc:
+            return {"ok": False, "error": f"VAPI GET failed: {exc}"}
+        raw_data = raw.json() if raw.status_code == 200 else None
+        outcome = await _apply_analysis_for_row(
+            row["id"], row["vapi_call_id"], key, client,
+        )
+
+    analysis = (raw_data or {}).get("analysis") or {}
+    structured = analysis.get("structuredData") or {}
+    return {
+        "ok":                  True,
+        "vapi_call_id":        row["vapi_call_id"],
+        "vapi_status_code":    raw.status_code,
+        "vapi_call_status":    (raw_data or {}).get("status"),
+        "vapi_ended_reason":   (raw_data or {}).get("endedReason"),
+        "has_summary":         bool(analysis.get("summary")),
+        "has_structured_data": bool(structured),
+        "has_per_ticket":      bool(structured.get("per_ticket_results")),
+        "analysis_keys":       sorted(list(analysis.keys())),
+        "structured_keys":     sorted(list(structured.keys())),
+        "summary_preview":     (analysis.get("summary") or "")[:200],
+        "per_ticket":          structured.get("per_ticket_results"),
+        "applied":             outcome,
+    }
+
+
 def _parse_vapi_iso(value: Optional[str]) -> Optional[dt.datetime]:
     if not value:
         return None
