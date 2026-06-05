@@ -3039,6 +3039,8 @@ async function deleteCallerCall(callId, btn) {
     const res = await callerFetch(`/api/vapi/calls/${callId}`, { method: "DELETE" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     _callerRecent = _callerRecent.filter(c => c.id !== callId);
+    _rebuildCallLookup();
+    refreshStoresMapStatus();
     renderCallerRecent();
   } catch (e) {
     alert("Failed to delete call: " + (e && e.message ? e.message : e));
