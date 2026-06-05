@@ -51,6 +51,7 @@ from backend.caller.vapi_db import (
     recent_vapi_calls,
 )
 from backend.caller.vapi_dispatch import record_transport_error
+from backend.caller.analysis_fallback import extract_from_transcript
 
 logger = logging.getLogger(__name__)
 
