@@ -463,7 +463,154 @@ async def vapi_webhook(
                 call_id,
             )
 
+    # VAPI computes the analysis block (summary + per_ticket_results) async
+    # AFTER firing end-of-call-report, and never re-fires the webhook when it
+    # lands. If we got a conversational call but no per_ticket data yet,
+    # schedule a delayed re-fetch from /call/{id} so the inventory mirror
+    # still happens once VAPI's analysis catches up.
+    should_refetch = (
+        has_retailer
+        and not parsed.get("is_voicemail")
+        and inventory_rows_written == 0
+        and not parsed["per_ticket"]
+        and (parsed.get("duration_sec") or 0) >= 5
+        and parsed.get("vapi_call_id")
+    )
+    if should_refetch:
+        asyncio.create_task(
+            _refetch_and_apply_analysis(call_id, parsed["vapi_call_id"])
+        )
+
     return {"ok": True, "call_id": call_id, "inventory_rows_written": inventory_rows_written}
+
+
+async def _refetch_and_apply_analysis(local_id: int, vapi_call_id: str) -> None:
+    """Wait for VAPI to finish computing analysis, then pull it down and apply.
+    Backstops the case where end-of-call-report arrives without `analysis`
+    populated — VAPI computes it async and never re-fires the webhook, so
+    without this the row sits forever with ended_reason but no per_ticket data.
+    Idempotent via inventory_mirrored_at."""
+    key = os.getenv("VAPI_PRIVATE_KEY")
+    if not key:
+        return
+    await asyncio.sleep(90)
+    try:
+        async with httpx.AsyncClient(timeout=15.0) as c:
+            r = await c.get(
+                f"https://api.vapi.ai/call/{vapi_call_id}",
+                headers={"Authorization": f"Bearer {key}"},
+            )
+    except Exception as exc:
+        logger.warning("VAPI delayed re-fetch /call/%s failed: %s", vapi_call_id, exc)
+        return
+    if r.status_code != 200:
+        logger.warning("VAPI delayed re-fetch /call/%s -> %s", vapi_call_id, r.status_code)
+        return
+    d = r.json()
+    analysis   = d.get("analysis") or {}
+    structured = analysis.get("structuredData") or {}
+    summary    = analysis.get("summary")
+    per_ticket = structured.get("per_ticket_results")
+    if not summary and not per_ticket:
+        logger.info("VAPI delayed re-fetch %s: analysis still empty after 90s", vapi_call_id)
+        return
+
+    per_ticket_json = json.dumps(per_ticket, default=str) if per_ticket else None
+
+    def _maybe_int(v):
+        try:
+            return int(v) if v is not None else None
+        except Exception:
+            return None
+
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            """
+            UPDATE vapi_calls SET
+                summary                    = COALESCE(summary,                    $2),
+                notes                      = COALESCE(notes,                      $3),
+                per_ticket_results         = COALESCE(per_ticket_results,         $4::jsonb),
+                answered_phone             = COALESCE(answered_phone,             $5),
+                confirmed_sells_scratch    = COALESCE(confirmed_sells_scratch,    $6),
+                inventory_actually_checked = COALESCE(inventory_actually_checked, $7),
+                tickets_asked_count        = COALESCE(tickets_asked_count,        $8),
+                tickets_answered_count     = COALESCE(tickets_answered_count,     $9),
+                customer_disposition       = COALESCE(customer_disposition,       $10),
+                ended_early_reason         = COALESCE(ended_early_reason,         $11)
+            WHERE id = $1
+            RETURNING retailer_external_id, retailer_name, retailer_city,
+                      to_phone, ended_at, is_voicemail, game_name,
+                      inventory_mirrored_at IS NOT NULL AS mirrored
+            """,
+            local_id,
+            summary,
+            structured.get("summary_notes"),
+            per_ticket_json,
+            _to_bool(structured.get("answered_phone")),
+            _to_bool(structured.get("confirmed_sells_scratch")),
+            _to_bool(structured.get("inventory_actually_checked")),
+            _maybe_int(structured.get("tickets_asked_count")),
+            _maybe_int(structured.get("tickets_answered_count")),
+            structured.get("customer_disposition"),
+            structured.get("ended_early_reason"),
+        )
+
+    if not row or row["mirrored"] or row["is_voicemail"] or not per_ticket:
+        return
+    rext = row["retailer_external_id"]
+    if not rext or rext == "test":
+        return
+
+    geo = await find_retailer_by_phone(_digits_only(row["to_phone"] or ""))
+    lat = geo["latitude"]  if geo else None
+    lng = geo["longitude"] if geo else None
+    asked_names = _split_asked_names(row["game_name"])
+
+    rows_written = 0
+    async with pool.acquire() as conn:
+        for t in per_ticket:
+            if not isinstance(t, dict):
+                continue
+            raw_name = (t.get("name") or "").strip()
+            t_name = _canonical_ticket_name(raw_name, asked_names)
+            t_has  = _to_bool(t.get("has_game"))
+            if not t_name or t_has is None:
+                continue
+            t_price = _to_float(t.get("price"))
+            t_conf  = _to_float(t.get("confidence"))
+            t_notes = t.get("notes") or t.get("note")
+            note_parts = []
+            if t_notes:
+                note_parts.append(str(t_notes))
+            if t_conf is not None:
+                note_parts.append(f"conf={t_conf:.2f}")
+            await add_inventory_report(
+                conn,
+                retailer_id=rext,
+                retailer_name=row["retailer_name"],
+                retailer_city=row["retailer_city"],
+                lat=lat,
+                lng=lng,
+                game_name=t_name,
+                game_price=t_price,
+                has_stock=bool(t_has),
+                source="vapi_call",
+                reporter_username="vapi",
+                notes=" · ".join(note_parts) or None,
+                reported_at=row["ended_at"],
+            )
+            rows_written += 1
+    if rows_written > 0:
+        async with pool.acquire() as conn:
+            await conn.execute(
+                "UPDATE vapi_calls SET inventory_mirrored_at = NOW() WHERE id = $1",
+                local_id,
+            )
+        logger.info(
+            "VAPI delayed re-fetch %s wrote %d inventory rows",
+            vapi_call_id, rows_written,
+        )
 
 
 @router.get("/recent")
