@@ -30,8 +30,10 @@ Field locations vary across VAPI SDK versions, so we extract defensively
 and store the raw payload as JSONB for inspection if anything is missing.
 """
 from __future__ import annotations
+import asyncio
 import datetime as dt
 import hmac
+import json
 import logging
 import os
 import re
