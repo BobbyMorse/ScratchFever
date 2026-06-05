@@ -3845,7 +3845,10 @@ function renderStoresMap() {
     if (!isFinite(lat) || !isFinite(lng)) return;
     bounds.push([lat, lng]);
     const m = L.marker([lat, lng], { icon: _storeMarkerIcon(c) });
-    m._cf_extId = c.external_id; // for the cluster icon function to read status
+    // Attach the candidate directly so _buildClusterIcon doesn't have to do an
+    // O(n) Array.find per marker — a top-level cluster with thousands of
+    // stores would otherwise freeze the page on every refreshClusters() tick.
+    m._cf_candidate = c;
     m.bindPopup(_storeMarkerPopup(c));
     m.on("click", () => toggleStoreById(c.external_id));
     _storesCluster.addLayer(m);
