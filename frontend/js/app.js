@@ -2948,7 +2948,7 @@ function _scheduleCallerLivePoll() {
     clearTimeout(_callerRecentPollTimer);
     _callerRecentPollTimer = null;
   }
-  const hasLive = _callerRecent.some(c => !_isLiveTerminal(c));
+  const hasLive = _callerRecent.some(c => !_isLiveTerminal(c) || _needsAnalysisChase(c));
   if (!hasLive) {
     _callerPollTickCount = 0;
     return;
