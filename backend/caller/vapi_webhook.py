@@ -765,18 +765,23 @@ async def _persist_terminal_status(msg: dict) -> None:
 
 @router.post("/reconcile_inflight")
 async def vapi_reconcile_inflight(_user: dict = Depends(require_admin)):
-    """Pull status from VAPI for every local call that's stuck without an
-    ended_reason. Most stuck rows are calls that VAPI ended with a non-conversational
-    reason (transport error, did-not-answer, voicemail-without-leave) — those don't
-    trigger an end-of-call-report webhook, so the local row stays "In flight" forever
-    until we ask VAPI directly."""
+    """Heal local rows by pulling fresh state from VAPI. Two passes:
+      1. In-flight rows (no ended_reason yet) — typically transport-error /
+         no-answer / voicemail-without-leave calls that never fire an
+         end-of-call-report webhook.
+      2. Analysis-pending rows (have ended_reason but missing summary or
+         per_ticket_results) — VAPI computes structuredData asynchronously
+         after end-of-call-report and never re-fires the webhook when it
+         lands, so without this pass the summary and the public inventory
+         mirror stay empty forever.
+    Both passes share one HTTP client and write idempotently."""
     key = os.getenv("VAPI_PRIVATE_KEY")
     if not key:
         raise HTTPException(status_code=503, detail="VAPI_PRIVATE_KEY not configured")
 
     pool = get_pool()
     async with pool.acquire() as conn:
-        rows = await conn.fetch(
+        inflight = await conn.fetch(
             """
             SELECT id, vapi_call_id
             FROM vapi_calls
@@ -788,11 +793,33 @@ async def vapi_reconcile_inflight(_user: dict = Depends(require_admin)):
             LIMIT 200
             """
         )
+        # Analysis-pending: terminal-state rows that the webhook handler's
+        # 90s backstop either gave up on, missed (process restart), or that
+        # VAPI's extractor took longer than 90s to populate. The 90-second
+        # lower bound mirrors the webhook's own wait so we don't race it.
+        analysis_pending = await conn.fetch(
+            """
+            SELECT id, vapi_call_id
+            FROM vapi_calls
+            WHERE vapi_call_id IS NOT NULL
+              AND ended_reason IS NOT NULL
+              AND COALESCE(is_voicemail, false) = false
+              AND (summary IS NULL OR per_ticket_results IS NULL)
+              AND inventory_mirrored_at IS NULL
+              AND received_at < NOW() - INTERVAL '90 seconds'
+              AND received_at > NOW() - INTERVAL '2 hours'
+            ORDER BY received_at DESC
+            LIMIT 200
+            """
+        )
 
     updated = 0
     still_pending = 0
+    analysis_filled = 0
+    inventory_rows = 0
+
     async with httpx.AsyncClient(timeout=10.0) as client:
-        for r in rows:
+        for r in inflight:
             try:
                 resp = await client.get(
                     f"https://api.vapi.ai/call/{r['vapi_call_id']}",
@@ -830,4 +857,19 @@ async def vapi_reconcile_inflight(_user: dict = Depends(require_admin)):
                 )
             updated += 1
 
-    return {"checked": len(rows), "updated": updated, "still_pending": still_pending}
+        for r in analysis_pending:
+            outcome = await _apply_analysis_for_row(
+                r["id"], r["vapi_call_id"], key, client,
+            )
+            if outcome["analysis_written"]:
+                analysis_filled += 1
+            inventory_rows += outcome["inventory_rows"]
+
+    return {
+        "checked":         len(inflight),
+        "updated":         updated,
+        "still_pending":   still_pending,
+        "analysis_checked": len(analysis_pending),
+        "analysis_filled": analysis_filled,
+        "inventory_rows":  inventory_rows,
+    }
