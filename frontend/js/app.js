@@ -3100,7 +3100,7 @@ function openCallDetail(callId) {
 
   document.getElementById("callDetailBody").innerHTML = `
     <div class="call-detail-header">
-      <div class="call-detail-title">${escHtml(retailer)}</div>
+      <div class="call-detail-title">${retailer}</div>
       <div class="call-detail-meta">${meta}</div>
       <div style="font-size:.85rem;margin-top:.2rem"><strong>Asked about:</strong> ${escHtml(c.game_name || "—")}</div>
     </div>
