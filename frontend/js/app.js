@@ -3812,24 +3812,7 @@ function renderStoresMap() {
     if (!isFinite(lat) || !isFinite(lng)) return;
     bounds.push([lat, lng]);
     const m = L.marker([lat, lng], { icon: _storeMarkerIcon(c) });
-    const phoneShort = c.phone ? String(c.phone).replace(/[^0-9]/g, "").slice(-10).replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3") : "—";
-    const calledLine = c.last_called_at
-      ? `Called ${_relativeDays(c.last_called_at)}${c.called_within_window ? ' (within window)' : ''}`
-      : 'Never called';
-    const invLine = c.inventory_updated ? '<br>Inventory ✓ updated previously' : '';
-    const scoreLine = c.score != null ? `<br>Score ${Math.round(c.score)}` : '';
-    m.bindPopup(
-      `<div style="font-size:.85rem">
-         <div style="font-weight:700">${escHtml(c.name || '(unnamed)')}</div>
-         <div style="color:#666;font-size:.78rem">${escHtml(c.city || '—')} · ${phoneShort}${scoreLine}</div>
-         <div style="font-size:.78rem;margin-top:.3rem">${calledLine}${invLine}</div>
-         <div style="margin-top:.45rem">
-           <button onclick="toggleStoreById('${escHtml(c.external_id)}')" style="font-size:.78rem;padding:.25rem .55rem;border:1px solid #ccc;border-radius:4px;cursor:pointer;background:#fff">
-             ${_selectedStores.has(c.external_id) ? 'Remove from call list' : 'Add to call list'}
-           </button>
-         </div>
-       </div>`
-    );
+    m.bindPopup(_storeMarkerPopup(c));
     m.on("click", () => toggleStoreById(c.external_id));
     _storesCluster.addLayer(m);
     _storesMarkers.set(c.external_id, m);
@@ -3838,7 +3821,105 @@ function renderStoresMap() {
   if (bounds.length) {
     try { _storesMap.fitBounds(bounds, { padding: [20, 20], maxZoom: 12 }); } catch (_) {}
   }
+  _renderMapStatusStrip();
   setTimeout(() => _storesMap && _storesMap.invalidateSize(), 50);
+}
+
+function _storeMarkerPopup(c) {
+  const phoneShort = c.phone ? String(c.phone).replace(/[^0-9]/g, "").slice(-10).replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3") : "—";
+  const scoreLine  = c.score != null ? ` · Score ${Math.round(c.score)}` : "";
+  const call       = _latestCallForStore(c);
+  let statusBlock  = "";
+  if (call) {
+    const k = _classifyCall(call);
+    const meta = _CALL_STATUS_META[k] || { color: "#94a3b8", label: k };
+    const when = call.ended_at || call.received_at;
+    const whenStr = when ? _relativeDays(when) : "";
+    const conf = call.confidence != null ? ` · ${Math.round(parseFloat(call.confidence) * 100)}% conf` : "";
+    let ptLine = "";
+    if (Array.isArray(call.per_ticket_results) && call.per_ticket_results.length) {
+      const yes = call.per_ticket_results.filter(t => t && t.has_game === true).length;
+      const no  = call.per_ticket_results.filter(t => t && t.has_game === false).length;
+      ptLine = `<div style="font-size:.75rem;color:#444;margin-top:.15rem">${yes} in stock · ${no} OOS</div>`;
+    } else if (call.game_name) {
+      const flag = call.has_game === true ? "✓" : call.has_game === false ? "✗" : "?";
+      ptLine = `<div style="font-size:.75rem;color:#444;margin-top:.15rem">${flag} ${escHtml(call.game_name)}</div>`;
+    }
+    const detailLink = (call.summary || call.transcript || (call.per_ticket_results && call.per_ticket_results.length))
+      ? ` · <a href="javascript:void(0)" onclick="openCallDetail(${call.id})" style="color:#2563eb">transcript</a>`
+      : "";
+    statusBlock = `
+      <div style="margin-top:.4rem;padding:.35rem .5rem;border-radius:5px;background:${meta.color}1f;border-left:3px solid ${meta.color}">
+        <div style="font-size:.78rem;font-weight:700;color:${meta.color}">${meta.label}${whenStr ? ` · ${whenStr}` : ""}${conf}</div>
+        ${ptLine}
+        <div style="font-size:.72rem;color:#666;margin-top:.15rem">Call #${call.id}${detailLink}</div>
+      </div>`;
+  } else {
+    const calledLine = c.last_called_at
+      ? `Called ${_relativeDays(c.last_called_at)}${c.called_within_window ? " (within window)" : ""}`
+      : "Never called";
+    const invLine = c.inventory_updated ? " · Inventory ✓ on file" : "";
+    statusBlock = `<div style="font-size:.78rem;color:#555;margin-top:.3rem">${calledLine}${invLine}</div>`;
+  }
+  return `<div style="font-size:.85rem;min-width:200px">
+    <div style="font-weight:700">${escHtml(c.name || "(unnamed)")}</div>
+    <div style="color:#666;font-size:.78rem">${escHtml(c.city || "—")} · ${phoneShort}${scoreLine}</div>
+    ${statusBlock}
+    <div style="margin-top:.45rem">
+      <button onclick="toggleStoreById('${escHtml(c.external_id)}')" style="font-size:.78rem;padding:.25rem .55rem;border:1px solid #ccc;border-radius:4px;cursor:pointer;background:#fff">
+        ${_selectedStores.has(c.external_id) ? "Remove from call list" : "Add to call list"}
+      </button>
+    </div>
+  </div>`;
+}
+
+// Update every marker icon + popup in place. Cheap — no map rebuild, no
+// fitBounds — safe to call on every poll tick when _callerRecent refreshes.
+function refreshStoresMapStatus() {
+  if (!_storesMap || !_storesMarkers.size) {
+    _renderMapStatusStrip();
+    return;
+  }
+  _storeCandidates.forEach(c => {
+    const m = _storesMarkers.get(c.external_id);
+    if (!m) return;
+    m.setIcon(_storeMarkerIcon(c));
+    const popup = m.getPopup();
+    if (popup) {
+      const html = _storeMarkerPopup(c);
+      popup.setContent(html);
+    }
+  });
+  _renderMapStatusStrip();
+}
+
+function _renderMapStatusStrip() {
+  const el = document.getElementById("cfStoresMapStatus");
+  if (!el) return;
+  if (!_storeCandidates.length) { el.textContent = ""; return; }
+  const counts = { in_flight: 0, in_stock: 0, out_of_stock: 0, voicemail: 0, no_answer: 0 };
+  let coveredStores = 0;
+  _storeCandidates.forEach(c => {
+    const call = _latestCallForStore(c);
+    if (!call) return;
+    coveredStores += 1;
+    const k = _classifyCall(call);
+    if (counts[k] != null) counts[k] += 1;
+  });
+  if (!coveredStores) {
+    el.innerHTML = `<span style="color:var(--text-muted)">No call activity for this state yet.</span>`;
+    return;
+  }
+  const pill = (k) => {
+    const m = _CALL_STATUS_META[k];
+    if (!m || !counts[k]) return "";
+    return `<span style="display:inline-flex;align-items:center;gap:.3rem;padding:.15rem .45rem;border-radius:999px;background:${m.color}1f;color:${m.color};font-weight:700">
+      <span style="width:8px;height:8px;border-radius:50%;background:${m.color};display:inline-block"></span>
+      ${counts[k].toLocaleString()} ${m.label}
+    </span>`;
+  };
+  el.innerHTML = `${pill("in_flight")} ${pill("in_stock")} ${pill("out_of_stock")} ${pill("voicemail")} ${pill("no_answer")}
+    <span style="color:var(--text-muted);margin-left:auto">${coveredStores.toLocaleString()} of ${_storeCandidates.length.toLocaleString()} stores have call history</span>`;
 }
 
 function toggleStoreById(id) {
