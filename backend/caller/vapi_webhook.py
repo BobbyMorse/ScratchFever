@@ -313,6 +313,7 @@ async def vapi_webhook(
         return {"ok": True, "ignored": msg_type}
 
     parsed = _extract(payload)
+    _record_transport_error_from_msg(payload.get("message") or payload)
 
     # If VAPI variables didn't carry the store identity, try to match by phone.
     if not parsed["retailer_external_id"] and parsed["to_phone"]:
