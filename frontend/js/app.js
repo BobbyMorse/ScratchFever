@@ -3569,6 +3569,17 @@ function renderStoresPicker() {
     const invBadge = c.inventory_updated
       ? `<span class="badge" style="background:rgba(34,197,94,0.15);color:#166534;font-size:.7rem" title="A prior VAPI call wrote inventory_reports for this store">Inventory ✓</span>`
       : "";
+    // Live status badge driven by _callerRecent — shows in-flight/in-stock/etc.
+    const liveCall = _latestCallForStore(c);
+    let liveBadge = "";
+    if (liveCall) {
+      const k = _classifyCall(liveCall);
+      const meta = _CALL_STATUS_META[k];
+      if (meta) {
+        const pulseAttr = meta.pulse ? "cf-list-status-pulse" : "";
+        liveBadge = `<span class="badge ${pulseAttr}" style="background:${meta.color}1f;color:${meta.color};font-size:.7rem" title="Latest call #${liveCall.id} — ${meta.label}">${meta.label}</span>`;
+      }
+    }
     const phoneShort = c.phone ? String(c.phone).replace(/[^0-9]/g, "").slice(-10).replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3") : "—";
     return `<label class="cf-ticket-row" style="display:grid;grid-template-columns:auto 1fr auto;gap:.55rem;align-items:center;padding:.35rem .55rem">
       <input type="checkbox" data-id="${escHtml(c.external_id)}" ${checked} onchange="toggleStore(this)" />
@@ -3577,7 +3588,7 @@ function renderStoresPicker() {
         <div style="font-size:.72rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(c.city || "—")} · ${phoneShort}</div>
       </div>
       <div style="display:flex;gap:.3rem;align-items:center;flex-wrap:wrap;justify-content:flex-end">
-        ${scoreBadge} ${calledEverBadge} ${inWindowBadge} ${invBadge}
+        ${scoreBadge} ${liveBadge} ${calledEverBadge} ${inWindowBadge} ${invBadge}
       </div>
     </label>`;
   }).join("");
