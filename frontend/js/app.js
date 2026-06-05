@@ -3571,16 +3571,9 @@ function renderStoresPicker() {
     const scoreBadge = c.score != null
       ? `<span class="badge" style="background:rgba(99,102,241,0.12);color:#4338ca;font-size:.7rem">${Math.round(c.score)}</span>`
       : "";
-    const calledEverBadge = c.last_called_at
-      ? `<span class="badge" style="background:rgba(245,158,11,0.15);color:#92400e;font-size:.7rem" title="Last AI-called ${c.last_called_at.slice(0,10)}${c.last_talked ? ' · had real conversation' : ''}">Called ${_relativeDays(c.last_called_at)}</span>`
-      : `<span class="badge" style="background:rgba(148,163,184,0.18);color:#475569;font-size:.7rem">Never called</span>`;
-    const inWindowBadge = c.called_within_window
-      ? `<span class="badge" style="background:rgba(239,68,68,0.12);color:#991b1b;font-size:.7rem" title="AI-called within the ${cooldownDays}-day recall window">Within ${cooldownDays}d</span>`
-      : "";
-    const invBadge = c.inventory_updated
-      ? `<span class="badge" style="background:rgba(34,197,94,0.15);color:#166534;font-size:.7rem" title="A prior VAPI call wrote inventory_reports for this store">Inventory ✓</span>`
-      : "";
     // Live status badge driven by _callerRecent — shows in-flight/in-stock/etc.
+    // Computed first so the historical badge can fall back to this call's
+    // timestamp when the candidates endpoint hasn't caught up yet.
     const liveCall = _latestCallForStore(c);
     let liveBadge = "";
     if (liveCall) {
@@ -3591,6 +3584,18 @@ function renderStoresPicker() {
         liveBadge = `<span class="badge ${pulseAttr}" style="background:${meta.color}1f;color:${meta.color};font-size:.7rem" title="Latest call #${liveCall.id} — ${meta.label}">${meta.label}</span>`;
       }
     }
+    const liveCallTs = liveCall && (liveCall.received_at || liveCall.ended_at);
+    const calledEverBadge = c.last_called_at
+      ? `<span class="badge" style="background:rgba(245,158,11,0.15);color:#92400e;font-size:.7rem" title="Last AI-called ${c.last_called_at.slice(0,10)}${c.last_talked ? ' · had real conversation' : ''}">Called ${_relativeDays(c.last_called_at)}</span>`
+      : liveCallTs
+        ? `<span class="badge" style="background:rgba(245,158,11,0.15);color:#92400e;font-size:.7rem" title="AI-called just now (call #${liveCall.id})">Called ${_relativeDays(liveCallTs)}</span>`
+        : `<span class="badge" style="background:rgba(148,163,184,0.18);color:#475569;font-size:.7rem">Never called</span>`;
+    const inWindowBadge = c.called_within_window
+      ? `<span class="badge" style="background:rgba(239,68,68,0.12);color:#991b1b;font-size:.7rem" title="AI-called within the ${cooldownDays}-day recall window">Within ${cooldownDays}d</span>`
+      : "";
+    const invBadge = c.inventory_updated
+      ? `<span class="badge" style="background:rgba(34,197,94,0.15);color:#166534;font-size:.7rem" title="A prior VAPI call wrote inventory_reports for this store">Inventory ✓</span>`
+      : "";
     const phoneShort = c.phone ? String(c.phone).replace(/[^0-9]/g, "").slice(-10).replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3") : "—";
     return `<label class="cf-ticket-row" style="display:grid;grid-template-columns:auto 1fr auto;gap:.55rem;align-items:center;padding:.35rem .55rem">
       <input type="checkbox" data-id="${escHtml(c.external_id)}" ${checked} onchange="toggleStore(this)" />
