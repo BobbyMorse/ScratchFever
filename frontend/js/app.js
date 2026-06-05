@@ -2906,7 +2906,11 @@ async function loadCallerData() {
     populateTestPhoneNumberPicker(config.phone_numbers || []);
 
     _callerRecent = recent.calls || [];
+    _rebuildCallLookup();
+    refreshStoresMapStatus();
     renderCallerRecent();
+    // Keep list view's status badges in sync with the live call feed too.
+    if (_storesView === "list" && _storeCandidates.length) renderStoresPicker();
   } catch (e) {
     const body = document.getElementById("callerRecentBody");
     if (body) body.innerHTML = `<tr><td colspan="10" class="loading-cell">Failed to load caller data. Is the server running?</td></tr>`;
