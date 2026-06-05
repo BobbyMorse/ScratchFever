@@ -507,6 +507,22 @@ def _parse_vapi_iso(value: Optional[str]) -> Optional[dt.datetime]:
         return None
 
 
+def _record_transport_error_from_msg(msg: dict) -> None:
+    """Feed VAPI's endedReason + phoneNumberId into the dispatcher's circuit
+    breaker. No-op when either is missing or when the reason isn't a transport
+    failure."""
+    if not isinstance(msg, dict):
+        return
+    call = msg.get("call") or {}
+    pid = (
+        call.get("phoneNumberId")
+        or (call.get("phoneNumber") or {}).get("id")
+        or msg.get("phoneNumberId")
+    )
+    ended_reason = _pick(msg, "endedReason", "ended_reason")
+    record_transport_error(pid, ended_reason)
+
+
 async def _persist_live_status(msg: dict, status: str) -> None:
     """Write the current VAPI lifecycle status (queued/ringing/in-progress/
     forwarding/ended) to the row so the UI can show real-time progress."""
