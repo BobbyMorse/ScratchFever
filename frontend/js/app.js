@@ -2521,28 +2521,40 @@ function renderInventoryCluster(map, layerKey, opts) {
     showCoverageOnHover: false,
     spiderfyOnMaxZoom: true,
     disableClusteringAtZoom: 16,
-    // Color clusters by inventory status, not by count. Green when any child
-    // has in-stock inventory; red when every checked child is out; otherwise grey.
+    // Color clusters by inventory status. Green if any child is in-stock.
+    // Red only when every child is checked AND out. Mixed (some out + some
+    // unchecked) stays neutral and shows a split badge like "1·8" so the
+    // confirmed-out count isn't conflated with the unknown ones.
     iconCreateFunction: (c) => {
       const children = c.getAllChildMarkers();
-      let hasInStock = false;
-      let outCount = 0;
-      let checkedCount = 0;
+      let inCount = 0, outCount = 0, uncheckedCount = 0;
       for (const m of children) {
         const s = m.options.sfStockState;
-        if (s === "in") { hasInStock = true; break; }
-        if (s === "out") { outCount++; checkedCount++; }
-        else if (s === "unchecked") { /* skip */ }
-        else { checkedCount++; }
+        if (s === "in") inCount++;
+        else if (s === "out") outCount++;
+        else uncheckedCount++;
       }
-      const allOut = !hasInStock && checkedCount > 0 && outCount === checkedCount;
-      let variant, inner;
-      if (hasInStock) { variant = "sf-cluster-instock"; inner = "rgba(0,204,68,1)"; }
-      else if (allOut) { variant = "sf-cluster-outofstock"; inner = "rgba(204,34,0,1)"; }
-      else { variant = "sf-cluster-neutral"; inner = "rgba(150,150,150,0.9)"; }
-      const count = children.length;
+      const total = children.length;
+      let variant, inner, badge;
+      if (inCount > 0) {
+        variant = "sf-cluster-instock";
+        inner = "rgba(0,204,68,1)";
+        badge = `<span>${total}</span>`;
+      } else if (uncheckedCount === 0) {
+        variant = "sf-cluster-outofstock";
+        inner = "rgba(204,34,0,1)";
+        badge = `<span>${total}</span>`;
+      } else if (outCount === 0) {
+        variant = "sf-cluster-neutral";
+        inner = "rgba(150,150,150,0.9)";
+        badge = `<span>${total}</span>`;
+      } else {
+        variant = "sf-cluster-neutral sf-cluster-mixed";
+        inner = "rgba(150,150,150,0.9)";
+        badge = `<span class="sf-cluster-split"><b>${outCount}</b>·${uncheckedCount}</span>`;
+      }
       return L.divIcon({
-        html: `<div style="background:${inner}"><span>${count}</span></div>`,
+        html: `<div style="background:${inner}">${badge}</div>`,
         className: `sf-cluster ${variant}`,
         iconSize: L.point(40, 40),
       });
