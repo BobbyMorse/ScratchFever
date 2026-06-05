@@ -23,10 +23,31 @@ import json
 import os
 import sys
 
+import re
+
 import httpx
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from backend.database import get_pool, init_db, add_inventory_report  # noqa: E402
+
+
+def _split_asked_names(asked_field):
+    if not asked_field:
+        return []
+    return [n.strip() for n in str(asked_field).split(",") if n.strip()]
+
+
+def _canonical_ticket_name(reported, asked):
+    """Bot occasionally drifts on case/spacing ('300 x' -> '300X'). Map back
+    to whichever name we actually asked about, so the inventory dashboard's
+    exact-name lookup matches. Falls back to reported when no match."""
+    if not reported or not asked:
+        return reported
+    target = re.sub(r"\s+", "", reported).lower()
+    for canonical in asked:
+        if re.sub(r"\s+", "", canonical).lower() == target:
+            return canonical
+    return reported
 
 
 def _to_bool(v):
