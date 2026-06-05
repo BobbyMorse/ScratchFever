@@ -1085,6 +1085,25 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
 .cf-list-status-pulse { animation: cfBadgePulse 1.4s ease-in-out infinite; }
 @keyframes cfBadgePulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
 
+/* In-stock dot for the public inventory/state maps — larger, brighter, pulsing
+   so green markers actually catch the eye against the tile background. Stays
+   smaller than the .hit-marker pin since these cluster densely. */
+.sf-dot-instock { background: transparent; border: none; }
+.sf-dot-instock-inner {
+  display: block;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: radial-gradient(circle at 32% 30%, #4dff9a, #00b34d);
+  border: 2.5px solid #fff;
+  box-shadow: 0 0 0 1.5px rgba(0,0,0,.4), 0 2px 5px rgba(0,0,0,.35),
+              0 0 0 0 rgba(0,200,80,.65);
+  animation: sfDotInstockPulse 2.1s ease-in-out infinite;
+}
+@keyframes sfDotInstockPulse {
+  0%   { box-shadow: 0 0 0 1.5px rgba(0,0,0,.4), 0 2px 5px rgba(0,0,0,.35), 0 0 0 0   rgba(0,200,80,.65); }
+  70%  { box-shadow: 0 0 0 1.5px rgba(0,0,0,.4), 0 2px 5px rgba(0,0,0,.35), 0 0 0 10px rgba(0,200,80,0); }
+  100% { box-shadow: 0 0 0 1.5px rgba(0,0,0,.4), 0 2px 5px rgba(0,0,0,.35), 0 0 0 0   rgba(0,200,80,0); }
+}
+
 /* "Has It" pin for the campaign detail map — big and unmissable. */
 .hit-marker { background: transparent; border: none; }
 .hit-marker-inner {
