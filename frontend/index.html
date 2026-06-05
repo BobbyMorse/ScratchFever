@@ -1354,13 +1354,17 @@
                   <button type="button" class="btn" id="cfRegionSelectBtn" onclick="toggleRegionSelect()" style="display:none;font-size:.74rem;padding:.28rem .65rem;white-space:nowrap">Select region</button>
                 </div>
                 <div id="cfStoresList" class="cf-tickets-list" style="max-height:340px;overflow-y:auto">— Pick a state first —</div>
+                <div id="cfStoresMapStatus" style="display:none;font-size:.72rem;margin-bottom:.4rem;flex-wrap:wrap;gap:.45rem;align-items:center"></div>
                 <div id="cfStoresMap" style="display:none;height:480px;border-radius:6px;overflow:hidden;background:#eef2f7;position:relative"></div>
                 <div id="cfStoresMapLegend" style="display:none;font-size:.72rem;color:var(--text-muted);margin-top:.4rem;flex-wrap:wrap;gap:.9rem">
                   <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#22c55e;margin-right:.25rem"></span>Selected</span>
-                  <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#94a3b8;margin-right:.25rem"></span>Not selected</span>
-                  <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#f59e0b;margin-right:.25rem"></span>Called ever</span>
-                  <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#ef4444;margin-right:.25rem"></span>Within recall window</span>
-                  <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#6366f1;margin-right:.25rem"></span>Inventory updated</span>
+                  <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#fbbf24;margin-right:.25rem;box-shadow:0 0 0 2px rgba(251,191,36,.35)"></span>In flight</span>
+                  <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#16a34a;margin-right:.25rem"></span>In stock</span>
+                  <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#64748b;margin-right:.25rem"></span>Out of stock</span>
+                  <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#a855f7;margin-right:.25rem"></span>Voicemail</span>
+                  <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#dc2626;margin-right:.25rem"></span>No answer</span>
+                  <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#6366f1;margin-right:.25rem"></span>Inventory on file</span>
+                  <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#cbd5e1;margin-right:.25rem"></span>Never called</span>
                   <span style="margin-left:auto">Click a marker to toggle. Click a cluster to zoom in.</span>
                 </div>
               </div>
