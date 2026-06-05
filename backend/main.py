@@ -140,6 +140,7 @@ async def lifespan(app: FastAPI):
         asyncio.create_task(_delayed_startup())
 
     yield
+    vapi_poller_task.cancel()
     if not SCHEDULER_DISABLED:
         scheduler.shutdown()
 
