@@ -304,6 +304,7 @@ async def vapi_webhook(
         await _persist_live_status(m, status)
         if status == "ended":
             await _persist_terminal_status(m)
+            _record_transport_error_from_msg(m)
         return {"ok": True, "kind": "status-update", "status": status}
 
     # Non-end-of-call messages we don't care about.
