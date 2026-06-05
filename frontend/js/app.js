@@ -3084,7 +3084,10 @@ function openCallDetail(callId) {
          <div style="font-size:.85rem;color:var(--text-muted)">No transcript saved for this call.</div>
        </div>`;
 
-  const retailer = c.retailer_name || "(unknown retailer)";
+  const retailerName = c.retailer_name || "(unknown retailer)";
+  const retailer = (c.retailer_external_id || c.to_phone)
+    ? `<a href="javascript:void(0)" onclick="closeCallDetail(); openRetailerInventory('${escHtml(c.retailer_external_id || '')}','${escHtml(c.state_code || 'MA')}','${escHtml(c.to_phone || '')}'); return false;" title="Open this retailer's inventory" style="color:inherit;text-decoration:none;border-bottom:1px dashed currentColor">${escHtml(retailerName)}</a>`
+    : escHtml(retailerName);
   const meta = [
     whenStr,
     c.retailer_city || null,
