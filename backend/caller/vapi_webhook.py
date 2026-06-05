@@ -795,8 +795,11 @@ async def vapi_reconcile_inflight(_user: dict = Depends(require_admin)):
         )
         # Analysis-pending: terminal-state rows that the webhook handler's
         # 90s backstop either gave up on, missed (process restart), or that
-        # VAPI's extractor took longer than 90s to populate. The 90-second
-        # lower bound mirrors the webhook's own wait so we don't race it.
+        # VAPI's extractor took longer than 90s to populate. duration_sec >= 5
+        # is what the webhook itself uses to decide whether to schedule the
+        # backstop — anything shorter is no-answer / failed-transport / silence
+        # and definitionally has no conversation for VAPI to extract, so it
+        # would be wasted API calls.
         analysis_pending = await conn.fetch(
             """
             SELECT id, vapi_call_id
@@ -804,6 +807,8 @@ async def vapi_reconcile_inflight(_user: dict = Depends(require_admin)):
             WHERE vapi_call_id IS NOT NULL
               AND ended_reason IS NOT NULL
               AND COALESCE(is_voicemail, false) = false
+              AND duration_sec IS NOT NULL
+              AND duration_sec >= 5
               AND (summary IS NULL OR per_ticket_results IS NULL)
               AND inventory_mirrored_at IS NULL
               AND received_at < NOW() - INTERVAL '90 seconds'
