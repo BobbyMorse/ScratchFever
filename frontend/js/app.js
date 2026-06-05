@@ -3804,6 +3804,8 @@ function renderStoresMap() {
       chunkedLoading: true,
       spiderfyOnMaxZoom: true,
       showCoverageOnHover: false,
+      maxClusterRadius: 55,
+      iconCreateFunction: _buildClusterIcon,
     });
     _storesMap.addLayer(_storesCluster);
   } else {
