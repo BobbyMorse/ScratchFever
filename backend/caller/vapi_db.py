@@ -195,6 +195,11 @@ async def delete_vapi_call(call_id: int) -> bool:
 
 
 async def recent_vapi_calls(limit: int = 50) -> list[dict]:
+    """Returns rows for the dashboard "Recent VAPI calls" table. Includes
+    test calls (external_id='test') so the user can verify end-to-end flow
+    using the Send Test Call button — the UI's own copy promises they show
+    up here. Test calls are still excluded from inventory_reports mirroring
+    at webhook time; this only governs the dashboard."""
     pool = get_pool()
     async with pool.acquire() as conn:
         rows = await conn.fetch(
@@ -207,7 +212,6 @@ async def recent_vapi_calls(limit: int = 50) -> list[dict]:
                    tickets_asked_count, tickets_answered_count,
                    customer_disposition, ended_early_reason
             FROM vapi_calls
-            WHERE COALESCE(retailer_external_id, '') <> 'test'
             ORDER BY received_at DESC
             LIMIT $1
             """,
