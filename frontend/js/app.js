@@ -3707,22 +3707,67 @@ function _regionMouseUp(e) {
   if (added > 0 && typeof showToast === "function") showToast(`Added ${added} store${added === 1 ? "" : "s"} to call list`);
 }
 
-function _storeMarkerColor(c) {
-  if (_selectedStores.has(c.external_id)) return "#22c55e"; // green
-  if (c.called_within_window)              return "#ef4444"; // red
-  if (c.last_called_at)                    return "#f59e0b"; // amber
-  if (c.inventory_updated)                 return "#6366f1"; // indigo
-  return "#94a3b8";                                          // slate
+// Latest call by store, indexed by both external_id and last-10 phone. Built
+// lazily from _callerRecent so the map can colorize markers by actual call
+// outcome (in_flight, in_stock, etc.) without a backend refetch.
+let _callByExt    = new Map();
+let _callByPhone  = new Map();
+
+function _rebuildCallLookup() {
+  _callByExt   = new Map();
+  _callByPhone = new Map();
+  if (!Array.isArray(_callerRecent)) return;
+  // _callerRecent is already newest-first (ORDER BY received_at DESC), so the
+  // first hit per key wins.
+  for (const c of _callerRecent) {
+    const ext = c.retailer_external_id;
+    if (ext && !_callByExt.has(ext)) _callByExt.set(ext, c);
+    const ph10 = c.to_phone ? String(c.to_phone).replace(/[^0-9]/g, "").slice(-10) : "";
+    if (ph10 && !_callByPhone.has(ph10)) _callByPhone.set(ph10, c);
+  }
+}
+
+function _latestCallForStore(c) {
+  if (!c) return null;
+  if (c.external_id && _callByExt.has(c.external_id)) return _callByExt.get(c.external_id);
+  const ph10 = c.phone ? String(c.phone).replace(/[^0-9]/g, "").slice(-10) : "";
+  if (ph10 && _callByPhone.has(ph10)) return _callByPhone.get(ph10);
+  return null;
+}
+
+// Status → color/label mapping shared by markers, legend, and list badges.
+const _CALL_STATUS_META = {
+  in_flight:     { color: "#fbbf24", label: "In flight",   pulse: true  },
+  in_stock:      { color: "#16a34a", label: "In stock",    pulse: false },
+  out_of_stock:  { color: "#64748b", label: "Out of stock",pulse: false },
+  voicemail:     { color: "#a855f7", label: "Voicemail",   pulse: false },
+  no_answer:     { color: "#dc2626", label: "No answer",   pulse: false },
+};
+
+function _storeStatus(c) {
+  // Selection wins for visibility — the user needs to see what they checked.
+  if (_selectedStores.has(c.external_id)) return { key: "selected", color: "#22c55e", pulse: false };
+  const call = _latestCallForStore(c);
+  if (call) {
+    const k = _classifyCall(call);
+    if (_CALL_STATUS_META[k]) return { key: k, ...(_CALL_STATUS_META[k]) };
+  }
+  // Fall back to the historical annotations from /api/vapi/candidates.
+  if (c.inventory_updated)  return { key: "inventory", color: "#6366f1", pulse: false };
+  if (c.called_within_window) return { key: "within",  color: "#f59e0b", pulse: false };
+  if (c.last_called_at)     return { key: "called",    color: "#94a3b8", pulse: false };
+  return { key: "uncalled", color: "#cbd5e1", pulse: false };
 }
 
 function _storeMarkerIcon(c) {
-  const color = _storeMarkerColor(c);
+  const st = _storeStatus(c);
   const selectedCls = _selectedStores.has(c.external_id) ? "selected" : "";
+  const pulseCls    = st.pulse ? "pulse" : "";
   return L.divIcon({
     className: "",
     iconSize: [16, 16],
     iconAnchor: [8, 8],
-    html: `<div class="cf-store-marker ${selectedCls}" style="width:16px;height:16px;background:${color}"></div>`,
+    html: `<div class="cf-store-marker status-${st.key} ${selectedCls} ${pulseCls}" style="width:16px;height:16px;background:${st.color}"></div>`,
   });
 }
 
