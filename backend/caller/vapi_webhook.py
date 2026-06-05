@@ -232,7 +232,11 @@ def _extract(payload: dict) -> dict:
             confidence = max(confs)
 
     summary = msg.get("summary") or analysis.get("summary")
-    transcript = msg.get("transcript") or analysis.get("transcript")
+    transcript = (
+        msg.get("transcript")
+        or analysis.get("transcript")
+        or _transcript_from_messages(msg.get("messages") or call.get("messages") or [])
+    )
 
     # Funnel / disposition fields from the structured-data extractor.
     answered_phone             = _to_bool(_pick(structured, "answered_phone", "answeredPhone"))
