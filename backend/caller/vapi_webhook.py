@@ -253,9 +253,11 @@ def _extract(payload: dict) -> dict:
 
     # Two-party-consent compliance: we use the transcript only transiently
     # (voicemail detection above + structured extraction by VAPI's analysis
-    # plan). Nothing about the conversation content gets persisted — neither
-    # the verbatim transcript nor the raw webhook payload, which would
-    # otherwise carry messages[] and transcript fields.
+    # plan, plus our Haiku fallback below if VAPI's failed). Nothing about
+    # the conversation content gets persisted — `transcript` is forced to
+    # None in the return dict, and the transient `_transcript_for_extraction`
+    # key starts with an underscore so it's never written by insert_vapi_call
+    # (which row.get()s only the columns it knows about).
 
     return {
         "vapi_call_id":         call.get("id") or msg.get("callId"),
