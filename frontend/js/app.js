@@ -3979,7 +3979,7 @@ function _buildClusterIcon(cluster) {
     : "";
 
   return L.divIcon({
-    className: "",
+    className: "cf-cluster-wrap",
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
     html: `<div class="cf-cluster ${pulse}" style="
@@ -3988,7 +3988,7 @@ function _buildClusterIcon(cluster) {
         display:flex;align-items:center;justify-content:center;
         position:relative;box-shadow:0 1px 4px rgba(0,0,0,.25);">
       ${selectedRing}
-      <div style="
+      <div class="cf-cluster-inner" style="
         width:${size - 12}px;height:${size - 12}px;border-radius:50%;
         background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;
         font-weight:700;color:#0f172a;line-height:1">
