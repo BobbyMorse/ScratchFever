@@ -528,7 +528,28 @@ async def vapi_webhook(
             _refetch_and_apply_analysis(call_id, parsed["vapi_call_id"])
         )
 
+    # Two-party-consent scrub: once we've had time to extract structured data
+    # from this call (analysis path or Haiku fallback), delete it from VAPI's
+    # side so the transcript artifact stops living on their dashboard. 180s
+    # buffer is longer than the 90s re-fetch wait + extraction.
+    if parsed.get("vapi_call_id"):
+        asyncio.create_task(
+            _scrub_vapi_after_delay(parsed["vapi_call_id"], delay_seconds=180.0)
+        )
+
     return {"ok": True, "call_id": call_id, "inventory_rows_written": inventory_rows_written}
+
+
+async def _scrub_vapi_after_delay(vapi_call_id: str, delay_seconds: float = 180.0) -> None:
+    """Fire-and-forget scrub of a VAPI call after we've had time to extract
+    everything we need. Removes the transcript artifact from VAPI's side so
+    only the structured inventory result persists (in our local DB)."""
+    if not vapi_call_id:
+        return
+    await asyncio.sleep(delay_seconds)
+    ok = await _delete_call_on_vapi(vapi_call_id)
+    if ok:
+        logger.info("VAPI scrub: deleted /call/%s after analysis window", vapi_call_id)
 
 
 async def _maybe_apply_haiku_fallback(parsed: dict) -> None:
