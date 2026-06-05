@@ -2179,22 +2179,6 @@
     if (btn && window.matchMedia('(max-width: 900px)').matches) closeSidebar();
   });
 
-  // "What is The Chase?" banner — show until user dismisses, then remember
-  (function () {
-    const KEY = 'chaseIntroDismissed_v1';
-    const el = document.getElementById('chaseIntro');
-    if (!el) return;
-    try {
-      if (!localStorage.getItem(KEY)) el.style.display = '';
-    } catch (_) {
-      el.style.display = '';
-    }
-  })();
-  window.dismissChaseIntro = function () {
-    const el = document.getElementById('chaseIntro');
-    if (el) el.style.display = 'none';
-    try { localStorage.setItem('chaseIntroDismissed_v1', '1'); } catch (_) {}
-  };
 </script>
 
 <!-- ── Coverage tab controller (map + legend + per-layer styling) ────── -->
