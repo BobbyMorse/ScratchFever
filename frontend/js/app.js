@@ -3969,16 +3969,44 @@ async function reconcileAndRefreshCalls() {
   const btn = document.getElementById("cfRecentRefreshBtn");
   const origLabel = btn ? btn.textContent : "";
   if (btn) { btn.disabled = true; btn.textContent = "Reconciling…"; }
+  let resp = null;
+  let err = null;
   try {
-    await callerFetch("/api/vapi/reconcile_inflight", { method: "POST" });
-  } catch (_) {
-    // Reconcile failure is non-fatal — fall through to the regular reload
-    // so the user still sees whatever data we have.
+    const r = await callerFetch("/api/vapi/reconcile_inflight", { method: "POST" });
+    resp = await r.json();
+  } catch (e) {
+    err = e;
   }
   try {
     await loadCallerData();
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = origLabel; }
+  }
+
+  // Surface what reconcile actually did so it's never silently a no-op.
+  // The user shouldn't have to open DevTools to know whether VAPI had data.
+  if (err) {
+    showCallerMsg(`Refresh failed: ${escHtml(err.message || String(err))}`, "error");
+    return;
+  }
+  if (resp && (resp.analysis_checked != null || resp.checked != null)) {
+    const live = resp.checked || 0;          // in-flight rows
+    const liveDone = resp.updated || 0;
+    const ana = resp.analysis_checked || 0;   // analysis-pending rows
+    const anaDone = resp.analysis_filled || 0;
+    const inv = resp.inventory_rows || 0;
+    const parts = [];
+    if (live) parts.push(`${liveDone}/${live} in-flight reconciled`);
+    if (ana) {
+      if (anaDone) parts.push(`${anaDone}/${ana} analysis pulled${inv ? ` (${inv} inventory rows)` : ""}`);
+      else        parts.push(`${ana} rows still waiting on VAPI analysis`);
+    }
+    if (!parts.length) parts.push("Nothing to reconcile — all rows up to date.");
+    const isWaiting = !!ana && !anaDone;
+    showCallerMsg(parts.join(" · "), isWaiting ? "warning" : "success");
+  } else if (resp && resp.checked != null) {
+    // Old backend (pre-poller): just show what we have.
+    showCallerMsg(`Reconciled ${resp.updated || 0}/${resp.checked || 0} in-flight rows. (Backend may need redeploy for analysis backfill.)`, "info");
   }
 }
 
