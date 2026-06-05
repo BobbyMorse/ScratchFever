@@ -397,11 +397,8 @@ function closePaywall() {
 }
 
 function selectPaywallPlan(plan) {
-  _paywallPlan = (plan === "monthly") ? "monthly" : "yearly";
-  document.getElementById("paywallPlanMonthly")?.classList.toggle("paywall-plan-active", _paywallPlan === "monthly");
-  document.getElementById("paywallPlanYearly")?.classList.toggle("paywall-plan-active", _paywallPlan === "yearly");
-  const cta = document.getElementById("paywallCheckoutBtn");
-  if (cta) cta.textContent = _paywallPlan === "monthly" ? "Continue with Monthly →" : "Continue with Yearly →";
+  _paywallPlan = "monthly";
+  document.getElementById("paywallPlanMonthly")?.classList.add("paywall-plan-active");
 }
 
 function togglePaywallBeta() {
