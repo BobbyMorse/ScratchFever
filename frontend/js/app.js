@@ -372,7 +372,7 @@ function closeAuthModal() {
 }
 
 // ── Paywall / Stripe billing ────────────────────────────────────────────────
-let _paywallPlan = "yearly";
+let _paywallPlan = "monthly";
 
 function openPaywallOrLogin() {
   // Sidebar CTA path: anonymous users see signup first, then we re-open the paywall
