@@ -381,11 +381,13 @@ async def vapi_webhook(
         # assistant got an answer on. This is what the public map and retailer
         # inventory views read.
         if parsed["per_ticket"]:
+            asked_names = _split_asked_names(parsed.get("game_name"))
             async with get_pool().acquire() as conn:
                 for t in parsed["per_ticket"]:
                     if not isinstance(t, dict):
                         continue
-                    t_name = (t.get("name") or "").strip()
+                    raw_name = (t.get("name") or "").strip()
+                    t_name = _canonical_ticket_name(raw_name, asked_names)
                     t_has  = _to_bool(t.get("has_game"))
                     if not t_name or t_has is None:
                         continue
