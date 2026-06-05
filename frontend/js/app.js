@@ -3913,7 +3913,90 @@ function refreshStoresMapStatus() {
       popup.setContent(html);
     }
   });
+  // Force every visible cluster to repaint with the new status mix. Without
+  // this, clusters keep their stale orange-by-count look until you zoom.
+  if (_storesCluster && typeof _storesCluster.refreshClusters === "function") {
+    try { _storesCluster.refreshClusters(); } catch (_) {}
+  }
   _renderMapStatusStrip();
+}
+
+// Custom cluster icon: a donut whose segments reflect the call-status mix of
+// its children. Replaces the default density-colored bubble so the map shows
+// *what happened* in each area, not just *how many stores* are there.
+function _buildClusterIcon(cluster) {
+  const markers = cluster.getAllChildMarkers();
+  const tally = { in_flight: 0, in_stock: 0, out_of_stock: 0, voicemail: 0, no_answer: 0, selected: 0, called: 0, uncalled: 0 };
+  let total = 0;
+  let anyInFlight = false;
+  let anySelected = 0;
+  markers.forEach(m => {
+    const ext = m._cf_extId;
+    const c = ext ? _storeCandidates.find(x => x.external_id === ext) : null;
+    if (!c) return;
+    total += 1;
+    if (_selectedStores.has(c.external_id)) anySelected += 1;
+    const call = _latestCallForStore(c);
+    if (call) {
+      const k = _classifyCall(call);
+      if (tally[k] != null) tally[k] += 1;
+      if (k === "in_flight") anyInFlight = true;
+    } else if (c.last_called_at || c.called_within_window || c.inventory_updated) {
+      tally.called += 1;
+    } else {
+      tally.uncalled += 1;
+    }
+  });
+  if (!total) total = markers.length || 1;
+
+  // Build conic-gradient segments — ordered so the eye reads activity first.
+  const segOrder = [
+    ["in_flight",    "#fbbf24"],
+    ["in_stock",     "#16a34a"],
+    ["voicemail",    "#a855f7"],
+    ["out_of_stock", "#64748b"],
+    ["no_answer",    "#dc2626"],
+    ["called",       "#94a3b8"],
+    ["uncalled",     "#e2e8f0"],
+  ];
+  let cursor = 0;
+  const stops = [];
+  segOrder.forEach(([k, color]) => {
+    const n = tally[k] || 0;
+    if (!n) return;
+    const end = cursor + (n / total) * 360;
+    stops.push(`${color} ${cursor}deg ${end}deg`);
+    cursor = end;
+  });
+  if (!stops.length) stops.push(`#e2e8f0 0deg 360deg`);
+  const gradient = `conic-gradient(${stops.join(", ")})`;
+
+  // Size scales gently with count; pulses if anything is in-flight.
+  const size = total < 10 ? 36 : total < 50 ? 42 : total < 200 ? 48 : 54;
+  const pulse = anyInFlight ? "pulse" : "";
+  const selectedRing = anySelected > 0
+    ? `<div style="position:absolute;inset:-3px;border-radius:50%;border:2px solid #15803d;pointer-events:none"></div>`
+    : "";
+
+  return L.divIcon({
+    className: "",
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    html: `<div class="cf-cluster ${pulse}" style="
+        width:${size}px;height:${size}px;border-radius:50%;
+        background:${gradient};
+        display:flex;align-items:center;justify-content:center;
+        position:relative;box-shadow:0 1px 4px rgba(0,0,0,.25);">
+      ${selectedRing}
+      <div style="
+        width:${size - 12}px;height:${size - 12}px;border-radius:50%;
+        background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;
+        font-weight:700;color:#0f172a;line-height:1">
+        <div style="font-size:${total >= 1000 ? '.78rem' : '.92rem'}">${total.toLocaleString()}</div>
+        ${anyInFlight ? `<div style="font-size:.55rem;color:#b45309;margin-top:1px">${tally.in_flight} live</div>` : ""}
+      </div>
+    </div>`,
+  });
 }
 
 function _renderMapStatusStrip() {
