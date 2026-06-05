@@ -484,36 +484,39 @@ async def vapi_webhook(
     return {"ok": True, "call_id": call_id, "inventory_rows_written": inventory_rows_written}
 
 
-async def _refetch_and_apply_analysis(local_id: int, vapi_call_id: str) -> None:
-    """Wait for VAPI to finish computing analysis, then pull it down and apply.
-    Backstops the case where end-of-call-report arrives without `analysis`
-    populated — VAPI computes it async and never re-fires the webhook, so
-    without this the row sits forever with ended_reason but no per_ticket data.
-    Idempotent via inventory_mirrored_at."""
-    key = os.getenv("VAPI_PRIVATE_KEY")
-    if not key:
-        return
-    await asyncio.sleep(90)
+async def _apply_analysis_for_row(
+    local_id: int,
+    vapi_call_id: str,
+    key: str,
+    client: httpx.AsyncClient,
+) -> dict:
+    """Pull /call/{id} from VAPI and apply whatever analysis is now available
+    (summary, per_ticket_results, structured funnel fields, inventory mirror).
+    Idempotent: COALESCE-based writes plus inventory_mirrored_at guard. Returns
+    a small dict {fetched, analysis_written, inventory_rows} for the caller's
+    reporting. Never raises — transport errors get logged and the row stays
+    unchanged so a later attempt can succeed."""
+    result = {"fetched": False, "analysis_written": False, "inventory_rows": 0}
     try:
-        async with httpx.AsyncClient(timeout=15.0) as c:
-            r = await c.get(
-                f"https://api.vapi.ai/call/{vapi_call_id}",
-                headers={"Authorization": f"Bearer {key}"},
-            )
+        r = await client.get(
+            f"https://api.vapi.ai/call/{vapi_call_id}",
+            headers={"Authorization": f"Bearer {key}"},
+        )
     except Exception as exc:
-        logger.warning("VAPI delayed re-fetch /call/%s failed: %s", vapi_call_id, exc)
-        return
+        logger.warning("VAPI re-fetch /call/%s failed: %s", vapi_call_id, exc)
+        return result
     if r.status_code != 200:
-        logger.warning("VAPI delayed re-fetch /call/%s -> %s", vapi_call_id, r.status_code)
-        return
+        logger.warning("VAPI re-fetch /call/%s -> %s", vapi_call_id, r.status_code)
+        return result
+    result["fetched"] = True
+
     d = r.json()
     analysis   = d.get("analysis") or {}
     structured = analysis.get("structuredData") or {}
     summary    = analysis.get("summary")
     per_ticket = structured.get("per_ticket_results")
     if not summary and not per_ticket:
-        logger.info("VAPI delayed re-fetch %s: analysis still empty after 90s", vapi_call_id)
-        return
+        return result
 
     per_ticket_json = json.dumps(per_ticket, default=str) if per_ticket else None
 
@@ -555,12 +558,13 @@ async def _refetch_and_apply_analysis(local_id: int, vapi_call_id: str) -> None:
             structured.get("customer_disposition"),
             structured.get("ended_early_reason"),
         )
+    result["analysis_written"] = True
 
     if not row or row["mirrored"] or row["is_voicemail"] or not per_ticket:
-        return
+        return result
     rext = row["retailer_external_id"]
     if not rext or rext == "test":
-        return
+        return result
 
     geo = await find_retailer_by_phone(_digits_only(row["to_phone"] or ""))
     lat = geo["latitude"]  if geo else None
@@ -608,9 +612,24 @@ async def _refetch_and_apply_analysis(local_id: int, vapi_call_id: str) -> None:
                 local_id,
             )
         logger.info(
-            "VAPI delayed re-fetch %s wrote %d inventory rows",
-            vapi_call_id, rows_written,
+            "VAPI re-fetch %s wrote %d inventory rows", vapi_call_id, rows_written,
         )
+    result["inventory_rows"] = rows_written
+    return result
+
+
+async def _refetch_and_apply_analysis(local_id: int, vapi_call_id: str) -> None:
+    """Fire-and-forget backstop scheduled from the end-of-call-report handler.
+    Single 90s wait then one fetch — the durable, multi-attempt path lives in
+    /reconcile_inflight, which the dashboard Refresh button calls."""
+    key = os.getenv("VAPI_PRIVATE_KEY")
+    if not key:
+        return
+    await asyncio.sleep(90)
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        outcome = await _apply_analysis_for_row(local_id, vapi_call_id, key, client)
+    if not outcome["analysis_written"]:
+        logger.info("VAPI delayed re-fetch %s: analysis still empty after 90s", vapi_call_id)
 
 
 @router.get("/recent")
