@@ -166,6 +166,35 @@ def _detect_voicemail(ended_reason: Optional[str], transcript: Optional[str]) ->
     return any(p in text for p in _VOICEMAIL_TRANSCRIPT_PATTERNS)
 
 
+def _transcript_from_messages(messages: list) -> str:
+    """Reconstruct a readable transcript from VAPI's messages[] array.
+    Some VAPI assistant configs send messages[] but not the pre-rendered
+    `transcript` string; if we only check transcript we'd see nothing
+    and Haiku would have nothing to extract from. Returns "" when the
+    list is empty / malformed."""
+    if not isinstance(messages, list):
+        return ""
+    lines = []
+    for m in messages:
+        if not isinstance(m, dict):
+            continue
+        role = (m.get("role") or "").lower()
+        text = m.get("message") or m.get("content") or ""
+        if not text or not isinstance(text, str):
+            continue
+        # VAPI uses "bot"/"assistant" interchangeably for the AI side.
+        if role in ("bot", "assistant"):
+            speaker = "AI"
+        elif role in ("user", "customer"):
+            speaker = "User"
+        elif role == "system":
+            continue  # don't include system prompts in transcript for extraction
+        else:
+            speaker = role or "?"
+        lines.append(f"{speaker}: {text.strip()}")
+    return "\n".join(lines)
+
+
 def _pick(d: dict, *keys: str) -> Any:
     """Return the first non-None value among the given keys (case-insensitive)."""
     if not isinstance(d, dict):
