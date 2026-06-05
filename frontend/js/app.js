@@ -3555,8 +3555,8 @@ function renderStoresPicker() {
   }
   // Sink already-called rows when the skip toggle is on (still visible, just last).
   if (skipCalled && !_showSelectedOnly) {
-    const fresh = rows.filter(c => !c.last_called_at && !c.called_within_window);
-    const called = rows.filter(c =>  c.last_called_at ||  c.called_within_window);
+    const fresh = rows.filter(c => !_storeWasAICalled(c));
+    const called = rows.filter(c =>  _storeWasAICalled(c));
     rows = [...fresh, ...called];
   }
 
