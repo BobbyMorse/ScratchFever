@@ -3834,6 +3834,7 @@ function renderStoresMap() {
     if (!isFinite(lat) || !isFinite(lng)) return;
     bounds.push([lat, lng]);
     const m = L.marker([lat, lng], { icon: _storeMarkerIcon(c) });
+    m._cf_extId = c.external_id; // for the cluster icon function to read status
     m.bindPopup(_storeMarkerPopup(c));
     m.on("click", () => toggleStoreById(c.external_id));
     _storesCluster.addLayer(m);
