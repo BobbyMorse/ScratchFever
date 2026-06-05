@@ -3482,7 +3482,7 @@ function autoSelectStores() {
   let picked = 0;
   for (const c of _storeCandidates) {
     if (picked >= topN) break;
-    if (skipCalled && (c.last_called_at || c.called_within_window)) continue;
+    if (skipCalled && _storeWasAICalled(c)) continue;
     _selectedStores.add(c.external_id);
     picked++;
   }
