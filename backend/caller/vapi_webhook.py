@@ -926,3 +926,89 @@ async def vapi_reconcile_inflight(_user: dict = Depends(require_admin)):
         "analysis_filled": analysis_filled,
         "inventory_rows":  inventory_rows,
     }
+
+
+# ── Durable analysis poller ─────────────────────────────────────────────────
+#
+# Long-running background task started by main.lifespan. Replaces the fragile
+# per-call asyncio.create_task() 90s backstop that fired-and-forgot — those
+# tasks die silently on process restart (Railway redeploy, scaling event, etc.)
+# and the row would stay forever without summary or inventory mirror.
+#
+# This poller restarts cleanly with the process: on every boot the loop
+# spins up and immediately picks up any analysis-pending rows in the DB.
+
+_ANALYSIS_POLLER_INTERVAL_SEC = 60
+
+
+async def _poll_analysis_pending_once() -> dict:
+    """One iteration: pick up to 100 candidate rows (same predicate as the
+    analysis pass of /reconcile_inflight), try to apply VAPI analysis to
+    each. No-op when VAPI_PRIVATE_KEY is missing."""
+    key = os.getenv("VAPI_PRIVATE_KEY")
+    if not key:
+        return {"skipped": "no_vapi_key"}
+    pool = get_pool()
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(
+            """
+            SELECT id, vapi_call_id
+            FROM vapi_calls
+            WHERE vapi_call_id IS NOT NULL
+              AND ended_reason IS NOT NULL
+              AND COALESCE(is_voicemail, false) = false
+              AND duration_sec IS NOT NULL
+              AND duration_sec >= 5
+              AND (summary IS NULL OR per_ticket_results IS NULL)
+              AND inventory_mirrored_at IS NULL
+              AND received_at < NOW() - INTERVAL '90 seconds'
+              AND received_at > NOW() - INTERVAL '2 hours'
+            ORDER BY received_at DESC
+            LIMIT 100
+            """
+        )
+    if not rows:
+        return {"checked": 0, "filled": 0, "inventory_rows": 0}
+
+    filled = 0
+    inv_rows = 0
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        for r in rows:
+            outcome = await _apply_analysis_for_row(
+                r["id"], r["vapi_call_id"], key, client,
+            )
+            if outcome["analysis_written"]:
+                filled += 1
+            inv_rows += outcome["inventory_rows"]
+    if filled or inv_rows:
+        logger.info(
+            "vapi analysis poller: filled=%d inventory_rows=%d (of %d candidates)",
+            filled, inv_rows, len(rows),
+        )
+    return {"checked": len(rows), "filled": filled, "inventory_rows": inv_rows}
+
+
+async def analysis_poller_loop():
+    """Run _poll_analysis_pending_once() forever on a fixed interval.
+    Exceptions in any one iteration get logged and swallowed — never let
+    a transient VAPI error kill the loop. Intended to be launched as
+    asyncio.create_task() from FastAPI's lifespan startup."""
+    logger.info("vapi analysis poller: starting (interval=%ds)", _ANALYSIS_POLLER_INTERVAL_SEC)
+    # Small initial delay so we don't compete with the heavier startup work
+    # the rest of the app does in the first 30s after boot.
+    try:
+        await asyncio.sleep(30)
+    except asyncio.CancelledError:
+        return
+    while True:
+        try:
+            await _poll_analysis_pending_once()
+        except asyncio.CancelledError:
+            logger.info("vapi analysis poller: cancelled")
+            return
+        except Exception:
+            logger.exception("vapi analysis poller: iteration failed")
+        try:
+            await asyncio.sleep(_ANALYSIS_POLLER_INTERVAL_SEC)
+        except asyncio.CancelledError:
+            return
