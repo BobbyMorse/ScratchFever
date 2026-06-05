@@ -3945,8 +3945,7 @@ function _buildClusterIcon(cluster) {
   let anyInFlight = false;
   let anySelected = 0;
   markers.forEach(m => {
-    const ext = m._cf_extId;
-    const c = ext ? _storeCandidates.find(x => x.external_id === ext) : null;
+    const c = m._cf_candidate;
     if (!c) return;
     total += 1;
     if (_selectedStores.has(c.external_id)) anySelected += 1;
