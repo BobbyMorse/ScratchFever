@@ -2596,7 +2596,8 @@ function renderInventoryCluster(map, layerKey, opts) {
 
   for (const r of reports) {
     const color = r.has_stock ? "#00cc44" : "#cc2200";
-    const m = L.marker([r.lat, r.lng], { icon: _dotIcon(color, 12), sfStockState: r.has_stock ? "in" : "out" });
+    const rStockState = r.has_stock ? "in" : "out";
+    const m = L.marker([r.lat, r.lng], { icon: _dotIcon(color, 12, rStockState), sfStockState: rStockState });
     m.bindPopup(() => _popupHtmlReport(r));
     batch.push(m);
   }
