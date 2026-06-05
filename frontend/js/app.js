@@ -3613,6 +3613,7 @@ function setStoresView(mode) {
   const listEl = document.getElementById("cfStoresList");
   const mapEl  = document.getElementById("cfStoresMap");
   const legendEl = document.getElementById("cfStoresMapLegend");
+  const statusEl = document.getElementById("cfStoresMapStatus");
   const listBtn = document.getElementById("cfViewListBtn");
   const mapBtn  = document.getElementById("cfViewMapBtn");
   const regionBtn = document.getElementById("cfRegionSelectBtn");
@@ -3620,6 +3621,7 @@ function setStoresView(mode) {
     listEl.style.display = "none";
     mapEl.style.display  = "block";
     if (legendEl) legendEl.style.display = "flex";
+    if (statusEl) statusEl.style.display = "flex";
     if (regionBtn) regionBtn.style.display = "";
     listBtn.classList.remove("cf-view-active");
     mapBtn.classList.add("cf-view-active");
@@ -3628,6 +3630,7 @@ function setStoresView(mode) {
     listEl.style.display = "";
     mapEl.style.display  = "none";
     if (legendEl) legendEl.style.display = "none";
+    if (statusEl) statusEl.style.display = "none";
     if (regionBtn) regionBtn.style.display = "none";
     if (_regionSelectActive) toggleRegionSelect();
     mapBtn.classList.remove("cf-view-active");
