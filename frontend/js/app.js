@@ -2464,7 +2464,18 @@ function getFilteredRows() {
 
 // ── Shared map-cluster helpers ────────────────────────────────────────────────
 // Marker clustering, lazy popups, and per-map debouncing for all state maps.
-function _dotIcon(color, size) {
+function _dotIcon(color, size, stockState) {
+  // In-stock markers get a larger, pulsing, gradient-filled pin so they jump
+  // out of the cluster at any zoom. Out-of-stock / unchecked keep the small dot.
+  if (stockState === "in") {
+    const s = 20;
+    return L.divIcon({
+      className: "sf-dot sf-dot-instock",
+      html: `<span class="sf-dot-instock-inner"></span>`,
+      iconSize: [s, s],
+      iconAnchor: [s / 2, s / 2],
+    });
+  }
   const s = size || 10;
   return L.divIcon({
     className: "sf-dot",
