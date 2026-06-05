@@ -3766,6 +3766,17 @@ function _latestCallForStore(c) {
   return null;
 }
 
+// True if the store has any AI-call signal — historical (last_called_at /
+// called_within_window from the candidates endpoint) OR a live entry from
+// _callerRecent that hasn't been written back to the candidate yet. The skip
+// toggle and "Never called" badge both consult this so a fresh call is
+// reflected without waiting for a state reload.
+function _storeWasAICalled(c) {
+  if (!c) return false;
+  if (c.last_called_at || c.called_within_window) return true;
+  return !!_latestCallForStore(c);
+}
+
 // Status → color/label mapping shared by markers, legend, and list badges.
 const _CALL_STATUS_META = {
   in_flight:     { color: "#fbbf24", label: "In flight",   pulse: true  },
