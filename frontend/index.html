@@ -1952,22 +1952,16 @@
       <li><span>›</span> Big-wins map · Heat by location</li>
     </ul>
 
-    <div class="paywall-plans">
-      <button class="paywall-plan" id="paywallPlanMonthly" onclick="selectPaywallPlan('monthly')">
+    <div class="paywall-plans paywall-plans-single">
+      <button class="paywall-plan paywall-plan-active" id="paywallPlanMonthly" onclick="selectPaywallPlan('monthly')">
         <div class="paywall-plan-name">Monthly</div>
         <div class="paywall-plan-price"><span>$7</span><em>/mo</em></div>
-        <div class="paywall-plan-foot">Billed monthly</div>
-      </button>
-      <button class="paywall-plan paywall-plan-active" id="paywallPlanYearly" onclick="selectPaywallPlan('yearly')">
-        <div class="paywall-plan-badge">SAVE 17%</div>
-        <div class="paywall-plan-name">Yearly</div>
-        <div class="paywall-plan-price"><span>$70</span><em>/yr</em></div>
-        <div class="paywall-plan-foot">$5.83/mo · billed yearly</div>
+        <div class="paywall-plan-foot">Billed monthly · cancel anytime</div>
       </button>
     </div>
 
     <button class="btn paywall-cta" id="paywallCheckoutBtn" onclick="startCheckout()">
-      Continue with Yearly →
+      Continue →
     </button>
     <div id="paywallMsg" class="caller-msg" style="display:none;margin-top:.7rem"></div>
 
