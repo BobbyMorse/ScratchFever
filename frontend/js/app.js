@@ -3119,6 +3119,24 @@ function _isLiveTerminal(c) {
   return c.ended_at != null || c.ended_reason != null;
 }
 
+function _needsAnalysisChase(c) {
+  // Row has ended but VAPI's async structuredData extractor hasn't landed
+  // yet, so the Result column still shows the ended_reason fallback
+  // ("Hung up" / "No answer") instead of the per_ticket badge. Keep the
+  // live poll running so reconcile_inflight tries again on the next tick
+  // and flips the row once analysis arrives. 15-min cap matches what VAPI
+  // actually delivers in practice — beyond that the extractor isn't coming.
+  if (!_isLiveTerminal(c)) return false;
+  if (c.is_voicemail) return false;
+  if (c.inventory_mirrored_at) return false;
+  if (Array.isArray(c.per_ticket_results) && c.per_ticket_results.length) return false;
+  if (c.has_game != null) return false;
+  const ts = c.received_at || c.ended_at;
+  if (!ts) return false;
+  const ageMs = Date.now() - new Date(ts).getTime();
+  return ageMs >= 0 && ageMs < 15 * 60 * 1000;
+}
+
 const _DISPOSITION_META = {
   cooperative:  { emoji: "🙂", label: "Cooperative" },
   rushed:       { emoji: "⏩", label: "Rushed" },
