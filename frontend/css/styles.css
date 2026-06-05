@@ -1902,6 +1902,9 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 .sf-cluster-instock { background-color: rgba(0, 204, 68, 0.35); }
 .sf-cluster-outofstock { background-color: rgba(204, 34, 0, 0.35); }
 .sf-cluster-neutral { background-color: rgba(120, 120, 120, 0.30); }
+.sf-cluster-mixed { background-color: rgba(204, 34, 0, 0.18); }
+.sf-cluster-split { font-size: 0.82rem; letter-spacing: -0.5px; }
+.sf-cluster-split b { color: #ff8060; font-weight: 700; }
 
 /* ── Store profile owner-info card (consumer-side, fetched async) ─────────── */
 .store-owner-card {
