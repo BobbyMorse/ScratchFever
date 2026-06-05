@@ -4544,8 +4544,11 @@ function updateDetailMapAllRetailers(retailers) {
     }).addTo(_detailMap);
     setupMapAutoResize(_detailMap);
   } else {
-    // Clear existing markers
-    _detailMap.eachLayer(l => { if (l instanceof L.CircleMarker) _detailMap.removeLayer(l); });
+    // Clear existing markers (both CircleMarker dots and divIcon pins for "hit")
+    _detailMap.eachLayer(l => {
+      if (l instanceof L.CircleMarker) _detailMap.removeLayer(l);
+      else if (l instanceof L.Marker)  _detailMap.removeLayer(l);
+    });
   }
 
   const mapBar = document.getElementById("mapFilterBar");
@@ -4557,22 +4560,37 @@ function updateDetailMapAllRetailers(retailers) {
   }
   withCoords.forEach(r => {
     const cs = r.campaign_status;
-    const color = cs === "hit"       ? "#00ff88"
-                : cs === "no_stock"  ? "#ff4444"
-                : cs === "pending"   ? "#00e5ff"
-                : cs === "done"      ? "#888"
-                : "#555";
-    const marker = L.circleMarker([r.lat, r.lng], {
-      radius: cs === "unchecked" ? 5 : 7,
-      color, fillColor: color, fillOpacity: cs === "unchecked" ? 0.35 : 0.85, weight: 1.5,
-    }).addTo(_detailMap);
     const canMark = !["hit", "no_stock"].includes(cs);
-    marker.bindPopup(`<strong>${escHtml(r.name)}</strong><br>${escHtml(r.city || "")}
+    const popupHtml = `<strong>${escHtml(r.name)}</strong><br>${escHtml(r.city || "")}
       ${canMark ? `<br><br>
         <button onclick="manualCheckRetailer('${r.id}',${_currentCampaignId},'${escHtml(r.name)}','${escHtml(r.address||"")}','${escHtml(r.city||"")}','${escHtml(r.phone||"")}',${r.lat||"null"},${r.lng||"null"},0)" style="font-size:.8rem;cursor:pointer;margin-right:.3rem">❌ No Stock</button>
         <button onclick="manualCheckRetailer('${r.id}',${_currentCampaignId},'${escHtml(r.name)}','${escHtml(r.address||"")}','${escHtml(r.city||"")}','${escHtml(r.phone||"")}',${r.lat||"null"},${r.lng||"null"},1)" style="font-size:.8rem;cursor:pointer">✅ Has It</button>
       ` : `<br><span style="font-size:.8rem;color:#aaa">${cs === "hit" ? "✅ Has Ticket" : `❌ No Stock${r.checked_at ? ` <span style="color:#888;font-size:.75rem">(${fmtDate(r.checked_at)})</span>` : ""}`}</span>`}
-    `);
+    `;
+
+    // "Has It" stores get a big, obvious pin so they stand out at any zoom.
+    if (cs === "hit") {
+      const icon = L.divIcon({
+        className: "hit-marker",
+        html: `<div class="hit-marker-inner">✓</div>`,
+        iconSize: [34, 34],
+        iconAnchor: [17, 17],
+        popupAnchor: [0, -16],
+      });
+      L.marker([r.lat, r.lng], { icon, zIndexOffset: 1000, riseOnHover: true })
+        .addTo(_detailMap)
+        .bindPopup(popupHtml);
+      return;
+    }
+
+    const color = cs === "no_stock"  ? "#ff4444"
+                : cs === "pending"   ? "#00e5ff"
+                : cs === "done"      ? "#888"
+                : "#555";
+    L.circleMarker([r.lat, r.lng], {
+      radius: cs === "unchecked" ? 5 : 7,
+      color, fillColor: color, fillOpacity: cs === "unchecked" ? 0.35 : 0.85, weight: 1.5,
+    }).addTo(_detailMap).bindPopup(popupHtml);
   });
 }
 
