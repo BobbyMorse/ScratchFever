@@ -2926,6 +2926,8 @@ function _classifyCall(c) {
   if (c.is_voicemail) return "voicemail";
   if (Array.isArray(c.per_ticket_results) && c.per_ticket_results.length) {
     const yes = c.per_ticket_results.filter(t => t && t.has_game === true).length;
+    const no  = c.per_ticket_results.filter(t => t && t.has_game === false).length;
+    if (yes + no === 0) return "no_answer";  // all Unknown — nothing was confirmed
     return yes > 0 ? "in_stock" : "out_of_stock";
   }
   if (c.has_game === true)  return "in_stock";
