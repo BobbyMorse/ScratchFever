@@ -498,6 +498,64 @@ async def vapi_webhook(
     return {"ok": True, "call_id": call_id, "inventory_rows_written": inventory_rows_written}
 
 
+async def _maybe_apply_haiku_fallback(parsed: dict) -> None:
+    """If VAPI's structuredData was missing but we have a transcript and a
+    real conversation (duration >= 5s, not voicemail), run Claude Haiku on
+    our side to produce the same shape VAPI would have. Mutates `parsed`
+    in place so the rest of the webhook handler sees the extracted fields
+    as if they came from VAPI directly. The transient transcript stays
+    in-memory and is never written to the DB."""
+    if parsed.get("per_ticket"):
+        return  # VAPI's extractor worked — nothing to do
+    if parsed.get("is_voicemail"):
+        return
+    if (parsed.get("duration_sec") or 0) < 5:
+        return
+    transcript = parsed.get("_transcript_for_extraction")
+    if not transcript:
+        return
+    asked = _split_asked_names(parsed.get("game_name"))
+    if not asked:
+        return
+
+    extracted = await extract_from_transcript(transcript, asked)
+    if not extracted:
+        return
+
+    per_ticket = extracted.get("per_ticket_results")
+    if isinstance(per_ticket, list) and per_ticket:
+        parsed["per_ticket"]         = per_ticket
+        parsed["per_ticket_results"] = per_ticket
+        # Roll up the same single-column legacy fields the original _extract
+        # computes, so dashboards and downstream logic stay consistent.
+        any_yes = any(_to_bool(t.get("has_game")) is True for t in per_ticket if isinstance(t, dict))
+        any_no  = any(_to_bool(t.get("has_game")) is False for t in per_ticket if isinstance(t, dict))
+        if parsed.get("has_game") is None:
+            parsed["has_game"] = True if any_yes else (False if any_no else None)
+        confs = [_to_float(t.get("confidence")) for t in per_ticket if isinstance(t, dict)]
+        confs = [c for c in confs if c is not None]
+        if parsed.get("confidence") is None and confs:
+            parsed["confidence"] = max(confs)
+
+    # COALESCE-style merge — only fill in fields VAPI didn't already give us.
+    def _fill(key: str, value):
+        if value is not None and parsed.get(key) in (None, ""):
+            parsed[key] = value
+    _fill("summary",                    extracted.get("summary"))
+    _fill("answered_phone",             _to_bool(extracted.get("answered_phone")))
+    _fill("confirmed_sells_scratch",    _to_bool(extracted.get("confirmed_sells_scratch")))
+    _fill("inventory_actually_checked", _to_bool(extracted.get("inventory_actually_checked")))
+    _fill("customer_disposition",       extracted.get("customer_disposition"))
+    _fill("ended_early_reason",         extracted.get("ended_early_reason"))
+    parsed["notes"] = (parsed.get("notes") or "haiku_fallback")
+
+    logger.info(
+        "Haiku fallback extracted analysis for call %s (per_ticket=%d)",
+        parsed.get("vapi_call_id"),
+        len(per_ticket) if isinstance(per_ticket, list) else 0,
+    )
+
+
 async def _apply_analysis_for_row(
     local_id: int,
     vapi_call_id: str,
