@@ -355,6 +355,13 @@ async def vapi_webhook(
             parsed["retailer_city"]        = parsed["retailer_city"]  or match["city"]
             parsed["state_code"]           = parsed["state_code"]     or match["state_code"]
 
+    # Haiku fallback: VAPI's analysisPlan flakes silently sometimes, leaving
+    # us with a transcript but no structuredData. Rather than depend on a
+    # delayed re-fetch that might never get data either, extract on our
+    # side from the transcript that's already in the payload. Same JSON
+    # shape, so the rest of the pipeline doesn't care which extractor ran.
+    await _maybe_apply_haiku_fallback(parsed)
+
     call_id = await insert_vapi_call(parsed)
 
     inventory_rows_written = 0
