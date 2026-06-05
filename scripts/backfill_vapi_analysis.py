@@ -148,11 +148,13 @@ async def main() -> int:
             has_retailer = bool(r["retailer_external_id"]) and r["retailer_external_id"] != "test"
             if not already_mirrored and has_retailer and per_ticket and not r["is_voicemail"]:
                 rows_this_call = 0
+                asked_names = _split_asked_names(r["game_name"])
                 async with pool.acquire() as conn:
                     for t in per_ticket:
                         if not isinstance(t, dict):
                             continue
-                        t_name = (t.get("name") or "").strip()
+                        raw_name = (t.get("name") or "").strip()
+                        t_name = _canonical_ticket_name(raw_name, asked_names)
                         t_has  = _to_bool(t.get("has_game"))
                         if not t_name or t_has is None:
                             continue
