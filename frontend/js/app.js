@@ -2579,7 +2579,7 @@ function renderInventoryCluster(map, layerKey, opts) {
     const status = retailerLatestStatus[r.id];
     const color = status ? (status.has_stock ? "#00cc44" : "#cc2200") : "#4a9eff";
     const stockState = status ? (status.has_stock ? "in" : "out") : "unchecked";
-    const m = L.marker([lat, lng], { icon: _dotIcon(color, 10), sfStockState: stockState });
+    const m = L.marker([lat, lng], { icon: _dotIcon(color, 10, stockState), sfStockState: stockState });
     // Lazy popup: HTML is only built when the marker is clicked.
     m.bindPopup(() => _popupHtmlRetailer(r, status));
     batch.push(m);
