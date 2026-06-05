@@ -587,6 +587,39 @@ async def _apply_analysis_for_row(
     structured = analysis.get("structuredData") or {}
     summary    = analysis.get("summary")
     per_ticket = structured.get("per_ticket_results")
+
+    # Haiku fallback for the reconcile/poller path: VAPI flaked on this call's
+    # analysis but their /call/{id} response still includes the transcript.
+    # Run our own Haiku extraction on it so the row recovers instead of
+    # sitting empty forever. Loaded only when needed — we can't know the
+    # asked tickets without one more DB lookup.
+    if not structured:
+        transcript = d.get("transcript") or analysis.get("transcript")
+        if transcript and (d.get("status") == "ended"):
+            pool = get_pool()
+            async with pool.acquire() as conn:
+                meta = await conn.fetchrow(
+                    "SELECT duration_sec, is_voicemail, game_name FROM vapi_calls WHERE id = $1",
+                    local_id,
+                )
+            if (
+                meta
+                and not meta["is_voicemail"]
+                and (meta["duration_sec"] or 0) >= 5
+            ):
+                asked = _split_asked_names(meta["game_name"])
+                if asked:
+                    extracted = await extract_from_transcript(transcript, asked)
+                    if extracted:
+                        structured = extracted
+                        per_ticket = extracted.get("per_ticket_results") or per_ticket
+                        if not summary:
+                            summary = extracted.get("summary")
+                        logger.info(
+                            "Haiku fallback (reconcile) extracted analysis for /call/%s",
+                            vapi_call_id,
+                        )
+
     if not summary and not per_ticket:
         return result
 
