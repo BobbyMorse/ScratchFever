@@ -105,6 +105,28 @@ def _to_float(value: Any) -> Optional[float]:
         return None
 
 
+def _split_asked_names(asked_field: Optional[str]) -> list[str]:
+    """vapi_calls.game_name stores the dispatched ticket list as a comma-
+    separated label ('300X, Fabulous Fortune'). Split it back into a list."""
+    if not asked_field:
+        return []
+    return [n.strip() for n in str(asked_field).split(",") if n.strip()]
+
+
+def _canonical_ticket_name(reported: str, asked: list[str]) -> str:
+    """Map the assistant-reported ticket name (which can drift in case/spacing
+    — '300 x' for '300X', 'fabulous fortune' for 'Fabulous Fortune') back to
+    the canonical name we actually asked about. Falls back to the reported
+    name when no match — bot occasionally invents extras."""
+    if not reported or not asked:
+        return reported
+    target = re.sub(r"\s+", "", reported).lower()
+    for canonical in asked:
+        if re.sub(r"\s+", "", canonical).lower() == target:
+            return canonical
+    return reported
+
+
 # VAPI signals voicemail through endedReason. Different VAPI versions/configs
 # emit slightly different strings, so we match anything containing "voicemail".
 # We also keep a transcript heuristic as a safety net for cases where VAPI's
