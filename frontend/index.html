@@ -186,8 +186,9 @@
           </div>
         </section>
 
-        <!-- Strategy sub-tabs -->
-        <section class="strategy-tabs" id="strategyTabs" aria-label="EV game strategies">
+        <!-- Strategy: side sub-panel tabs + content -->
+        <div class="strategy-layout">
+        <aside class="strategy-tabs" id="strategyTabs" aria-label="EV game strategies">
           <div class="strategy-tabs-label">Strategy</div>
           <div class="strategy-tabs-scroll">
             <button class="strat-tab active" data-strat="ev" onclick="switchStrategy('ev')">Positive EV</button>
@@ -200,7 +201,8 @@
             <button class="strat-tab" data-strat="fresh" onclick="switchStrategy('fresh')">Fresh Drops</button>
             <button class="strat-tab" data-strat="almostgone" onclick="switchStrategy('almostgone')">Almost Gone</button>
           </div>
-        </section>
+        </aside>
+        <div class="strategy-main">
 
         <!-- Strategy-specific controls (only shown for tile views) -->
         <section class="strategy-controls" id="stratControls" style="display:none">
