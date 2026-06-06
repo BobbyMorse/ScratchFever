@@ -2348,3 +2348,149 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
   font-weight: 700;
 }
 .btn-pro-primary:hover { background: var(--orange-dark); }
+
+/* ── EV Strategy Sub-tabs ──────────────────────────────────────────────
+   Pill row that lets users swap between alternate game-ranking strategies.
+   Sits between the stats row and the filters/results. */
+.strategy-tabs {
+  display: flex;
+  gap: .4rem;
+  overflow-x: auto;
+  padding: 0 0 .35rem;
+  margin: 0 0 1rem;
+  border-bottom: 1.5px solid var(--border);
+  scrollbar-width: thin;
+}
+.strategy-tabs::-webkit-scrollbar { height: 5px; }
+.strategy-tabs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.strat-tab {
+  display: inline-flex; align-items: center; gap: .4rem;
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  border-bottom: 2.5px solid transparent;
+  color: var(--text-muted);
+  padding: .55rem .85rem;
+  margin-bottom: -1.5px;
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color .12s ease, border-color .12s ease, background .12s ease;
+  border-radius: 6px 6px 0 0;
+}
+.strat-tab:hover { color: var(--text); background: var(--bg); }
+.strat-tab.active {
+  color: var(--orange);
+  border-bottom-color: var(--orange);
+  background: var(--orange-dim);
+}
+.strat-emoji { font-size: 1rem; line-height: 1; }
+
+.strategy-controls {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 1rem; flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.strat-ctrl-left { min-width: 220px; flex: 1; }
+.strat-title { font-size: 1.15rem; font-weight: 800; margin: 0 0 .15rem; letter-spacing: -.01em; }
+.strat-sub { font-size: .82rem; color: var(--text-muted); margin: 0; line-height: 1.45; max-width: 580px; }
+.strat-ctrl-right { display: flex; gap: .55rem; flex-wrap: wrap; align-items: flex-end; }
+.strat-ctrl-right .filter-group { min-width: 120px; }
+
+.strategy-tiles-wrap { margin-top: .25rem; }
+.strategy-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: .85rem;
+}
+.strat-tile {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: .95rem 1rem 1rem;
+  cursor: pointer;
+  position: relative;
+  transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+  display: flex; flex-direction: column; gap: .55rem;
+  overflow: hidden;
+}
+.strat-tile:hover {
+  border-color: var(--orange);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,.07);
+}
+.strat-tile-rank {
+  position: absolute; top: .55rem; right: .65rem;
+  font-size: .68rem; font-weight: 800;
+  color: var(--text-dim);
+  letter-spacing: .04em;
+}
+.strat-tile-rank.top-three { color: var(--orange); }
+.strat-tile-head {
+  display: flex; align-items: center; gap: .5rem;
+  padding-right: 2rem;
+}
+.strat-tile-head .state-pill { font-size: .62rem; padding: .15rem .4rem; }
+.strat-tile-head .price-pill { font-size: .72rem; padding: .12rem .45rem; }
+.strat-tile-name {
+  font-size: .95rem; font-weight: 800;
+  letter-spacing: -.01em;
+  line-height: 1.25;
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.strat-tile-hero {
+  display: flex; align-items: baseline; gap: .35rem;
+  padding: .55rem 0 .15rem;
+  border-bottom: 1px dashed var(--border);
+}
+.strat-tile-hero-val {
+  font-size: 1.55rem; font-weight: 900;
+  letter-spacing: -.02em;
+  color: var(--orange);
+  font-family: 'JetBrains Mono', monospace;
+}
+.strat-tile-hero-lbl {
+  font-size: .68rem; font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.strat-tile-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .35rem .85rem;
+  font-size: .76rem;
+}
+.strat-tile-meta-row { display: flex; justify-content: space-between; gap: .35rem; }
+.strat-tile-meta-row .lbl { color: var(--text-muted); }
+.strat-tile-meta-row .val { color: var(--text); font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+.strat-tile-badge {
+  display: inline-flex; align-items: center; gap: .25rem;
+  font-size: .65rem; font-weight: 800;
+  padding: .15rem .4rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.strat-tile-badge.green { background: var(--green-dim); color: var(--green); }
+.strat-tile-badge.orange { background: var(--orange-dim); color: var(--orange); }
+.strat-tile-empty {
+  grid-column: 1 / -1;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--card);
+  border: 1.5px dashed var(--border);
+  border-radius: 12px;
+}
+
+@media (max-width: 640px) {
+  .strategy-tiles { grid-template-columns: 1fr; }
+  .strategy-controls { flex-direction: column; align-items: stretch; }
+  .strat-ctrl-right { width: 100%; }
+}
