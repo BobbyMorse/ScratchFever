@@ -2350,15 +2350,21 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 .btn-pro-primary:hover { background: var(--orange-dark); }
 
 .strategy-controls {
-  display: flex; align-items: flex-end;
+  display: flex; align-items: flex-end; justify-content: space-between;
   gap: 1.5rem; flex-wrap: wrap;
-  margin: 0 0 1rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f6f9ff 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin: 0 1.5rem .85rem;
+  padding: .9rem 1.1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.9);
 }
 .strat-ctrl-left { min-width: 220px; max-width: 560px; flex: 1 1 320px; }
 .strat-title { font-size: 1.15rem; font-weight: 800; margin: 0 0 .15rem; letter-spacing: -.01em; }
 .strat-sub { font-size: .82rem; color: var(--text-muted); margin: 0; line-height: 1.45; }
 .strat-ctrl-right { display: flex; gap: .6rem; flex-wrap: wrap; align-items: flex-end; }
 .strat-ctrl-right .filter-group { min-width: 130px; }
+.strategy-tiles-wrap, .strategy-tiles { margin-left: 1.5rem; margin-right: 1.5rem; }
 
 .strategy-tiles-wrap { margin: .25rem 0 2rem; }
 .strategy-tiles {
