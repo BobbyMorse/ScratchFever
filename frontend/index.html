@@ -187,31 +187,19 @@
         </section>
 
         <!-- Strategy sub-tabs -->
-        <section class="strategy-tabs" id="strategyTabs">
-          <button class="strat-tab active" data-strat="ev" onclick="switchStrategy('ev')">
-            <span class="strat-emoji">🎯</span><span>Positive EV</span>
-          </button>
-          <button class="strat-tab" data-strat="any" onclick="switchStrategy('any')">
-            <span class="strat-emoji">🎰</span><span>Any-Prize Odds</span>
-          </button>
-          <button class="strat-tab" data-strat="threshold" onclick="switchStrategy('threshold')">
-            <span class="strat-emoji">💵</span><span>$X+ Hunter</span>
-          </button>
-          <button class="strat-tab" data-strat="million" onclick="switchStrategy('million')">
-            <span class="strat-emoji">💰</span><span>$1M+ Hunter</span>
-          </button>
-          <button class="strat-tab" data-strat="topprize" onclick="switchStrategy('topprize')">
-            <span class="strat-emoji">🏆</span><span>Top Prize Hunter</span>
-          </button>
-          <button class="strat-tab" data-strat="launch" onclick="switchStrategy('launch')">
-            <span class="strat-emoji">🚀</span><span>Launch Odds</span>
-          </button>
-          <button class="strat-tab" data-strat="fresh" onclick="switchStrategy('fresh')">
-            <span class="strat-emoji">🆕</span><span>Fresh Drops</span>
-          </button>
-          <button class="strat-tab" data-strat="almostgone" onclick="switchStrategy('almostgone')">
-            <span class="strat-emoji">🔥</span><span>Almost Gone</span>
-          </button>
+        <section class="strategy-tabs" id="strategyTabs" aria-label="EV game strategies">
+          <div class="strategy-tabs-label">Strategy</div>
+          <div class="strategy-tabs-scroll">
+            <button class="strat-tab active" data-strat="ev" onclick="switchStrategy('ev')">Positive EV</button>
+            <button class="strat-tab" data-strat="any" onclick="switchStrategy('any')">Any-Prize Odds</button>
+            <button class="strat-tab" data-strat="threshold" onclick="switchStrategy('threshold')">$X+ Hunter</button>
+            <button class="strat-tab" data-strat="million" onclick="switchStrategy('million')">$1M+ Hunter</button>
+            <button class="strat-tab" data-strat="topprize" onclick="switchStrategy('topprize')">Top Prize Hunter</button>
+            <button class="strat-tab" data-strat="launch" onclick="switchStrategy('launch')">Launch Odds</button>
+            <button class="strat-tab" data-strat="byprice" onclick="switchStrategy('byprice')">By Price Tier</button>
+            <button class="strat-tab" data-strat="fresh" onclick="switchStrategy('fresh')">Fresh Drops</button>
+            <button class="strat-tab" data-strat="almostgone" onclick="switchStrategy('almostgone')">Almost Gone</button>
+          </div>
         </section>
 
         <!-- Strategy-specific controls (only shown for tile views) -->
