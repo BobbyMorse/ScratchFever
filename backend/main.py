@@ -481,6 +481,62 @@ async def api_games(
     return {"games": games, "count": len(games)}
 
 
+@app.get("/api/games/strategy-stats")
+async def api_strategy_stats():
+    """Per-game prize-tier aggregations powering EV sub-tab strategies.
+
+    Returns current overall odds (live, based on prizes_remaining + tickets_remaining)
+    plus odds at each meaningful prize threshold so the frontend can rank games
+    by 'best chance to win $X+' without round-tripping per game.
+    """
+    async with get_pool().acquire() as conn:
+        rows = await conn.fetch(
+            """
+            SELECT g.id, g.tickets_remaining,
+                   SUM(CASE WHEN pt.prizes_remaining > 0 THEN pt.prizes_remaining ELSE 0 END) AS prizes_remaining_total,
+                   SUM(CASE WHEN pt.prize_amount >= 50      AND pt.prizes_remaining > 0 THEN pt.prizes_remaining ELSE 0 END) AS p_50,
+                   SUM(CASE WHEN pt.prize_amount >= 100     AND pt.prizes_remaining > 0 THEN pt.prizes_remaining ELSE 0 END) AS p_100,
+                   SUM(CASE WHEN pt.prize_amount >= 500     AND pt.prizes_remaining > 0 THEN pt.prizes_remaining ELSE 0 END) AS p_500,
+                   SUM(CASE WHEN pt.prize_amount >= 1000    AND pt.prizes_remaining > 0 THEN pt.prizes_remaining ELSE 0 END) AS p_1k,
+                   SUM(CASE WHEN pt.prize_amount >= 5000    AND pt.prizes_remaining > 0 THEN pt.prizes_remaining ELSE 0 END) AS p_5k,
+                   SUM(CASE WHEN pt.prize_amount >= 10000   AND pt.prizes_remaining > 0 THEN pt.prizes_remaining ELSE 0 END) AS p_10k,
+                   SUM(CASE WHEN pt.prize_amount >= 100000  AND pt.prizes_remaining > 0 THEN pt.prizes_remaining ELSE 0 END) AS p_100k
+            FROM games g
+            LEFT JOIN prize_tiers pt ON pt.game_db_id = g.id
+            WHERE g.is_active = TRUE
+              AND g.ev IS NOT NULL
+              AND (g.end_date IS NULL OR g.end_date >= CURRENT_DATE)
+              AND g.tickets_remaining IS NOT NULL
+              AND g.tickets_remaining > 0
+            GROUP BY g.id, g.tickets_remaining
+            """
+        )
+
+    def odds(prizes, tickets):
+        if not prizes or not tickets:
+            return None
+        return float(tickets) / float(prizes)
+
+    stats = []
+    for r in rows:
+        tr = r["tickets_remaining"]
+        stats.append({
+            "id": r["id"],
+            "odds_any": odds(r["prizes_remaining_total"], tr),
+            "odds_50":   odds(r["p_50"], tr),
+            "odds_100":  odds(r["p_100"], tr),
+            "odds_500":  odds(r["p_500"], tr),
+            "odds_1k":   odds(r["p_1k"], tr),
+            "odds_5k":   odds(r["p_5k"], tr),
+            "odds_10k":  odds(r["p_10k"], tr),
+            "odds_100k": odds(r["p_100k"], tr),
+            "prizes_remaining_total": int(r["prizes_remaining_total"] or 0),
+            "prizes_1k_plus":  int(r["p_1k"] or 0),
+            "prizes_10k_plus": int(r["p_10k"] or 0),
+        })
+    return {"stats": stats, "count": len(stats)}
+
+
 @app.get("/api/games/{game_id}")
 async def api_game_detail(game_id: int):
     async with get_pool().acquire() as conn:
