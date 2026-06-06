@@ -2162,12 +2162,10 @@ function buildBigWinsPopup(g) {
 function buildParams() {
   const state    = document.getElementById("filterState")?.value || "";
   const price    = document.getElementById("filterPrice")?.value || "";
-  const minRet   = document.getElementById("filterMinReturn")?.value || "";
   const sortBy   = document.getElementById("sortBy")?.value || "return_pct";
   const p = new URLSearchParams({ sort_by: sortBy, limit: 1000 });
   if (state)  p.set("state", state);
   if (price)  { p.set("min_price", price); p.set("max_price", price); }
-  if (minRet) p.set("min_return", minRet);
   return p.toString();
 }
 
