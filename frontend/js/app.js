@@ -1183,6 +1183,9 @@ function renderStrategyView() {
   const name = currentStrategy;
   if (name === "ev") return;
   const container = document.getElementById("strategyTiles");
+  // byprice view groups games into stacked sections; everything else uses
+  // a single auto-fill grid. Toggle the grid layout accordingly.
+  container.classList.toggle("strat-byprice-mode", name === "byprice");
 
   // Pool starts from the *unfiltered* set so users see games from estimated
   // states too — the EV-tab "Hide Estimated" toggle only applies to the
