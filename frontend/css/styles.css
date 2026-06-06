@@ -2361,11 +2361,6 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 .strat-ctrl-right .filter-group { min-width: 120px; }
 
 .strategy-tiles-wrap { margin: .25rem 0 2rem; }
-/* Inside the strategy side-panel layout the outer container already owns
-   the horizontal gutter — zero out any inherited side margins so the EV
-   filters bar and table align flush with the strategy column. */
-.strategy-main > .filters-bar,
-.strategy-main > .table-section { margin-left: 0; margin-right: 0; }
 .strategy-tiles {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
