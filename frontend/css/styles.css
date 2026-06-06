@@ -2425,6 +2425,9 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: .85rem;
 }
+.strategy-tiles.strat-byprice-mode {
+  display: block;
+}
 .strat-tile {
   background: var(--card);
   border: 1.5px solid var(--border);
