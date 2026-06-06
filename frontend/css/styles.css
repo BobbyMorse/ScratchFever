@@ -2490,6 +2490,20 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 }
 .strat-tile-head .state-pill { font-size: .62rem; padding: .15rem .4rem; }
 .strat-tile-head .price-pill { font-size: .72rem; padding: .12rem .45rem; }
+.strat-tile-img {
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  height: 110px;
+  overflow: hidden;
+  margin: .15rem 0 .1rem;
+}
+.strat-tile-img img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  display: block;
+}
 .strat-tile-name {
   font-size: .95rem; font-weight: 800;
   letter-spacing: -.01em;
