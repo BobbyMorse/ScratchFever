@@ -93,7 +93,11 @@ class IndianaScraper(BaseScraper):
                 continue
 
             img = a.find("img")
-            image_url = img["src"] if img and img.get("src") else None
+            image_src = img.get("src") if img else None
+            if image_src and image_src.startswith("/"):
+                image_url = BASE_URL + image_src
+            else:
+                image_url = image_src or None
             detail_url = (BASE_URL + href) if href.startswith("/") else href
 
             stubs.append({
