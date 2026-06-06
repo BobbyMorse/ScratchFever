@@ -1284,6 +1284,36 @@ function renderStrategyView() {
         "Launch Overall Odds"
       ));
   }
+  else if (name === "byprice") {
+    titleEl.textContent = "Best by Price Tier";
+    subEl.textContent = "Top games ranked by return % within each price point. Pick the best $1, $5, $10 ticket etc. Use the Price filter to focus on one tier.";
+    const priceTiers = [1, 2, 3, 5, 10, 20, 25, 30, 50];
+    const wantPrice = priceFilter ? Number(priceFilter) : null;
+    const sections = [];
+    for (const p of priceTiers) {
+      if (wantPrice !== null && p !== wantPrice) continue;
+      const games = pool
+        .filter(g => g.price === p && g.return_pct != null)
+        .sort((a, b) => (b.return_pct || 0) - (a.return_pct || 0))
+        .slice(0, wantPrice !== null ? 60 : 9);
+      if (!games.length) continue;
+      const tiles = games.map((g, i) => strategyTile(g, i + 1,
+        (g.return_pct || 0).toFixed(1) + "%",
+        "Return"
+      )).join("");
+      sections.push(`<div class="strat-price-section">
+        <div class="strat-price-header">
+          <span class="strat-price-tag">$${p}</span>
+          <span class="strat-price-sub">${games.length} top pick${games.length !== 1 ? "s" : ""}</span>
+        </div>
+        <div class="strategy-tiles">${tiles}</div>
+      </div>`);
+    }
+    container.innerHTML = sections.length
+      ? sections.join("")
+      : `<div class="strat-tile-empty">No games match this strategy with current filters.</div>`;
+    return;
+  }
   else if (name === "fresh") {
     titleEl.textContent = "Fresh Drops";
     subEl.textContent = "Games launched in the last 60 days, ranked by return % — full prize pools still in play.";
