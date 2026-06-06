@@ -2419,7 +2419,7 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 .strat-ctrl-right { display: flex; gap: .55rem; flex-wrap: wrap; align-items: flex-end; }
 .strat-ctrl-right .filter-group { min-width: 120px; }
 
-.strategy-tiles-wrap { margin-top: .25rem; }
+.strategy-tiles-wrap { margin: .25rem 1.5rem 2rem; }
 .strategy-tiles {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
