@@ -2350,42 +2350,63 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 .btn-pro-primary:hover { background: var(--orange-dark); }
 
 /* ── EV Strategy Sub-tabs ──────────────────────────────────────────────
-   Pill row that lets users swap between alternate game-ranking strategies.
-   Sits between the stats row and the filters/results. */
+   Typography-first tab strip — no emojis, no pill backgrounds. Active state
+   is communicated with weight + color + a thick orange underline that ties
+   visually to the brand orange used elsewhere on this tab. */
 .strategy-tabs {
   display: flex;
-  gap: .4rem;
-  overflow-x: auto;
-  padding: 0 0 .35rem;
-  margin: 0 0 1rem;
+  align-items: stretch;
+  gap: 1rem;
+  margin: 1.1rem 1.5rem 1rem;
   border-bottom: 1.5px solid var(--border);
-  scrollbar-width: thin;
 }
-.strategy-tabs::-webkit-scrollbar { height: 5px; }
-.strategy-tabs::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.strategy-tabs-label {
+  display: flex; align-items: center;
+  font-size: .62rem; font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  color: var(--text-dim);
+  padding-right: .3rem;
+  flex-shrink: 0;
+}
+.strategy-tabs-scroll {
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  flex: 1;
+}
+.strategy-tabs-scroll::-webkit-scrollbar { height: 4px; }
+.strategy-tabs-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 .strat-tab {
-  display: inline-flex; align-items: center; gap: .4rem;
   flex-shrink: 0;
   background: transparent;
   border: none;
-  border-bottom: 2.5px solid transparent;
+  border-bottom: 3px solid transparent;
   color: var(--text-muted);
-  padding: .55rem .85rem;
+  padding: .7rem 1rem .65rem;
   margin-bottom: -1.5px;
-  font-size: .82rem;
+  font-size: .85rem;
   font-weight: 600;
+  font-family: inherit;
+  letter-spacing: -.005em;
   cursor: pointer;
   white-space: nowrap;
-  transition: color .12s ease, border-color .12s ease, background .12s ease;
-  border-radius: 6px 6px 0 0;
+  transition: color .12s ease, border-color .12s ease;
+  position: relative;
 }
-.strat-tab:hover { color: var(--text); background: var(--bg); }
+.strat-tab:hover { color: var(--text); }
 .strat-tab.active {
-  color: var(--orange);
+  color: var(--text);
+  font-weight: 800;
   border-bottom-color: var(--orange);
-  background: var(--orange-dim);
 }
-.strat-emoji { font-size: 1rem; line-height: 1; }
+
+@media (max-width: 720px) {
+  .strategy-tabs { gap: .4rem; margin-left: .85rem; margin-right: .85rem; }
+  .strategy-tabs-label { display: none; }
+  .strat-tab { padding: .55rem .65rem .55rem; font-size: .8rem; }
+}
 
 .strategy-controls {
   display: flex; align-items: flex-end; justify-content: space-between;
