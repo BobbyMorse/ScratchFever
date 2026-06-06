@@ -2411,7 +2411,7 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 .strategy-controls {
   display: flex; align-items: flex-end; justify-content: space-between;
   gap: 1rem; flex-wrap: wrap;
-  margin-bottom: 1rem;
+  margin: 0 1.5rem 1rem;
 }
 .strat-ctrl-left { min-width: 220px; flex: 1; }
 .strat-title { font-size: 1.15rem; font-weight: 800; margin: 0 0 .15rem; letter-spacing: -.01em; }
