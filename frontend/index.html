@@ -186,8 +186,82 @@
           </div>
         </section>
 
-        <!-- Filters -->
-        <section class="filters-bar">
+        <!-- Strategy sub-tabs -->
+        <section class="strategy-tabs" id="strategyTabs">
+          <button class="strat-tab active" data-strat="ev" onclick="switchStrategy('ev')">
+            <span class="strat-emoji">🎯</span><span>Positive EV</span>
+          </button>
+          <button class="strat-tab" data-strat="any" onclick="switchStrategy('any')">
+            <span class="strat-emoji">🎰</span><span>Any-Prize Odds</span>
+          </button>
+          <button class="strat-tab" data-strat="threshold" onclick="switchStrategy('threshold')">
+            <span class="strat-emoji">💵</span><span>$X+ Hunter</span>
+          </button>
+          <button class="strat-tab" data-strat="million" onclick="switchStrategy('million')">
+            <span class="strat-emoji">💰</span><span>$1M+ Hunter</span>
+          </button>
+          <button class="strat-tab" data-strat="topprize" onclick="switchStrategy('topprize')">
+            <span class="strat-emoji">🏆</span><span>Top Prize Hunter</span>
+          </button>
+          <button class="strat-tab" data-strat="launch" onclick="switchStrategy('launch')">
+            <span class="strat-emoji">🚀</span><span>Launch Odds</span>
+          </button>
+          <button class="strat-tab" data-strat="fresh" onclick="switchStrategy('fresh')">
+            <span class="strat-emoji">🆕</span><span>Fresh Drops</span>
+          </button>
+          <button class="strat-tab" data-strat="almostgone" onclick="switchStrategy('almostgone')">
+            <span class="strat-emoji">🔥</span><span>Almost Gone</span>
+          </button>
+        </section>
+
+        <!-- Strategy-specific controls (only shown for tile views) -->
+        <section class="strategy-controls" id="stratControls" style="display:none">
+          <div class="strat-ctrl-left">
+            <h2 class="strat-title" id="stratTitle">—</h2>
+            <p class="strat-sub" id="stratSubtitle">—</p>
+          </div>
+          <div class="strat-ctrl-right">
+            <div class="filter-group" id="stratThresholdWrap" style="display:none">
+              <label>Min Prize</label>
+              <select id="stratThreshold" onchange="renderStrategyView()">
+                <option value="100">$100+</option>
+                <option value="500">$500+</option>
+                <option value="1000" selected>$1,000+</option>
+                <option value="5000">$5,000+</option>
+                <option value="10000">$10,000+</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>State</label>
+              <select id="stratStateFilter" onchange="renderStrategyView()">
+                <option value="">All States</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Price</label>
+              <select id="stratPriceFilter" onchange="renderStrategyView()">
+                <option value="">Any Price</option>
+                <option value="1">$1</option>
+                <option value="2">$2</option>
+                <option value="5">$5</option>
+                <option value="10">$10</option>
+                <option value="20">$20</option>
+                <option value="30">$30</option>
+                <option value="50">$50</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <!-- Tile view container (hidden by default; shown when a non-EV strategy is active) -->
+        <section class="strategy-tiles-wrap" id="strategyTilesWrap" style="display:none">
+          <div class="strategy-tiles" id="strategyTiles">
+            <div class="loading-cell" style="grid-column:1/-1;padding:2rem;text-align:center">Loading…</div>
+          </div>
+        </section>
+
+        <!-- Filters (legacy / Positive EV view) -->
+        <section class="filters-bar" id="evFiltersBar">
           <div class="filter-group">
             <label>State</label>
             <select id="filterState" onchange="applyFilters()">
