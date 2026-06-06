@@ -1227,9 +1227,17 @@ function renderStrategyView() {
     ranked = pool
       .map(g => {
         const s = strategyStatsById[g.id];
-        return { g, odds: s?.[oddsKey], remaining: s?.[countKey] };
+        if (!s) return null;
+        const odds = s[oddsKey];
+        if (!odds || odds <= 0) return null;
+        // Use explicit count when backend exposes it; otherwise derive from
+        // tickets_remaining / odds. The derived value is approximate but
+        // accurate enough to display in the meta row.
+        const remaining = countKey ? s[countKey] : Math.round((g.tickets_remaining || 0) / odds);
+        if (!remaining || remaining <= 0) return null;
+        return { g, odds, remaining };
       })
-      .filter(x => x.odds && x.odds > 0 && x.remaining > 0)
+      .filter(Boolean)
       .sort((a, b) => a.odds - b.odds)
       .slice(0, 60)
       .map((x, i) => strategyTile(x.g, i + 1,
