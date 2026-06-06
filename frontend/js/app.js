@@ -1081,11 +1081,263 @@ async function loadAllGamesUnfiltered() {
     allGames = applyClientFilters(raw);
     renderTable();
     populateGameFilterSelect();
+    populateStrategyStateFilter();
     if (document.getElementById("plState")) {
       initPlStateSelect();
       onPlStateChange();
     }
+    loadStrategyStats();
   } catch (_) {}
+}
+
+// ── EV strategy sub-tabs ──────────────────────────────────────────────────────
+// Per-game prize-tier aggregations keyed by game.id — drives strategies that
+// need "current" odds (live ratio of prizes_remaining to tickets_remaining),
+// rather than the published launch odds already on the game row.
+let strategyStatsById = null;
+let currentStrategy = "ev";
+
+async function loadStrategyStats() {
+  if (strategyStatsById) return;
+  try {
+    const res = await fetch("/api/games/strategy-stats");
+    if (!res.ok) return;
+    const data = await res.json();
+    const map = {};
+    for (const s of (data.stats || [])) map[s.id] = s;
+    strategyStatsById = map;
+    if (currentStrategy !== "ev") renderStrategyView();
+  } catch (_) {}
+}
+
+function populateStrategyStateFilter() {
+  const sel = document.getElementById("stratStateFilter");
+  if (!sel || !allGamesUnfiltered?.length) return;
+  const states = [...new Set(allGamesUnfiltered.map(g => g.state_code))].sort();
+  const current = sel.value;
+  sel.innerHTML = `<option value="">All States</option>` +
+    states.map(c => `<option value="${c}">${c}</option>`).join("");
+  if (current) sel.value = current;
+}
+
+function switchStrategy(name) {
+  currentStrategy = name;
+  document.querySelectorAll(".strat-tab").forEach(b => b.classList.remove("active"));
+  document.querySelector(`.strat-tab[data-strat="${name}"]`)?.classList.add("active");
+
+  const isEV = name === "ev";
+  document.getElementById("evFiltersBar").style.display     = isEV ? "" : "none";
+  document.getElementById("evTableSection").style.display   = isEV ? "" : "none";
+  document.getElementById("stratControls").style.display    = isEV ? "none" : "";
+  document.getElementById("strategyTilesWrap").style.display = isEV ? "none" : "";
+  document.getElementById("stratThresholdWrap").style.display = name === "threshold" ? "" : "none";
+
+  if (isEV) { renderTable(); return; }
+  renderStrategyView();
+}
+
+// One game-tile fits every strategy — the "hero" line is whatever metric the
+// active strategy ranks on, then a compact meta grid shows the standard
+// price/EV/inventory/top-prize fields so users have full context to act.
+function strategyTile(g, rank, heroVal, heroLbl, opts = {}) {
+  const ret = g.return_pct;
+  const retCls = ret >= 100 ? "ev-positive" : ret >= 90 ? "ev-near" : ret >= 70 ? "ev-mid" : "ev-low";
+  const retTxt = ret != null ? ret.toFixed(1) + "%" : "—";
+  const top = g.top_prize != null ? "$" + fmtMoney(g.top_prize) : "—";
+  const topRem = g.top_prize_remaining != null ? fmtNum(g.top_prize_remaining) : "—";
+  const left = g.tickets_remaining != null ? fmtNum(g.tickets_remaining) : "—";
+  const pool = g.prize_pool_remaining != null ? "$" + fmtMoney(g.prize_pool_remaining) : "—";
+
+  const badges = [];
+  if (ret >= 100) badges.push(`<span class="strat-tile-badge green">+EV</span>`);
+  if (g.start_date) {
+    const days = Math.floor((Date.now() - parseReportedAt(g.start_date)) / 86400000);
+    if (days >= 0 && days < 60) badges.push(`<span class="strat-tile-badge orange">🆕 New</span>`);
+  }
+
+  const rankCls = rank <= 3 ? "top-three" : "";
+  return `<div class="strat-tile" onclick="openGame(${g.id})">
+    <div class="strat-tile-rank ${rankCls}">#${rank}</div>
+    <div class="strat-tile-head">
+      <span class="state-pill state-${g.state_code}">${g.state_code}</span>
+      <span class="price-pill">$${g.price}</span>
+      ${badges.join("")}
+    </div>
+    <div class="strat-tile-name">${escHtml(g.name)}</div>
+    <div class="strat-tile-hero">
+      <span class="strat-tile-hero-val">${heroVal}</span>
+      <span class="strat-tile-hero-lbl">${heroLbl}</span>
+    </div>
+    <div class="strat-tile-meta">
+      <div class="strat-tile-meta-row"><span class="lbl">Return</span><span class="val ${retCls}">${retTxt}</span></div>
+      <div class="strat-tile-meta-row"><span class="lbl">Top Prize</span><span class="val">${top}</span></div>
+      <div class="strat-tile-meta-row"><span class="lbl">Top Left</span><span class="val">${topRem}</span></div>
+      <div class="strat-tile-meta-row"><span class="lbl">Tix Left</span><span class="val">${left}</span></div>
+      <div class="strat-tile-meta-row" style="grid-column:1/-1"><span class="lbl">Prize Pool Left</span><span class="val">${pool}</span></div>
+      ${opts.extraMeta || ""}
+    </div>
+  </div>`;
+}
+
+function renderStrategyView() {
+  const name = currentStrategy;
+  if (name === "ev") return;
+  const container = document.getElementById("strategyTiles");
+
+  // Pool starts from the *unfiltered* set so users see games from estimated
+  // states too — the EV-tab "Hide Estimated" toggle only applies to the
+  // table view. Apply state/price filters from the strategy controls.
+  const stateFilter = document.getElementById("stratStateFilter")?.value || "";
+  const priceFilter = document.getElementById("stratPriceFilter")?.value || "";
+  let pool = (allGamesUnfiltered || []).filter(g => !EV_EXCLUDED_STATES.has(g.state_code));
+  if (stateFilter) pool = pool.filter(g => g.state_code === stateFilter);
+  if (priceFilter) { const p = Number(priceFilter); pool = pool.filter(g => g.price === p); }
+
+  const titleEl = document.getElementById("stratTitle");
+  const subEl   = document.getElementById("stratSubtitle");
+
+  let ranked = [];
+  let needsStats = false;
+
+  if (name === "any") {
+    titleEl.textContent = "Best Any-Prize Odds (Live)";
+    subEl.textContent = "Highest current chance of winning *any* prize, based on remaining prizes vs. estimated tickets left.";
+    needsStats = true;
+    if (!strategyStatsById) { container.innerHTML = loadingTile(); return; }
+    ranked = pool
+      .map(g => ({ g, odds: strategyStatsById[g.id]?.odds_any }))
+      .filter(x => x.odds && x.odds > 0)
+      .sort((a, b) => a.odds - b.odds)
+      .slice(0, 60)
+      .map((x, i) => strategyTile(x.g, i + 1,
+        `1 in ${x.odds.toFixed(2)}`,
+        "Current Odds (any prize)",
+        { extraMeta: `<div class="strat-tile-meta-row" style="grid-column:1/-1"><span class="lbl">Prizes Remaining</span><span class="val">${fmtNum(strategyStatsById[x.g.id].prizes_remaining_total)}</span></div>` }
+      ));
+  }
+  else if (name === "threshold") {
+    const thresh = Number(document.getElementById("stratThreshold").value);
+    const label = "$" + fmtMoney(thresh) + "+";
+    titleEl.textContent = `Best Odds: Win ${label}`;
+    subEl.textContent = `Games where you have the highest live chance of hitting a prize of ${label}. Uses remaining prizes at or above this tier.`;
+    needsStats = true;
+    if (!strategyStatsById) { container.innerHTML = loadingTile(); return; }
+    const oddsKey = thresholdOddsKey(thresh);
+    const countKey = thresholdCountKey(thresh);
+    ranked = pool
+      .map(g => {
+        const s = strategyStatsById[g.id];
+        return { g, odds: s?.[oddsKey], remaining: s?.[countKey] };
+      })
+      .filter(x => x.odds && x.odds > 0 && x.remaining > 0)
+      .sort((a, b) => a.odds - b.odds)
+      .slice(0, 60)
+      .map((x, i) => strategyTile(x.g, i + 1,
+        `1 in ${fmtNum(Math.round(x.odds))}`,
+        `Odds of winning ${label}`,
+        { extraMeta: `<div class="strat-tile-meta-row" style="grid-column:1/-1"><span class="lbl">${label} Prizes Left</span><span class="val">${fmtNum(x.remaining)}</span></div>` }
+      ));
+  }
+  else if (name === "million") {
+    titleEl.textContent = "$1M+ Jackpot Hunter";
+    subEl.textContent = "Best published odds of winning a million-dollar-or-larger top prize. Lower 'one in' is better.";
+    ranked = pool
+      .filter(g => g.jackpot_odds_one_in && g.jackpot_odds_one_in > 0)
+      .sort((a, b) => a.jackpot_odds_one_in - b.jackpot_odds_one_in)
+      .slice(0, 60)
+      .map((g, i) => strategyTile(g, i + 1,
+        `1 in ${fmtNum(Math.round(g.jackpot_odds_one_in))}`,
+        "$1M+ Odds"
+      ));
+  }
+  else if (name === "topprize") {
+    titleEl.textContent = "Top Prize Hunter";
+    subEl.textContent = "Fewest estimated tickets left per remaining top prize — concentrated shots at the headline jackpot.";
+    ranked = pool
+      .filter(g => g.top_prize_remaining > 0 && g.tickets_remaining > 0)
+      .map(g => ({ g, ratio: g.tickets_remaining / g.top_prize_remaining }))
+      .sort((a, b) => a.ratio - b.ratio)
+      .slice(0, 60)
+      .map((x, i) => strategyTile(x.g, i + 1,
+        `1 in ${fmtNum(Math.round(x.ratio))}`,
+        "Per Top Prize Left",
+        { extraMeta: `<div class="strat-tile-meta-row" style="grid-column:1/-1"><span class="lbl">Top Prizes Left</span><span class="val">${x.g.top_prize_remaining}</span></div>` }
+      ));
+  }
+  else if (name === "launch") {
+    titleEl.textContent = "Best Launch Odds";
+    subEl.textContent = "Best published overall odds — the odds printed on the back of the ticket, before any prizes have been claimed.";
+    ranked = pool
+      .filter(g => g.overall_odds_one_in && g.overall_odds_one_in > 0)
+      .sort((a, b) => a.overall_odds_one_in - b.overall_odds_one_in)
+      .slice(0, 60)
+      .map((g, i) => strategyTile(g, i + 1,
+        `1 in ${g.overall_odds_one_in.toFixed(2)}`,
+        "Launch Overall Odds"
+      ));
+  }
+  else if (name === "fresh") {
+    titleEl.textContent = "Fresh Drops";
+    subEl.textContent = "Games launched in the last 60 days, ranked by return % — full prize pools still in play.";
+    const cutoff = Date.now() - 60 * 86400000;
+    ranked = pool
+      .filter(g => g.start_date && parseReportedAt(g.start_date) >= cutoff)
+      .sort((a, b) => (b.return_pct || 0) - (a.return_pct || 0))
+      .slice(0, 60)
+      .map((g, i) => {
+        const days = Math.floor((Date.now() - parseReportedAt(g.start_date)) / 86400000);
+        const dayLbl = days <= 0 ? "today" : days === 1 ? "1 day ago" : `${days} days ago`;
+        return strategyTile(g, i + 1,
+          dayLbl,
+          "Released",
+          { extraMeta: `<div class="strat-tile-meta-row" style="grid-column:1/-1"><span class="lbl">Released</span><span class="val">${fmtDate(g.start_date)}</span></div>` }
+        );
+      });
+  }
+  else if (name === "almostgone") {
+    titleEl.textContent = "Almost Gone";
+    subEl.textContent = "Games with under 25% inventory remaining, ranked by return %. Limited window — get them before they're pulled.";
+    ranked = pool
+      .filter(g => g.total_tickets > 0 && g.tickets_remaining != null
+        && (g.tickets_remaining / g.total_tickets) < 0.25
+        && (g.tickets_remaining / g.total_tickets) > 0)
+      .sort((a, b) => (b.return_pct || 0) - (a.return_pct || 0))
+      .slice(0, 60)
+      .map(g => {
+        const pctLeft = (g.tickets_remaining / g.total_tickets * 100);
+        return { g, pctLeft };
+      })
+      .map((x, i) => strategyTile(x.g, i + 1,
+        x.pctLeft.toFixed(1) + "%",
+        "Inventory Remaining"
+      ));
+  }
+
+  if (!ranked.length) {
+    container.innerHTML = `<div class="strat-tile-empty">No games match this strategy with current filters.${needsStats && !strategyStatsById ? " (Prize data loading…)" : ""}</div>`;
+    return;
+  }
+  container.innerHTML = ranked.join("");
+}
+
+function loadingTile() {
+  return `<div class="strat-tile-empty">Loading prize data…</div>`;
+}
+
+function thresholdOddsKey(t) {
+  if (t >= 10000) return "odds_10k";
+  if (t >= 5000)  return "odds_5k";
+  if (t >= 1000)  return "odds_1k";
+  if (t >= 500)   return "odds_500";
+  if (t >= 100)   return "odds_100";
+  return "odds_50";
+}
+function thresholdCountKey(t) {
+  // Backend only exposes prizes_1k_plus and prizes_10k_plus as counts; for
+  // other thresholds we synthesize "remaining" from tickets_remaining / odds.
+  if (t >= 10000) return "prizes_10k_plus";
+  if (t >= 1000)  return "prizes_1k_plus";
+  return null;
 }
 
 function loadGames() {
