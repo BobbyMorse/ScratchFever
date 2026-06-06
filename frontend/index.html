@@ -193,6 +193,20 @@
             <p class="strat-sub" id="stratSubtitle">—</p>
           </div>
           <div class="strat-ctrl-right">
+            <div class="filter-group">
+              <label>Strategy</label>
+              <select id="stratStrategySelect" onchange="switchStrategy(this.value)">
+                <option value="ev">Positive EV</option>
+                <option value="any">Any-Prize Odds</option>
+                <option value="threshold">$X+ Hunter</option>
+                <option value="million">$1M+ Hunter</option>
+                <option value="topprize">Top Prize Hunter</option>
+                <option value="launch">Launch Odds</option>
+                <option value="byprice">By Price Tier</option>
+                <option value="fresh">Fresh Drops</option>
+                <option value="almostgone">Almost Gone</option>
+              </select>
+            </div>
             <div class="filter-group" id="stratThresholdWrap" style="display:none">
               <label>Min Prize</label>
               <select id="stratThreshold" onchange="renderStrategyView()">
