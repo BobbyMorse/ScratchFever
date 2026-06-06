@@ -1122,8 +1122,10 @@ function populateStrategyStateFilter() {
 
 function switchStrategy(name) {
   currentStrategy = name;
-  document.querySelectorAll(".strat-tab").forEach(b => b.classList.remove("active"));
-  document.querySelector(`.strat-tab[data-strat="${name}"]`)?.classList.add("active");
+  const topSel = document.getElementById("filterStrategy");
+  const ctrlSel = document.getElementById("stratStrategySelect");
+  if (topSel && topSel.value !== name) topSel.value = name;
+  if (ctrlSel && ctrlSel.value !== name) ctrlSel.value = name;
 
   const isEV = name === "ev";
   document.getElementById("evFiltersBar").style.display     = isEV ? "" : "none";
