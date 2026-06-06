@@ -2350,15 +2350,15 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 .btn-pro-primary:hover { background: var(--orange-dark); }
 
 .strategy-controls {
-  display: flex; align-items: flex-end; justify-content: space-between;
-  gap: 1rem; flex-wrap: wrap;
+  display: flex; align-items: flex-end;
+  gap: 1.5rem; flex-wrap: wrap;
   margin: 0 0 1rem;
 }
-.strat-ctrl-left { min-width: 220px; flex: 1; }
+.strat-ctrl-left { min-width: 220px; max-width: 560px; flex: 1 1 320px; }
 .strat-title { font-size: 1.15rem; font-weight: 800; margin: 0 0 .15rem; letter-spacing: -.01em; }
-.strat-sub { font-size: .82rem; color: var(--text-muted); margin: 0; line-height: 1.45; max-width: 580px; }
-.strat-ctrl-right { display: flex; gap: .55rem; flex-wrap: wrap; align-items: flex-end; }
-.strat-ctrl-right .filter-group { min-width: 120px; }
+.strat-sub { font-size: .82rem; color: var(--text-muted); margin: 0; line-height: 1.45; }
+.strat-ctrl-right { display: flex; gap: .6rem; flex-wrap: wrap; align-items: flex-end; }
+.strat-ctrl-right .filter-group { min-width: 130px; }
 
 .strategy-tiles-wrap { margin: .25rem 0 2rem; }
 .strategy-tiles {
