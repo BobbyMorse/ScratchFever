@@ -1156,6 +1156,9 @@ function strategyTile(g, rank, heroVal, heroLbl, opts = {}) {
   }
 
   const rankCls = rank <= 3 ? "top-three" : "";
+  const img = g.image_url
+    ? `<div class="strat-tile-img"><img src="${escHtml(g.image_url)}" alt="${escHtml(g.name)}" loading="lazy" onerror="this.parentNode.style.display='none'"></div>`
+    : "";
   return `<div class="strat-tile" onclick="openGame(${g.id})">
     <div class="strat-tile-rank ${rankCls}">#${rank}</div>
     <div class="strat-tile-head">
@@ -1163,6 +1166,7 @@ function strategyTile(g, rank, heroVal, heroLbl, opts = {}) {
       <span class="price-pill">$${g.price}</span>
       ${badges.join("")}
     </div>
+    ${img}
     <div class="strat-tile-name">${escHtml(g.name)}</div>
     <div class="strat-tile-hero">
       <span class="strat-tile-hero-val">${heroVal}</span>
