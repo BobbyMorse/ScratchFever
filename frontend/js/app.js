@@ -2275,7 +2275,7 @@ function gameRow(g, rank) {
   const barPct = Math.min(100, (ret / 120) * 100).toFixed(1);
 
   const approxMark = g.ev_approximate ? "~" : "";
-  const retCell = ret != null
+  const retInner = ret != null
     ? `<span class="${cls}" title="${g.ev_approximate ? "Estimated — top prize depletion rate used as proxy for overall ticket sales" : ""}">
          <div class="return-bar-wrap">
            <div class="return-bar"><div class="return-bar-fill" style="width:${barPct}%"></div></div>
@@ -2283,8 +2283,10 @@ function gameRow(g, rank) {
          </div>
        </span>`
     : "—";
+  const retCell = ret != null ? gateBlur(retInner) : "—";
 
-  const ev     = g.ev != null ? `${approxMark}${g.ev >= 0 ? "+" : ""}$${g.ev.toFixed(2)}` : "—";
+  const evRaw  = g.ev != null ? `${approxMark}${g.ev >= 0 ? "+" : ""}$${g.ev.toFixed(2)}` : "—";
+  const ev     = g.ev != null ? gateBlur(evRaw) : "—";
   const jackpotOdds = g.jackpot_odds_one_in != null ? `1 in ${fmtNum(Math.round(g.jackpot_odds_one_in))}` : "—";
   const odds   = g.overall_odds_one_in ? `1 in ${fmtNum(g.overall_odds_one_in)}` : "—";
   const left   = g.tickets_remaining != null ? fmtNum(g.tickets_remaining) : "—";
