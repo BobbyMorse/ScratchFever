@@ -2280,33 +2280,6 @@ function updateStats(games) {
   document.getElementById("statBest").textContent = best > 0 ? best.toFixed(1) + "%" : "—";
 }
 
-// ── Column sort ───────────────────────────────────────────────────────────────
-// Columns where ascending is the natural first-click direction (alphabetical names,
-// lower-is-better odds, lower price).
-const ASC_DEFAULT_COLS = new Set([
-  "state_code", "name", "game_id", "price",
-  "jackpot_odds_one_in", "overall_odds_one_in",
-]);
-
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll("thead th[data-col]").forEach(th => {
-    th.addEventListener("click", () => {
-      const col = th.dataset.col;
-      if (currentSort.col === col) {
-        currentSort.asc = !currentSort.asc;
-      } else {
-        currentSort.col = col;
-        currentSort.asc = ASC_DEFAULT_COLS.has(col);
-      }
-      document.querySelectorAll("thead th").forEach(h => h.classList.remove("active"));
-      th.classList.add("active");
-      th.textContent = th.textContent.replace(/[▲▼]/, "").trim() +
-        (currentSort.asc ? " ▲" : " ▼");
-      requestAnimationFrame(renderTable);
-    });
-  });
-});
-
 // ── Game detail modal ─────────────────────────────────────────────────────────
 async function openGame(id) {
   document.getElementById("modalOverlay").classList.add("open");
