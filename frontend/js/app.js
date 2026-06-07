@@ -289,6 +289,7 @@ function protectedFetch(url, opts = {}) {
 
 function _setUser(user) {
   _currentUser = user;
+  syncPremiumOptionLabels();
   const btn        = document.getElementById("loginBtn");
   const accountBtn = document.getElementById("accountTabBtn");
   const caller     = document.getElementById("callerTabBtn");
