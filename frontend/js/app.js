@@ -5539,7 +5539,8 @@ function storeProfileHtml(retailerId) {
     const filterVal = hs === true ? 'in' : hs === false ? 'out' : 'not_set';
     const gName  = escHtml(g.name);
     const gPrice = g.price != null ? g.price : '';
-    const meta   = `$${g.price ?? '?'} · ${g.return_pct != null ? g.return_pct.toFixed(1) + '% EV' : '—'}`;
+    const priceTxt = escHtml(`$${g.price ?? '?'}`);
+    const retTxt   = g.return_pct != null ? gateBlur(`${g.return_pct.toFixed(1)}% EV`) : '—';
     // For operator-side automated sources (vapi_call, etc.) we hide the
     // reporter username and any notes — both would leak implementation
     // details (AI involvement, paraphrased customer speech) to public viewers.
