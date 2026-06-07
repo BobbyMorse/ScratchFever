@@ -1250,8 +1250,8 @@ function strategyTile(g, rank, heroVal, heroLbl, opts = {}) {
 
 function renderStrategyView() {
   const name = currentStrategy;
-  if (name === "ev") return;
   const container = document.getElementById("strategyTiles");
+  if (!container) return;
   // byprice view groups games into stacked sections; everything else uses
   // a single auto-fill grid. Toggle the grid layout accordingly.
   container.classList.toggle("strat-byprice-mode", name === "byprice");
