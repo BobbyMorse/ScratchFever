@@ -2643,8 +2643,13 @@ async function loadGenericState(code) {
           <th>Game</th><th>Price</th><th>Return %</th><th>Top Prize</th><th>Remaining</th>
         </tr></thead>
         <tbody>${games.map(g => {
-          const ret = g.return_pct != null ? g.return_pct.toFixed(1) + "%" : "—";
-          const retCls = g.return_pct >= 70 ? "color:var(--green)" : g.return_pct >= 55 ? "color:var(--text-muted)" : "color:var(--red)";
+          const ret = g.return_pct != null ? gateBlur(g.return_pct.toFixed(1) + "%") : "—";
+          // Color class would leak the tier (green = high return) even with
+          // the value blurred, so only apply it for pro users.
+          const retCls = !isPro() ? "color:var(--text-muted)"
+            : g.return_pct >= 70 ? "color:var(--green)"
+            : g.return_pct >= 55 ? "color:var(--text-muted)"
+            : "color:var(--red)";
           const top = g.top_prize != null ? "$" + fmtNum(g.top_prize) : "—";
           const rem = g.tickets_remaining != null ? fmtNum(g.tickets_remaining) : "—";
           const price = g.price != null ? "$" + g.price.toFixed(0) : "—";
