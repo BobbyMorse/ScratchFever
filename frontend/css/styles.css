@@ -875,6 +875,35 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
 .ev-mid      { color: var(--blue); }
 .ev-low      { color: var(--text-muted); }
 
+/* ── Freemium gating ──────────────────────────────────────────────────────── */
+/* Universal blur for Return %, EV $, and stock labels when the user is free.
+   The numbers stay rendered (so layout is stable) but become unreadable; a
+   click anywhere on the blurred element opens the paywall. */
+.gated-blur {
+  filter: blur(5px);
+  cursor: pointer;
+  user-select: none;
+  display: inline-block;
+  position: relative;
+  transition: filter .15s ease;
+}
+.gated-blur:hover { filter: blur(4px); }
+.gated-blur::after {
+  content: "🔒";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .85em;
+  filter: none;
+  opacity: .85;
+  pointer-events: none;
+}
+
+/* Marker for premium strategy options in the strategy dropdown. */
+.strat-premium-opt::before { content: "🔒 "; }
+
 /* Return bars — always orange in this design */
 .return-bar-wrap { display: flex; align-items: center; gap: .5rem; }
 .return-bar {
