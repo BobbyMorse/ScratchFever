@@ -2262,7 +2262,13 @@ async function applyFilters() {
 
 const ESTIMATED_STATES = new Set(["VT"]);
 
+// EV view is now tile-based; this shim keeps legacy callers working by
+// delegating to the unified strategy renderer.
 function renderTable() {
+  renderStrategyView();
+}
+
+function _renderTable_legacy_unused() {
   const search = document.getElementById("searchInput").value.toLowerCase().trim();
   const hideEstimated = document.getElementById("hideEstimated")?.checked ?? true;
   const hideNoData = document.getElementById("hideNoData")?.checked ?? true;
