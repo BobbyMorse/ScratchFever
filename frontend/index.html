@@ -239,15 +239,15 @@
           </div>
         </section>
 
-        <!-- Tile view container (hidden by default; shown when a non-EV strategy is active) -->
-        <section class="strategy-tiles-wrap" id="strategyTilesWrap" style="display:none">
+        <!-- Tile view container (all strategies, including Positive EV) -->
+        <section class="strategy-tiles-wrap" id="strategyTilesWrap">
           <div class="strategy-tiles" id="strategyTiles">
             <div class="loading-cell" style="grid-column:1/-1;padding:2rem;text-align:center">Loading…</div>
           </div>
         </section>
 
-        <!-- Filters (legacy / Positive EV view) -->
-        <section class="filters-bar" id="evFiltersBar">
+        <!-- Legacy filters bar — kept hidden so existing JS refs (#searchInput etc.) don't break -->
+        <section class="filters-bar" id="evFiltersBar" style="display:none">
           <div class="filter-group">
             <label>State</label>
             <select id="filterState" onchange="applyFilters()">
