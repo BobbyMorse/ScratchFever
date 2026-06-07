@@ -870,6 +870,59 @@
     </div>
 
 
+    <!-- Users tab -->
+    <div class="tab-pane" id="tab-users">
+      <div class="page-top">
+        <div>
+          <h1>Users <span>&amp; Subscribers</span></h1>
+          <div style="font-size:.82rem;color:var(--text-muted);margin-top:.2rem">
+            Everyone with a ScratchFever account. Promote, grant Pro, or delete.
+            <span class="inv-count" id="usersCount"></span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+          <div class="summary-chips" id="usersChips"></div>
+          <button class="refresh-btn" onclick="loadUsers()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <div class="inv-toolbar">
+        <input type="text" id="usersSearch" placeholder="Search email, username…" oninput="renderUsers()" />
+        <div class="claims-filter">
+          <button class="claims-filter-btn active" data-urole="all"      onclick="setUsersRoleFilter('all')">All</button>
+          <button class="claims-filter-btn"        data-urole="admin"    onclick="setUsersRoleFilter('admin')">Admin</button>
+          <button class="claims-filter-btn"        data-urole="member"   onclick="setUsersRoleFilter('member')">Member</button>
+          <button class="claims-filter-btn"        data-urole="retailer" onclick="setUsersRoleFilter('retailer')">Retailer</button>
+          <button class="claims-filter-btn"        data-urole="pro"      onclick="setUsersRoleFilter('pro')">Pro</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Role</th>
+              <th>Status</th>
+              <th>Joined</th>
+              <th>Last Login</th>
+              <th>Logins</th>
+              <th>Reports</th>
+              <th>Billing</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="usersBody">
+            <tr class="loading-row"><td colspan="9">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+
     <!-- Store Claims tab -->
     <div class="tab-pane" id="tab-claims">
       <div class="page-top">
