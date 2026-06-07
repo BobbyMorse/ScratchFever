@@ -67,7 +67,11 @@ ALL_WINNERS_SCRAPERS = _load_scrapers()
 
 WINNERS_FEED_STATES = sorted({s.state_code for s in ALL_WINNERS_SCRAPERS})
 
-TIMEOUT_SEC = 180
+# Lifted from 180s to 600s because per-county/per-game scrapers (PA iterates
+# 67 counties × N months, GA/WI/LA/OK similar) routinely needed >3 min and
+# would silently time out every cycle — leaving those states' reported_wins
+# data stuck for 8+ days at a stretch.
+TIMEOUT_SEC = 600
 
 
 async def run_one(scraper_cls, days: int = 14) -> dict:
@@ -80,6 +84,15 @@ async def run_one(scraper_cls, days: int = 14) -> dict:
         )
     except asyncio.TimeoutError:
         return {"state": code, "saved": 0, "error": f"timed out after {TIMEOUT_SEC}s"}
+    except Exception as e:
+        # Defends the run_all sequential loop from being killed mid-cycle by
+        # asyncio.to_thread itself raising (e.g. `RuntimeError: can't start new
+        # thread` under memory pressure). Without this, the first state to hit
+        # thread exhaustion took every subsequent state in the list down with
+        # it — explaining why states near the end of _SCRAPER_SPECS were stale
+        # for 8+ days.
+        logger.exception("%s winners run_one crashed", code)
+        return {"state": code, "saved": 0, "error": f"runner: {e}"}
     if error:
         return {"state": code, "saved": 0, "error": error}
     saved = 0
@@ -98,7 +111,14 @@ async def run_all(state_filter: str | None = None, days: int = 14) -> list[dict]
         scrapers = [s for s in scrapers if s.state_code.upper() == state_filter.upper()]
     results = []
     for cls in scrapers:
-        results.append(await run_one(cls, days=days))
+        # Belt-and-suspenders: even if run_one's own guard misses something,
+        # this loop must continue to the next state. A single bad scraper
+        # should never stall the whole hourly winners cycle.
+        try:
+            results.append(await run_one(cls, days=days))
+        except Exception as e:
+            logger.exception("%s winners run_all entry crashed", cls.state_code)
+            results.append({"state": cls.state_code, "saved": 0, "error": f"runner: {e}"})
     return results
 
 
