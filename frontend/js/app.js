@@ -2330,7 +2330,8 @@ function gameRow(g, rank) {
 
   const evRaw  = g.ev != null ? `${approxMark}${g.ev >= 0 ? "+" : ""}$${g.ev.toFixed(2)}` : "—";
   const ev     = g.ev != null ? gateBlur(evRaw) : "—";
-  const jackpotOdds = g.jackpot_odds_one_in != null ? `1 in ${fmtNum(Math.round(g.jackpot_odds_one_in))}` : "—";
+  const jackpotRaw = g.jackpot_odds_one_in != null ? `1 in ${fmtNum(Math.round(g.jackpot_odds_one_in))}` : "—";
+  const jackpotOdds = g.jackpot_odds_one_in != null ? gateBlur(jackpotRaw) : "—";
   const odds   = g.overall_odds_one_in ? `1 in ${fmtNum(g.overall_odds_one_in)}` : "—";
   const left   = g.tickets_remaining != null ? fmtNum(g.tickets_remaining) : "—";
   const topRem = g.top_prize_remaining != null ? fmtNum(g.top_prize_remaining) : "—";
