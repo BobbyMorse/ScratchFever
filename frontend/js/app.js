@@ -5556,7 +5556,7 @@ function storeProfileHtml(retailerId) {
         <div class="inv-game-top">
           <div class="inv-game-info">
             <span class="inv-game-name">${escHtml(g.name)}</span>
-            <span class="inv-game-meta">${escHtml(meta)}</span>
+            <span class="inv-game-meta">${priceTxt} · ${retTxt}</span>
           </div>
           <div class="inv-btn-grp">
             <button class="inv-btn${inClass}" data-rid="${rid}" data-game="${gName}" data-price="${gPrice}" data-stock="true"  onclick="toggleGameInvBtn(this)">In Stock</button>
