@@ -1145,6 +1145,16 @@ function populateStrategyStateFilter() {
 }
 
 function switchStrategy(name) {
+  // Premium strategies require Pro. Pop the paywall and revert the selector
+  // to "ev" (the default landing) so the page doesn't end up in a half-state.
+  if (PREMIUM_STRATEGIES.has(name) && !isPro()) {
+    openPaywallOrLogin();
+    const topSel = document.getElementById("filterStrategy");
+    const ctrlSel = document.getElementById("stratStrategySelect");
+    if (topSel) topSel.value = currentStrategy || "ev";
+    if (ctrlSel) ctrlSel.value = currentStrategy || "ev";
+    return;
+  }
   currentStrategy = name;
   const topSel = document.getElementById("filterStrategy");
   const ctrlSel = document.getElementById("stratStrategySelect");
