@@ -1179,14 +1179,20 @@ function populateStrategyStateFilter() {
 }
 
 function switchStrategy(name) {
-  // Premium strategies require Pro. Pop the paywall and revert the selector
-  // to "ev" (the default landing) so the page doesn't end up in a half-state.
+  // Premium strategies require Pro. Pop the paywall, revert selectors, and
+  // re-render so title/body match the dropdown — otherwise the user sees a
+  // previous strategy's title under a different dropdown value.
   if (PREMIUM_STRATEGIES.has(name) && !isPro()) {
     openPaywallOrLogin();
+    const safe = (currentStrategy && !PREMIUM_STRATEGIES.has(currentStrategy)) ? currentStrategy : "ev";
+    currentStrategy = safe;
     const topSel = document.getElementById("filterStrategy");
     const ctrlSel = document.getElementById("stratStrategySelect");
-    if (topSel) topSel.value = currentStrategy || "ev";
-    if (ctrlSel) ctrlSel.value = currentStrategy || "ev";
+    if (topSel) topSel.value = safe;
+    if (ctrlSel) ctrlSel.value = safe;
+    const thWrap = document.getElementById("stratThresholdWrap");
+    if (thWrap) thWrap.style.display = safe === "threshold" ? "" : "none";
+    renderStrategyView();
     return;
   }
   currentStrategy = name;
