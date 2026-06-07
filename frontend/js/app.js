@@ -178,11 +178,15 @@ function getToken() { return localStorage.getItem("sf_token") || ""; }
 // with a click-to-upgrade gesture.
 function isPro() { return !!(_currentUser && _currentUser.is_pro); }
 
-// Wrap a snippet of HTML in a click-to-paywall blur for free users. Pro users
-// get the raw HTML back unchanged.
-function gateBlur(html) {
-  if (isPro()) return html;
-  return `<span class="gated-blur" onclick="event.stopPropagation(); openPaywallOrLogin()" title="Upgrade to Pro to unlock">${html}</span>`;
+// Wrap a value in a click-to-paywall blur for free users; pro users get the
+// raw text back unchanged. For non-pro we also redact every digit to "?" so
+// the real number never reaches the DOM — View Source / devtools / disabling
+// CSS can't bypass the blur. Callers MUST pass plain text (no inline HTML
+// with digits in attributes), otherwise attribute digits will be mangled too.
+function gateBlur(text) {
+  if (isPro()) return text;
+  const redacted = String(text).replace(/\d/g, "?");
+  return `<span class="gated-blur" onclick="event.stopPropagation(); openPaywallOrLogin()" title="Upgrade to Pro to unlock">${redacted}</span>`;
 }
 
 // Sub-label "$10 · 12.3%" used in chasing-game dropdowns across every state.
