@@ -24,9 +24,18 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import threading
+from concurrent.futures import ThreadPoolExecutor
 
 from dotenv import load_dotenv
 load_dotenv()
+
+# Shrink new-thread stack from the glibc default (8MB) to 512KB. With ~46 game
+# scrapers + 31 winners scrapers + DB pool + uvicorn workers all calling
+# asyncio.to_thread, the default sizing repeatedly exhausted the 512MB Railway
+# dyno and surfaced as `RuntimeError: can't start new thread`. Must be set
+# BEFORE the first thread is spawned to take effect for that thread.
+threading.stack_size(512 * 1024)
 
 import uvicorn
 from apscheduler.schedulers.asyncio import AsyncIOScheduler

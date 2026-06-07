@@ -1355,26 +1355,36 @@ async def get_retailer_latest_status(
     game_name: Optional[str] = Query(None),
     user: dict = Depends(require_member),
 ):
-    """Members-only: latest inventory status (has_stock + reported_at) per retailer.
+    """Members-only: latest inventory status per retailer.
     Pass game_name to filter to a specific game."""
     async with get_pool().acquire() as conn:
         if game_name:
             rows = await conn.fetch("""
-                SELECT DISTINCT ON (retailer_id) retailer_id, has_stock, reported_at
+                SELECT DISTINCT ON (retailer_id)
+                    retailer_id, has_stock, reported_at,
+                    game_name, game_price, reporter_username
                 FROM inventory_reports
                 WHERE retailer_id IS NOT NULL AND LOWER(game_name) = LOWER($1)
                 ORDER BY retailer_id, reported_at DESC
             """, game_name)
         else:
             rows = await conn.fetch("""
-                SELECT DISTINCT ON (retailer_id) retailer_id, has_stock, reported_at
+                SELECT DISTINCT ON (retailer_id)
+                    retailer_id, has_stock, reported_at,
+                    game_name, game_price, reporter_username
                 FROM inventory_reports
                 WHERE retailer_id IS NOT NULL
                 ORDER BY retailer_id, reported_at DESC
             """)
     return {
         "statuses": {
-            r["retailer_id"]: {"has_stock": r["has_stock"], "reported_at": r["reported_at"]}
+            r["retailer_id"]: {
+                "has_stock": r["has_stock"],
+                "reported_at": r["reported_at"],
+                "game_name": r["game_name"],
+                "game_price": float(r["game_price"]) if r["game_price"] is not None else None,
+                "reporter_username": r["reporter_username"],
+            }
             for r in rows
         }
     }
