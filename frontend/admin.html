@@ -1265,6 +1265,213 @@
     if (name === "retailers" && !_retailersLoaded) {
       loadRetailers();
     }
+    if (name === "users" && !_usersLoaded) {
+      loadUsers();
+    }
+  }
+
+  // ── Users tab ───────────────────────────────────────────────────────────
+  let _usersLoaded = false;
+  let _usersAll = [];
+  let _usersRoleFilter = "all";
+
+  function setUsersRoleFilter(role) {
+    _usersRoleFilter = role;
+    document.querySelectorAll('[data-urole]').forEach(b => {
+      b.classList.toggle("active", b.dataset.urole === role);
+    });
+    renderUsers();
+  }
+
+  function userStatusBadge(u) {
+    if (u.is_pro) return `<span class="status-badge ok"><span class="status-dot"></span>Pro</span>`;
+    if (u.role === "admin") return `<span class="status-badge warn"><span class="status-dot"></span>Admin</span>`;
+    if (u.role === "retailer") return `<span class="status-badge no-data">Retailer</span>`;
+    return `<span class="status-badge no-data">Free</span>`;
+  }
+
+  function userBillingCell(u) {
+    if (u.is_pro && u.pro_until) {
+      const expIso = u.pro_until.slice(0,10);
+      return `<div style="font-size:.78rem">
+        <div style="color:#16a34a;font-weight:600">Pro until ${expIso}</div>
+        ${u.has_stripe ? '<div style="color:var(--text-muted);font-size:.7rem">via Stripe</div>' : ''}
+      </div>`;
+    }
+    if (u.has_stripe) {
+      return `<div style="font-size:.78rem;color:var(--text-muted)">Stripe customer<br><span style="font-size:.7rem">(lapsed)</span></div>`;
+    }
+    return `<span class="no-error">—</span>`;
+  }
+
+  function renderUsers() {
+    const tbody = document.getElementById("usersBody");
+    const q = (document.getElementById("usersSearch")?.value || "").trim().toLowerCase();
+
+    let filtered = _usersAll;
+    if (_usersRoleFilter === "pro") {
+      filtered = filtered.filter(u => u.is_pro);
+    } else if (_usersRoleFilter !== "all") {
+      filtered = filtered.filter(u => u.role === _usersRoleFilter);
+    }
+    if (q) {
+      filtered = filtered.filter(u =>
+        (u.email || "").toLowerCase().includes(q) ||
+        (u.username || "").toLowerCase().includes(q)
+      );
+    }
+
+    document.getElementById("usersCount").textContent =
+      `· ${filtered.length} of ${_usersAll.length}`;
+
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr class="loading-row"><td colspan="9">No users match.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(u => {
+      const userCell = `
+        <div class="state-name" style="font-size:.88rem">${u.email}</div>
+        ${u.username ? `<div class="state-code">@${u.username}</div>` : `<div class="state-code" style="color:var(--text-muted)">id #${u.id}</div>`}
+      `;
+      const roleCell = `<span class="mono" style="text-transform:uppercase;font-size:.72rem;font-weight:700;color:var(--text-muted)">${u.role}</span>`;
+      const created = u.created_at ? u.created_at.slice(0,10) : "—";
+      const reports = u.inventory_reports > 0
+        ? `<span class="mono" style="color:var(--text);font-weight:600">${u.inventory_reports}</span>`
+        : `<span class="no-error">—</span>`;
+      const logins = u.login_count > 0
+        ? `<span class="mono" style="color:var(--text)">${u.login_count}</span>`
+        : `<span class="no-error">0</span>`;
+
+      const actions = [];
+      if (u.role !== "admin") {
+        actions.push(`<button class="row-action" onclick="promoteUser(${u.id})">Make Admin</button>`);
+      } else {
+        actions.push(`<button class="row-action" onclick="demoteUser(${u.id})">Demote</button>`);
+      }
+      if (u.is_pro) {
+        actions.push(`<button class="row-action" onclick="revokePro(${u.id})">Revoke Pro</button>`);
+      } else {
+        actions.push(`<button class="row-action" onclick="grantPro(${u.id}, '${(u.email || '').replace(/'/g, "&#39;")}')">Grant Pro</button>`);
+      }
+      actions.push(`<button class="row-action danger" onclick="deleteUser(${u.id}, '${(u.email || '').replace(/'/g, "&#39;")}')">Delete</button>`);
+
+      return `<tr>
+        <td>${userCell}</td>
+        <td>${roleCell}</td>
+        <td>${userStatusBadge(u)}</td>
+        <td><div class="time-str">${created}</div></td>
+        <td>
+          <div class="time-str">${timeAgo(u.last_login_at)}</div>
+          ${u.last_login_at ? `<div style="font-size:.7rem;color:#c0c8d5">${u.last_login_at.slice(0,10)}</div>` : ""}
+        </td>
+        <td>${logins}</td>
+        <td>${reports}</td>
+        <td>${userBillingCell(u)}</td>
+        <td>${actions.join("")}</td>
+      </tr>`;
+    }).join("");
+  }
+
+  function renderUsersChips(s) {
+    document.getElementById("usersChips").innerHTML = `
+      <div class="chip"><span class="chip-val">${s.total}</span> Total</div>
+      <div class="chip ok"><span class="chip-dot"></span><span class="chip-val">${s.pro}</span> Pro</div>
+      <div class="chip"><span class="chip-val">${s.members}</span> Members</div>
+      <div class="chip"><span class="chip-val">${s.retailers}</span> Retailers</div>
+      <div class="chip warn"><span class="chip-dot"></span><span class="chip-val">${s.new_7d}</span> New 7d</div>
+      <div class="chip ok"><span class="chip-dot"></span><span class="chip-val">${s.active_30d}</span> Active 30d</div>
+    `;
+  }
+
+  async function loadUsers() {
+    document.getElementById("usersBody").innerHTML =
+      '<tr class="loading-row"><td colspan="9">Loading…</td></tr>';
+    try {
+      const res = await fetch("/api/admin/users", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.status === 401 || res.status === 403) { showLogin(); return; }
+      const data = await res.json();
+      _usersAll = data.users || [];
+      _usersLoaded = true;
+      renderUsersChips(data.summary || {});
+      renderUsers();
+    } catch (e) {
+      document.getElementById("usersBody").innerHTML =
+        `<tr class="loading-row"><td colspan="9" style="color:var(--red)">Failed to load: ${e.message}</td></tr>`;
+    }
+  }
+
+  async function promoteUser(id) {
+    if (!confirm("Promote this user to admin?")) return;
+    await fetch(`/api/admin/users/${id}/role`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ role: "admin" }),
+    });
+    showToast("Role updated.");
+    loadUsers();
+  }
+
+  async function demoteUser(id) {
+    if (!confirm("Demote this admin to member?")) return;
+    const res = await fetch(`/api/admin/users/${id}/role`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ role: "member" }),
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      showToast(d.detail || "Failed to update role.");
+      return;
+    }
+    showToast("Role updated.");
+    loadUsers();
+  }
+
+  async function grantPro(id, email) {
+    const raw = prompt(`Grant Pro to ${email}.\nHow many days? (default 30)`, "30");
+    if (raw === null) return;
+    const days = parseInt(raw, 10);
+    if (!days || days < 1) { showToast("Invalid number of days."); return; }
+    const res = await fetch(`/api/admin/users/${id}/grant-pro`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ days }),
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      showToast(d.detail || "Failed to grant Pro.");
+      return;
+    }
+    showToast(`Granted ${days} days of Pro.`);
+    loadUsers();
+  }
+
+  async function revokePro(id) {
+    if (!confirm("Revoke Pro from this user? This sets pro_until to NULL.")) return;
+    await fetch(`/api/admin/users/${id}/revoke-pro`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    showToast("Pro revoked.");
+    loadUsers();
+  }
+
+  async function deleteUser(id, email) {
+    if (!confirm(`Delete user ${email}? This is permanent.`)) return;
+    const res = await fetch(`/api/admin/users/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) {
+      const d = await res.json().catch(() => ({}));
+      showToast(d.detail || "Failed to delete user.");
+      return;
+    }
+    showToast("User deleted.");
+    loadUsers();
   }
 
   // ── Winners tab ─────────────────────────────────────────────────────────
