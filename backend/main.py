@@ -412,6 +412,140 @@ async def admin_health_retailers(user: dict = Depends(require_admin)):
     return {"states": out}
 
 
+# ── Admin: user management ────────────────────────────────────────────────────
+
+@app.get("/api/admin/users")
+async def admin_list_users(user: dict = Depends(require_admin)):
+    """All users with role, status, last-login, and per-user activity counts.
+    Joins inventory_reports by reporter_username for an at-a-glance contribution metric."""
+    async with get_pool().acquire() as conn:
+        rows = await conn.fetch("""
+            SELECT
+                u.id, u.email, u.username, u.role,
+                u.created_at, u.last_login_at, u.login_count,
+                u.pro_until, u.stripe_customer_id, u.stripe_subscription_id,
+                COALESCE(ir.report_count, 0) AS inventory_reports
+            FROM users u
+            LEFT JOIN (
+                SELECT reporter_username, COUNT(*) AS report_count
+                FROM inventory_reports
+                WHERE reporter_username IS NOT NULL
+                GROUP BY reporter_username
+            ) ir ON ir.reporter_username = u.username
+            ORDER BY u.created_at DESC
+        """)
+        summary = await conn.fetchrow("""
+            SELECT
+                COUNT(*)                                                        AS total,
+                COUNT(*) FILTER (WHERE role = 'admin')                          AS admins,
+                COUNT(*) FILTER (WHERE role = 'member')                         AS members,
+                COUNT(*) FILTER (WHERE role = 'retailer')                       AS retailers,
+                COUNT(*) FILTER (WHERE pro_until IS NOT NULL AND pro_until > NOW()) AS pro,
+                COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '7 days')  AS new_7d,
+                COUNT(*) FILTER (WHERE last_login_at > NOW() - INTERVAL '30 days') AS active_30d
+            FROM users
+        """)
+
+    import datetime as _dt
+    now = _dt.datetime.now(_dt.timezone.utc)
+    users = []
+    for r in rows:
+        pro_until = r["pro_until"]
+        users.append({
+            "id": r["id"],
+            "email": r["email"],
+            "username": r["username"],
+            "role": r["role"],
+            "created_at": r["created_at"].isoformat() if r["created_at"] else None,
+            "last_login_at": r["last_login_at"].isoformat() if r["last_login_at"] else None,
+            "login_count": r["login_count"] or 0,
+            "pro_until": pro_until.isoformat() if pro_until else None,
+            "is_pro": bool(pro_until and pro_until > now),
+            "has_stripe": bool(r["stripe_customer_id"]),
+            "stripe_subscription_id": r["stripe_subscription_id"],
+            "inventory_reports": int(r["inventory_reports"] or 0),
+        })
+    return {
+        "users": users,
+        "summary": {
+            "total": int(summary["total"] or 0),
+            "admins": int(summary["admins"] or 0),
+            "members": int(summary["members"] or 0),
+            "retailers": int(summary["retailers"] or 0),
+            "pro": int(summary["pro"] or 0),
+            "new_7d": int(summary["new_7d"] or 0),
+            "active_30d": int(summary["active_30d"] or 0),
+        },
+    }
+
+
+class UpdateRoleBody(BaseModel):
+    role: str
+
+
+@app.patch("/api/admin/users/{user_id}/role")
+async def admin_update_user_role(
+    user_id: int,
+    body: UpdateRoleBody,
+    admin: dict = Depends(require_admin),
+):
+    role = body.role.strip().lower()
+    if role not in ("admin", "member", "retailer"):
+        raise HTTPException(status_code=400, detail="Role must be admin, member, or retailer.")
+    if user_id == admin["uid"] and role != "admin":
+        raise HTTPException(status_code=400, detail="Can't demote yourself.")
+    async with get_pool().acquire() as conn:
+        result = await conn.execute("UPDATE users SET role = $1 WHERE id = $2", role, user_id)
+    if result.endswith(" 0"):
+        raise HTTPException(status_code=404, detail="User not found.")
+    return {"message": "Role updated.", "id": user_id, "role": role}
+
+
+class GrantProBody(BaseModel):
+    days: int = 30
+
+
+@app.post("/api/admin/users/{user_id}/grant-pro")
+async def admin_grant_pro(
+    user_id: int,
+    body: GrantProBody,
+    admin: dict = Depends(require_admin),
+):
+    if body.days < 1 or body.days > 36500:
+        raise HTTPException(status_code=400, detail="days must be between 1 and 36500.")
+    async with get_pool().acquire() as conn:
+        row = await conn.fetchrow(
+            """UPDATE users
+               SET pro_until = GREATEST(COALESCE(pro_until, NOW()), NOW()) + ($1 || ' days')::interval
+               WHERE id = $2
+               RETURNING pro_until""",
+            str(body.days), user_id,
+        )
+    if not row:
+        raise HTTPException(status_code=404, detail="User not found.")
+    return {"message": f"Granted {body.days} days of Pro.", "id": user_id, "pro_until": row["pro_until"].isoformat()}
+
+
+@app.post("/api/admin/users/{user_id}/revoke-pro")
+async def admin_revoke_pro(user_id: int, admin: dict = Depends(require_admin)):
+    async with get_pool().acquire() as conn:
+        result = await conn.execute("UPDATE users SET pro_until = NULL WHERE id = $1", user_id)
+    if result.endswith(" 0"):
+        raise HTTPException(status_code=404, detail="User not found.")
+    return {"message": "Pro revoked.", "id": user_id}
+
+
+@app.delete("/api/admin/users/{user_id}")
+async def admin_delete_user(user_id: int, admin: dict = Depends(require_admin)):
+    if user_id == admin["uid"]:
+        raise HTTPException(status_code=400, detail="Can't delete yourself.")
+    async with get_pool().acquire() as conn:
+        result = await conn.execute("DELETE FROM users WHERE id = $1", user_id)
+    if result.endswith(" 0"):
+        raise HTTPException(status_code=404, detail="User not found.")
+    return {"message": "User deleted.", "id": user_id}
+
+
 @app.get("/api/admin/retailers")
 async def admin_list_retailers(user: dict = Depends(require_admin)):
     async with get_pool().acquire() as conn:
