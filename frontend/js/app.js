@@ -2357,8 +2357,11 @@ function gameRow(g, rank) {
     ? `<span class="game-report-badge" title="In stock at ${reportCount} member-reported location${reportCount > 1 ? 's' : ''}">${reportCount} 📍</span>`
     : "";
 
+  // Rank is the premium product — even with values blurred, the ordering
+  // reveals which games are best. Hide it for free users.
+  const rankCell = isPro() ? `${rank}` : `<span class="gated-blur">##</span>`;
   return `<tr onclick="openGame(${g.id})">
-    <td style="color:var(--text-muted);font-size:.8rem;font-weight:700">${rank}</td>
+    <td style="color:var(--text-muted);font-size:.8rem;font-weight:700">${rankCell}</td>
     <td><span class="state-pill state-${g.state_code}">${g.state_code}</span></td>
     <td><span class="game-name"><strong>${escHtml(g.name)}</strong>${reportBadge}</span></td>
     <td style="color:var(--text-muted);font-size:.8rem;width:60px;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(g.game_id)}</td>
