@@ -1271,7 +1271,19 @@ function renderStrategyView() {
   let ranked = [];
   let needsStats = false;
 
-  if (name === "any") {
+  if (name === "ev") {
+    titleEl.textContent = "Positive Expected Value";
+    subEl.textContent = "Games ranked by Return % — total remaining prize value vs. cost of remaining tickets. Anything 100%+ is a positive-EV game.";
+    const games = pool
+      .filter(g => g.return_pct != null)
+      .sort((a, b) => (b.return_pct || 0) - (a.return_pct || 0));
+    updateStats(games);
+    ranked = games.slice(0, 60).map((g, i) => strategyTile(g, i + 1,
+      g.return_pct.toFixed(1) + "%",
+      "Return"
+    ));
+  }
+  else if (name === "any") {
     titleEl.textContent = "Best Any-Prize Odds (Live)";
     subEl.textContent = "Highest current chance of winning *any* prize, based on remaining prizes vs. estimated tickets left.";
     needsStats = true;
