@@ -2925,7 +2925,11 @@ function renderInventoryCluster(map, layerKey, opts) {
     const lat = parseFloat(r.latitude), lng = parseFloat(r.longitude);
     if (!isFinite(lat) || !isFinite(lng)) continue;
     const status = retailerLatestStatus[r.id];
-    const color = status ? (status.has_stock ? "#00cc44" : "#cc2200") : "#4a9eff";
+    // Free users see neutral blue markers regardless of stock status —
+    // the green/red signal is the premium calculation.
+    const color = proUser
+      ? (status ? (status.has_stock ? "#00cc44" : "#cc2200") : "#4a9eff")
+      : "#4a9eff";
     const stockState = status ? (status.has_stock ? "in" : "out") : "unchecked";
     const m = L.marker([lat, lng], { icon: _dotIcon(color, 10, stockState), sfStockState: stockState });
     // Lazy popup: HTML is only built when the marker is clicked.
