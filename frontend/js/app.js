@@ -959,9 +959,7 @@ function searchGameFilter() {
   if (!matches.length) { dd.style.display = "none"; return; }
 
   dd.innerHTML = matches.map(g => {
-    const meta = [g.price != null ? `$${g.price}` : null, g.return_pct != null ? `${g.return_pct.toFixed(1)}%` : null]
-      .filter(Boolean).join(" · ");
-    const sub = meta ? `<span style="color:var(--text-muted);font-size:.78rem">${escHtml(meta)}</span>` : "";
+    const sub = gameChooserSub(g);
     return `<div class="store-option" onmousedown="selectGameFilter(${JSON.stringify(g.name).replace(/"/g, '&quot;')})">${escHtml(g.name)} ${sub}</div>`;
   }).join("");
   dd.style.display = "";
@@ -6252,9 +6250,7 @@ function searchRiGameFilter() {
   const matches = q ? riGames.filter(g => g.name.toLowerCase().includes(q)) : riGames.slice(0, 50);
   if (!matches.length) { dd.style.display = "none"; return; }
   dd.innerHTML = matches.map(g => {
-    const meta = [g.price != null ? `$${g.price}` : null, g.return_pct != null ? `${g.return_pct.toFixed(1)}%` : null]
-      .filter(Boolean).join(" · ");
-    const sub = meta ? `<span style="color:var(--text-muted);font-size:.78rem">${escHtml(meta)}</span>` : "";
+    const sub = gameChooserSub(g);
     return `<div class="store-option" onmousedown="selectRiGameFilter(${JSON.stringify(g.name).replace(/"/g, '&quot;')})">${escHtml(g.name)} ${sub}</div>`;
   }).join("");
   dd.style.display = "";
@@ -6329,9 +6325,7 @@ function searchAzGameFilter() {
   const matches = q ? azGames.filter(g => g.name.toLowerCase().includes(q)) : azGames.slice(0, 50);
   if (!matches.length) { dd.style.display = "none"; return; }
   dd.innerHTML = matches.map(g => {
-    const meta = [g.price != null ? `$${g.price}` : null, g.return_pct != null ? `${g.return_pct.toFixed(1)}%` : null]
-      .filter(Boolean).join(" · ");
-    const sub = meta ? `<span style="color:var(--text-muted);font-size:.78rem">${escHtml(meta)}</span>` : "";
+    const sub = gameChooserSub(g);
     return `<div class="store-option" onmousedown="selectAzGameFilter(${JSON.stringify(g.name).replace(/"/g, '&quot;')})">${escHtml(g.name)} ${sub}</div>`;
   }).join("");
   dd.style.display = "";
