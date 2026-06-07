@@ -290,6 +290,10 @@ function protectedFetch(url, opts = {}) {
 function _setUser(user) {
   _currentUser = user;
   syncPremiumOptionLabels();
+  // Toggle the full EV-table paywall overlay. Free users see only the
+  // headers; the ranked list itself is behind the upgrade card.
+  const evPaywall = document.getElementById("evTablePaywall");
+  if (evPaywall) evPaywall.style.display = (user && user.is_pro) ? "none" : "";
   const btn        = document.getElementById("loginBtn");
   const accountBtn = document.getElementById("accountTabBtn");
   const caller     = document.getElementById("callerTabBtn");
