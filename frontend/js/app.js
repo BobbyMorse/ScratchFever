@@ -2811,24 +2811,37 @@ function _dotIcon(color, size, stockState) {
 }
 
 function _popupHtmlRetailer(r, status) {
-  const statusTxt = status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked";
+  const pro = isPro();
+  const statusTxt = pro
+    ? (status ? (status.has_stock ? "✅ In Stock" : "❌ Out of Stock") : "Not yet checked")
+    : `<a href="javascript:void(0)" onclick="openPaywallOrLogin(); return false;" style="color:var(--orange);font-weight:600">🔒 Unlock stock status</a>`;
   const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.latitude},${r.longitude}`;
   const rid = r.id || r.retailer_id || "";
+  const invLink = pro
+    ? `<a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${rid}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
+    : `<a href="javascript:void(0)" onclick="openPaywallOrLogin(); return false;" style="font-size:.85rem">🔒 Inventory</a>`;
   return `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br>` +
     `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · ` +
-    `<a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${rid}'); return false;" style="font-size:.85rem">📋 Inventory</a>`;
+    invLink;
 }
 
 function _popupHtmlReport(r) {
+  const pro = isPro();
   const time = r.reported_at ? timeAgo(parseReportedAt(r.reported_at)) : "";
   const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${r.lat},${r.lng}`;
   const rid = r.id || r.retailer_id || "";
+  const stockLine = pro
+    ? `${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}`
+    : `<a href="javascript:void(0)" onclick="openPaywallOrLogin(); return false;" style="color:var(--orange);font-weight:600">🔒 Unlock stock status</a>`;
+  const invLink = pro
+    ? `<a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${rid}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
+    : `<a href="javascript:void(0)" onclick="openPaywallOrLogin(); return false;" style="font-size:.85rem">🔒 Inventory</a>`;
   return `<b>${escHtml(r.retailer_name || "")}</b><br>` +
     `${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>` +
-    `${r.has_stock ? "✅ In Stock" : "❌ Out of Stock"}<br>` +
+    `${stockLine}<br>` +
     `<span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br>` +
     `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · ` +
-    `<a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${rid}'); return false;" style="font-size:.85rem">📋 Inventory</a>`;
+    invLink;
 }
 
 // Build (or rebuild) a marker-cluster layer of retailers + community reports on `map`.
