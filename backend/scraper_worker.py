@@ -98,6 +98,14 @@ async def _bootstrap() -> None:
 async def main() -> None:
     logger.info("scraper_worker: starting")
 
+    # Bound the default ThreadPoolExecutor. asyncio.to_thread otherwise lets the
+    # pool grow to min(32, CPU+4) on demand, and on Railway that — combined with
+    # threads created inside scrapers (Playwright, curl-cffi DNS) — has been
+    # enough to hit pthread_create EAGAIN. 8 workers is plenty: games cycle
+    # caps at HTTP_CONCURRENCY=4 + PW_CONCURRENCY=1 = 5 concurrent, and the
+    # winners cycle runs sequentially.
+    asyncio.get_running_loop().set_default_executor(ThreadPoolExecutor(max_workers=8))
+
     # Bind the healthcheck HTTP server FIRST so Railway's /health probe
     # succeeds while the DB init + scheduler boot happens in the background.
     port = int(os.environ.get("PORT", "8080"))
