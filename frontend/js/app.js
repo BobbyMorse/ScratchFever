@@ -2859,6 +2859,7 @@ function renderInventoryCluster(map, layerKey, opts) {
   const prev = window[layerKey];
   if (prev) { map.removeLayer(prev); window[layerKey] = null; }
 
+  const proUser = isPro();
   const cluster = L.markerClusterGroup({
     chunkedLoading: true,
     chunkInterval: 150,
@@ -2871,8 +2872,18 @@ function renderInventoryCluster(map, layerKey, opts) {
     // Red only when every child is checked AND out. Mixed (some out + some
     // unchecked) stays neutral and shows a split badge like "1·8" so the
     // confirmed-out count isn't conflated with the unknown ones.
+    // Free users see neutral blue clusters everywhere — colors are the
+    // premium signal so they're gated alongside the popup stock text.
     iconCreateFunction: (c) => {
       const children = c.getAllChildMarkers();
+      const total = children.length;
+      if (!proUser) {
+        return L.divIcon({
+          html: `<div style="background:rgba(74,158,255,0.95)"><span>${total}</span></div>`,
+          className: `sf-cluster sf-cluster-neutral`,
+          iconSize: L.point(40, 40),
+        });
+      }
       let inCount = 0, outCount = 0, uncheckedCount = 0;
       for (const m of children) {
         const s = m.options.sfStockState;
@@ -2880,7 +2891,6 @@ function renderInventoryCluster(map, layerKey, opts) {
         else if (s === "out") outCount++;
         else uncheckedCount++;
       }
-      const total = children.length;
       let variant, inner, badge;
       if (inCount > 0) {
         variant = "sf-cluster-instock";
