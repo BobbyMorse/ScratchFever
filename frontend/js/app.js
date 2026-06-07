@@ -185,6 +185,16 @@ function gateBlur(html) {
   return `<span class="gated-blur" onclick="event.stopPropagation(); openPaywallOrLogin()" title="Upgrade to Pro to unlock">${html}</span>`;
 }
 
+// Sub-label "$10 · 12.3%" used in chasing-game dropdowns across every state.
+// Return % is paywall-blurred for free users.
+function gameChooserSub(g) {
+  const parts = [];
+  if (g.price != null) parts.push(escHtml(`$${g.price}`));
+  if (g.return_pct != null) parts.push(gateBlur(`${g.return_pct.toFixed(1)}%`));
+  if (!parts.length) return "";
+  return `<span style="color:var(--text-muted);font-size:.78rem">${parts.join(" · ")}</span>`;
+}
+
 // Premium strategies. Selecting one as a free user pops the paywall and
 // reverts the strategy selector back to a free option ("any"). "ev" (the
 // default landing) is intentionally excluded — free users land on the EV
