@@ -2432,7 +2432,8 @@ function renderModal(g) {
       </div>
       <div class="modal-stat">
         <div class="modal-stat-val">${g.overall_odds_one_in ? "1 in " + fmtNum(g.overall_odds_one_in) : "—"}</div>
-        <div class="modal-stat-lbl">Overall Odds</div>
+        <div class="modal-stat-lbl">Overall Odds (any prize)</div>
+        <div class="modal-stat-note">at launch — fixed, doesn't change as tickets sell</div>
       </div>
       <div class="modal-stat">
         <div class="modal-stat-val">${g.tickets_remaining != null ? fmtNum(g.tickets_remaining) : "—"}</div>
