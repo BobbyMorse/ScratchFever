@@ -69,6 +69,8 @@ async def init_users_db():
         # and so we can open a Customer Portal session for cancel/update.
         await add_column_if_missing(conn, "users", "stripe_customer_id", "TEXT")
         await add_column_if_missing(conn, "users", "stripe_subscription_id", "TEXT")
+        await add_column_if_missing(conn, "users", "last_login_at", "TIMESTAMPTZ")
+        await add_column_if_missing(conn, "users", "login_count", "INTEGER NOT NULL DEFAULT 0")
         await conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_users_stripe_customer ON users(stripe_customer_id) WHERE stripe_customer_id IS NOT NULL"
         )
