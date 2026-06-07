@@ -8136,11 +8136,17 @@ function _plGameOptionsHtml(state) {
   const games = _plGamesForState(state);
   if (!state) return `<option value="">Pick a state first…</option>`;
   if (!games.length) return `<option value="">No games available</option>`;
+  // <option> elements can't render the gateBlur HTML wrapper, and we can't
+  // safely embed the real return % as text for free users. Hide the metric
+  // entirely (show only price) until they upgrade.
+  const pro = isPro();
   return `<option value="">Select a game…</option>` + games.map(g => {
-    const ret = g.return_pct != null ? `${g.return_pct.toFixed(1)}%` : "—";
     const price = g.price != null ? `$${g.price}` : "—";
+    const tail = pro && g.return_pct != null
+      ? ` — ${g.return_pct.toFixed(1)}% · ${price}`
+      : ` — ${price}`;
     return `<option value="${g.id}" data-price="${g.price ?? ''}" data-name="${escHtml(g.name)}">
-      ${escHtml(g.name)} — ${ret} · ${price}
+      ${escHtml(g.name)}${tail}
     </option>`;
   }).join("");
 }
