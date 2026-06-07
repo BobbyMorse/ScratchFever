@@ -6677,8 +6677,7 @@ function searchFlGameFilter() {
   const matches = q ? flGames.filter(g => g.name.toLowerCase().includes(q)) : flGames.slice(0, 50);
   if (!matches.length) { dd.style.display = "none"; return; }
   dd.innerHTML = matches.map(g => {
-    const meta = [g.price != null ? `$${g.price}` : null, g.return_pct != null ? `${g.return_pct.toFixed(1)}%` : null].filter(Boolean).join(" · ");
-    const sub = meta ? `<span style="color:var(--text-muted);font-size:.78rem">${escHtml(meta)}</span>` : "";
+    const sub = gameChooserSub(g);
     return `<div class="store-option" onmousedown="selectFlGameFilter(${JSON.stringify(g.name).replace(/"/g, '&quot;')})">${escHtml(g.name)} ${sub}</div>`;
   }).join("");
   dd.style.display = "";
@@ -6857,8 +6856,7 @@ function searchGaGameFilter() {
   const matches = q ? gaGames.filter(g => g.name.toLowerCase().includes(q)) : gaGames.slice(0, 50);
   if (!matches.length) { dd.style.display = "none"; return; }
   dd.innerHTML = matches.map(g => {
-    const meta = [g.price != null ? `$${g.price}` : null, g.return_pct != null ? `${g.return_pct.toFixed(1)}%` : null].filter(Boolean).join(" · ");
-    const sub = meta ? `<span style="color:var(--text-muted);font-size:.78rem">${escHtml(meta)}</span>` : "";
+    const sub = gameChooserSub(g);
     return `<div class="store-option" onmousedown="selectGaGameFilter(${JSON.stringify(g.name).replace(/"/g, '&quot;')})">${escHtml(g.name)} ${sub}</div>`;
   }).join("");
   dd.style.display = "";
@@ -7037,8 +7035,7 @@ function searchNyGameFilter() {
   const matches = q ? nyGames.filter(g => g.name.toLowerCase().includes(q)) : nyGames.slice(0, 50);
   if (!matches.length) { dd.style.display = "none"; return; }
   dd.innerHTML = matches.map(g => {
-    const meta = [g.price != null ? `$${g.price}` : null, g.return_pct != null ? `${g.return_pct.toFixed(1)}%` : null].filter(Boolean).join(" · ");
-    const sub = meta ? `<span style="color:var(--text-muted);font-size:.78rem">${escHtml(meta)}</span>` : "";
+    const sub = gameChooserSub(g);
     return `<div class="store-option" onmousedown="selectNyGameFilter(${JSON.stringify(g.name).replace(/"/g, '&quot;')})">${escHtml(g.name)} ${sub}</div>`;
   }).join("");
   dd.style.display = "";
@@ -7217,8 +7214,7 @@ function searchVaGameFilter() {
   const matches = q ? vaGames.filter(g => g.name.toLowerCase().includes(q)) : vaGames.slice(0, 50);
   if (!matches.length) { dd.style.display = "none"; return; }
   dd.innerHTML = matches.map(g => {
-    const meta = [g.price != null ? `$${g.price}` : null, g.return_pct != null ? `${g.return_pct.toFixed(1)}%` : null].filter(Boolean).join(" · ");
-    const sub = meta ? `<span style="color:var(--text-muted);font-size:.78rem">${escHtml(meta)}</span>` : "";
+    const sub = gameChooserSub(g);
     return `<div class="store-option" onmousedown="selectVaGameFilter(${JSON.stringify(g.name).replace(/"/g, '&quot;')})">${escHtml(g.name)} ${sub}</div>`;
   }).join("");
   dd.style.display = "";
@@ -7397,8 +7393,7 @@ function searchDcGameFilter() {
   const matches = q ? dcGames.filter(g => g.name.toLowerCase().includes(q)) : dcGames.slice(0, 50);
   if (!matches.length) { dd.style.display = "none"; return; }
   dd.innerHTML = matches.map(g => {
-    const meta = [g.price != null ? `$${g.price}` : null, g.return_pct != null ? `${g.return_pct.toFixed(1)}%` : null].filter(Boolean).join(" · ");
-    const sub = meta ? `<span style="color:var(--text-muted);font-size:.78rem">${escHtml(meta)}</span>` : "";
+    const sub = gameChooserSub(g);
     return `<div class="store-option" onmousedown="selectDcGameFilter(${JSON.stringify(g.name).replace(/"/g, '&quot;')})">${escHtml(g.name)} ${sub}</div>`;
   }).join("");
   dd.style.display = "";
@@ -7578,8 +7573,7 @@ function searchVtGameFilter() {
   const matches = q ? vtGames.filter(g => g.name.toLowerCase().includes(q)) : vtGames.slice(0, 50);
   if (!matches.length) { dd.style.display = "none"; return; }
   dd.innerHTML = matches.map(g => {
-    const meta = [g.price != null ? `$${g.price}` : null, g.return_pct != null ? `${g.return_pct.toFixed(1)}%` : null].filter(Boolean).join(" · ");
-    const sub = meta ? `<span style="color:var(--text-muted);font-size:.78rem">${escHtml(meta)}</span>` : "";
+    const sub = gameChooserSub(g);
     return `<div class="store-option" onmousedown="selectVtGameFilter(${JSON.stringify(g.name).replace(/"/g, '&quot;')})">${escHtml(g.name)} ${sub}</div>`;
   }).join("");
   dd.style.display = "";
@@ -7858,8 +7852,7 @@ function searchGenGameFilter() {
   const matches = q ? games.filter(g => g.name.toLowerCase().includes(q)) : games.slice(0, 50);
   if (!matches.length) { dd.style.display = "none"; return; }
   dd.innerHTML = matches.map(g => {
-    const meta = [g.price != null ? `$${g.price}` : null, g.return_pct != null ? `${g.return_pct.toFixed(1)}%` : null].filter(Boolean).join(" · ");
-    const sub = meta ? `<span style="color:var(--text-muted);font-size:.78rem">${escHtml(meta)}</span>` : "";
+    const sub = gameChooserSub(g);
     return `<div class="store-option" onmousedown="selectGenGameFilter(${JSON.stringify(g.name).replace(/"/g, '&quot;')})">${escHtml(g.name)} ${sub}</div>`;
   }).join("");
   dd.style.display = "";
