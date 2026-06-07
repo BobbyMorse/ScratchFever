@@ -1164,14 +1164,21 @@ function switchStrategy(name) {
 function strategyTile(g, rank, heroVal, heroLbl, opts = {}) {
   const ret = g.return_pct;
   const retCls = ret >= 100 ? "ev-positive" : ret >= 90 ? "ev-near" : ret >= 70 ? "ev-mid" : "ev-low";
-  const retTxt = ret != null ? ret.toFixed(1) + "%" : "—";
+  const retTxt = ret != null ? gateBlur(ret.toFixed(1) + "%") : "—";
   const top = g.top_prize != null ? "$" + fmtMoney(g.top_prize) : "—";
   const topRem = g.top_prize_remaining != null ? fmtNum(g.top_prize_remaining) : "—";
   const left = g.tickets_remaining != null ? fmtNum(g.tickets_remaining) : "—";
   const pool = g.prize_pool_remaining != null ? "$" + fmtMoney(g.prize_pool_remaining) : "—";
+  // For tiles whose hero metric IS Return % (byprice, almostgone uses %), blur
+  // the hero value too. Identified by the heroLbl text — keeps the heuristic
+  // local rather than threading a "premium hero" flag through every caller.
+  const heroIsGated = /return|inventory remaining/i.test(String(heroLbl || ""));
+  const heroDisplay = heroIsGated ? gateBlur(heroVal) : heroVal;
 
   const badges = [];
-  if (ret >= 100) badges.push(`<span class="strat-tile-badge green">+EV</span>`);
+  // +EV badge is itself a Return % signal — hide it for free users so the
+  // tier ordering doesn't leak through the badge.
+  if (ret >= 100 && isPro()) badges.push(`<span class="strat-tile-badge green">+EV</span>`);
   if (g.start_date) {
     const days = Math.floor((Date.now() - parseReportedAt(g.start_date)) / 86400000);
     if (days >= 0 && days < 60) badges.push(`<span class="strat-tile-badge orange">🆕 New</span>`);
