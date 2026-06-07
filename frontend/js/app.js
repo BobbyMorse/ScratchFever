@@ -2437,11 +2437,11 @@ function renderModal(g) {
 
     <div class="modal-stats">
       <div class="modal-stat">
-        <div class="modal-stat-val ${cls}">${ret != null ? ret.toFixed(2) + "%" : "N/A"}</div>
+        <div class="modal-stat-val ${cls}">${ret != null ? gateBlur(ret.toFixed(2) + "%") : "N/A"}</div>
         <div class="modal-stat-lbl">Return %</div>
       </div>
       <div class="modal-stat">
-        <div class="modal-stat-val ${g.ev >= 0 ? "ev-positive" : ""}">${ev}</div>
+        <div class="modal-stat-val ${g.ev >= 0 ? "ev-positive" : ""}">${g.ev != null ? gateBlur(ev) : ev}</div>
         <div class="modal-stat-lbl">Net EV per ticket</div>
       </div>
       <div class="modal-stat">
