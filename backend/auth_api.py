@@ -75,6 +75,12 @@ async def login(body: LoginBody, request: Request):
     user = await get_user_by_email(body.email)
     if not user or not verify_password(body.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid email or password")
+    from backend.database import get_pool
+    async with get_pool().acquire() as conn:
+        await conn.execute(
+            "UPDATE users SET last_login_at = NOW(), login_count = COALESCE(login_count, 0) + 1 WHERE id = $1",
+            user["id"],
+        )
     token = create_token(user["id"], user["email"], user["role"], user.get("username"))
     return {"token": token, "email": user["email"], "username": user.get("username"), "role": user["role"]}
 
