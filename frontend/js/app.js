@@ -1198,7 +1198,7 @@ function strategyTile(g, rank, heroVal, heroLbl, opts = {}) {
     ${img}
     <div class="strat-tile-name">${escHtml(g.name)}</div>
     <div class="strat-tile-hero">
-      <span class="strat-tile-hero-val">${heroVal}</span>
+      <span class="strat-tile-hero-val">${heroDisplay}</span>
       <span class="strat-tile-hero-lbl">${heroLbl}</span>
     </div>
     <div class="strat-tile-meta">
