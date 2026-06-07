@@ -1063,6 +1063,10 @@ function parseReportedAt(str) {
 function lastReportCellHtml(rid) {
   const s = retailerLatestStatus[rid];
   if (!s) return `<span style="color:var(--text-muted);font-size:.8rem">—</span>`;
+  if (!isPro()) {
+    // Free users see the structure (there IS recent data) but not the value.
+    return `<span class="gated-blur" onclick="event.stopPropagation(); openPaywallOrLogin()" style="font-size:.8rem">✅✅✅</span>`;
+  }
   const icon = s.has_stock ? "✅" : "❌";
   const ago  = timeAgo(parseReportedAt(s.reported_at));
   const badge = inventorySourceBadgeHtml(s.source);
