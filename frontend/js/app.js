@@ -171,6 +171,26 @@ let _openModalGame = null;
 
 function getToken() { return localStorage.getItem("sf_token") || ""; }
 
+// ── Freemium gating ───────────────────────────────────────────────────────────
+// Pro check + helpers for the universal blur pattern used on Return %, EV $,
+// Chase stock labels, and premium strategy hero values. Free users see the
+// structure (rows, markers, tiles) but the high-signal numbers are obscured
+// with a click-to-upgrade gesture.
+function isPro() { return !!(_currentUser && _currentUser.is_pro); }
+
+// Wrap a snippet of HTML in a click-to-paywall blur for free users. Pro users
+// get the raw HTML back unchanged.
+function gateBlur(html) {
+  if (isPro()) return html;
+  return `<span class="gated-blur" onclick="event.stopPropagation(); openPaywallOrLogin()" title="Upgrade to Pro to unlock">${html}</span>`;
+}
+
+// Premium strategies. Selecting one as a free user pops the paywall and
+// reverts the strategy selector back to a free option ("any"). "ev" (the
+// default landing) is intentionally excluded — free users land on the EV
+// table with blurred Return %, which is the gateway preview.
+const PREMIUM_STRATEGIES = new Set(["almostgone", "byprice", "million"]);
+
 function authHeaders() {
   const t = getToken();
   return t ? { "Authorization": `Bearer ${t}` } : {};
