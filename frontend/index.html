@@ -318,6 +318,17 @@
           <div class="table-meta">
             <span id="resultCount">Loading…</span>
           </div>
+          <!-- Paywall overlay for free users — hides the +EV ranking entirely.
+               Headers stay visible so visitors see what columns they'd get. -->
+          <div class="ev-table-paywall" id="evTablePaywall" style="display:none">
+            <div class="ev-table-paywall-card">
+              <div class="ev-table-paywall-icon">🔒</div>
+              <div class="ev-table-paywall-title">The +EV ranked list is Pro</div>
+              <div class="ev-table-paywall-sub">See every state's positive-EV games ranked by Return %, with full Net EV, $1M+ odds, and prize pool data.</div>
+              <button class="ev-table-paywall-btn" onclick="openPaywallOrLogin()">Upgrade to Pro →</button>
+              <button class="ev-table-paywall-link" onclick="openPaywall(); togglePaywallBeta()">or redeem a beta code</button>
+            </div>
+          </div>
           <div class="table-scroll">
             <table id="gamesTable">
               <thead>
