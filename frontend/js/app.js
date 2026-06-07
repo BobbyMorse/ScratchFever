@@ -1183,14 +1183,14 @@ function switchStrategy(name) {
   if (topSel && topSel.value !== name) topSel.value = name;
   if (ctrlSel && ctrlSel.value !== name) ctrlSel.value = name;
 
-  const isEV = name === "ev";
-  document.getElementById("evFiltersBar").style.display     = isEV ? "" : "none";
-  document.getElementById("evTableSection").style.display   = isEV ? "" : "none";
-  document.getElementById("stratControls").style.display    = isEV ? "none" : "";
-  document.getElementById("strategyTilesWrap").style.display = isEV ? "none" : "";
+  // All strategies (including EV) now render as tiles. The legacy table /
+  // filter bar stay in the DOM but hidden so existing JS refs don't crash.
+  document.getElementById("evFiltersBar").style.display     = "none";
+  document.getElementById("evTableSection").style.display   = "none";
+  document.getElementById("stratControls").style.display    = "";
+  document.getElementById("strategyTilesWrap").style.display = "";
   document.getElementById("stratThresholdWrap").style.display = name === "threshold" ? "" : "none";
 
-  if (isEV) { renderTable(); return; }
   renderStrategyView();
 }
 
