@@ -191,6 +191,23 @@ function gateBlur(html) {
 // table with blurred Return %, which is the gateway preview.
 const PREMIUM_STRATEGIES = new Set(["almostgone", "byprice", "million"]);
 
+// Sync the 🔒 prefix on premium strategy <option>s with current pro state.
+// Each premium option carries a data-premium="1" attribute; we toggle the
+// text to "🔒 Label" for free users and bare "Label" for Pro.
+const _PREMIUM_OPT_LABELS = {
+  "million": "$1M+ Hunter",
+  "byprice": "By Price Tier",
+  "almostgone": "Almost Gone",
+};
+function syncPremiumOptionLabels() {
+  const pro = isPro();
+  document.querySelectorAll("option[data-premium='1']").forEach(opt => {
+    const base = _PREMIUM_OPT_LABELS[opt.value];
+    if (!base) return;
+    opt.textContent = pro ? base : `🔒 ${base}`;
+  });
+}
+
 function authHeaders() {
   const t = getToken();
   return t ? { "Authorization": `Bearer ${t}` } : {};
