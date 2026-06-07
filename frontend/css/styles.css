@@ -979,6 +979,69 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
 }
 .ev-table-paywall-link:hover { color: var(--orange, #f97316); }
 
+/* Inline paywall card rendered inside #strategyTiles when a free user is on
+   the Positive EV (tile) view. Spans the grid and centers a CTA card. */
+.strat-ev-paywall {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  min-height: 380px;
+  background:
+    radial-gradient(ellipse at top, rgba(249,115,22,0.12) 0%, transparent 60%),
+    var(--card-bg, #fff);
+  border-radius: 16px;
+  border: 1px dashed rgba(249,115,22,0.35);
+  text-align: center;
+  flex-direction: column;
+  gap: 0;
+}
+.strat-ev-paywall-icon {
+  font-size: 3rem;
+  line-height: 1;
+  margin-bottom: 1rem;
+}
+.strat-ev-paywall-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -.01em;
+  margin-bottom: .6rem;
+  color: var(--text, #111);
+}
+.strat-ev-paywall-sub {
+  font-size: .98rem;
+  line-height: 1.5;
+  color: var(--text-muted, #666);
+  max-width: 480px;
+  margin: 0 auto 1.6rem;
+}
+.strat-ev-paywall-btn {
+  background: linear-gradient(135deg, #fb923c, var(--orange, #f97316));
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: .95rem 2rem;
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: .01em;
+  cursor: pointer;
+  margin-bottom: .65rem;
+  transition: transform .12s ease, box-shadow .12s ease;
+  box-shadow: 0 6px 18px rgba(249,115,22,0.35);
+}
+.strat-ev-paywall-btn:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(249,115,22,0.45); }
+.strat-ev-paywall-link {
+  background: none;
+  border: none;
+  color: var(--text-muted, #666);
+  cursor: pointer;
+  font-size: .85rem;
+  text-decoration: underline;
+  padding: .3rem .5rem;
+}
+.strat-ev-paywall-link:hover { color: var(--orange, #f97316); }
+
 /* Return bars — always orange in this design */
 .return-bar-wrap { display: flex; align-items: center; gap: .5rem; }
 .return-bar {
