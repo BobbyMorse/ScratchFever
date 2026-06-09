@@ -3389,7 +3389,7 @@ function renderCallerRecent() {
     _scheduleCallerLivePoll();
     return;
   }
-  const filtered = _callerRecent.filter(c => _callMatchesFilter(c, _callerRecentFilter));
+  const filtered = _callerRecent.filter(c => _callMatchesFilter(c, _callerRecentFilter) && _callMatchesColFilters(c));
   if (countEl) {
     countEl.textContent = _callerRecentFilter === "all"
       ? `${_callerRecent.length} calls`
