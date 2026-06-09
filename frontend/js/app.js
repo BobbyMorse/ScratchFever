@@ -1277,14 +1277,17 @@ function renderStrategyView() {
   // a single auto-fill grid. Toggle the grid layout accordingly.
   container.classList.toggle("strat-byprice-mode", name === "byprice");
 
-  // Pool starts from the *unfiltered* set so users see games from estimated
-  // states too — the EV-tab "Hide Estimated" toggle only applies to the
-  // table view. Apply state/price filters from the strategy controls.
+  // Pool starts from the *unfiltered* set; strategy controls apply
+  // state/price/estimated filters. "Hide Estimated" defaults on — drops
+  // states whose Return % is extrapolated (e.g. VT), same default the
+  // legacy EV table used.
   const stateFilter = document.getElementById("stratStateFilter")?.value || "";
   const priceFilter = document.getElementById("stratPriceFilter")?.value || "";
+  const hideEstimated = document.getElementById("stratHideEstimated")?.checked ?? true;
   let pool = (allGamesUnfiltered || []).filter(g => !EV_EXCLUDED_STATES.has(g.state_code));
   if (stateFilter) pool = pool.filter(g => g.state_code === stateFilter);
   if (priceFilter) { const p = Number(priceFilter); pool = pool.filter(g => g.price === p); }
+  if (hideEstimated) pool = pool.filter(g => !ESTIMATED_STATES.has(g.state_code));
 
   const titleEl = document.getElementById("stratTitle");
   const subEl   = document.getElementById("stratSubtitle");
