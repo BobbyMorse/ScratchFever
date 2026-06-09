@@ -405,6 +405,54 @@ body {
   pointer-events: none;
 }
 
+/* Nested strategy sub-nav under EV Games */
+.sidebar-subnav {
+  display: flex;
+  flex-direction: column;
+  gap: .1rem;
+  margin: .15rem 0 .35rem .9rem;
+  padding-left: .7rem;
+  border-left: 1px solid rgba(255,255,255,.08);
+}
+.sidebar-subitem {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .4rem .6rem;
+  border: none;
+  background: none;
+  color: var(--chrome-text);
+  font-family: inherit;
+  font-size: .78rem;
+  font-weight: 500;
+  text-align: left;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+  position: relative;
+  transition: color .12s, background .12s;
+}
+.sidebar-subitem:hover { color: #e2e8f0; background: rgba(255,255,255,.05); }
+.sidebar-subitem.active {
+  color: var(--orange);
+  background: rgba(249,115,22,.08);
+  font-weight: 700;
+}
+.sidebar-subitem.active::before {
+  content: "";
+  position: absolute;
+  left: -0.71rem;
+  top: 4px; bottom: 4px;
+  width: 2px;
+  background: var(--orange);
+  border-radius: 1px;
+}
+.sub-lock { font-size: .68rem; opacity: .85; }
+@media (max-width: 900px) {
+  .sidebar-subnav { margin-left: 1rem; }
+  .sidebar-subitem { padding: .5rem .7rem; font-size: .82rem; }
+}
+
 .sidebar-divider { height: 1px; background: var(--chrome-border); margin: .35rem 0; }
 
 .sidebar-footer {
