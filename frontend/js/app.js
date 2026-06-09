@@ -2787,9 +2787,13 @@ function _popupHtmlRetailer(r, status) {
   const invLink = pro
     ? `<a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${rid}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
     : `<a href="javascript:void(0)" onclick="openPaywallOrLogin(); return false;" style="font-size:.85rem">🔒 Inventory</a>`;
-  return `<b>${escHtml(r.name)}</b><br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br>` +
+  const nameHtml = rid
+    ? `<a href="${_storeHref(rid)}" style="color:inherit;text-decoration:none"><b>${escHtml(r.name)}</b></a>`
+    : `<b>${escHtml(r.name)}</b>`;
+  return `${nameHtml}<br>${escHtml(r.city || "")} ${escHtml(r.zipCode || "")}<br>${statusTxt}<br>` +
     `<a href="${mapsUrl}" target="_blank" rel="noopener" style="font-size:.85rem">📍 Directions</a> · ` +
-    invLink;
+    invLink + ` · ` +
+    `<a href="${_storeHref(rid)}" style="font-size:.85rem">🏪 Store page</a>`;
 }
 
 function _popupHtmlReport(r) {
