@@ -919,7 +919,7 @@
 
     // Public-page links — owners share this URL with customers; it's the page
     // where their promotions actually live.
-    const publicPath = `/store/${encodeURIComponent(p.retailer_id)}`;
+    const publicPath = `/store/${encodeURIComponent(p.retailer_id)}${p.state_code ? `?state=${encodeURIComponent(p.state_code)}` : ""}`;
     const publicAbs = window.location.origin + publicPath;
     ["navPublicLink", "ovPublicBtn", "ovPublicBtn2", "pfPublicBtn", "postsPublicLink"].forEach(id => {
       const el = document.getElementById(id);
