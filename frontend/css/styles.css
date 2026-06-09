@@ -448,6 +448,7 @@ body {
   border-radius: 1px;
 }
 .sub-lock { font-size: .68rem; opacity: .85; }
+body.is-pro-user .sub-lock { display: none; }
 @media (max-width: 900px) {
   .sidebar-subnav { margin-left: 1rem; }
   .sidebar-subitem { padding: .5rem .7rem; font-size: .82rem; }
