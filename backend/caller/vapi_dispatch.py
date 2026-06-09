@@ -860,7 +860,7 @@ async def vapi_dispatch(body: DispatchBody, _user: dict = Depends(require_admin)
     valid, skipped = _prepare_for_enqueue(targets)
     result = await enqueue_targets(
         valid, tickets,
-        enqueued_by_user_id=_user.get("id") if isinstance(_user, dict) else None,
+        enqueued_by_user_id=_user.get("uid") if isinstance(_user, dict) else None,
     )
     return {
         "queued":         True,
@@ -921,7 +921,7 @@ async def vapi_dispatch_campaign(body: CampaignBody, _user: dict = Depends(requi
     valid, skipped = _prepare_for_enqueue(targets)
     result = await enqueue_targets(
         valid, tickets,
-        enqueued_by_user_id=_user.get("id") if isinstance(_user, dict) else None,
+        enqueued_by_user_id=_user.get("uid") if isinstance(_user, dict) else None,
     )
     return {
         "queued":            True,
@@ -1009,7 +1009,7 @@ async def vapi_dispatch_selected(body: DispatchSelectedBody, _user: dict = Depen
     result = await enqueue_targets(
         valid, tickets,
         force_phone_number_id=body.phone_number_id,
-        enqueued_by_user_id=_user.get("id") if isinstance(_user, dict) else None,
+        enqueued_by_user_id=_user.get("uid") if isinstance(_user, dict) else None,
     )
     return {
         "queued":         True,
