@@ -1193,7 +1193,7 @@
       el.innerHTML = `<div class="empty-state">No posts yet. Write your first update above!</div>`;
       return;
     }
-    const publicUrl = _profile ? `/store/${encodeURIComponent(_profile.retailer_id)}` : null;
+    const publicUrl = _profile ? `/store/${encodeURIComponent(_profile.retailer_id)}${_profile.state_code ? `?state=${encodeURIComponent(_profile.state_code)}` : ""}` : null;
     el.innerHTML = _posts.map(p => `
       <div class="post-item" id="post-${p.id}">
         <div class="post-item-header">
