@@ -253,6 +253,55 @@
     }
     .owner-ribbon a { color: var(--teal); font-weight: 700; text-decoration: none; }
     .owner-ribbon a:hover { text-decoration: underline; }
+
+    /* ── Address / map / inventory enrichment (claimed + unclaimed) ─── */
+    .address-line {
+      font-size: .92rem; color: var(--text);
+      margin-top: .35rem;
+    }
+    .map-frame {
+      width: 100%; height: 260px;
+      border: 0; display: block;
+      background: var(--bg);
+    }
+    .map-card { padding: 0; overflow: hidden; }
+    .inv-list { display: flex; flex-direction: column; }
+    .inv-row {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .6rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: .9rem;
+    }
+    .inv-row:last-child { border-bottom: none; }
+    .inv-game { flex: 1; min-width: 0; font-weight: 600; color: var(--text); }
+    .inv-pill {
+      flex-shrink: 0;
+      font-size: .68rem; font-weight: 800; letter-spacing: .05em;
+      text-transform: uppercase;
+      padding: .22rem .6rem; border-radius: 12px;
+    }
+    .inv-pill-in  { background: var(--green-dim); color: #15803d; }
+    .inv-pill-out { background: var(--red-dim);   color: #b91c1c; }
+    .inv-time {
+      flex-shrink: 0;
+      font-size: .76rem; color: var(--text-muted);
+    }
+
+    /* Top-of-page CTA shown when the store is UNCLAIMED — bigger than the
+       footer ribbon because for unclaimed pages the claim ask IS the hero. */
+    .claim-cta-top {
+      max-width: 880px; margin: 0 auto 1.25rem;
+      padding: 1rem 1.25rem;
+      background: linear-gradient(90deg, rgba(20,184,166,0.12), rgba(20,184,166,0.04));
+      border: 1px solid rgba(20,184,166,0.30);
+      border-radius: var(--radius);
+      display: flex; align-items: center; gap: .9rem; flex-wrap: wrap;
+    }
+    .claim-cta-top-icon { font-size: 1.4rem; }
+    .claim-cta-top-body { flex: 1; min-width: 200px; }
+    .claim-cta-top-title { font-size: .98rem; font-weight: 800; color: var(--text); }
+    .claim-cta-top-sub   { font-size: .82rem; color: var(--text-muted); margin-top: .15rem; }
+    .claim-cta-top a.btn { flex-shrink: 0; }
   </style>
 </head>
 <body>
