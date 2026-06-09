@@ -5843,7 +5843,7 @@ async function loadOwnerProfile(retailerId) {
     return;
   }
 
-  const storePageLink = `<a class="store-full-page-link" href="/store/${encodeURIComponent(retailerId)}" target="_blank">
+  const storePageLink = `<a class="store-full-page-link" href="${_storeHref(retailerId)}" target="_blank">
     Open full store page <span style="font-size:.85em">↗</span>
   </a>`;
 
