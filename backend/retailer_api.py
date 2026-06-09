@@ -533,26 +533,25 @@ async def get_public_retailer_summary(state_code: str, retailer_id: str):
     async with get_pool().acquire() as conn:
         table = _PER_STATE_RETAILER_TABLES_PUBLIC.get(code)
         if table:
-            # Per-state tables key on the textual store id (e.g. MA agent #).
+            # ma_retailers.id is integer; az/fl/ga/ri.id is text. Cast to
+            # text on both sides so a single query handles either schema
+            # without dispatching per-state. The single-row lookup is fast
+            # enough on these (<10k row) tables that losing the index is fine.
             row = await conn.fetchrow(
                 f"""SELECT id, name, address, city, zip_code, phone,
                            latitude, longitude
-                    FROM {table} WHERE id=$1""",
+                    FROM {table} WHERE id::text = $1""",
                 rid,
             )
         else:
-            # Generic state_retailers — id is SERIAL int; the frontend
-            # stringifies it before passing it back in URLs.
-            try:
-                rid_int = int(rid)
-            except ValueError:
-                rid_int = -1
+            # state_retailers.id is SERIAL int; the frontend stringifies it
+            # before round-tripping through URLs, so cast to text here too.
             row = await conn.fetchrow(
                 """SELECT id, name, address, city, zip_code, phone,
                           latitude, longitude
                    FROM state_retailers
-                   WHERE id=$1 AND state_code=$2""",
-                rid_int, code,
+                   WHERE id::text = $1 AND state_code=$2""",
+                rid, code,
             )
         if not row:
             raise HTTPException(status_code=404, detail="Retailer not found")
