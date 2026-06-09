@@ -6672,7 +6672,7 @@ function azRow(r, rank) {
 
   return `<tr class="ma-store-row" data-retailer-id="${rid}" onclick="toggleStoreProfile(this)">
     <td style="color:var(--text-muted);font-size:.8rem;font-weight:700">${rank}</td>
-    <td><strong>${escHtml(r.name)}</strong><br><span style="font-size:.78rem;color:var(--text-muted)">${escHtml(r.address)}</span><span class="report-count-badge" id="rbadge-${rid}" style="display:none"></span></td>
+    <td><a href="/store/${rid}?state=AZ" onclick="event.stopPropagation()" class="store-name-link"><strong>${escHtml(r.name)}</strong></a><br><span style="font-size:.78rem;color:var(--text-muted)">${escHtml(r.address)}</span><span class="report-count-badge" id="rbadge-${rid}" style="display:none"></span></td>
     <td>${escHtml(r.city)}</td>
     <td>${escHtml(r.zipCode)}</td>
     <td class="last-report-cell" data-rid="${rid}">${lastReportCellHtml(rid)}</td>
