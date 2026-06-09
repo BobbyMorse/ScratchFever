@@ -1181,6 +1181,12 @@ function populateStrategyStateFilter() {
   if (current) sel.value = current;
 }
 
+function syncStrategyTabs(name) {
+  document.querySelectorAll("#strategyTabs .strat-tab").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.strategy === name);
+  });
+}
+
 function switchStrategy(name) {
   // Premium strategies require Pro. Pop the paywall, revert selectors, and
   // re-render so title/body match the dropdown — otherwise the user sees a
@@ -1190,9 +1196,8 @@ function switchStrategy(name) {
     const safe = (currentStrategy && !PREMIUM_STRATEGIES.has(currentStrategy)) ? currentStrategy : "ev";
     currentStrategy = safe;
     const topSel = document.getElementById("filterStrategy");
-    const ctrlSel = document.getElementById("stratStrategySelect");
     if (topSel) topSel.value = safe;
-    if (ctrlSel) ctrlSel.value = safe;
+    syncStrategyTabs(safe);
     const thWrap = document.getElementById("stratThresholdWrap");
     if (thWrap) thWrap.style.display = safe === "threshold" ? "" : "none";
     renderStrategyView();
@@ -1200,9 +1205,8 @@ function switchStrategy(name) {
   }
   currentStrategy = name;
   const topSel = document.getElementById("filterStrategy");
-  const ctrlSel = document.getElementById("stratStrategySelect");
   if (topSel && topSel.value !== name) topSel.value = name;
-  if (ctrlSel && ctrlSel.value !== name) ctrlSel.value = name;
+  syncStrategyTabs(name);
 
   // All strategies (including EV) now render as tiles. The legacy table /
   // filter bar stay in the DOM but hidden so existing JS refs don't crash.
