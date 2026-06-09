@@ -110,6 +110,16 @@ async def lifespan(app: FastAPI):
     # VAPI_PRIVATE_KEY is missing. Tracked so we can cancel on shutdown.
     vapi_poller_task = asyncio.create_task(analysis_poller_loop())
 
+    # Concurrency-gated dispatch worker — pulls pending vapi_call_queue rows
+    # and fires them N at a time (default 2). DISABLE_VAPI_QUEUE_WORKER=1 to
+    # skip on worker-split deployments where only one service should pop the
+    # queue. Webhooks land on the API, so keep this on the API process.
+    if os.environ.get("DISABLE_VAPI_QUEUE_WORKER") == "1":
+        logger.info("DISABLE_VAPI_QUEUE_WORKER=1 — vapi_queue worker NOT running in this process")
+        vapi_queue_task = None
+    else:
+        vapi_queue_task = asyncio.create_task(vapi_queue_worker_loop())
+
     if SCHEDULER_DISABLED:
         logger.info("DISABLE_SCHEDULER=1 — scrapers will NOT run in this process "
                     "(assuming a dedicated worker service is handling them)")
