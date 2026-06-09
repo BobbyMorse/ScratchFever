@@ -3329,6 +3329,7 @@ function renderCallerRecent() {
   }
   tbody.innerHTML = filtered.map(c => {
     const resultHtml = renderResultCell(c);
+    const checkedHtml = renderCheckedCell(c);
     const conf = c.confidence != null ? `${Math.round(parseFloat(c.confidence) * 100)}%` : "—";
     const dur  = c.duration_sec != null ? `${Math.round(parseFloat(c.duration_sec))}s` : "—";
     const when = c.ended_at || c.received_at || "";
