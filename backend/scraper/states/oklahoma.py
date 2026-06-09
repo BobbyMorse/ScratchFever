@@ -218,7 +218,7 @@ def _extract_ids_from_json(data, depth: int = 0) -> list[str]:
     if depth > 4:
         return []
     ids = []
-    id_keys = {"id", "gameId", "game_id", "GameID", "scratcherId", "ScratcherID"}
+    id_keys = {"id", "gameId", "GameId", "game_id", "GameID", "scratcherId", "ScratcherID"}
     if isinstance(data, list):
         for item in data:
             ids.extend(_extract_ids_from_json(item, depth + 1))
