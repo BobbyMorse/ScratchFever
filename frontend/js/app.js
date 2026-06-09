@@ -3159,16 +3159,19 @@ let _callerHits = [];
 
 async function loadCallerData() {
   try {
-    const [statsRes, recentRes, configRes, diagRes] = await Promise.all([
+    const [statsRes, recentRes, configRes, diagRes, queueRes] = await Promise.all([
       callerFetch("/api/vapi/stats"),
       callerFetch("/api/vapi/recent?limit=100"),
       callerFetch("/api/vapi/config"),
       callerFetch("/api/vapi/diagnostics"),
+      callerFetch("/api/vapi/queue/stats").catch(() => null),
     ]);
     const stats  = await statsRes.json();
     const recent = await recentRes.json();
     const config = await configRes.json();
     const diag   = await diagRes.json();
+    const queue  = queueRes && queueRes.ok ? await queueRes.json().catch(() => null) : null;
+    renderQueueWidget(queue);
 
     document.getElementById("callerStatHits").textContent      = (stats.hits || 0).toLocaleString();
     document.getElementById("callerStatCalls").textContent     = (stats.total_calls || 0).toLocaleString();
