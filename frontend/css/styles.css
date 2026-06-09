@@ -2516,6 +2516,52 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 }
 .btn-pro-primary:hover { background: var(--orange-dark); }
 
+.strategy-tabs {
+  display: flex;
+  gap: .25rem;
+  margin: 0 1.5rem .75rem;
+  padding: .35rem;
+  background: linear-gradient(135deg, #ffffff 0%, #f6f9ff 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.9);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.strategy-tabs::-webkit-scrollbar { height: 6px; }
+.strategy-tabs::-webkit-scrollbar-thumb { background: rgba(0,0,0,.12); border-radius: 3px; }
+.strat-tab {
+  flex: 0 0 auto;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: -.005em;
+  padding: .55rem .9rem;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  transition: color .12s ease, background .12s ease, border-color .12s ease, box-shadow .12s ease;
+}
+.strat-tab:hover { color: var(--text); background: rgba(249,115,22,0.07); }
+.strat-tab.active {
+  color: #fff;
+  background: var(--orange);
+  border-color: var(--orange-dark);
+  box-shadow: 0 2px 6px rgba(249,115,22,.28);
+}
+.strat-tab.active:hover { background: var(--orange-dark); }
+.strat-tab-lock { font-size: .72rem; opacity: .9; }
+@media (max-width: 720px) {
+  .strategy-tabs { margin: 0 .75rem .6rem; padding: .3rem; }
+  .strat-tab { padding: .5rem .7rem; font-size: .78rem; }
+}
+
 .strategy-controls {
   display: flex; align-items: flex-end; justify-content: space-between;
   gap: 1.5rem; flex-wrap: wrap;
