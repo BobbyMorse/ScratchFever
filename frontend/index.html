@@ -53,6 +53,19 @@
         EV Games
       </button>
 
+      <!-- Strategy sub-nav (only shown while EV Games tab is active) -->
+      <div class="sidebar-subnav" id="evSubnav">
+        <button class="sidebar-subitem active" data-strategy="ev" onclick="selectStrategy('ev')">Positive EV</button>
+        <button class="sidebar-subitem" data-strategy="any" onclick="selectStrategy('any')">Any-Prize Odds</button>
+        <button class="sidebar-subitem" data-strategy="threshold" onclick="selectStrategy('threshold')">$X+ Hunter</button>
+        <button class="sidebar-subitem" data-strategy="million" data-premium="1" onclick="selectStrategy('million')"><span class="sub-lock">🔒</span>$1M+ Hunter</button>
+        <button class="sidebar-subitem" data-strategy="topprize" onclick="selectStrategy('topprize')">Top Prize Hunter</button>
+        <button class="sidebar-subitem" data-strategy="launch" onclick="selectStrategy('launch')">Launch Odds</button>
+        <button class="sidebar-subitem" data-strategy="byprice" data-premium="1" onclick="selectStrategy('byprice')"><span class="sub-lock">🔒</span>By Price Tier</button>
+        <button class="sidebar-subitem" data-strategy="fresh" onclick="selectStrategy('fresh')">Fresh Drops</button>
+        <button class="sidebar-subitem" data-strategy="almostgone" data-premium="1" onclick="selectStrategy('almostgone')"><span class="sub-lock">🔒</span>Almost Gone</button>
+      </div>
+
       <button class="sidebar-item tab-btn" data-tab="ma" onclick="switchTab('ma')">
         🔥
         The Chase
