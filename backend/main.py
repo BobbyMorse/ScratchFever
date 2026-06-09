@@ -830,6 +830,13 @@ async def api_status_states():
     from backend.scraper.winners.runner import ALL_WINNERS_SCRAPERS
     winners_scraper_set = {cls.state_code for cls in ALL_WINNERS_SCRAPERS}
 
+    # Some states (notably IL) flap between OK and 403/timeout every run because
+    # the upstream lottery site's Cloudflare actively challenges us. If the most
+    # recent run failed but a successful run landed within this window, treat
+    # the state as healthy — the DB data is still fresh.
+    FLAP_GRACE = datetime.timedelta(hours=2)
+    now = datetime.datetime.now(datetime.timezone.utc)
+
     states = []
     for state_code in sorted(all_known, key=lambda c: all_known[c]):
         state_name = all_known[state_code]
@@ -837,11 +844,21 @@ async def api_status_states():
         g = games_by_state.get(state_code)
         games = int(g["games_in_db"]) if g else 0
         if log:
-            status = "ok" if log["success"] else "error"
+            if log["success"]:
+                status = "ok"
+                error_msg = None
+            elif log["last_success_at"] and (now - log["last_success_at"]) < FLAP_GRACE:
+                status = "ok"
+                error_msg = None
+            else:
+                status = "error"
+                error_msg = log["error_msg"]
         elif games:
             status = "warn"
+            error_msg = None
         else:
             status = "never"
+            error_msg = None
         ret = retailer_by_state.get(state_code)
         w = winners_by_state.get(state_code)
         states.append({
