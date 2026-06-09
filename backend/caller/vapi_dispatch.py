@@ -1004,19 +1004,22 @@ async def vapi_dispatch_selected(body: DispatchSelectedBody, _user: dict = Depen
             "preview":      preview,
         }
 
-    results, skipped = await _dispatch_calls(
-        targets, tickets, env,
+    from backend.caller.vapi_queue import enqueue_targets, get_max_concurrent
+    valid, skipped = _prepare_for_enqueue(targets)
+    result = await enqueue_targets(
+        valid, tickets,
         force_phone_number_id=body.phone_number_id,
+        enqueued_by_user_id=_user.get("id") if isinstance(_user, dict) else None,
     )
-    success = sum(1 for r in results if r["ok"])
     return {
-        "selected":     len(targets),
-        "dispatched":   success,
-        "failed":       len(results) - success,
-        "skipped":      skipped,
-        "missing_ids":  missing_ids,
-        "tickets_text": _build_tickets_text(tickets),
-        "results":      results[:50],
+        "queued":         True,
+        "selected":       len(targets),
+        "enqueued":       result["enqueued"],
+        "batch_id":       result["batch_id"],
+        "skipped":        skipped,
+        "missing_ids":    missing_ids,
+        "max_concurrent": get_max_concurrent(),
+        "tickets_text":   _build_tickets_text(tickets),
     }
 
 
