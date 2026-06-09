@@ -327,6 +327,13 @@
     const segs = window.location.pathname.split("/").filter(Boolean);
     return decodeURIComponent(segs[segs.length - 1] || "");
   })();
+  // State comes from the link that brought you here (?state=XX). It tells us
+  // which per-state retailer table to look up address + lat/lng in. Older
+  // bookmarks without ?state= still work — we just skip the address/map.
+  const STATE = (function(){
+    const p = new URLSearchParams(window.location.search);
+    return (p.get("state") || "").trim().toUpperCase();
+  })();
 
   function escHtml(s) {
     return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;")
@@ -346,16 +353,35 @@
     return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   }
 
+  function claimUrl(name, city, zip, phone) {
+    const qs = new URLSearchParams({
+      retailer_id: RID,
+      state_code:  STATE || "",
+      store_name:  name || "",
+      city:        city || "",
+      zip:         zip  || "",
+      phone:       phone || "",
+    });
+    return `/claim?${qs.toString()}`;
+  }
+
   async function load() {
     if (!RID) { renderNotFound(); return; }
     try {
-      const [pRes, postsRes] = await Promise.all([
+      const reqs = [
         fetch(`/api/public/retailer/${encodeURIComponent(RID)}/profile`),
         fetch(`/api/public/retailer/${encodeURIComponent(RID)}/posts?limit=50`),
-      ]);
-      const pData = pRes.ok ? await pRes.json() : { profile: null };
+      ];
+      // Summary depends on state — without it we can't disambiguate which
+      // per-state retailer table to query, so skip the call rather than 400.
+      if (STATE) {
+        reqs.push(fetch(`/api/public/retailer/${encodeURIComponent(STATE)}/${encodeURIComponent(RID)}/summary`));
+      }
+      const [pRes, postsRes, sumRes] = await Promise.all(reqs);
+      const pData    = pRes.ok    ? await pRes.json()    : { profile: null };
       const postsData = postsRes.ok ? await postsRes.json() : { posts: [] };
-      render(pData.profile, postsData.posts || []);
+      const sumData  = sumRes && sumRes.ok ? await sumRes.json() : null;
+      render(pData.profile, postsData.posts || [], sumData);
     } catch (e) {
       document.getElementById("content").innerHTML =
         `<div class="loader" style="color:var(--red)">Couldn't load this store. Please try again.</div>`;
@@ -371,22 +397,83 @@
       </div>`;
   }
 
-  function render(profile, posts) {
-    if (!profile && !posts.length) {
+  function renderHeroActions(profile, summary, name, city, stateCode, phone) {
+    const lat = summary?.retailer?.latitude;
+    const lng = summary?.retailer?.longitude;
+    const directionsHref = (lat && lng)
+      ? `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
+      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${name} ${city} ${stateCode}`)}`;
+    const liveHref = `/?store=${encodeURIComponent(RID)}&state=${encodeURIComponent(stateCode || 'MA')}`;
+    return `
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="${liveHref}">See live ticket inventory →</a>
+        <a class="btn btn-ghost" href="${directionsHref}" target="_blank" rel="noopener">Get directions</a>
+        ${phone ? `<a class="btn btn-ghost" href="tel:${escHtml(phone)}">Call</a>` : ""}
+      </div>`;
+  }
+
+  function renderInventoryCard(summary) {
+    const items = summary?.inventory || [];
+    if (!items.length) return "";
+    const rows = items.slice(0, 25).map(it => {
+      const pillCls = it.has_stock ? "inv-pill-in" : "inv-pill-out";
+      const pillTxt = it.has_stock ? "In stock" : "Out";
+      const priceTxt = it.game_price ? ` · $${it.game_price}` : "";
+      return `<div class="inv-row">
+        <div class="inv-game">${escHtml(it.game_name)}<span style="color:var(--text-muted);font-weight:500">${priceTxt}</span></div>
+        <span class="inv-pill ${pillCls}">${pillTxt}</span>
+        <span class="inv-time">${timeAgo(it.reported_at)}</span>
+      </div>`;
+    }).join("");
+    return `<div class="card">
+      <div class="card-title">Recent Inventory Reports (Last 14 Days)</div>
+      <div class="inv-list">${rows}</div>
+    </div>`;
+  }
+
+  function render(profile, posts, summary) {
+    // Three branches: (a) nothing found, (b) unclaimed but we have summary,
+    // (c) claimed. Both (b) and (c) get the address/map/inventory enrichment.
+    const hasProfile = !!profile;
+    const hasSummary = !!(summary && summary.retailer);
+
+    if (!hasProfile && !hasSummary) {
+      // No state passed AND no claim — bare-bones "claim it" prompt.
       document.getElementById("content").innerHTML = `
         <div class="not-claimed">
           <h2>This store hasn't been claimed yet</h2>
           <p>If you own or operate this store, you can claim it for free and get a custom page like the ones other stores use.</p>
-          <a href="/claim?retailer_id=${encodeURIComponent(RID)}" class="btn btn-primary">Claim this store</a>
+          <a href="${claimUrl("", "", "", "")}" class="btn btn-primary">Claim this store</a>
         </div>`;
       return;
     }
 
-    const name = profile?.store_name || "Lottery Retailer";
+    const r = summary?.retailer || {};
+    const name       = profile?.store_name || r.name || "Lottery Retailer";
+    const city       = profile?.city       || r.city || "";
+    const stateCode  = profile?.state_code || r.state_code || STATE || "";
+    const phone      = profile?.phone      || r.phone || "";
+    const address    = r.address || "";
+    const zip        = r.zip_code || "";
+
     document.getElementById("pageTitle").textContent = `${name} — ScratchFever`;
     if (profile?.description) {
       document.getElementById("metaDesc").content = profile.description.slice(0, 160);
+    } else if (address) {
+      document.getElementById("metaDesc").content = `${name} — ${address}, ${city} ${stateCode}. Live lottery scratch ticket inventory on ScratchFever.`;
     }
+
+    // Top CTA only when unclaimed. The footer ribbon stays too — different
+    // intent: top banner is "owner, come here"; footer ribbon is contextual.
+    const topClaimCta = !hasProfile ? `
+      <div class="claim-cta-top">
+        <span class="claim-cta-top-icon">🏪</span>
+        <div class="claim-cta-top-body">
+          <div class="claim-cta-top-title">Are you the owner?</div>
+          <div class="claim-cta-top-sub">Claim this store free to post promotions, mark live inventory, and drive foot traffic from ScratchFever players.</div>
+        </div>
+        <a class="btn btn-primary" href="${claimUrl(name, city, zip, phone)}">Claim this store</a>
+      </div>` : "";
 
     const photoStyle = profile?.photo_url
       ? `background-image: url('${escHtml(profile.photo_url).replace(/'/g, "\\'")}');`
@@ -401,23 +488,14 @@
     const verifiedPill = profile?.verified
       ? `<span class="verified-pill">✓ Verified by owner</span>` : "";
 
-    const locLine = profile
-      ? `${profile.city ? escHtml(profile.city) + " · " : ""}${escHtml(profile.state_code || "")}`
+    const locLine = `${city ? escHtml(city) + " · " : ""}${escHtml(stateCode)}`;
+    const addressLine = address
+      ? `<div class="address-line">${escHtml(address)}${zip ? ", " + escHtml(zip) : ""}</div>`
       : "";
 
-    const directionsQ = encodeURIComponent(`${name} ${profile?.city || ""} ${profile?.state_code || ""}`);
-    const heroActions = `
-      <div class="hero-actions">
-        <a class="btn btn-primary" href="/?store=${encodeURIComponent(RID)}&state=${encodeURIComponent(profile?.state_code || 'MA')}">
-          See live ticket inventory →
-        </a>
-        <a class="btn btn-ghost" href="https://www.google.com/maps/search/?api=1&query=${directionsQ}" target="_blank" rel="noopener">
-          Get directions
-        </a>
-        ${profile?.phone ? `<a class="btn btn-ghost" href="tel:${escHtml(profile.phone)}">Call</a>` : ""}
-      </div>`;
+    const heroActions = renderHeroActions(profile, summary, name, city, stateCode, phone);
 
-    const promosHtml = posts.length ? posts.map((p, i) => {
+    const promosHtml = posts.length ? posts.map((p) => {
       const fresh = (Date.now() - new Date(p.created_at).getTime()) < 24 * 3600 * 1000;
       return `<div class="promo">
         <div class="promo-title">
@@ -429,9 +507,10 @@
     }).join("") : `<div class="empty">No promotions or announcements yet — check back soon.</div>`;
 
     const infoRows = [];
-    if (profile?.hours_text) infoRows.push({ icon: "🕐", label: "Hours", value: escHtml(profile.hours_text) });
-    if (profile?.phone)      infoRows.push({ icon: "📞", label: "Phone", value: `<a href="tel:${escHtml(profile.phone)}">${escHtml(profile.phone)}</a>` });
-    if (profile?.website)    infoRows.push({ icon: "🌐", label: "Website", value: `<a href="${escHtml(profile.website)}" target="_blank" rel="noopener">${escHtml(profile.website.replace(/^https?:\/\//, ""))}</a>` });
+    if (address)                infoRows.push({ icon: "📍", label: "Address", value: `${escHtml(address)}${city ? ", " + escHtml(city) : ""}${zip ? " " + escHtml(zip) : ""}` });
+    if (profile?.hours_text)    infoRows.push({ icon: "🕐", label: "Hours",   value: escHtml(profile.hours_text) });
+    if (phone)                  infoRows.push({ icon: "📞", label: "Phone",   value: `<a href="tel:${escHtml(phone)}">${escHtml(phone)}</a>` });
+    if (profile?.website)       infoRows.push({ icon: "🌐", label: "Website", value: `<a href="${escHtml(profile.website)}" target="_blank" rel="noopener">${escHtml(profile.website.replace(/^https?:\/\//, ""))}</a>` });
     if (profile?.contact_email) infoRows.push({ icon: "✉️", label: "Contact", value: `<a href="mailto:${escHtml(profile.contact_email)}">${escHtml(profile.contact_email)}</a>` });
 
     const infoHtml = infoRows.length
@@ -445,7 +524,28 @@
           </div>`).join("")
       : `<div class="empty" style="padding:.5rem 0">The owner hasn't added contact info yet.</div>`;
 
+    // Embed OpenStreetMap via the no-key iframe. We control the URL — only
+    // numeric lat/lng from the API can land in it, so no injection surface.
+    const lat = r.latitude, lng = r.longitude;
+    const mapHtml = (lat && lng) ? `
+      <div class="card map-card">
+        <iframe class="map-frame" loading="lazy" referrerpolicy="no-referrer"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=${(lng-0.01).toFixed(5)}%2C${(lat-0.008).toFixed(5)}%2C${(+lng+0.01).toFixed(5)}%2C${(+lat+0.008).toFixed(5)}&layer=mapnik&marker=${lat}%2C${lng}"
+                title="Map of ${escHtml(name)}"></iframe>
+      </div>` : "";
+
+    const inventoryHtml = renderInventoryCard(summary);
+
+    // When the store is unclaimed we still show the (default) hero photo
+    // strip, but skip the "Promotions" card — there's nothing to put in it.
+    const promosCardHtml = hasProfile ? `
+      <div class="card">
+        <div class="card-title">Promotions &amp; Announcements</div>
+        ${promosHtml}
+      </div>` : "";
+
     document.getElementById("content").innerHTML = `
+      ${topClaimCta}
       ${bannerHtml}
       <div class="hero">
         <div class="hero-photo ${profile?.photo_url ? 'has-photo' : ''}" style="${photoStyle}"></div>
@@ -455,6 +555,7 @@
             ${verifiedPill}
           </div>
           <div class="hero-loc">${locLine}</div>
+          ${addressLine}
           ${profile?.description ? `<div class="hero-desc">${escHtml(profile.description)}</div>` : ""}
           ${heroActions}
         </div>
@@ -462,12 +563,11 @@
 
       <div class="cols">
         <div>
-          <div class="card">
-            <div class="card-title">Promotions &amp; Announcements</div>
-            ${promosHtml}
-          </div>
+          ${promosCardHtml}
+          ${inventoryHtml}
         </div>
         <div>
+          ${mapHtml}
           <div class="card">
             <div class="card-title">Store Info</div>
             ${infoHtml}
@@ -476,9 +576,9 @@
       </div>
 
       <div class="owner-ribbon">
-        Own this store?
-        <a href="/claim?retailer_id=${encodeURIComponent(RID)}&state_code=${encodeURIComponent(profile?.state_code || '')}&store_name=${encodeURIComponent(name)}">Claim it</a>
-        to control this page, post promotions, and drive foot traffic from ScratchFever players.
+        ${hasProfile
+          ? `Information out of date? <a href="/retailer">Sign in to your dashboard</a> to update it.`
+          : `Own this store? <a href="${claimUrl(name, city, zip, phone)}">Claim it</a> to control this page, post promotions, and drive foot traffic from ScratchFever players.`}
       </div>
     `;
   }
