@@ -341,6 +341,8 @@ function _setUser(user) {
     caller.style.display     = "none";
     const dataStatusBtn = document.getElementById("dataStatusBtn");
     if (dataStatusBtn) dataStatusBtn.style.display = "none";
+    const adminPanelLink = document.getElementById("adminPanelLink");
+    if (adminPanelLink) adminPanelLink.style.display = "none";
     if (proChip) proChip.style.display = "none";
     if (proCta) proCta.style.display = "";
     document.getElementById("playsTabBtn").style.display = "none";
