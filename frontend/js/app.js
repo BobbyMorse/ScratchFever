@@ -3166,7 +3166,7 @@ async function loadCallerData() {
   try {
     const [statsRes, recentRes, configRes, diagRes, queueRes] = await Promise.all([
       callerFetch("/api/vapi/stats"),
-      callerFetch("/api/vapi/recent?limit=100"),
+      callerFetch(`/api/vapi/recent?limit=${_callerRecentLimit}`),
       callerFetch("/api/vapi/config"),
       callerFetch("/api/vapi/diagnostics"),
       callerFetch("/api/vapi/queue/stats").catch(() => null),
