@@ -55,7 +55,7 @@ class MinnesotaScraper(PlaywrightScraper):
                         for x in card.find_all("a", href=True)
                         if re.search(r"/games/scratch/[a-z0-9-]+", x.get("href", ""))
                     }
-                    if slugs_in_card == {slug}:
+                    if slugs_in_card == {slug} and card.find(["h2", "h3", "h4", "h5", "h6"]):
                         break
                     if card.parent:
                         card = card.parent
