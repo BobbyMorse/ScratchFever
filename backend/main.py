@@ -156,6 +156,8 @@ async def lifespan(app: FastAPI):
 
     yield
     vapi_poller_task.cancel()
+    if vapi_queue_task:
+        vapi_queue_task.cancel()
     if not SCHEDULER_DISABLED:
         scheduler.shutdown()
 
