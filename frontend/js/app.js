@@ -3297,6 +3297,58 @@ function onCallerRecentFilterChange() {
   renderCallerRecent();
 }
 
+let _callerColFilters = { when:"", retailer:"", city:"", game:"", result:"", checked:"", conf:"", dur:"", ended:"", summary:"" };
+
+function onCallerColFilterChange() {
+  document.querySelectorAll("#callerRecentTable .cf-col-filter").forEach(el => {
+    const k = el.dataset.col;
+    if (k in _callerColFilters) _callerColFilters[k] = (el.value || "").trim();
+  });
+  renderCallerRecent();
+}
+
+function clearCallerColFilters() {
+  Object.keys(_callerColFilters).forEach(k => _callerColFilters[k] = "");
+  document.querySelectorAll("#callerRecentTable .cf-col-filter").forEach(el => { el.value = ""; });
+  renderCallerRecent();
+}
+
+function _callMatchesColFilters(c) {
+  const f = _callerColFilters;
+  const ci = (s, q) => !q || String(s || "").toLowerCase().includes(q.toLowerCase());
+  if (!ci(c.ended_at || c.received_at || "", f.when)) return false;
+  if (!ci(c.retailer_name, f.retailer)) return false;
+  if (!ci(c.retailer_city, f.city)) return false;
+  if (!ci(c.game_name, f.game)) return false;
+  if (f.result && _classifyCall(c) !== f.result) return false;
+  if (f.checked) {
+    const v = c.inventory_actually_checked;
+    if (f.checked === "yes" && v !== true) return false;
+    if (f.checked === "no"  && v !== false) return false;
+    if (f.checked === "unknown" && (v === true || v === false)) return false;
+  }
+  if (f.conf) {
+    const min = parseFloat(f.conf);
+    if (!isNaN(min)) {
+      const pct = c.confidence != null ? Math.round(parseFloat(c.confidence) * 100) : -1;
+      if (pct < min) return false;
+    }
+  }
+  if (f.dur) {
+    const min = parseFloat(f.dur);
+    if (!isNaN(min)) {
+      const d = c.duration_sec != null ? parseFloat(c.duration_sec) : -1;
+      if (d < min) return false;
+    }
+  }
+  if (!ci(c.ended_reason, f.ended)) return false;
+  if (f.summary) {
+    const hay = `${c.summary || ""}\n${c.transcript || ""}`;
+    if (!ci(hay, f.summary)) return false;
+  }
+  return true;
+}
+
 let _callerRecentPollTimer = null;
 let _callerPollTickCount = 0;
 const _CALLER_POLL_INTERVAL_MS = 2500;
