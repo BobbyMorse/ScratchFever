@@ -3558,6 +3558,18 @@ function renderDispositionBadge(c) {
   return ` <span title="${escHtml(m.label)}" style="margin-left:.2rem;font-size:.85rem">${m.emoji}</span>`;
 }
 
+function renderCheckedCell(c) {
+  // Surfaces the inventory_actually_checked funnel signal so the user can
+  // tell "clerk walked over and looked" from "clerk answered from memory."
+  // A `yes/N in stock` Result paired with `No` here is the leading red flag
+  // for a false positive (clerk agreed without checking).
+  if (c.is_voicemail) return `<span style="color:var(--text-muted)">—</span>`;
+  const v = c.inventory_actually_checked;
+  if (v === true)  return `<span class="badge badge-green"  title="Clerk actually checked the bin">Yes</span>`;
+  if (v === false) return `<span class="badge badge-red"    title="Clerk answered without actually checking — treat result with suspicion">No</span>`;
+  return `<span style="color:var(--text-muted)">—</span>`;
+}
+
 function renderResultCell(c) {
   // Compact ratio for the table row: "2/3 in stock", color-coded.
   if (c.is_voicemail) {
