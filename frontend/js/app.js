@@ -4469,11 +4469,12 @@ async function dispatchSelectedStores(dryRun) {
         "ok"
       );
     } else {
+      const skippedTxt = data.skipped && data.skipped.length
+        ? ` · <strong>${data.skipped.length}</strong> with bad phone` : "";
+      const cap = data.max_concurrent || 2;
       showCallerMsg(
-        `Dispatched <strong>${data.dispatched}</strong> calls · ` +
-        `<strong>${data.failed || 0}</strong> failed` +
-        (data.skipped && data.skipped.length ? ` · <strong>${data.skipped.length}</strong> with bad phone` : "") +
-        ". Watch the table below for results as VAPI completes calls.",
+        `Queued <strong>${data.enqueued}</strong> calls — dialing <strong>${cap} at a time</strong>${skippedTxt}. ` +
+        "Watch the queue widget below; calls will fill in as they complete.",
         "ok"
       );
       await loadCallerData();
