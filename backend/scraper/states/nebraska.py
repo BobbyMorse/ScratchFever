@@ -90,14 +90,14 @@ class NebraskaScraper(BaseScraper):
             rows = table.find_all("tr")
             if len(rows) < 2:
                 continue
-            # NE table layout: Odds(0) | Prize(1) | Odds(2) | Winners(3)
-            # Use fixed col indices to avoid duplicate-header confusion
+            # NE table layout (verified 2026-06-09): Prize(0) | Odds(1) | Winners(2)
+            # Earlier 4-col Odds|Prize|Odds|Winners layout no longer served.
             for row in rows[1:]:
                 cells = row.find_all(["td", "th"])
                 if len(cells) < 2:
                     continue
-                odds = parse_odds(cells[0].get_text(strip=True))
-                prize = parse_prize_amount(cells[1].get_text(strip=True))
+                prize = parse_prize_amount(cells[0].get_text(strip=True))
+                odds = parse_odds(cells[1].get_text(strip=True))
                 if prize and prize > 0 and odds and odds > 0:
                     tiers.append({
                         "prize_amount": prize,
