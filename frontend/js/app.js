@@ -3341,6 +3341,10 @@ function renderCallerRecent() {
     _scheduleCallerLivePoll();
     return;
   }
+  const mayHaveMore = _callerRecent.length >= _callerRecentLimit;
+  const moreRow = mayHaveMore
+    ? `<tr><td colspan="11" style="text-align:center;padding:.75rem;background:var(--bg)"><button class="btn" onclick="loadMoreCallerRecent()" style="font-size:.78rem;padding:.35rem .9rem">Show 100 more (loaded ${_callerRecent.length})</button></td></tr>`
+    : "";
   tbody.innerHTML = filtered.map(c => {
     const resultHtml = renderResultCell(c);
     const checkedHtml = renderCheckedCell(c);
