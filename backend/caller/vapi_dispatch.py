@@ -917,16 +917,21 @@ async def vapi_dispatch_campaign(body: CampaignBody, _user: dict = Depends(requi
             "preview":             preview,
         }
 
-    results, skipped = await _dispatch_calls(targets, tickets, env)
-    success = sum(1 for r in results if r["ok"])
+    from backend.caller.vapi_queue import enqueue_targets, get_max_concurrent
+    valid, skipped = _prepare_for_enqueue(targets)
+    result = await enqueue_targets(
+        valid, tickets,
+        enqueued_by_user_id=_user.get("id") if isinstance(_user, dict) else None,
+    )
     return {
+        "queued":            True,
         "selected":          len(targets),
         "excluded_cooldown": excluded,
-        "dispatched":        success,
-        "failed":            len(results) - success,
+        "enqueued":          result["enqueued"],
+        "batch_id":          result["batch_id"],
         "skipped":           skipped,
+        "max_concurrent":    get_max_concurrent(),
         "tickets_text":      _build_tickets_text(tickets),
-        "results":           results[:50],
     }
 
 
