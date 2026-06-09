@@ -1225,7 +1225,7 @@
       document.getElementById("postTitle").value = "";
       document.getElementById("postBody").value = "";
       renderPosts();
-      const publicUrl = _profile ? `/store/${encodeURIComponent(_profile.retailer_id)}` : null;
+      const publicUrl = _profile ? `/store/${encodeURIComponent(_profile.retailer_id)}${_profile.state_code ? `?state=${encodeURIComponent(_profile.state_code)}` : ""}` : null;
       const link = publicUrl ? ` <a href="${publicUrl}" target="_blank" style="color:inherit;text-decoration:underline;font-weight:700">View it live ↗</a>` : "";
       showMsg("postMsg", "Live on your store page." + link, "ok");
     } catch (e) {
