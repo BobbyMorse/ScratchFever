@@ -1545,6 +1545,35 @@
                   <th>Summary</th>
                   <th></th>
                 </tr>
+                <tr class="cf-col-filter-row">
+                  <th><input type="text" class="cf-col-filter" data-col="when" placeholder="filter…" oninput="onCallerColFilterChange()"></th>
+                  <th><input type="text" class="cf-col-filter" data-col="retailer" placeholder="filter…" oninput="onCallerColFilterChange()"></th>
+                  <th><input type="text" class="cf-col-filter" data-col="city" placeholder="filter…" oninput="onCallerColFilterChange()"></th>
+                  <th><input type="text" class="cf-col-filter" data-col="game" placeholder="filter…" oninput="onCallerColFilterChange()"></th>
+                  <th>
+                    <select class="cf-col-filter" data-col="result" onchange="onCallerColFilterChange()" title="Filter by call outcome">
+                      <option value="">any</option>
+                      <option value="in_stock">In stock</option>
+                      <option value="out_of_stock">Out of stock</option>
+                      <option value="no_answer">No answer</option>
+                      <option value="voicemail">Voicemail</option>
+                      <option value="in_flight">In flight</option>
+                    </select>
+                  </th>
+                  <th>
+                    <select class="cf-col-filter" data-col="checked" onchange="onCallerColFilterChange()" title="Filter by whether clerk actually checked">
+                      <option value="">any</option>
+                      <option value="yes">Yes</option>
+                      <option value="no">No</option>
+                      <option value="unknown">—</option>
+                    </select>
+                  </th>
+                  <th><input type="text" class="cf-col-filter" data-col="conf" placeholder="≥%" oninput="onCallerColFilterChange()" title="Minimum confidence, e.g. 50"></th>
+                  <th><input type="text" class="cf-col-filter" data-col="dur" placeholder="≥s" oninput="onCallerColFilterChange()" title="Minimum duration in seconds"></th>
+                  <th><input type="text" class="cf-col-filter" data-col="ended" placeholder="filter…" oninput="onCallerColFilterChange()"></th>
+                  <th><input type="text" class="cf-col-filter" data-col="summary" placeholder="filter…" oninput="onCallerColFilterChange()" title="Searches summary and transcript"></th>
+                  <th><button class="cf-col-filter-clear" onclick="clearCallerColFilters()" title="Clear all column filters">×</button></th>
+                </tr>
               </thead>
               <tbody id="callerRecentBody">
                 <tr><td colspan="11" class="loading-cell">No calls yet — start a dispatch above.</td></tr>
