@@ -1486,6 +1486,24 @@
               Test calls dial your phone using VAPI but don't write to <code>inventory_reports</code> — they appear in Recent VAPI Calls below so you can verify the full flow.
             </div>
             <div id="cfMessage" class="caller-msg" style="display:none"></div>
+
+            <div id="cfQueueWidget" style="margin-top:.75rem;padding:.65rem .8rem;border:1px solid var(--border);border-radius:8px;background:var(--bg-elev,rgba(0,0,0,.02));font-size:.78rem;display:none">
+              <div style="display:flex;align-items:center;flex-wrap:wrap;gap:.85rem">
+                <strong style="font-size:.82rem">Call queue</strong>
+                <span id="cfQueuePending" title="Waiting to dial">Pending: 0</span>
+                <span id="cfQueueDispatching" title="Mid-POST to VAPI">Dispatching: 0</span>
+                <span id="cfQueueInFlight" title="Phones currently ringing or talking">In flight: 0</span>
+                <span style="opacity:.7">·</span>
+                <label style="display:flex;align-items:center;gap:.3rem" title="Max simultaneous live calls — 2 is safe for one BYO Twilio number">
+                  Concurrency
+                  <input type="number" id="cfQueueConcurrency" min="1" max="20" style="width:56px;padding:.15rem .3rem;font-size:.75rem" />
+                  <button class="btn" id="cfQueueConcurrencyBtn" onclick="setQueueConcurrency()" style="font-size:.7rem;padding:.18rem .55rem">Set</button>
+                </label>
+                <button class="btn" id="cfQueuePauseBtn" onclick="toggleQueuePause()" style="font-size:.7rem;padding:.18rem .55rem">Pause</button>
+                <button class="btn" id="cfQueueCancelBtn" onclick="cancelAllPending()" style="font-size:.7rem;padding:.18rem .55rem;color:#b00">Cancel all pending</button>
+                <span id="cfQueueETA" style="margin-left:auto;color:var(--text-muted)"></span>
+              </div>
+            </div>
           </div>
         </section>
 
