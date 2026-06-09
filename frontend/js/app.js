@@ -328,6 +328,8 @@ function _setUser(user) {
     caller.style.display = isAdmin ? "" : "none";
     const dataStatusBtn = document.getElementById("dataStatusBtn");
     if (dataStatusBtn) dataStatusBtn.style.display = isAdmin ? "" : "none";
+    const adminPanelLink = document.getElementById("adminPanelLink");
+    if (adminPanelLink) adminPanelLink.style.display = isAdmin ? "" : "none";
     document.getElementById("playsTabBtn").style.display = "";
     document.getElementById("playsLoginNudge").style.display = "none";
     document.getElementById("scrapeBtn").style.display = isAdmin ? "" : "none";
