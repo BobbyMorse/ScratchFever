@@ -111,23 +111,25 @@ class IllinoisScraper(BaseScraper):
     scraper_timeout = 600
 
     # ── Cloudflare-impersonating fetcher ───────────────────────────────────────
-    def _cf_get(self, url: str, retries: int = 4) -> str:
-        # Cloudflare 403s burst on illinoislottery.com — observed ~6 of 8 runs
-        # failing with a fixed chrome120 fingerprint. Rotate impersonations and
-        # back off exponentially with jitter to ride out edge bans.
+    def _cf_get(self, url: str, retries: int = 2) -> str:
+        # Cloudflare 403s burst on illinoislottery.com — rotate impersonations
+        # and back off with jitter to ride out edge bans. Retries capped at 2:
+        # higher counts compounded with concurrent state scrapers were exhausting
+        # OS threads (curl_cffi spawns getaddrinfo threads per request → seen as
+        # "getaddrinfo() thread failed to start" / "can't start new thread").
         last_exc: Exception | None = None
         pool = list(_IMPERSONATE_POOL)
         random.shuffle(pool)
         for attempt in range(retries + 1):
             impersonate = pool[attempt % len(pool)]
             try:
-                resp = cffi_requests.get(url, impersonate=impersonate, timeout=30)
+                resp = cffi_requests.get(url, impersonate=impersonate, timeout=20)
                 resp.raise_for_status()
                 return resp.text
             except Exception as e:
                 last_exc = e
                 if attempt < retries:
-                    # 1.5, 3, 6, 12 seconds + 0-1s jitter
+                    # 1.5, 3 seconds + 0-1s jitter
                     _time.sleep(1.5 * (2 ** attempt) + random.random())
         raise last_exc  # type: ignore[misc]
 
