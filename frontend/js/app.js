@@ -3396,7 +3396,7 @@ function renderCallerRecent() {
       : `${filtered.length} of ${_callerRecent.length}`;
   }
   if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="11" class="loading-cell">No calls match this filter. <a href="javascript:void(0)" onclick="document.getElementById('cfRecentFilter').value='all'; onCallerRecentFilterChange()">Show all</a></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11" class="loading-cell">No calls match this filter. <a href="javascript:void(0)" onclick="document.getElementById('cfRecentFilter').value='all'; onCallerRecentFilterChange(); clearCallerColFilters();">Show all</a></td></tr>`;
     _scheduleCallerLivePoll();
     return;
   }
