@@ -4420,6 +4420,96 @@ function toggleStoreById(id) {
   if (_storesView === "list") renderStoresPicker();
 }
 
+// ── VAPI call queue widget ─────────────────────────────────────────────────
+// Backend enqueues calls and a worker dispatches them N at a time (default 2).
+// Widget gives the admin live counts + pause / cancel / concurrency controls.
+
+let _queueConcurrencyDirty = false;  // don't clobber the input while typing
+
+function renderQueueWidget(q) {
+  const el = document.getElementById("cfQueueWidget");
+  if (!el) return;
+  if (!q) { el.style.display = "none"; return; }
+  // Hide widget when nothing is happening — re-shows the moment work appears.
+  const idle = !q.pending && !q.dispatching && !q.in_flight_calls && !q.paused;
+  el.style.display = idle ? "none" : "";
+
+  document.getElementById("cfQueuePending").textContent     = `Pending: ${q.pending}`;
+  document.getElementById("cfQueueDispatching").textContent = `Dispatching: ${q.dispatching}`;
+  document.getElementById("cfQueueInFlight").textContent    = `In flight: ${q.in_flight_calls} / ${q.max_concurrent}`;
+
+  if (!_queueConcurrencyDirty) {
+    const inp = document.getElementById("cfQueueConcurrency");
+    if (inp && document.activeElement !== inp) inp.value = q.max_concurrent;
+  }
+  const pauseBtn = document.getElementById("cfQueuePauseBtn");
+  if (pauseBtn) pauseBtn.textContent = q.paused ? "Resume" : "Pause";
+
+  // Rough ETA: pending / max_concurrent × avg call (assume 60s incl ring).
+  const etaEl = document.getElementById("cfQueueETA");
+  if (etaEl) {
+    if (q.pending > 0 && q.max_concurrent > 0) {
+      const secs = Math.ceil(q.pending / q.max_concurrent) * 60;
+      const mins = Math.ceil(secs / 60);
+      etaEl.textContent = `~${mins} min remaining`;
+    } else {
+      etaEl.textContent = "";
+    }
+  }
+}
+
+async function setQueueConcurrency() {
+  const inp = document.getElementById("cfQueueConcurrency");
+  const n = parseInt(inp?.value, 10);
+  if (!Number.isFinite(n) || n < 1) { showCallerMsg("Concurrency must be ≥ 1", "err"); return; }
+  try {
+    const res = await callerFetch("/api/vapi/queue/concurrency", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ max_concurrent: n }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(_formatApiError(data, res.status));
+    _queueConcurrencyDirty = false;
+    showCallerMsg(`Concurrency set to ${data.max_concurrent}`, "ok");
+    await loadCallerData();
+  } catch (e) { showCallerMsg(e.message, "err"); }
+}
+
+async function toggleQueuePause() {
+  const btn = document.getElementById("cfQueuePauseBtn");
+  const paused = btn?.textContent === "Resume";
+  const path = paused ? "/api/vapi/queue/resume" : "/api/vapi/queue/pause";
+  try {
+    const res = await callerFetch(path, { method: "POST" });
+    const data = await res.json();
+    if (!res.ok) throw new Error(_formatApiError(data, res.status));
+    showCallerMsg(data.paused ? "Queue paused — in-flight calls finish, no new dispatches." : "Queue resumed.", "ok");
+    await loadCallerData();
+  } catch (e) { showCallerMsg(e.message, "err"); }
+}
+
+async function cancelAllPending() {
+  if (!confirm("Cancel ALL pending queued calls? Already-dispatched calls keep going.")) return;
+  try {
+    const res = await callerFetch("/api/vapi/queue/cancel", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ all_pending: true }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(_formatApiError(data, res.status));
+    showCallerMsg(`Cancelled ${data.cancelled} pending calls.`, "ok");
+    await loadCallerData();
+  } catch (e) { showCallerMsg(e.message, "err"); }
+}
+
+// Mark dirty so the 15s refresh doesn't clobber what the user is typing.
+document.addEventListener("DOMContentLoaded", () => {
+  const inp = document.getElementById("cfQueueConcurrency");
+  if (inp) inp.addEventListener("input", () => { _queueConcurrencyDirty = true; });
+});
+
 async function dispatchSelectedStores(dryRun) {
   const state    = document.getElementById("cfStateSelect").value;
   const tickets  = getSelectedTickets();
