@@ -8103,9 +8103,10 @@ function _stateRow(r, rank, stateCode) {
     <a class="link-btn link-dir"  href="${directionsUrl}" target="_blank" rel="noopener" title="Get Directions">Dir</a>
     <a class="link-btn link-srch" href="${searchUrl}" target="_blank" rel="noopener" title="Google Search">Search</a>`;
   const rid = escHtml(r.id || "");
+  const stateQs = stateCode ? `?state=${escHtml(stateCode)}` : "";
   return `<tr class="ma-store-row" data-retailer-id="${rid}" onclick="toggleStoreProfile(this)">
     <td style="color:var(--text-muted);font-size:.8rem;font-weight:700">${rank}</td>
-    <td><strong>${escHtml(r.name)}</strong><br><span style="font-size:.78rem;color:var(--text-muted)">${escHtml(r.address)}</span><span class="report-count-badge" id="rbadge-${rid}" style="display:none"></span></td>
+    <td><a href="/store/${rid}${stateQs}" onclick="event.stopPropagation()" class="store-name-link"><strong>${escHtml(r.name)}</strong></a><br><span style="font-size:.78rem;color:var(--text-muted)">${escHtml(r.address)}</span><span class="report-count-badge" id="rbadge-${rid}" style="display:none"></span></td>
     <td>${escHtml(r.city)}</td>
     <td>${escHtml(r.zipCode)}</td>
     <td class="last-report-cell" data-rid="${rid}">${lastReportCellHtml(rid)}</td>
