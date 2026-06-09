@@ -794,7 +794,7 @@ async def _refetch_and_apply_analysis(local_id: int, vapi_call_id: str) -> None:
 @router.get("/recent")
 async def vapi_recent(limit: int = 50, _user: dict = Depends(require_admin)):
     import json as _json
-    limit = max(1, min(limit, 500))
+    limit = max(1, min(limit, 10000))
     calls = await recent_vapi_calls(limit=limit)
     for c in calls:
         for k in ("received_at", "ended_at"):
