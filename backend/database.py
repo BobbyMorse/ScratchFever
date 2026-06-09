@@ -130,6 +130,7 @@ async def init_db():
                 reported_at TIMESTAMPTZ DEFAULT NOW()
             )
         """)
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_scrape_log_state_ran ON scrape_log(state_code, ran_at DESC)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_games_state ON games(state_code)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_games_return ON games(return_pct DESC)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_games_price ON games(price)")
