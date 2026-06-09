@@ -814,9 +814,25 @@ class DispatchBody(BaseModel):
     dry_run: bool = False
 
 
+def _prepare_for_enqueue(targets: list[dict]) -> tuple[list[dict], list[dict]]:
+    """Filter targets to those with valid E.164 phones, attach to_phone field
+    so the queue row has the dial-ready number. Returns (valid, skipped)."""
+    valid: list[dict] = []
+    skipped: list[dict] = []
+    for t in targets:
+        e164 = _to_e164(t.get("phone"))
+        if not e164:
+            skipped.append({"name": t.get("name"), "reason": "no valid phone"})
+            continue
+        valid.append({**t, "to_phone": e164})
+    return valid, skipped
+
+
 @router.post("/dispatch")
 async def vapi_dispatch(body: DispatchBody, _user: dict = Depends(require_admin)):
-    """Ad-hoc dispatch by explicit retailer_ids (used by checkbox-list UIs)."""
+    """Enqueue ad-hoc retailer_ids for concurrency-limited dispatch (the queue
+    worker fires them 2 at a time, configurable via /api/vapi/queue/concurrency)."""
+    from backend.caller.vapi_queue import enqueue_targets, get_max_concurrent
     env = _vapi_env()
     if not body.dry_run:
         await _ensure_dispatch_ready(env)
@@ -841,14 +857,18 @@ async def vapi_dispatch(body: DispatchBody, _user: dict = Depends(require_admin)
             "preview": targets[:25],
         }
 
-    results, skipped = await _dispatch_calls(targets, tickets, env)
-    success = sum(1 for r in results if r["ok"])
+    valid, skipped = _prepare_for_enqueue(targets)
+    result = await enqueue_targets(
+        valid, tickets,
+        enqueued_by_user_id=_user.get("id") if isinstance(_user, dict) else None,
+    )
     return {
-        "dispatched":   success,
-        "failed":       len(results) - success,
-        "skipped":      skipped,
-        "results":      results,
-        "tickets_text": _build_tickets_text(tickets),
+        "queued":         True,
+        "enqueued":       result["enqueued"],
+        "batch_id":       result["batch_id"],
+        "skipped":        skipped,
+        "max_concurrent": get_max_concurrent(),
+        "tickets_text":   _build_tickets_text(tickets),
     }
 
 
