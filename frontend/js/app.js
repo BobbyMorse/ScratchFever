@@ -220,6 +220,7 @@ function syncPremiumOptionLabels() {
     if (!base) return;
     opt.textContent = pro ? base : `🔒 ${base}`;
   });
+  document.body.classList.toggle("is-pro-user", pro);
 }
 
 function authHeaders() {
