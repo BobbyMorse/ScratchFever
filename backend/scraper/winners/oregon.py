@@ -63,7 +63,12 @@ class OregonWinnersScraper(WinnersScraper):
     min_prize = 10000.0
 
     def scrape(self, days: int = 14) -> list[dict]:
-        cutoff = dt.date.today() - dt.timedelta(days=days)
+        # OR's /winners/ page is a rolling ~68-win snapshot (~3 mo deep),
+        # not a date-anchored newsfeed — entries roll off as new ones land.
+        # A 14d window almost always returns 0; floor at 180d so the upserter
+        # actually sees the published rows.
+        lookback_days = max(days, 180)
+        cutoff = dt.date.today() - dt.timedelta(days=lookback_days)
         resp = self.get(URL)
         out: list[dict] = []
         seen: set[str] = set()
