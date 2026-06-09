@@ -57,10 +57,11 @@ SCRATCH_PREFIXES = ("SO", "IG", "INST")
 # ~2 years of scratch releases at current publication rate.
 MAX_FETCH = 60
 
-# Minimum lookback. NJ publishes scratch press releases sporadically, often
-# weeks between entries — a 14-day window would miss most of them, so we
-# floor at 180 days to keep hourly scrapes useful while accumulating history.
-MIN_LOOKBACK_DAYS = 180
+# Minimum lookback. NJ stopped publishing scratch press releases after
+# Feb 2025; with a 180d floor every scrape returned 0 rows. Bumped to 540d
+# so the ~42 historical 2024–early-2025 releases backfill into the DB on
+# first run. Upserts dedupe on subsequent runs, so this isn't expensive.
+MIN_LOOKBACK_DAYS = 540
 
 URL_DATE_RE = re.compile(r"_(\d{2})(\d{2})(\d{2})\.html$")
 SITEMAP_LOC_RE = re.compile(r"<loc>([^<]+/press-releases/[^<]+)</loc>")
