@@ -186,6 +186,19 @@
           </div>
         </section>
 
+        <!-- Strategy sub-tabs (each strategy is a tab under EV Games) -->
+        <section class="strategy-tabs" id="strategyTabs" role="tablist" aria-label="EV strategy">
+          <button type="button" class="strat-tab active" data-strategy="ev" role="tab" onclick="switchStrategy('ev')">Positive EV</button>
+          <button type="button" class="strat-tab" data-strategy="any" role="tab" onclick="switchStrategy('any')">Any-Prize Odds</button>
+          <button type="button" class="strat-tab" data-strategy="threshold" role="tab" onclick="switchStrategy('threshold')">$X+ Hunter</button>
+          <button type="button" class="strat-tab" data-strategy="million" data-premium="1" role="tab" onclick="switchStrategy('million')"><span class="strat-tab-lock">🔒</span>$1M+ Hunter</button>
+          <button type="button" class="strat-tab" data-strategy="topprize" role="tab" onclick="switchStrategy('topprize')">Top Prize Hunter</button>
+          <button type="button" class="strat-tab" data-strategy="launch" role="tab" onclick="switchStrategy('launch')">Launch Odds</button>
+          <button type="button" class="strat-tab" data-strategy="byprice" data-premium="1" role="tab" onclick="switchStrategy('byprice')"><span class="strat-tab-lock">🔒</span>By Price Tier</button>
+          <button type="button" class="strat-tab" data-strategy="fresh" role="tab" onclick="switchStrategy('fresh')">Fresh Drops</button>
+          <button type="button" class="strat-tab" data-strategy="almostgone" data-premium="1" role="tab" onclick="switchStrategy('almostgone')"><span class="strat-tab-lock">🔒</span>Almost Gone</button>
+        </section>
+
         <!-- Strategy-specific controls (tile views — EV uses these too) -->
         <section class="strategy-controls" id="stratControls">
           <div class="strat-ctrl-left">
@@ -193,20 +206,6 @@
             <p class="strat-sub" id="stratSubtitle">—</p>
           </div>
           <div class="strat-ctrl-right">
-            <div class="filter-group">
-              <label>Strategy</label>
-              <select id="stratStrategySelect" onchange="switchStrategy(this.value)">
-                <option value="ev">Positive EV</option>
-                <option value="any">Any-Prize Odds</option>
-                <option value="threshold">$X+ Hunter</option>
-                <option value="million" data-premium="1">🔒 $1M+ Hunter</option>
-                <option value="topprize">Top Prize Hunter</option>
-                <option value="launch">Launch Odds</option>
-                <option value="byprice" data-premium="1">🔒 By Price Tier</option>
-                <option value="fresh">Fresh Drops</option>
-                <option value="almostgone" data-premium="1">🔒 Almost Gone</option>
-              </select>
-            </div>
             <div class="filter-group" id="stratThresholdWrap" style="display:none">
               <label>Min Prize</label>
               <select id="stratThreshold" onchange="renderStrategyView()">
