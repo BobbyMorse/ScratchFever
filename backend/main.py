@@ -800,14 +800,25 @@ async def api_status_states():
             FROM games WHERE is_active=TRUE
             GROUP BY state_code
         """)
+        # Correlated subquery here used to time out as scrape_log grew (~30k rows/mo).
+        # Replaced with two indexed CTEs joined once. Needs idx_scrape_log_state_ran.
         log_rows = await conn.fetch("""
-            SELECT DISTINCT ON (state_code)
-                state_code, success, ran_at, error_msg,
-                (SELECT ran_at FROM scrape_log s2
-                 WHERE s2.state_code = scrape_log.state_code AND s2.success
-                 ORDER BY s2.ran_at DESC LIMIT 1) AS last_success_at
-            FROM scrape_log
-            ORDER BY state_code, ran_at DESC
+            WITH latest_per_state AS (
+                SELECT DISTINCT ON (state_code)
+                    state_code, success, ran_at, error_msg
+                FROM scrape_log
+                ORDER BY state_code, ran_at DESC
+            ),
+            latest_success AS (
+                SELECT state_code, MAX(ran_at) AS last_success_at
+                FROM scrape_log
+                WHERE success = TRUE
+                GROUP BY state_code
+            )
+            SELECT lp.state_code, lp.success, lp.ran_at, lp.error_msg,
+                   ls.last_success_at
+            FROM latest_per_state lp
+            LEFT JOIN latest_success ls USING (state_code)
         """)
         retailer_rows = await conn.fetch(
             "SELECT state_code, last_scraped_at FROM retailer_scrape_log"
