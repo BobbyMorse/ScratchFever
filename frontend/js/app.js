@@ -5672,6 +5672,15 @@ function _claimUrl(retailerId) {
   return `/claim?${qs.toString()}`;
 }
 
+// Public per-store page. Resolves state from the loaded retailer arrays so
+// the unclaimed-page renderer can look up address/lat/lng in the right
+// per-state table.
+function _storeHref(retailerId) {
+  const { state_code } = _findRetailerAcrossStates(retailerId);
+  const rid = encodeURIComponent(String(retailerId));
+  return state_code ? `/store/${rid}?state=${state_code}` : `/store/${rid}`;
+}
+
 function storeProfileHtml(retailerId) {
   const games = getGamesForRetailer(retailerId);
   const perGameStatuses = getPerGameStatuses(retailerId);
