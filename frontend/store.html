@@ -418,7 +418,7 @@
     const rows = items.slice(0, 25).map(it => {
       const pillCls = it.has_stock ? "inv-pill-in" : "inv-pill-out";
       const pillTxt = it.has_stock ? "In stock" : "Out";
-      const priceTxt = it.game_price ? ` · $${it.game_price}` : "";
+      const priceTxt = it.game_price ? ` · $${Math.round(it.game_price)}` : "";
       return `<div class="inv-row">
         <div class="inv-game">${escHtml(it.game_name)}<span style="color:var(--text-muted);font-weight:500">${priceTxt}</span></div>
         <span class="inv-pill ${pillCls}">${pillTxt}</span>
