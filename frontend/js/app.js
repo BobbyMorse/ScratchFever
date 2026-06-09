@@ -1181,10 +1181,19 @@ function populateStrategyStateFilter() {
   if (current) sel.value = current;
 }
 
-function syncStrategyTabs(name) {
-  document.querySelectorAll("#strategyTabs .strat-tab").forEach(btn => {
+function syncStrategySidebar(name) {
+  document.querySelectorAll("#evSubnav .sidebar-subitem").forEach(btn => {
     btn.classList.toggle("active", btn.dataset.strategy === name);
   });
+}
+
+// Clicking a strategy in the sidebar — make sure the EV tab is in front,
+// then switch to the requested strategy.
+function selectStrategy(name) {
+  if (typeof currentTab !== "undefined" && currentTab !== "ev") {
+    switchTab("ev");
+  }
+  switchStrategy(name);
 }
 
 function switchStrategy(name) {
@@ -1197,7 +1206,7 @@ function switchStrategy(name) {
     currentStrategy = safe;
     const topSel = document.getElementById("filterStrategy");
     if (topSel) topSel.value = safe;
-    syncStrategyTabs(safe);
+    syncStrategySidebar(safe);
     const thWrap = document.getElementById("stratThresholdWrap");
     if (thWrap) thWrap.style.display = safe === "threshold" ? "" : "none";
     renderStrategyView();
@@ -1206,7 +1215,7 @@ function switchStrategy(name) {
   currentStrategy = name;
   const topSel = document.getElementById("filterStrategy");
   if (topSel && topSel.value !== name) topSel.value = name;
-  syncStrategyTabs(name);
+  syncStrategySidebar(name);
 
   // All strategies (including EV) now render as tiles. The legacy table /
   // filter bar stay in the DOM but hidden so existing JS refs don't crash.
