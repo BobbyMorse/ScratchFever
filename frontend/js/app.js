@@ -2807,7 +2807,10 @@ function _popupHtmlReport(r) {
   const invLink = pro
     ? `<a href="javascript:void(0)" onclick="openStoreInventoryFromMap('${rid}'); return false;" style="font-size:.85rem">📋 Inventory</a>`
     : `<a href="javascript:void(0)" onclick="openPaywallOrLogin(); return false;" style="font-size:.85rem">🔒 Inventory</a>`;
-  return `<b>${escHtml(r.retailer_name || "")}</b><br>` +
+  const nameHtml = rid
+    ? `<a href="${_storeHref(rid)}" style="color:inherit;text-decoration:none"><b>${escHtml(r.retailer_name || "")}</b></a>`
+    : `<b>${escHtml(r.retailer_name || "")}</b>`;
+  return `${nameHtml}<br>` +
     `${escHtml(r.game_name || "")}${r.game_price ? " $" + r.game_price : ""}<br>` +
     `${stockLine}<br>` +
     `<span style="color:#888;font-size:.8rem">${escHtml(r.source === "caller" ? "📞 Call" : "👤 Community")} · ${time}</span><br>` +
