@@ -3250,6 +3250,12 @@ async function loadCallerData() {
 
 let _callerRecent = [];
 let _callerRecentFilter = "success";
+let _callerRecentLimit = 100;
+
+async function loadMoreCallerRecent() {
+  _callerRecentLimit += 100;
+  await loadCallerData();
+}
 
 function _classifyCall(c) {
   // Returns one of: in_flight | voicemail | in_stock | out_of_stock | no_answer
