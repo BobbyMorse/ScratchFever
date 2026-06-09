@@ -2280,6 +2280,19 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 }
 .store-full-page-link:hover { text-decoration: underline; }
 
+/* Retailer name in tables — clickable through to /store/<id>. The row
+   itself still toggles the inline preview; the link's onclick stops
+   propagation so clicking the name navigates instead of expanding. */
+.store-name-link {
+  color: inherit; text-decoration: none;
+  border-bottom: 1px dotted transparent;
+  transition: color .12s, border-color .12s;
+}
+.store-name-link:hover {
+  color: var(--mint, #14b8a6);
+  border-bottom-color: currentColor;
+}
+
 /* ── "Claim this store" CTA at the bottom of the profile panel ─────────────── */
 .store-claim-cta {
   display: flex; align-items: center; gap: .85rem;
