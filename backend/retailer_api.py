@@ -500,6 +500,106 @@ async def public_promo_feed(
     }
 
 
+# Whitelist for the summary endpoint's dynamic table lookup. Keeping this
+# inline (vs. importing from backend.database) so the route fails closed if a
+# state-code spoof slips past validation — the f-string below ONLY interpolates
+# from this dict's values.
+_PER_STATE_RETAILER_TABLES_PUBLIC = {
+    "MA": "ma_retailers",
+    "AZ": "az_retailers",
+    "FL": "fl_retailers",
+    "GA": "ga_retailers",
+    "RI": "ri_retailers",
+}
+
+
+@public_router.get("/retailer/{state_code}/{retailer_id}/summary")
+async def get_public_retailer_summary(state_code: str, retailer_id: str):
+    """Everything the public /store/{id} page needs to render an unclaimed
+    store usefully: address + lat/lng (from the per-state retailer table or
+    state_retailers), whether the store is claimed, and the last-14d community
+    inventory status grouped by game.
+
+    The page calls this only when /profile returns null OR when it wants to
+    show address + map alongside the owner content. Always-on, no auth — the
+    same data already shows up on the homepage map for everyone."""
+    code = (state_code or "").strip().upper()
+    if len(code) != 2:
+        raise HTTPException(status_code=400, detail="state_code must be a 2-letter code")
+    rid = (retailer_id or "").strip()
+    if not rid:
+        raise HTTPException(status_code=400, detail="retailer_id required")
+
+    async with get_pool().acquire() as conn:
+        table = _PER_STATE_RETAILER_TABLES_PUBLIC.get(code)
+        if table:
+            # Per-state tables key on the textual store id (e.g. MA agent #).
+            row = await conn.fetchrow(
+                f"""SELECT id, name, address, city, zip_code, phone,
+                           latitude, longitude
+                    FROM {table} WHERE id=$1""",
+                rid,
+            )
+        else:
+            # Generic state_retailers — id is SERIAL int; the frontend
+            # stringifies it before passing it back in URLs.
+            try:
+                rid_int = int(rid)
+            except ValueError:
+                rid_int = -1
+            row = await conn.fetchrow(
+                """SELECT id, name, address, city, zip_code, phone,
+                          latitude, longitude
+                   FROM state_retailers
+                   WHERE id=$1 AND state_code=$2""",
+                rid_int, code,
+            )
+        if not row:
+            raise HTTPException(status_code=404, detail="Retailer not found")
+
+        has_profile = bool(await conn.fetchval(
+            "SELECT 1 FROM retailer_profiles WHERE retailer_id=$1 AND state_code=$2",
+            rid, code,
+        ))
+
+        # Last-14d community + retailer + caller reports, latest status per game.
+        # DISTINCT ON keeps only the most recent row per lowercased game name.
+        inv_rows = await conn.fetch(
+            """SELECT DISTINCT ON (LOWER(game_name))
+                   game_name, game_price, has_stock, source, reported_at
+               FROM inventory_reports
+               WHERE retailer_id=$1
+                 AND reported_at > NOW() - INTERVAL '14 days'
+               ORDER BY LOWER(game_name), reported_at DESC""",
+            rid,
+        )
+
+    return {
+        "retailer": {
+            "id":         str(row["id"]),
+            "state_code": code,
+            "name":       row["name"] or "",
+            "address":    row["address"] or "",
+            "city":       row["city"] or "",
+            "zip_code":   row["zip_code"] or "",
+            "phone":      row["phone"] or "",
+            "latitude":   row["latitude"],
+            "longitude":  row["longitude"],
+        },
+        "has_profile": has_profile,
+        "inventory": [
+            {
+                "game_name":   r["game_name"],
+                "game_price":  r["game_price"],
+                "has_stock":   r["has_stock"],
+                "source":      r["source"],
+                "reported_at": r["reported_at"].isoformat(),
+            }
+            for r in inv_rows
+        ],
+    }
+
+
 @public_router.get("/retailer/{retailer_id}/profile")
 async def get_public_retailer_profile(retailer_id: str):
     """Owner-published store profile fields, surfaced on the consumer-side
