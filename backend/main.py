@@ -95,6 +95,8 @@ async def lifespan(app: FastAPI):
     await init_caller_db()
     logger.info("startup: init_vapi_db ...")
     await init_vapi_db()
+    logger.info("startup: init_vapi_queue_db ...")
+    await init_vapi_queue_db()
     logger.info("startup: init_users_db ...")
     await init_users_db()
     logger.info("startup: init_retailer_db ...")
