@@ -3348,6 +3348,7 @@ function renderCallerRecent() {
       <td>${escHtml(c.retailer_city) || "—"}</td>
       <td>${escHtml(c.game_name) || "—"}</td>
       <td>${resultHtml}</td>
+      <td>${checkedHtml}</td>
       <td>${conf}</td>
       <td>${dur}</td>
       <td><span style="color:var(--text-muted);font-size:.78rem">${escHtml(c.ended_reason || "—")}</span></td>
