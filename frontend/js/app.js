@@ -2536,6 +2536,10 @@ function switchTab(name) {
   document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
   document.getElementById(`tab-${name}`).style.display = "";
   document.querySelector(`.tab-btn[data-tab="${name}"]`).classList.add("active");
+  // Strategy sub-nav lives under the EV Games sidebar item — only show it
+  // while the EV tab is in front so it doesn't pollute other tabs.
+  const evSubnav = document.getElementById("evSubnav");
+  if (evSubnav) evSubnav.style.display = name === "ev" ? "" : "none";
   if (name === "ma") {
     selectHuntState(currentHuntState);
   }
