@@ -2842,22 +2842,14 @@ function renderInventoryCluster(map, layerKey, opts) {
     showCoverageOnHover: false,
     spiderfyOnMaxZoom: true,
     disableClusteringAtZoom: 16,
-    // Color clusters by inventory status. Green if any child is in-stock.
-    // Red only when every child is checked AND out. Mixed (some out + some
-    // unchecked) stays neutral and shows a split badge like "1·8" so the
-    // confirmed-out count isn't conflated with the unknown ones.
-    // Free users see neutral blue clusters everywhere — colors are the
-    // premium signal so they're gated alongside the popup stock text.
+    // Color clusters by inventory status. The in-stock signal leaks through
+    // for everyone (free + pro) because individual in-stock dots already do —
+    // showing blue clusters that hide a green child is misleading. Pure-in
+    // is solid green; mixed in-stock + others uses a split badge like "1·2"
+    // so "one of three has stock" reads differently from "all three do".
     iconCreateFunction: (c) => {
       const children = c.getAllChildMarkers();
       const total = children.length;
-      if (!proUser) {
-        return L.divIcon({
-          html: `<div style="background:rgba(74,158,255,0.95)"><span>${total}</span></div>`,
-          className: `sf-cluster sf-cluster-neutral`,
-          iconSize: L.point(40, 40),
-        });
-      }
       let inCount = 0, outCount = 0, uncheckedCount = 0;
       for (const m of children) {
         const s = m.options.sfStockState;
@@ -2866,7 +2858,11 @@ function renderInventoryCluster(map, layerKey, opts) {
         else uncheckedCount++;
       }
       let variant, inner, badge;
-      if (inCount > 0) {
+      if (inCount > 0 && (outCount > 0 || uncheckedCount > 0)) {
+        variant = "sf-cluster-instock sf-cluster-mixed-in";
+        inner = "rgba(0,204,68,0.95)";
+        badge = `<span class="sf-cluster-split"><b>${inCount}</b>·${total - inCount}</span>`;
+      } else if (inCount > 0) {
         variant = "sf-cluster-instock";
         inner = "rgba(0,204,68,1)";
         badge = `<span>${total}</span>`;
@@ -2876,7 +2872,7 @@ function renderInventoryCluster(map, layerKey, opts) {
         badge = `<span>${total}</span>`;
       } else if (outCount === 0) {
         variant = "sf-cluster-neutral";
-        inner = "rgba(150,150,150,0.9)";
+        inner = "rgba(74,158,255,0.95)";
         badge = `<span>${total}</span>`;
       } else {
         variant = "sf-cluster-neutral sf-cluster-mixed";
