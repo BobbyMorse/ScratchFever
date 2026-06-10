@@ -53,7 +53,7 @@ _HEADERS = {
     "Origin": BASE_URL,
     "Referer": BASE_URL + "/",
 }
-_TIMEOUT = 30
+_TIMEOUT = 60  # raised from 30 — Railway saw intermittent auth read-timeouts
 
 
 class OhioScraper(BaseScraper):
