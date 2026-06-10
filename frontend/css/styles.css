@@ -2235,10 +2235,12 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 .sf-cluster span { line-height: 30px; font-weight: 600; }
 .sf-cluster-instock { background-color: rgba(0, 204, 68, 0.35); }
 .sf-cluster-outofstock { background-color: rgba(204, 34, 0, 0.35); }
-.sf-cluster-neutral { background-color: rgba(120, 120, 120, 0.30); }
+.sf-cluster-neutral { background-color: rgba(74, 158, 255, 0.28); }
 .sf-cluster-mixed { background-color: rgba(204, 34, 0, 0.18); }
+.sf-cluster-mixed-in { background-color: rgba(0, 204, 68, 0.30); }
 .sf-cluster-split { font-size: 0.82rem; letter-spacing: -0.5px; }
 .sf-cluster-split b { color: #ff8060; font-weight: 700; }
+.sf-cluster-mixed-in .sf-cluster-split b { color: #d6ffe0; }
 
 /* ── Store profile owner-info card (consumer-side, fetched async) ─────────── */
 .store-owner-card {
