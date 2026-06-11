@@ -89,6 +89,10 @@ class OregonScraper(BaseScraper):
         # Sniff every image response on the listing page and key by leading
         # game-number prefix in the filename (e.g. "1652_50Or100-Blast_*.jpg").
         image_map: dict[str, str] = {}
+        # Track API requests we saw so a credential miss can log what headers
+        # were actually present (the site occasionally renames the auth
+        # header pair; without this we'd just see "no creds" and not know why).
+        seen_api_header_sets: list[list[str]] = []
 
         with sync_playwright() as pw:
             browser = pw.chromium.launch(headless=True)
@@ -100,9 +104,18 @@ class OregonScraper(BaseScraper):
             page = ctx.new_page()
 
             def on_request(req):
-                if "osl-gameinfo-sys-api" in req.url and "client_id" in req.headers and not creds:
-                    creds["client_id"] = req.headers["client_id"]
-                    creds["client_secret"] = req.headers["client_secret"]
+                if "osl-gameinfo-sys-api" not in req.url or creds:
+                    return
+                # Playwright lower-cases header names but be defensive in
+                # case the site moves to a different casing or a custom
+                # name like x-client-id.
+                hdrs = {k.lower(): v for k, v in req.headers.items()}
+                seen_api_header_sets.append(sorted(hdrs.keys()))
+                cid = hdrs.get("client_id") or hdrs.get("x-client-id")
+                csec = hdrs.get("client_secret") or hdrs.get("x-client-secret")
+                if cid and csec:
+                    creds["client_id"] = cid
+                    creds["client_secret"] = csec
 
             def on_response(resp):
                 nonlocal listing_payload
