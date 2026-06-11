@@ -105,6 +105,12 @@ async def fetch_point(
 
 def flatten(rec: dict) -> dict:
     games = rec.get("games") or []
+    # MA feed uses 9999999999 / 0000000000 as "no phone on file" placeholders;
+    # storing them lets the VAPI dispatcher dial them and burn transport-error
+    # quota on a Twilio number until it gets flagged exhausted for the day.
+    phone = (rec.get("phone") or "").strip()
+    if re.sub(r"\D", "", phone)[-10:] in ("9999999999", "0000000000", "1111111111"):
+        phone = ""
     return {
         "id":                 rec.get("id"),
         "retailerId":         rec.get("retailerId"),
@@ -114,7 +120,7 @@ def flatten(rec: dict) -> dict:
         "city":               rec.get("city", "").strip(),
         "state":              rec.get("state", "MA"),
         "zipCode":            rec.get("zipCode", "").strip(),
-        "phone":              rec.get("phone", "").strip(),
+        "phone":              phone,
         "latitude":           rec.get("latitude"),
         "longitude":          rec.get("longitude"),
         "games":              "|".join(games),
