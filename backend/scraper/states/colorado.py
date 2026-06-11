@@ -239,28 +239,42 @@ class ColoradoScraper(BaseScraper):
             top_remaining = insider_entry["remaining"]
 
             if top_total_prize and top_total_prize > 0 and top_remaining is not None:
-                depletion = max(0.0, min(1.0, (top_total_prize - top_remaining) / top_total_prize))
+                # When the top prize is fully exhausted the depletion proxy
+                # breaks: the game is still on sale with lower-tier prizes,
+                # but (top_total - 0) / top_total = 1.0 collapses every
+                # tier's prizes_remaining and tickets_remaining to 0. That
+                # produces "tickets_remaining=0" in the DB (the Zero Bug)
+                # for games that are not actually sold out. Leave inventory
+                # unknown in that case.
+                if top_remaining == 0:
+                    ev_approximate = True
+                    logger.debug(
+                        "CO %s: top prize exhausted (0/%d) — leaving inventory unknown",
+                        slug, top_total_prize,
+                    )
+                else:
+                    depletion = max(0.0, min(1.0, (top_total_prize - top_remaining) / top_total_prize))
 
-                # Estimate prizes_remaining for every tier proportionally
-                for tier in tiers:
-                    pt = tier.get("prizes_total") or 0
-                    tier["prizes_remaining"] = max(0, round(pt * (1.0 - depletion)))
+                    # Estimate prizes_remaining for every tier proportionally
+                    for tier in tiers:
+                        pt = tier.get("prizes_total") or 0
+                        tier["prizes_remaining"] = max(0, round(pt * (1.0 - depletion)))
 
-                # Estimate total tickets and tickets_remaining
-                total_prizes_printed = sum(t.get("prizes_total") or 0 for t in tiers)
-                if overall_odds and total_prizes_printed > 0:
-                    total_tickets = round(total_prizes_printed * overall_odds)
-                elif top_tier.get("odds_one_in") and top_total_prize:
-                    total_tickets = round(top_total_prize * top_tier["odds_one_in"])
+                    # Estimate total tickets and tickets_remaining
+                    total_prizes_printed = sum(t.get("prizes_total") or 0 for t in tiers)
+                    if overall_odds and total_prizes_printed > 0:
+                        total_tickets = round(total_prizes_printed * overall_odds)
+                    elif top_tier.get("odds_one_in") and top_total_prize:
+                        total_tickets = round(top_total_prize * top_tier["odds_one_in"])
 
-                if total_tickets:
-                    tickets_remaining = max(0, round(total_tickets * (1.0 - depletion)))
+                    if total_tickets:
+                        tickets_remaining = max(0, round(total_tickets * (1.0 - depletion)))
 
-                ev_approximate = True
-                logger.debug(
-                    "CO %s: depletion=%.1f%% top_rem=%d/%d tickets_rem=%s",
-                    slug, depletion * 100, top_remaining, top_total_prize, tickets_remaining,
-                )
+                    ev_approximate = True
+                    logger.debug(
+                        "CO %s: depletion=%.1f%% top_rem=%d/%d tickets_rem=%s",
+                        slug, depletion * 100, top_remaining, top_total_prize, tickets_remaining,
+                    )
 
         image_url = None
         for img in soup.find_all("img"):
