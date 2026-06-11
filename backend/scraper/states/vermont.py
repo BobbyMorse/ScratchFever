@@ -225,4 +225,8 @@ class VermontScraper(BaseScraper):
             "image_url":            image_url,
             "end_date":             end_date,
             "tiers":                tiers,
+            # VT publishes only aggregate "Total Unclaimed" + top-tier counts,
+            # not per-tier remaining. EV is direct from the aggregate but the
+            # per-tier breakdown is missing, so coverage map shows Estimated.
+            "ev_approximate":       True,
         }
