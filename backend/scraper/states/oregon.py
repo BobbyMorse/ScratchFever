@@ -151,8 +151,14 @@ class OregonScraper(BaseScraper):
                         ):
                             image_map[gid] = url.split("?")[0]
 
+            # Listen at both page and context level — context-level catches
+            # requests from iframes / service workers that page.on misses,
+            # which has bitten this scraper before when the listing JS moved
+            # the API call into a worker.
             page.on("request", on_request)
             page.on("response", on_response)
+            ctx.on("request", on_request)
+            ctx.on("response", on_response)
 
             # Race the navigation against the API response so we don't return
             # early if networkidle fires before the JSON endpoint finishes.
