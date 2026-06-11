@@ -2341,11 +2341,28 @@
     "Washington":"WA","West Virginia":"WV","Wisconsin":"WI","Wyoming":"WY",
   };
 
-  // Confirmed: no state scratch-off product available, period.
-  //  - AK, HI, NV, UT: no state lottery at all
-  //  - ND, WY: state lottery exists but sells only draw games (no scratch)
-  // (AL deliberately excluded — status in flux; let the data speak.)
-  const NO_SCRATCH = new Set(["AK","HI","NV","UT","ND","WY"]);
+  // Hardcoded EV category per state — reflects what each state lottery
+  // PUBLISHES, not what our scrapers happen to extract right now. A buggy
+  // scraper or transient outage shouldn't flip the coverage map color.
+  //   full        — state publishes per-tier totals AND remaining
+  //   estimated   — state publishes only top-tier counts (or aggregate $$)
+  //   todo        — state has scratch but odds aren't in a usable form
+  //   noscratch   — no state scratch product (no lottery OR draw-only)
+  const EV_CATEGORY = {
+    AK:"noscratch", AL:"noscratch", AR:"full",      AZ:"full",
+    CA:"full",      CO:"estimated", CT:"full",      DC:"estimated",
+    DE:"todo",      FL:"full",      GA:"full",      HI:"noscratch",
+    IA:"estimated", ID:"full",      IL:"full",      IN:"estimated",
+    KS:"full",      KY:"full",      LA:"estimated", MA:"full",
+    MD:"full",      ME:"estimated", MI:"full",      MN:"full",
+    MO:"full",      MS:"full",      MT:"todo",      NC:"full",
+    ND:"noscratch", NE:"full",      NH:"full",      NJ:"full",
+    NM:"full",      NV:"noscratch", NY:"full",      OH:"full",
+    OK:"full",      OR:"full",      PA:"full",      RI:"full",
+    SC:"full",      SD:"todo",      TN:"todo",      TX:"full",
+    UT:"noscratch", VA:"full",      VT:"estimated", WA:"full",
+    WI:"todo",      WV:"full",      WY:"noscratch",
+  };
 
   let drawerMap = null;
   let drawerLayer = null;
@@ -2354,11 +2371,8 @@
   let currentLayer = "ev";
 
   // ── Categorizers ──────────────────────────────────────────────────────
-  function evCat(s) {
-    if (!s) return "todo";
-    if (s.ev_pct >= 50 && (s.approx_pct || 0) < 50) return "full";
-    if (s.ev_pct >= 30) return "estimated";
-    return "todo";
+  function evCat(code) {
+    return EV_CATEGORY[code] || "todo";
   }
 
   function styleFor(layer, code, s) {
