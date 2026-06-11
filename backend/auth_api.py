@@ -83,6 +83,7 @@ async def login(body: LoginBody, request: Request):
             user["id"],
         )
     token = create_token(user["id"], user["email"], user["role"], user.get("username"))
+    analytics.capture(user["id"], "user_logged_in", {"role": user["role"]})
     return {"token": token, "email": user["email"], "username": user.get("username"), "role": user["role"]}
 
 
