@@ -367,7 +367,7 @@ async def _all_scored_candidates(state: str) -> list[dict]:
         from backend.ma_scorer import load_and_score_async
         async with get_pool().acquire() as conn:
             scored = await load_and_score_async(conn)
-        scored = [r for r in scored if r.get("phone")]
+        scored = [r for r in scored if r.get("phone") and not _is_placeholder_phone(r.get("phone"))]
         scored.sort(key=lambda r: r.get("score", 0) or 0, reverse=True)
         return [{
             "external_id": str(r["id"]),
@@ -384,7 +384,7 @@ async def _all_scored_candidates(state: str) -> list[dict]:
         from backend.az_scorer import load_and_score_async
         async with get_pool().acquire() as conn:
             scored = await load_and_score_async(conn)
-        scored = [r for r in scored if r.get("phone")]
+        scored = [r for r in scored if r.get("phone") and not _is_placeholder_phone(r.get("phone"))]
         scored.sort(key=lambda r: r.get("score", 0) or 0, reverse=True)
         return [{
             "external_id": str(r["id"]),
@@ -406,7 +406,7 @@ async def _all_scored_candidates(state: str) -> list[dict]:
                ORDER BY city NULLS LAST, name""",
             state,
         )
-    return [dict(r) | {"score": None} for r in rows]
+    return [dict(r) | {"score": None} for r in rows if not _is_placeholder_phone(r.get("phone"))]
 
 
 async def _inventory_updated_ids(state: str) -> set[str]:
