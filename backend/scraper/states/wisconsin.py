@@ -8,6 +8,8 @@ from __future__ import annotations
 import re
 import time
 import logging
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 from backend.scraper.base import BaseScraper
 
 logger = logging.getLogger(__name__)
@@ -20,6 +22,24 @@ class WisconsinScraper(BaseScraper):
     state_code = "WI"
     state_name = "Wisconsin"
     base_url = BASE_URL
+
+    def __init__(self):
+        super().__init__()
+        # WI host intermittently drops the TLS handshake / connection from
+        # Railway egress IPs, surfacing as HTTPSConnectionPool errors. A
+        # single retry with backoff is enough — the host recovers in seconds.
+        retry = Retry(
+            total=4,
+            connect=4,
+            read=2,
+            backoff_factor=1.5,
+            status_forcelist=(500, 502, 503, 504),
+            allowed_methods=("GET",),
+            raise_on_status=False,
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        self.session.mount("https://", adapter)
+        self.session.mount("http://", adapter)
 
     def scrape(self) -> list[dict]:
         soup = self.soup(LIST_URL)
