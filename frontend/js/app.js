@@ -2844,9 +2844,9 @@ function renderInventoryCluster(map, layerKey, opts) {
     disableClusteringAtZoom: 16,
     // Color clusters by inventory status. The in-stock signal leaks through
     // for everyone (free + pro) because individual in-stock dots already do —
-    // showing blue clusters that hide a green child is misleading. Pure-in
-    // is solid green; mixed in-stock + others uses a split badge like "1·2"
-    // so "one of three has stock" reads differently from "all three do".
+    // showing blue clusters that hide a green child is misleading. Mixed
+    // clusters use a "signal/total" fraction (e.g. "1/58" = 1 of 58 in-stock)
+    // so the denominator is honest about cluster size at high zoom-outs.
     iconCreateFunction: (c) => {
       const children = c.getAllChildMarkers();
       const total = children.length;
@@ -2861,7 +2861,7 @@ function renderInventoryCluster(map, layerKey, opts) {
       if (inCount > 0 && (outCount > 0 || uncheckedCount > 0)) {
         variant = "sf-cluster-instock sf-cluster-mixed-in";
         inner = "rgba(0,204,68,0.95)";
-        badge = `<span class="sf-cluster-split"><b>${inCount}</b>·${total - inCount}</span>`;
+        badge = `<span class="sf-cluster-split">${inCount}/${total}</span>`;
       } else if (inCount > 0) {
         variant = "sf-cluster-instock";
         inner = "rgba(0,204,68,1)";
@@ -2877,7 +2877,7 @@ function renderInventoryCluster(map, layerKey, opts) {
       } else {
         variant = "sf-cluster-neutral sf-cluster-mixed";
         inner = "rgba(150,150,150,0.9)";
-        badge = `<span class="sf-cluster-split"><b>${outCount}</b>·${uncheckedCount}</span>`;
+        badge = `<span class="sf-cluster-split">${outCount}/${total}</span>`;
       }
       return L.divIcon({
         html: `<div style="background:${inner}">${badge}</div>`,
