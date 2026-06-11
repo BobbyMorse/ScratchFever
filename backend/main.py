@@ -37,6 +37,7 @@ from backend.caller.vapi_queue import (
 )
 from backend.users import init_users_db, seed_admin, require_member, require_admin
 from backend.auth_api import router as auth_router
+from backend import analytics
 from backend.retailer_api import router as retailer_router, public_router as retailer_public_router, admin_router as retailer_admin_router
 from backend.plays_api import router as plays_router
 from backend.revenuecat_webhook import router as revenuecat_router
