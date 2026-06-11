@@ -162,6 +162,7 @@ async def lifespan(app: FastAPI):
         vapi_queue_task.cancel()
     if not SCHEDULER_DISABLED:
         scheduler.shutdown()
+    analytics.shutdown()
 
 
 app = FastAPI(title="ScratchFever", description="Scratch-off lottery EV tracker", lifespan=lifespan)
