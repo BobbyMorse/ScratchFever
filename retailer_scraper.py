@@ -14,6 +14,7 @@ Usage:
 import asyncio
 import csv
 import json
+import re
 import sys
 import time
 import argparse
