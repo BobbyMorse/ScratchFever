@@ -101,6 +101,8 @@ async def register(body: RegisterBody, request: Request):
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     token = create_token(user["id"], user["email"], user["role"], user.get("username"))
+    analytics.identify(user["id"], {"email": user["email"], "username": user.get("username"), "role": user["role"]})
+    analytics.capture(user["id"], "user_signed_up", {"role": user["role"]})
     return {"token": token, "email": user["email"], "username": user.get("username"), "role": user["role"]}
 
 
