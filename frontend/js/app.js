@@ -403,10 +403,16 @@ async function restoreSession() {
     if (res.ok) {
       const data = await res.json();
       _setUser({
-        email: data.email, username: data.username, role: data.role,
+        id: data.id, email: data.email, username: data.username, role: data.role,
         is_pro: !!data.is_pro, pro_until: data.pro_until || null,
         has_stripe: !!data.has_stripe,
       });
+      if (window.posthog && data.id) {
+        window.posthog.identify(String(data.id), {
+          email: data.email, username: data.username,
+          role: data.role, is_pro: !!data.is_pro,
+        });
+      }
       if (data.prefs) applyServerPrefs(data.prefs);
     } else {
       localStorage.removeItem("sf_token");
@@ -417,6 +423,7 @@ async function restoreSession() {
 
 function logout() {
   localStorage.removeItem("sf_token");
+  if (window.posthog) window.posthog.reset();
   _setUser(null);
   if (currentTab === "caller") switchTab("ev");
   communityReports = [];
