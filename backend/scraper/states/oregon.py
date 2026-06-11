@@ -187,6 +187,16 @@ class OregonScraper(BaseScraper):
 
             browser.close()
 
+        if not creds and seen_api_header_sets:
+            # Diagnostic for when the auth-header names get renamed upstream
+            # — first 5 sets is enough to spot the new pair.
+            sample = seen_api_header_sets[:5]
+            logger.warning(
+                "OR: %d API requests sniffed but none carried client_id/client_secret; "
+                "header sets seen: %s",
+                len(seen_api_header_sets), sample,
+            )
+
         return (creds if creds else None), listing_payload, image_map
 
     def _fetch_and_build(self, session: requests.Session, meta: dict, image_map: dict[str, str]) -> dict | None:
