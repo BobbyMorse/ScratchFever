@@ -90,6 +90,7 @@ async def check_and_run_stale_retailers():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    analytics.init()
     logger.info("startup: init_db ...")
     await init_db()
     logger.info("startup: init_caller_db ...")
