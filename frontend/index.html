@@ -2376,22 +2376,21 @@
   }
 
   function styleFor(layer, code, s) {
-    const isNoScratch = NO_SCRATCH.has(code);
+    const cat = evCat(code);
     if (layer === "ev") {
-      if (isNoScratch && (!s || s.games_in_db === 0)) return { fill: "#cbd5e1", label: "noscratch" };
-      const cat = evCat(s);
+      if (cat === "noscratch") return { fill: "#cbd5e1", label: "noscratch" };
       if (cat === "full") return { fill: "#16a34a", label: "full" };
       if (cat === "estimated") return { fill: "#f59e0b", label: "estimated" };
       return { fill: "#e5e7eb", label: "todo" };
     }
     if (layer === "retailers") {
-      if (isNoScratch && (!s || s.games_in_db === 0)) return { fill: "#cbd5e1", label: "noscratch" };
+      if (cat === "noscratch") return { fill: "#cbd5e1", label: "noscratch" };
       return (s && s.has_retailer_scraper)
         ? { fill: "#2563eb", label: "live" }
         : { fill: "#e5e7eb", label: "todo" };
     }
     if (layer === "winners") {
-      if (isNoScratch && (!s || s.games_in_db === 0)) return { fill: "#cbd5e1", label: "noscratch" };
+      if (cat === "noscratch") return { fill: "#cbd5e1", label: "noscratch" };
       return (s && s.has_winners_scraper && s.winners_count > 0)
         ? { fill: "#db2777", label: "live" }
         : { fill: "#e5e7eb", label: "todo" };
@@ -2400,27 +2399,26 @@
 
   // ── Tooltips ──────────────────────────────────────────────────────────
   function tipFor(layer, name, code, s) {
-    const isNoScratch = NO_SCRATCH.has(code);
+    const cat = evCat(code);
     if (layer === "ev") {
-      if (isNoScratch && (!s || s.games_in_db === 0)) {
+      if (cat === "noscratch") {
         return `<strong>${name}</strong><br>No state scratch lottery.`;
       }
-      if (!s || s.games_in_db === 0) {
-        return `<strong>${name}</strong><br>On our list — not yet integrated.`;
+      if (cat === "todo") {
+        return `<strong>${name}</strong><br>State doesn't publish odds in a usable form yet.`;
       }
-      const cat = evCat(s);
-      const games = s.games_in_db;
-      const withEv = Math.round((s.ev_pct || 0) / 100 * games);
+      const games = s ? s.games_in_db : 0;
       if (cat === "full") {
-        return `<strong>${name}</strong><br>${withEv} of ${games} games · Full EV<br>Avg return: ${s.avg_return.toFixed(1)}%`;
+        const avg = s && s.avg_return ? `<br>Avg return: ${s.avg_return.toFixed(1)}%` : "";
+        return `<strong>${name}</strong><br>${games} games · Full EV${avg}`;
       }
       if (cat === "estimated") {
-        return `<strong>${name}</strong><br>${withEv} of ${games} games · Estimated EV<br>Avg return: ${s.avg_return.toFixed(1)}%`;
+        const avg = s && s.avg_return ? `<br>Avg return: ${s.avg_return.toFixed(1)}%` : "";
+        return `<strong>${name}</strong><br>${games} games · Estimated EV${avg}`;
       }
-      return `<strong>${name}</strong><br>${games} games tracked — EV not yet available.`;
     }
     if (layer === "retailers") {
-      if (isNoScratch && (!s || s.games_in_db === 0)) {
+      if (cat === "noscratch") {
         return `<strong>${name}</strong><br>No state scratch lottery.`;
       }
       if (s && s.has_retailer_scraper) {
@@ -2429,7 +2427,7 @@
       return `<strong>${name}</strong><br>Retailer locator on our roadmap.`;
     }
     if (layer === "winners") {
-      if (isNoScratch && (!s || s.games_in_db === 0)) {
+      if (cat === "noscratch") {
         return `<strong>${name}</strong><br>No state scratch lottery.`;
       }
       if (s && s.has_winners_scraper && s.winners_count > 0) {
