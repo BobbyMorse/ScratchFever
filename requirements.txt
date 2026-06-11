@@ -16,3 +16,4 @@ pdfplumber>=0.11.0
 pgeocode>=0.5.0
 curl_cffi>=0.7.0
 stripe>=10.0.0
+posthog>=3.7.0
