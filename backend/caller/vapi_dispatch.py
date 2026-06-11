@@ -291,6 +291,21 @@ def _to_e164(phone: Optional[str]) -> Optional[str]:
     return None
 
 
+# Sentinel values lottery feeds use for "no phone on file". Dialing these
+# burns Twilio transport-error quota and eventually trips the per-number
+# exhaustion threshold, so filter them out at every selection point.
+PLACEHOLDER_PHONE_DIGITS = {"9999999999", "0000000000", "1111111111"}
+
+
+def _is_placeholder_phone(phone: Optional[str]) -> bool:
+    if not phone:
+        return True
+    digits = re.sub(r"\D", "", phone)
+    if len(digits) >= 10 and digits[-10:] in PLACEHOLDER_PHONE_DIGITS:
+        return True
+    return False
+
+
 # ── Retailer selection ────────────────────────────────────────────────────────
 
 def _last10(phone: Optional[str]) -> Optional[str]:
