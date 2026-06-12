@@ -698,6 +698,18 @@ async def submit_claim(body: ClaimBody, user: dict = Depends(require_member)):
             (body.claimant_phone or "").strip()[:30] or None,
             (body.notes or "").strip()[:1000] or None,
         )
+    _notify_claim_submitted(
+        claim_id=row["id"],
+        claimant_email=user.get("email") or "",
+        claimant_username=user.get("username") or "",
+        store_name=store_name[:120],
+        state_code=state_code,
+        city=(body.city or "").strip() or None,
+        claimant_role=(body.claimant_role or "").strip() or None,
+        claimant_name=(body.claimant_name or "").strip() or None,
+        claimant_phone=(body.claimant_phone or "").strip() or None,
+        notes=(body.notes or "").strip() or None,
+    )
     return {"id": row["id"], "status": "pending", "created_at": row["created_at"].isoformat()}
 
 
