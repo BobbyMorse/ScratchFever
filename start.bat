@@ -1,6 +1,6 @@
 @echo off
-title ScratchFever Server
-echo === ScratchFever ===
+title ScratchFrenzy Server
+echo === ScratchFrenzy ===
 echo.
 
 powershell -NoProfile -Command "Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }"
