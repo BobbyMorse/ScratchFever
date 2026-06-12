@@ -164,9 +164,27 @@ async def init_db():
         await add_column_if_missing(conn, "games", "top_prize_cash_value", "REAL")
         await add_column_if_missing(conn, "games", "top_prize_annuity_years", "INTEGER")
         await add_column_if_missing(conn, "games", "top_prize_annuity_annual", "REAL")
-        # Second-chance drawing surface (most games run them; few are scraped today).
+        # Second-chance drawing surface — populated per-game from each state's
+        # actual second-chance promotions list, not blanket-flagged.
         await add_column_if_missing(conn, "games", "has_second_chance", "BOOLEAN DEFAULT FALSE")
         await add_column_if_missing(conn, "games", "second_chance_url", "TEXT")
+        # One-time purge: a prior change blanket-set has_second_chance=TRUE for
+        # every MA/NY game and 44 other states via a runner-level overlay,
+        # which was inaccurate (only a subset of games are in each state's
+        # second-chance promotion). Both blanket flags have been reverted in
+        # the scrapers; this clears the stale rows immediately rather than
+        # waiting for each state's next scrape cycle.
+        await conn.execute("CREATE TABLE IF NOT EXISTS schema_meta (key TEXT PRIMARY KEY, applied_at TIMESTAMPTZ DEFAULT NOW())")
+        first_run = await conn.fetchval(
+            "INSERT INTO schema_meta (key) VALUES ($1) ON CONFLICT (key) DO NOTHING RETURNING key",
+            "purge_blanket_second_chance_2026_06_12",
+        )
+        if first_run:
+            res = await conn.execute(
+                "UPDATE games SET has_second_chance=FALSE, second_chance_url=NULL "
+                "WHERE has_second_chance=TRUE OR second_chance_url IS NOT NULL"
+            )
+            logger.warning("Purged blanket has_second_chance flags: %s", res)
         # State-published per-tier claim date (distinct from prize_claims delta detection).
         await add_column_if_missing(conn, "prize_tiers", "last_claimed_at", "TIMESTAMPTZ")
         await conn.execute("""
