@@ -707,19 +707,21 @@ body.is-pro-user .sub-lock { display: none; }
 .filters-bar {
   display: flex;
   flex-wrap: wrap;
-  gap: .55rem;
+  gap: .55rem .9rem;
   align-items: center;
-  background: linear-gradient(135deg, #ffffff 0%, #f6f9ff 100%);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background: transparent;
+  border: none;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
   margin: 0 1.5rem .85rem;
-  padding: .75rem 1rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.9);
+  padding: .55rem 0;
+  box-shadow: none;
 }
 .filter-group {
   display: flex;
   flex-direction: column;
-  gap: .22rem;
+  gap: .18rem;
   min-width: 105px;
 }
 .filter-group label {
