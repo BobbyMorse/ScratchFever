@@ -1,5 +1,5 @@
 @echo off
-echo === ScratchFever — Manual Scrape ===
+echo === ScratchFrenzy — Manual Scrape ===
 call .venv\Scripts\activate.bat
 echo.
 if "%1"=="" (
