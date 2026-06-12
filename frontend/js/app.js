@@ -7366,8 +7366,7 @@ async function loadVaRetailers() {
     const data = await res.json();
     allVaRetailers = data.retailers || [];
     vaLoaded = true;
-    const el = document.getElementById("vaStatTotal");
-    if (el) el.textContent = allVaRetailers.length.toLocaleString();
+    updateChaseRetailerCount();
     renderVaTable();
     if (!vaMapVisible) toggleVaMap();
   } catch (e) {
