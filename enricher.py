@@ -40,7 +40,7 @@ GAZETTEER_URL = (
 ACS_URL = "https://api.census.gov/data/2021/acs/acs5"
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 OVERPASS_HEADERS = {
-    "User-Agent": "ScratchFever/1.0 (research project)",
+    "User-Agent": "ScratchFrenzy/1.0 (research project)",
     "Content-Type": "application/x-www-form-urlencoded",
 }
 
