@@ -144,7 +144,11 @@ class IllinoisScraper(BaseScraper):
         detail_map = self._fetch_detail_map(slugs)
         logger.info("IL: resolved %d detail-page records", len(detail_map))
 
-        soup = self._cf_soup(PRIZES_URL)
+        # PRIZES_URL is the single-point-of-failure for the whole scrape (hub +
+        # detail fetches tolerate per-URL 403s, this one doesn't). Give it more
+        # retries — it's fetched once per scrape so it doesn't compound the
+        # thread-exhaustion risk that caps _cf_get's default.
+        soup = BeautifulSoup(self._cf_get(PRIZES_URL, retries=5), "lxml")
         rows = soup.select("tr.unclaimed-prizes-table__row")
         logger.info("IL: %d unclaimed-prize rows", len(rows))
 
