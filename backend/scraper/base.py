@@ -243,8 +243,13 @@ class BaseScraper(ABC):
         jackpot_odds = calculate_jackpot_odds(tiers, tickets_remaining)
         top_tier = find_top_tier(tiers) if tiers else {}
         prize_pool_left = _sum_prize_pool(tiers)
-        _warn_if_suspect(self.state_code, name, price, tiers, ev_data,
-                         tickets_remaining, top_tier)
+        # Gate, don't just warn: if the EV math is visibly broken (impossible
+        # return % from a parser bug upstream), null the bad fields so the row
+        # cannot rank or display +EV. Better to show "—" than a fake #1.
+        if not _check_sanity(self.state_code, name, price, tiers, ev_data,
+                             tickets_remaining, top_tier):
+            ev_data = {"ev": None, "return_pct": None}
+            prize_pool_left = None
         return {
             "game_id": str(game_id),
             "name": name,
