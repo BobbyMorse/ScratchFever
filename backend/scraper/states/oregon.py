@@ -113,10 +113,15 @@ class OregonScraper(BaseScraper):
             def on_request(req):
                 if "osl-gameinfo-sys-api" not in req.url or creds:
                     return
-                # Playwright lower-cases header names but be defensive in
-                # case the site moves to a different casing or a custom
-                # name like x-client-id.
-                hdrs = {k.lower(): v for k, v in req.headers.items()}
+                # `req.headers` (property) only returns the headers Playwright
+                # saw at request-start; auth headers injected by the page's JS
+                # interceptor can land after that and get missed. `all_headers()`
+                # blocks for the full set. Lower-case for case-insensitive lookup.
+                try:
+                    raw = req.all_headers()
+                except Exception:
+                    raw = req.headers
+                hdrs = {k.lower(): v for k, v in raw.items()}
                 seen_api_header_sets.append(sorted(hdrs.keys()))
                 cid = hdrs.get("client_id") or hdrs.get("x-client-id")
                 csec = hdrs.get("client_secret") or hdrs.get("x-client-secret")
