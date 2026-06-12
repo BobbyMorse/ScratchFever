@@ -2467,9 +2467,9 @@ function renderModal(g) {
       </div>
     </div>
 
-    ${g.has_second_chance ? `<div style="display:flex;align-items:center;gap:.6rem;background:rgba(139,92,246,.08);border:1px solid rgba(139,92,246,.25);border-radius:8px;padding:.55rem .8rem;margin:.75rem 0 1rem;font-size:.82rem;color:var(--text)">
-      <span style="font-weight:800;font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;color:#8b5cf6;background:rgba(139,92,246,.15);padding:.15rem .45rem;border-radius:4px">2nd Chance</span>
-      <span style="color:var(--text-muted)">Losing tickets can be entered into a separate drawing.${g.second_chance_url ? ` <a href="${escHtml(g.second_chance_url)}" target="_blank" rel="noopener" style="color:#8b5cf6;font-weight:600">Enter ↗</a>` : ""}</span>
+    ${g.has_second_chance ? `<div style="display:flex;align-items:center;gap:.6rem;background:rgba(20,184,166,.07);border:1px solid rgba(20,184,166,.25);border-radius:8px;padding:.55rem .8rem;margin:.75rem 0 1rem;font-size:.82rem;color:var(--text)">
+      <span style="font-weight:800;font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;color:#0f766e;background:rgba(20,184,166,.14);padding:.15rem .45rem;border-radius:4px">2nd Chance</span>
+      <span style="color:var(--text-muted)">Losing tickets can be entered into a separate drawing.${g.second_chance_url ? ` <a href="${escHtml(g.second_chance_url)}" target="_blank" rel="noopener" style="color:#0f766e;font-weight:600">Enter ↗</a>` : ""}</span>
     </div>` : ""}
 
     <h3 style="margin-bottom:.75rem;font-size:1rem">Prize Table</h3>
