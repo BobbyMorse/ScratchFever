@@ -113,6 +113,13 @@ async def get_me(user: dict = Depends(require_member)):
     import datetime as _dt
     is_pro = bool(pro_until and pro_until > _dt.datetime.now(_dt.timezone.utc))
     prefs = await get_user_prefs(user["uid"])
+    # "My Store" sidebar link is gated on this — role alone isn't enough
+    # because admins and freshly-approved retailers may not yet own a profile.
+    from backend.database import get_pool
+    async with get_pool().acquire() as conn:
+        has_store = bool(await conn.fetchval(
+            "SELECT 1 FROM retailer_profiles WHERE user_id=$1", user["uid"]
+        ))
     return {
         "id": user["uid"],
         "email": user["email"],
@@ -121,6 +128,7 @@ async def get_me(user: dict = Depends(require_member)):
         "is_pro": is_pro,
         "pro_until": pro_until.isoformat() if pro_until else None,
         "has_stripe": bool(db_user.get("stripe_customer_id")),
+        "has_store": has_store,
         "prefs": prefs,
     }
 
