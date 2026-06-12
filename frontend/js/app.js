@@ -7961,8 +7961,7 @@ async function loadGenRetailers(code) {
   const outCard = document.getElementById("genStatOutCard"); if (outCard) outCard.style.display = "none";
 
   if (genLoaded[code]) {
-    const totalEl = document.getElementById("genStatTotal");
-    if (totalEl) totalEl.textContent = (allGenRetailers[code] || []).length.toLocaleString();
+    updateChaseRetailerCount();
     _syncGenMapButton();
     renderGenTable();
     _autoShowGenMap();
