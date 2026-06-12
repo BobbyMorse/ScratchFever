@@ -2703,6 +2703,7 @@ function selectHuntState(code) {
     if (repBtn) repBtn.style.display = _currentUser ? "" : "none";
     loadGenericState(code);
   }
+  updateChaseRetailerCount();
 }
 
 async function loadGenericState(code) {
