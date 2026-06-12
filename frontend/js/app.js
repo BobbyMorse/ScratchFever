@@ -405,7 +405,7 @@ async function restoreSession() {
       _setUser({
         id: data.id, email: data.email, username: data.username, role: data.role,
         is_pro: !!data.is_pro, pro_until: data.pro_until || null,
-        has_stripe: !!data.has_stripe,
+        has_stripe: !!data.has_stripe, has_store: !!data.has_store,
       });
       if (window.posthog && data.id) {
         window.posthog.identify(String(data.id), {
