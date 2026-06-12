@@ -58,6 +58,9 @@ class MassachusettsScraper(BaseScraper):
         active_games = self._fetch_active_games()
         logger.info("MA active scratch games: %d", len(active_games))
 
+        second_chance_names = self._fetch_second_chance_set()
+        logger.info("MA second-chance eligible games: %d", len(second_chance_names))
+
         resp = self.get(PRIZES_URL, headers=_HEADERS)
         items = resp.json()
         logger.info("MA prize API returned %d games", len(items))
@@ -77,6 +80,9 @@ class MassachusettsScraper(BaseScraper):
                 game = self._parse_item(item, official_odds, image_url, start_date)
                 if game:
                     game["how_to_play"] = self._fetch_how_to_play(slug)
+                    if _normalize_game_name(item.get("gameName", "")) in second_chance_names:
+                        game["has_second_chance"] = True
+                        game["second_chance_url"] = SECOND_CHANCE_PAGE
                     time.sleep(0.3)  # polite rate limit
                     games.append(game)
             except Exception as e:
@@ -84,6 +90,28 @@ class MassachusettsScraper(BaseScraper):
 
         logger.info("MA: %d active games parsed, %d inactive skipped", len(games), skipped)
         return games
+
+    def _fetch_second_chance_set(self) -> set[str]:
+        """Return set of normalized game names currently in a MA second-chance
+        drawing. Source: the CMS promotions carousel filtered by promotionType.
+        If the endpoint fails, return an empty set — better to under-report
+        than to falsely flag every game."""
+        try:
+            resp = self.get(PROMOTIONS_CAROUSEL_URL, headers=_HEADERS, timeout=15)
+            data = resp.json()
+        except Exception as e:
+            logger.warning("MA second-chance carousel fetch failed: %s", e)
+            return set()
+
+        names = set()
+        for promo in data.get("promotions", []) or []:
+            if promo.get("promotionType") != "SECOND_CHANCE":
+                continue
+            raw = promo.get("name") or ""
+            normalized = _normalize_game_name(raw)
+            if normalized:
+                names.add(normalized)
+        return names
 
     def _fetch_how_to_play(self, slug: str) -> str | None:
         """Scrape the 'How to Play' section from the MA Lottery game detail page."""
