@@ -335,7 +335,7 @@ function _setUser(user) {
     document.getElementById("playsLoginNudge").style.display = "none";
     document.getElementById("scrapeBtn").style.display = isAdmin ? "" : "none";
     const myStoreLink = document.getElementById("myStoreLink");
-    if (myStoreLink) myStoreLink.style.display = (user.role === "retailer" || user.role === "admin") ? "" : "none";
+    if (myStoreLink) myStoreLink.style.display = user.has_store ? "" : "none";
   } else {
     btn.style.display        = "";
     accountBtn.style.display = "none";
