@@ -980,9 +980,10 @@ function searchGameFilter() {
 
   clear.style.display = q ? "" : "none";
 
+  const source = chaseSortMatches(maGames);
   const matches = q
-    ? maGames.filter(g => g.name.toLowerCase().includes(q))
-    : maGames.slice(0, 50);
+    ? source.filter(g => g.name.toLowerCase().includes(q))
+    : source.slice(0, 50);
 
   if (!matches.length) { dd.style.display = "none"; return; }
 
