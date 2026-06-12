@@ -7545,8 +7545,7 @@ async function loadDcRetailers() {
     const data = await res.json();
     allDcRetailers = data.retailers || [];
     dcLoaded = true;
-    const el = document.getElementById("dcStatTotal");
-    if (el) el.textContent = allDcRetailers.length.toLocaleString();
+    updateChaseRetailerCount();
     renderDcTable();
     if (!dcMapVisible) toggleDcMap();
   } catch (e) {
