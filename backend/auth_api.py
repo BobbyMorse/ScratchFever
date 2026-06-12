@@ -13,6 +13,7 @@ from backend.users import (
     create_token, require_member, is_user_pro,
     get_user_prefs, set_user_prefs, get_user_by_id,
 )
+from backend.database import get_pool
 from backend import analytics
 
 _ALLOWED_PREF_KEYS = {"defaultHuntState", "evDefaultState"}
