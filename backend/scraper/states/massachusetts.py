@@ -217,8 +217,8 @@ class MassachusettsScraper(BaseScraper):
             "top_prize_cash_value": top_tier.get("cash_value"),
             "top_prize_annuity_years": top_tier.get("annuity_years"),
             "top_prize_annuity_annual": top_tier.get("annuity_annual"),
-            # MA runs second-chance via My VIP Club for many scratch games.
-            "has_second_chance":    True,
-            "second_chance_url":    "https://www.masslottery.com/win-stations/my-vip-club",
+            # has_second_chance is set per-game from the actual MA
+            # second-chance promotions list, not blanket-flagged. See the
+            # _fetch_second_chance_set() hook below.
             "tiers":                tiers,
         }
