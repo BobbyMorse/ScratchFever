@@ -1861,8 +1861,12 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
   /* Hunt layout: collapse to single column on mobile */
   .hunt-layout { flex-direction: column; }
   .hunt-main { padding: .9rem .85rem 1.5rem; }
+  .chase-masthead { gap: .5rem; padding-bottom: .65rem; margin-bottom: .8rem; }
+  .state-dd-trigger-name { font-size: 1.2rem; }
   #maMap, #azMap, #flMap, #riMap, #gaMap, #nyMap, #vaMap, #dcMap, #vtMap, #genMap { height: 280px; }
   .hunt-soon-games { grid-template-columns: 1fr; }
+  .hunt-soon-table { font-size: .8rem; }
+  .hunt-soon-table thead th, .hunt-soon-table tbody td { padding: .5rem .55rem; }
 
   /* Data status table */
   .ds-table { font-size: .78rem; }
