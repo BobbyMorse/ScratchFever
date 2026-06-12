@@ -7724,8 +7724,7 @@ async function loadVtRetailers() {
     const data = await res.json();
     allVtRetailers = data.retailers || [];
     vtLoaded = true;
-    const el = document.getElementById("vtStatTotal");
-    if (el) el.textContent = allVtRetailers.length.toLocaleString();
+    updateChaseRetailerCount();
     renderVtTable();
     if (vtMapVisible) renderVtMapLayers(getVtFilteredRows());
     if (!vtMapVisible) toggleVtMap();
