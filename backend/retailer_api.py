@@ -846,9 +846,13 @@ async def admin_approve_claim(claim_id: int, body: ClaimReviewBody, admin: dict 
 
 @admin_router.post("/claims/{claim_id}/reject")
 async def admin_reject_claim(claim_id: int, body: ClaimReviewBody, admin: dict = Depends(require_admin)):
+    review_notes = (body.review_notes or "").strip()[:1000] or None
     async with get_pool().acquire() as conn:
         c = await conn.fetchrow(
-            "SELECT status FROM retailer_claims WHERE id=$1", claim_id
+            """SELECT c.status, c.user_id, c.store_name, u.email AS user_email
+               FROM retailer_claims c JOIN users u ON u.id=c.user_id
+               WHERE c.id=$1""",
+            claim_id,
         )
         if not c:
             raise HTTPException(status_code=404, detail="Claim not found")
@@ -859,6 +863,12 @@ async def admin_reject_claim(claim_id: int, body: ClaimReviewBody, admin: dict =
                SET status='rejected', reviewed_at=NOW(),
                    reviewed_by=$2, review_notes=$3
                WHERE id=$1""",
-            claim_id, admin["uid"], (body.review_notes or "").strip()[:1000] or None,
+            claim_id, admin["uid"], review_notes,
         )
+    _notify_claim_rejected(
+        claim_id=claim_id,
+        claimant_email=c["user_email"] or "",
+        store_name=c["store_name"],
+        review_notes=review_notes,
+    )
     return {"id": claim_id, "status": "rejected"}
