@@ -67,7 +67,7 @@ def main():
         print(f"No matching states for: {args.states}")
         sys.exit(1)
 
-    print(f"\nScratchFever retailer refresh — {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+    print(f"\nScratchFrenzy retailer refresh — {datetime.now().strftime('%Y-%m-%d %H:%M')}")
     print(f"States: {', '.join(s[0].upper() for s in active)}")
     if args.import_only:
         print("Mode: import-only (skipping fetch)")
