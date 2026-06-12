@@ -1,5 +1,5 @@
 """
-One-shot helper: creates the ScratchFever Pro product + monthly/yearly prices
+One-shot helper: creates the ScratchFrenzy Pro product + monthly/yearly prices
 in Stripe (idempotent — looks up existing entries by lookup_key first), then
 prints the price IDs to paste into .env as STRIPE_PRICE_MONTHLY /
 STRIPE_PRICE_YEARLY.
@@ -19,7 +19,7 @@ load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 import stripe
 
-PRODUCT_NAME = "ScratchFever Pro"
+PRODUCT_NAME = "ScratchFrenzy Pro"
 PRODUCT_DESCRIPTION = "Live EV across all 50 states · The Chase · Community sightings"
 
 PLANS = [
