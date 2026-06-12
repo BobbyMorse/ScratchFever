@@ -179,6 +179,4 @@ class NewYorkScraper(BaseScraper):
             detail_url=detail_url,
             image_url=image_url,
             start_date=start_date,
-            has_second_chance=True,
-            second_chance_url="https://nylottery.ny.gov/players-club",
         )
