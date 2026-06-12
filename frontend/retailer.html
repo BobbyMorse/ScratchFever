@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Retailer Dashboard — ScratchFever</title>
+  <title>Retailer Dashboard — ScratchFrenzy</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
@@ -520,7 +520,7 @@
 
 <!-- ── Header ─────────────────────────────────────────── -->
 <header class="r-header">
-  <a href="/" class="r-header-logo">ScratchFever</a>
+  <a href="/" class="r-header-logo">ScratchFrenzy</a>
   <div class="r-header-divider"></div>
   <div class="r-header-store" id="headerStoreName">Loading…</div>
   <div class="r-header-right">
@@ -589,7 +589,7 @@
             <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
             <polyline points="9 22 9 12 15 12 15 22"/>
           </svg>
-          Back to ScratchFever
+          Back to ScratchFrenzy
         </button>
       </a>
     </nav>
@@ -645,7 +645,7 @@
 
       <div class="why-card">
         <div class="why-eyebrow">Why your lottery counter matters</div>
-        <div class="why-headline">Lottery is one of the highest-margin square feet in your store. ScratchFever helps players find that counter — and you.</div>
+        <div class="why-headline">Lottery is one of the highest-margin square feet in your store. ScratchFrenzy helps players find that counter — and you.</div>
         <div class="why-hero">
           <div class="why-hero-num">$20.71</div>
           <div class="why-hero-unit">average profit per square foot<br>from lottery sales (NACS)</div>
@@ -679,7 +679,7 @@
         <ol class="ov-tips">
           <li>
             <strong>Post when you open a fresh pack of a top-prize game.</strong>
-            ScratchFever players hunt for fresh packs — a single post can pull customers in within hours.
+            ScratchFrenzy players hunt for fresh packs — a single post can pull customers in within hours.
             <a href="javascript:void(0)" onclick="showSection('posts')">Post now →</a>
           </li>
           <li>
@@ -705,7 +705,7 @@
       <div class="r-section-header">
         <div>
           <div class="r-section-title">Inventory</div>
-          <div class="r-section-sub">Mark which scratch tickets you currently have in stock. ScratchFever members see your updates in real time.</div>
+          <div class="r-section-sub">Mark which scratch tickets you currently have in stock. ScratchFrenzy members see your updates in real time.</div>
         </div>
       </div>
 
@@ -761,7 +761,7 @@
       <div class="r-section-header">
         <div>
           <div class="r-section-title">Customer Activity</div>
-          <div class="r-section-sub">Players using ScratchFever near your store report what's in stock and what's not. Use these to spot restock needs before customers complain.</div>
+          <div class="r-section-sub">Players using ScratchFrenzy near your store report what's in stock and what's not. Use these to spot restock needs before customers complain.</div>
         </div>
       </div>
 
@@ -782,7 +782,7 @@
       <div class="r-section-header">
         <div>
           <div class="r-section-title">Store Profile</div>
-          <div class="r-section-sub">This is what ScratchFever players see when they tap on your store. The more complete, the more visits.</div>
+          <div class="r-section-sub">This is what ScratchFrenzy players see when they tap on your store. The more complete, the more visits.</div>
         </div>
         <a id="pfPublicBtn" href="#" target="_blank" class="btn-ghost" style="text-decoration:none">
           See public page ↗
@@ -915,7 +915,7 @@
       badge.className = "r-store-badge unverified";
       badge.textContent = "Pending Verification";
     }
-    document.title = `${p.store_name} — ScratchFever Retailer`;
+    document.title = `${p.store_name} — ScratchFrenzy Retailer`;
 
     // Public-page links — owners share this URL with customers; it's the page
     // where their promotions actually live.
@@ -969,7 +969,7 @@
       </div>
       <div class="r-stat-card">
         <div class="r-stat-value">${p.verified ? '✓' : '…'}</div>
-        <div class="r-stat-label">${p.verified ? 'Verified by ScratchFever' : 'Verification pending'}</div>
+        <div class="r-stat-label">${p.verified ? 'Verified by ScratchFrenzy' : 'Verification pending'}</div>
       </div>
     `;
   }
@@ -1276,7 +1276,7 @@
       const recent = d.recent_community || [];
       const actEl = document.getElementById("activityTable");
       if (!recent.length) {
-        actEl.innerHTML = `<div class="empty-state">No community reports for your store yet. ScratchFever members will start reporting here as they visit.</div>`;
+        actEl.innerHTML = `<div class="empty-state">No community reports for your store yet. ScratchFrenzy members will start reporting here as they visit.</div>`;
         return;
       }
       actEl.innerHTML = `
