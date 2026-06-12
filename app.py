@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-app = FastAPI(title="ScratchFever")
+app = FastAPI(title="ScratchFrenzy")
 
 # Routes are mounted at startup via backend.main — this file is the Vercel entrypoint only.
 # Import the full app lazily so Vercel can detect the entrypoint without running the backend.
