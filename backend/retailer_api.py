@@ -2,14 +2,20 @@
 Retailer portal API — authenticated routes for store operators.
 """
 from __future__ import annotations
+import asyncio
 import datetime
+import logging
+import os
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from backend.database import get_pool
+from backend.emailer import app_base_url, send_email
 from backend.users import require_member, require_admin
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/retailer", tags=["retailer"])
 public_router = APIRouter(prefix="/api/public", tags=["public"])
