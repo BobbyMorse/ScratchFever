@@ -170,9 +170,9 @@ app = FastAPI(title="ScratchFrenzy", description="Scratch-off lottery EV tracker
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 _DEFAULT_CORS_ORIGINS = [
-    "https://scratchfever.app",
-    "https://www.scratchfever.app",
-    "https://api.scratchfever.app",
+    "https://scratchfrenzy.app",
+    "https://www.scratchfrenzy.app",
+    "https://api.scratchfrenzy.app",
     "http://localhost:3000",
     "http://localhost:5173",
     "http://localhost:8000",
