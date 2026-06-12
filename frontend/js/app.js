@@ -7472,7 +7472,8 @@ function searchVaGameFilter() {
   if (!input) return;
   const q = input.value.trim().toLowerCase();
   clear.style.display = q ? "" : "none";
-  const matches = q ? vaGames.filter(g => g.name.toLowerCase().includes(q)) : vaGames.slice(0, 50);
+  const source = chaseSortMatches(vaGames);
+  const matches = q ? source.filter(g => g.name.toLowerCase().includes(q)) : source.slice(0, 50);
   if (!matches.length) { dd.style.display = "none"; return; }
   dd.innerHTML = matches.map(g => {
     const sub = gameChooserSub(g);
