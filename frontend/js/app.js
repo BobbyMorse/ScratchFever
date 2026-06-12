@@ -7968,8 +7968,7 @@ async function loadGenRetailers(code) {
     return;
   }
   try {
-    const totalEl = document.getElementById("genStatTotal");
-    if (totalEl) totalEl.textContent = "—";
+    updateChaseRetailerCount();
     const tbody = document.getElementById("genTableBody");
     if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="loading-cell">Loading ${GEN_STATES[code]?.name || code} retailers…</td></tr>`;
     const res = await fetch(`/api/state/${encodeURIComponent(code)}/retailers?limit=30000`);
