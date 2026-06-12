@@ -406,7 +406,7 @@
     const liveHref = `/?store=${encodeURIComponent(RID)}&state=${encodeURIComponent(stateCode || 'MA')}`;
     return `
       <div class="hero-actions">
-        <a class="btn btn-primary" href="${liveHref}">See live ticket inventory →</a>
+        <a class="btn btn-primary" href="${liveHref}">See ticket inventory →</a>
         <a class="btn btn-ghost" href="${directionsHref}" target="_blank" rel="noopener">Get directions</a>
         ${phone ? `<a class="btn btn-ghost" href="tel:${escHtml(phone)}">Call</a>` : ""}
       </div>`;
