@@ -1,6 +1,6 @@
-"""Tests for the build_game sanity warnings. These warnings are the last
-line of defense — if a scraper bug slips past unit tests, the warning shows
-up in production scrape logs."""
+"""Tests for the build_game sanity gates. Impossible-EV checks are the last
+line of defense — if a scraper bug slips past unit tests, these gates null
+the bad numbers so the row can't rank or display +EV in production."""
 from __future__ import annotations
 import logging
 import pytest
@@ -22,8 +22,8 @@ def scraper():
     return _DummyScraper()
 
 
-class TestOutlierReturnPctWarning:
-    def test_warns_above_300_pct(self, scraper, caplog):
+class TestOutlierReturnPctGate:
+    def test_logs_error_above_300_pct(self, scraper, caplog):
         """Recreate the pre-fix NY shape: $10K cash tier (53 remaining) wrongly
         marked annuity with $7M NPV. Return jumps above 300%."""
         tiers = [{
@@ -31,22 +31,58 @@ class TestOutlierReturnPctWarning:
             "annuity_annual": 520_000, "annuity_years": 20,
             "odds_one_in": 95_000, "prizes_total": 261, "prizes_remaining": 53,
         }]
-        with caplog.at_level(logging.WARNING):
+        with caplog.at_level(logging.ERROR):
             scraper.build_game(
                 game_id="x", name="$10,000 A WEEK FOR LIFE",
                 price=20, tiers=tiers, tickets_remaining=5_000_000,
             )
-        assert any("looks impossibly high" in r.message for r in caplog.records)
+        assert any("REJECT EV" in r.message and "impossible" in r.message
+                   for r in caplog.records)
 
-    def test_no_warn_for_normal_game(self, scraper, caplog):
+    def test_gate_nulls_ev_on_impossible_return(self, scraper):
+        """The 2026-06-11 MN bug: price parsed as $1 instead of $10 on
+        "Red Hot $1,000's" → 698.1% return → fake #1 ranking. The gate must
+        null ev/return_pct/prize_pool_left so the row can't rank or feature."""
+        tiers = [
+            {"prize_amount": 10, "odds_one_in": 7.69, "prizes_total": 253564},
+            {"prize_amount": 20, "odds_one_in": 15.38, "prizes_total": 126786},
+            {"prize_amount": 1000, "odds_one_in": 770.3, "prizes_total": 2532},
+        ]
+        game = scraper.build_game(
+            game_id="red-hot-1-000s", name="Red Hot $1,000's",
+            price=1.0, tiers=tiers,
+        )
+        assert game["ev"] is None
+        assert game["return_pct"] is None
+        assert game["prize_pool_left"] is None
+        # Game still ships — top prize info preserved for display
+        assert game["top_prize"] == 1000
+        assert game["name"] == "Red Hot $1,000's"
+
+    def test_gate_preserves_valid_game(self, scraper):
+        """Same tiers but correct price → row ships normally."""
+        tiers = [
+            {"prize_amount": 10, "odds_one_in": 7.69, "prizes_total": 253564},
+            {"prize_amount": 20, "odds_one_in": 15.38, "prizes_total": 126786},
+            {"prize_amount": 1000, "odds_one_in": 770.3, "prizes_total": 2532},
+        ]
+        game = scraper.build_game(
+            game_id="red-hot-1-000s", name="Red Hot $1,000's",
+            price=10.0, tiers=tiers,
+        )
+        assert game["ev"] is not None
+        assert game["return_pct"] is not None
+        assert 0 < game["return_pct"] < 300
+
+    def test_no_log_for_normal_game(self, scraper, caplog):
         tiers = [{"prize_amount": 5, "odds_one_in": 5, "prizes_total": 100,
                   "prizes_remaining": 100}]
-        with caplog.at_level(logging.WARNING):
+        with caplog.at_level(logging.ERROR):
             scraper.build_game(
                 game_id="x", name="Normal Game",
                 price=1, tiers=tiers, tickets_remaining=500,
             )
-        assert not any("impossibly high" in r.message for r in caplog.records)
+        assert not any("REJECT EV" in r.message for r in caplog.records)
 
 
 class TestForLifeWithoutAnnuityWarning:
