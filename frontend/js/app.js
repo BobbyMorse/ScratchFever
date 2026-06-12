@@ -1065,7 +1065,7 @@ function _refreshStatCounts() {
 function inventorySourceBucket(source) {
   if (source === 'retailer') return 'store';
   if (source === 'community') return 'user';
-  // 'admin', 'scratchfever', 'vapi_call', and any future operator-side source
+  // 'admin', 'scratchfrenzy', 'vapi_call', and any future operator-side source
   // fall through to the operator bucket (rendered as the BRAND-verified bucket).
   return 'operator';
 }
