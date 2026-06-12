@@ -1,5 +1,5 @@
 """
-Start the ScratchFever web server.
+Start the ScratchFrenzy web server.
 Usage: python run.py
 """
 import uvicorn
