@@ -7008,8 +7008,7 @@ async function loadGaRetailers() {
     const data = await res.json();
     allGaRetailers = data.retailers || [];
     gaLoaded = true;
-    const el = document.getElementById("gaStatTotal");
-    if (el) el.textContent = allGaRetailers.length.toLocaleString();
+    updateChaseRetailerCount();
     renderGaTable();
     if (!gaMapVisible) toggleGaMap();
   } catch (e) {
