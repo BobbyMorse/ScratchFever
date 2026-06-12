@@ -172,7 +172,7 @@ async def _discover_vapi_phone_number_details(private_key: str) -> list[dict]:
     if _VAPI_NUMBER_DETAIL_CACHE and (now - _VAPI_NUMBER_DETAIL_CACHE[0] < _VAPI_NUMBERS_TTL_SEC):
         return _VAPI_NUMBER_DETAIL_CACHE[1]
     try:
-        async with httpx.AsyncClient(timeout=10.0, headers={"User-Agent": "scratchfever/1.0"}) as c:
+        async with httpx.AsyncClient(timeout=10.0, headers={"User-Agent": "scratchfrenzy/1.0"}) as c:
             r = await c.get(
                 f"{VAPI_API_BASE}/phone-number",
                 headers={"Authorization": f"Bearer {private_key}"},
