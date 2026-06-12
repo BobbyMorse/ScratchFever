@@ -834,6 +834,13 @@ async def admin_approve_claim(claim_id: int, body: ClaimReviewBody, admin: dict 
                    WHERE id=$1""",
                 claim_id, admin["uid"], (body.review_notes or "").strip()[:1000] or None,
             )
+    async with get_pool().acquire() as conn:
+        claimant_email = await conn.fetchval("SELECT email FROM users WHERE id=$1", c["user_id"])
+    _notify_claim_approved(
+        claim_id=claim_id,
+        claimant_email=claimant_email or "",
+        store_name=c["store_name"],
+    )
     return {"id": claim_id, "status": "approved"}
 
 
