@@ -22,7 +22,7 @@ import httpx
 ASSISTANT_ID = sys.argv[1] if len(sys.argv) > 1 else "e87d7468-01f9-4a83-8a62-2feef8a4ab44"
 
 
-WEBHOOK_URL = "https://scratchfever.app/api/vapi/webhook"
+WEBHOOK_URL = "https://scratchfrenzy.app/api/vapi/webhook"
 
 SYSTEM_PROMPT = """You are calling retail stores to check scratch-off lottery ticket availability. Sound like a normal person making a quick business call — calm, casual, brief.
 
