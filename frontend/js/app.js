@@ -189,6 +189,15 @@ function gateBlur(text) {
   return `<span class="gated-blur" onclick="event.stopPropagation(); openPaywallOrLogin()" title="Upgrade to Pro to unlock">${redacted}</span>`;
 }
 
+// Free users see the chase dropdown with %'s blurred, but if we leave the list
+// in its native EV-descending order they can still read off the ranking for
+// free. Alphabetize for non-Pro so the order leaks nothing; Pro keeps the
+// EV-sorted order they paid for.
+function chaseSortMatches(matches) {
+  if (isPro()) return matches;
+  return matches.slice().sort((a, b) => a.name.localeCompare(b.name));
+}
+
 // Sub-label "$10 · 12.3%" used in chasing-game dropdowns across every state.
 // Return % is paywall-blurred for free users.
 function gameChooserSub(g) {
