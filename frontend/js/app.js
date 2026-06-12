@@ -7975,7 +7975,7 @@ async function loadGenRetailers(code) {
     const data = await res.json();
     allGenRetailers[code] = data.retailers || [];
     genLoaded[code] = true;
-    if (totalEl) totalEl.textContent = allGenRetailers[code].length.toLocaleString();
+    updateChaseRetailerCount();
     _syncGenMapButton();
     renderGenTable();
     _autoShowGenMap();
