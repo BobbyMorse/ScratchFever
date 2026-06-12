@@ -1316,8 +1316,16 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
 .state-live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 4px var(--green); flex-shrink: 0; }
 .state-dd-soon { opacity: .45; }
 
-.soon-state-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.2rem; }
+.soon-state-header { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+.soon-state-header h2 { font-size: 1.25rem; font-weight: 700; letter-spacing: -.02em; }
+.soon-state-header p { font-size: .82rem !important; }
 .hunt-soon-games { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px,1fr)); gap: .65rem; }
+.hunt-soon-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.hunt-soon-table thead th { text-align: left; font-size: .62rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--text-muted); padding: .55rem .8rem; border-bottom: 1px solid var(--border); }
+.hunt-soon-table tbody td { padding: .65rem .8rem; border-bottom: 1px solid var(--border); font-family: 'JetBrains Mono', monospace; color: var(--text-muted); }
+.hunt-soon-table tbody td:first-child { font-family: inherit; color: var(--text); }
+.hunt-soon-table tbody tr:hover td { background: var(--bg); }
+.hunt-soon-empty { padding: 2rem; text-align: center; color: var(--text-muted); font-size: .9rem; border: 1px dashed var(--border); border-radius: 8px; }
 
 /* ── Caller tab ────────────────────────────────────── */
 .caller-form-section { padding: 0 1.5rem 1rem; }
