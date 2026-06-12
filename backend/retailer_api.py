@@ -872,3 +872,135 @@ async def admin_reject_claim(claim_id: int, body: ClaimReviewBody, admin: dict =
         review_notes=review_notes,
     )
     return {"id": claim_id, "status": "rejected"}
+
+
+# ── Claim notification helpers ────────────────────────────────────────────────
+# Fire-and-forget via asyncio.create_task so the API response isn't blocked on
+# Resend latency. The emailer itself never raises, so the task always completes.
+
+def _esc(s: Optional[str]) -> str:
+    return (s or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def _spawn(coro):
+    try:
+        asyncio.create_task(coro)
+    except Exception as exc:
+        logger.warning("Failed to schedule notification email: %s", exc)
+
+
+def _notify_claim_submitted(
+    *, claim_id: int, claimant_email: str, claimant_username: str,
+    store_name: str, state_code: str, city: Optional[str],
+    claimant_role: Optional[str], claimant_name: Optional[str],
+    claimant_phone: Optional[str], notes: Optional[str],
+) -> None:
+    base = app_base_url()
+    admin_email = os.getenv("ADMIN_EMAIL", "").strip()
+
+    # → Admin: new claim arrived
+    if admin_email:
+        loc = f"{_esc(city)} · {_esc(state_code)}" if city else _esc(state_code)
+        rows = [
+            ("Store", f"{_esc(store_name)} ({loc})"),
+            ("Submitted by", _esc(claimant_username or claimant_email)),
+            ("Claimant role", _esc(claimant_role) or "—"),
+            ("Claimant name", _esc(claimant_name) or "—"),
+            ("Claimant phone", _esc(claimant_phone) or "—"),
+            ("Notes", _esc(notes) or "—"),
+        ]
+        rows_html = "".join(
+            f"<tr><td style='padding:4px 12px 4px 0;color:#6b7280;vertical-align:top'>{k}</td>"
+            f"<td style='padding:4px 0;color:#111827'>{v}</td></tr>"
+            for k, v in rows
+        )
+        admin_html = (
+            f"<p>A new store claim was just submitted on ScratchFrenzy.</p>"
+            f"<table style='border-collapse:collapse;font-family:system-ui,sans-serif;font-size:14px'>{rows_html}</table>"
+            f"<p style='margin-top:18px'>"
+            f"<a href='{base}/admin#claims' style='display:inline-block;background:#14b8a6;color:#fff;"
+            f"padding:10px 18px;border-radius:24px;text-decoration:none;font-weight:700'>Review in admin</a></p>"
+            f"<p style='color:#6b7280;font-size:12px;margin-top:24px'>Claim #{claim_id}</p>"
+        )
+        _spawn(send_email(
+            to=admin_email,
+            subject=f"[ScratchFrenzy] New store claim: {store_name} ({state_code})",
+            html=admin_html,
+            reply_to=claimant_email or None,
+        ))
+
+    # → Claimant: confirmation
+    if claimant_email:
+        claimant_html = (
+            f"<p>Hi{(' ' + _esc(claimant_name)) if claimant_name else ''},</p>"
+            f"<p>We received your claim for <strong>{_esc(store_name)}</strong> "
+            f"({_esc(state_code)}) on ScratchFrenzy. We'll review and email you "
+            f"within 1–2 business days.</p>"
+            f"<p>If you didn't submit this claim, you can ignore this email "
+            f"or reply to let us know.</p>"
+            f"<p style='color:#6b7280;font-size:12px;margin-top:24px'>"
+            f"— ScratchFrenzy · <a href='{base}' style='color:#14b8a6'>{base}</a></p>"
+        )
+        _spawn(send_email(
+            to=claimant_email,
+            subject=f"We got your ScratchFrenzy claim for {store_name}",
+            html=claimant_html,
+            reply_to=admin_email or None,
+        ))
+
+
+def _notify_claim_approved(*, claim_id: int, claimant_email: str, store_name: str) -> None:
+    if not claimant_email:
+        return
+    base = app_base_url()
+    admin_email = os.getenv("ADMIN_EMAIL", "").strip()
+    html = (
+        f"<p>Good news — your claim for <strong>{_esc(store_name)}</strong> "
+        f"on ScratchFrenzy has been approved.</p>"
+        f"<p>You can now access your retailer dashboard to post fresh-pack "
+        f"alerts, manage your store profile, and see what customers are "
+        f"reporting about your shelves.</p>"
+        f"<p style='margin-top:18px'>"
+        f"<a href='{base}/retailer' style='display:inline-block;background:#14b8a6;color:#fff;"
+        f"padding:10px 18px;border-radius:24px;text-decoration:none;font-weight:700'>Open your dashboard</a></p>"
+        f"<p style='color:#6b7280;font-size:13px;margin-top:18px'>"
+        f"If you were already logged in when you submitted, you may need to log out "
+        f"and back in for the dashboard to appear.</p>"
+        f"<p style='color:#6b7280;font-size:12px;margin-top:24px'>"
+        f"— ScratchFrenzy · <a href='{base}' style='color:#14b8a6'>{base}</a></p>"
+    )
+    _spawn(send_email(
+        to=claimant_email,
+        subject=f"Your ScratchFrenzy store claim is approved",
+        html=html,
+        reply_to=admin_email or None,
+    ))
+
+
+def _notify_claim_rejected(*, claim_id: int, claimant_email: str, store_name: str, review_notes: Optional[str]) -> None:
+    if not claimant_email:
+        return
+    base = app_base_url()
+    admin_email = os.getenv("ADMIN_EMAIL", "").strip()
+    notes_block = (
+        f"<p><strong>Reviewer note:</strong> {_esc(review_notes)}</p>"
+        if review_notes else ""
+    )
+    contact_addr = admin_email or "support@scratchfrenzy.app"
+    html = (
+        f"<p>Thanks for submitting a claim for <strong>{_esc(store_name)}</strong> "
+        f"on ScratchFrenzy.</p>"
+        f"<p>After review, we weren't able to approve this claim.</p>"
+        f"{notes_block}"
+        f"<p>If you think this was a mistake, just reply to this email with any "
+        f"detail that would help us verify ownership "
+        f"(e.g. a recent receipt, store license, or business email on the store's domain).</p>"
+        f"<p style='color:#6b7280;font-size:12px;margin-top:24px'>"
+        f"— ScratchFrenzy · <a href='mailto:{contact_addr}' style='color:#14b8a6'>{contact_addr}</a></p>"
+    )
+    _spawn(send_email(
+        to=claimant_email,
+        subject=f"Update on your ScratchFrenzy store claim",
+        html=html,
+        reply_to=admin_email or None,
+    ))
