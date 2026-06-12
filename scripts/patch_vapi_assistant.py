@@ -4,7 +4,7 @@ Patch a VAPI assistant to:
   2. Enable structured-data extraction with the schema our webhook parses
   3. Enable a summary
   4. Inject {{ticketsToCheck}} into the system prompt so the assistant
-     actually knows which tickets ScratchFever picked for this call
+     actually knows which tickets ScratchFrenzy picked for this call
 
 Usage:
     export VAPI_PRIVATE_KEY="..."   # or $env:VAPI_PRIVATE_KEY in PowerShell
@@ -42,7 +42,7 @@ SYSTEM_PROMPT = """You are calling retail stores to check scratch-off lottery ti
   "It's an AI, yep — quick question, got any of these in stock?"
 
 ## If they ask who's calling / what company
-- Say "ScratchFever — we track scratch-ticket inventory." Then continue.
+- Say "ScratchFrenzy — we track scratch-ticket inventory." Then continue.
 
 ## Conversational style
 - Keep turns SHORT (one sentence where possible). No filler ("great", "perfect", "awesome").
