@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Claim Your Store — ScratchFever</title>
+  <title>Claim Your Store — ScratchFrenzy</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -160,20 +160,20 @@
 <body>
 
 <header class="top">
-  <a href="/">ScratchFever</a>
+  <a href="/">ScratchFrenzy</a>
   <span>Claim your store</span>
 </header>
 
 <main class="wrap">
   <h1>Claim Your Store</h1>
-  <div class="sub">ScratchFever shows nearby lottery players which stores have the games they want. Claim yours to control how you show up and drive real foot traffic.</div>
+  <div class="sub">ScratchFrenzy shows nearby lottery players which stores have the games they want. Claim yours to control how you show up and drive real foot traffic.</div>
 
   <div id="content"></div>
 
   <div class="what-you-get">
     <h3>What claiming gets you — free</h3>
     <ul>
-      <li><strong>Drive foot traffic</strong> — push "fresh pack just opened" alerts to ScratchFever players near your store.</li>
+      <li><strong>Drive foot traffic</strong> — push "fresh pack just opened" alerts to ScratchFrenzy players near your store.</li>
       <li><strong>Look professional</strong> — verified badge, store photo, hours, phone, and a custom blurb on your public page.</li>
       <li><strong>Spot stock-outs fast</strong> — see what customers are reporting about your shelves in real time, so you can restock before complaints.</li>
       <li><strong>Show off your wins</strong> — post when a big winner hits at your store; players love a "lucky store" reputation.</li>
@@ -213,7 +213,7 @@
     if (!t) {
       root.innerHTML = `<div class="card auth-gate">
         <h2>Log in or create an account</h2>
-        <p>You'll need a ScratchFever account to submit a claim. It's free.</p>
+        <p>You'll need a ScratchFrenzy account to submit a claim. It's free.</p>
         <a class="btn-primary" style="text-decoration:none" href="/?retailer_redirect=1">Log in / sign up</a>
       </div>`;
       return;
@@ -353,7 +353,7 @@
 
     const retailerId = (document.getElementById("retailerId").value || "").trim();
     if (!retailerId) {
-      msg.innerHTML = `<div class="msg err">This claim is missing a retailer ID. Please claim the store from its page on ScratchFever.</div>`;
+      msg.innerHTML = `<div class="msg err">This claim is missing a retailer ID. Please claim the store from its page on ScratchFrenzy.</div>`;
       return;
     }
 
@@ -380,7 +380,7 @@
       if (!res.ok) throw new Error(data.detail || `Submit failed (${res.status})`);
       msg.innerHTML = `<div class="msg ok">
         Claim submitted. We'll review and email you within 1–2 business days.
-        <div style="margin-top:.6rem"><a href="/" style="color:var(--teal);font-weight:600">Back to ScratchFever</a></div>
+        <div style="margin-top:.6rem"><a href="/" style="color:var(--teal);font-weight:600">Back to ScratchFrenzy</a></div>
       </div>`;
       document.getElementById("submitBtn").style.display = "none";
     } catch (e) {
