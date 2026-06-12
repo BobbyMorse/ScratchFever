@@ -3088,7 +3088,7 @@ async function loadMaRetailers() {
 }
 
 function updateMaStats() {
-  document.getElementById("maStatTotal").textContent = allRetailers.length.toLocaleString();
+  updateChaseRetailerCount();
 }
 
 function renderMaTable() {
