@@ -1742,9 +1742,8 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 }
 
 @media (max-width: 700px) {
-  .stats-row { grid-template-columns: repeat(2,1fr); padding: .75rem .85rem .35rem; row-gap: .75rem; }
-  .stat-cell { padding: .1rem .85rem; }
-  .stat-cell:nth-child(3) { border-left: 0; padding-left: 0; }
+  .stats-row { padding: .75rem .85rem .35rem; }
+  .stat-cell, .stat-card { padding: .1rem .85rem; }
   .stat-value { font-size: 1.35rem; padding-bottom: .3rem; }
   .stat-value::after { width: 1.3rem; height: 2px; }
   .stat-label { font-size: .58rem; letter-spacing: .12em; }
