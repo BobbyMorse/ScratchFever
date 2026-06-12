@@ -6932,7 +6932,8 @@ function searchFlGameFilter() {
   if (!input) return;
   const q = input.value.trim().toLowerCase();
   clear.style.display = q ? "" : "none";
-  const matches = q ? flGames.filter(g => g.name.toLowerCase().includes(q)) : flGames.slice(0, 50);
+  const source = chaseSortMatches(flGames);
+  const matches = q ? source.filter(g => g.name.toLowerCase().includes(q)) : source.slice(0, 50);
   if (!matches.length) { dd.style.display = "none"; return; }
   dd.innerHTML = matches.map(g => {
     const sub = gameChooserSub(g);
