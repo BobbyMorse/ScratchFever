@@ -1275,6 +1275,9 @@ function strategyTile(g, rank, heroVal, heroLbl, opts = {}) {
     const days = Math.floor((Date.now() - parseReportedAt(g.start_date)) / 86400000);
     if (days >= 0 && days < 60) badges.push(`<span class="strat-tile-badge orange">🆕 New</span>`);
   }
+  if (g.has_second_chance) {
+    badges.push(`<span class="strat-tile-badge purple" title="Losing tickets can be entered in a second-chance drawing">2nd Chance</span>`);
+  }
 
   const rankCls = rank <= 3 ? "top-three" : "";
   const img = g.image_url
