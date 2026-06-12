@@ -6829,8 +6829,7 @@ async function loadFlRetailers() {
     const data = await res.json();
     allFlRetailers = data.retailers || [];
     flLoaded = true;
-    const el = document.getElementById("flStatTotal");
-    if (el) el.textContent = allFlRetailers.length.toLocaleString();
+    updateChaseRetailerCount();
     renderFlTable();
     if (!flMapVisible) toggleFlMap();
   } catch (e) {
