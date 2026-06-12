@@ -2609,6 +2609,25 @@ document.addEventListener("click", function(e) {
   if (wrap && !wrap.contains(e.target)) closeStateDropdown();
 });
 
+function updateChaseRetailerCount() {
+  const el = document.getElementById("chaseRetailerCount");
+  if (!el) return;
+  const byState = {
+    MA: typeof allRetailers   !== "undefined" ? allRetailers   : null,
+    AZ: typeof allAzRetailers !== "undefined" ? allAzRetailers : null,
+    RI: typeof allRiRetailers !== "undefined" ? allRiRetailers : null,
+    FL: typeof allFlRetailers !== "undefined" ? allFlRetailers : null,
+    GA: typeof allGaRetailers !== "undefined" ? allGaRetailers : null,
+    NY: typeof allNyRetailers !== "undefined" ? allNyRetailers : null,
+    VA: typeof allVaRetailers !== "undefined" ? allVaRetailers : null,
+    DC: typeof allDcRetailers !== "undefined" ? allDcRetailers : null,
+    VT: typeof allVtRetailers !== "undefined" ? allVtRetailers : null,
+  };
+  let arr = byState[currentHuntState];
+  if (!arr && typeof allGenRetailers !== "undefined") arr = allGenRetailers[currentHuntState];
+  el.textContent = (arr && arr.length) ? arr.length.toLocaleString() : "—";
+}
+
 function selectHuntState(code) {
   currentHuntState = code;
   document.querySelectorAll(".state-dd-item").forEach(el =>
