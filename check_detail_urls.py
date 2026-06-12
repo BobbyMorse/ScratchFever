@@ -6,7 +6,7 @@ from collections import defaultdict
 
 import httpx
 
-API = "https://scratchfever.app/api/games?limit=5000"
+API = "https://scratchfrenzy.app/api/games?limit=5000"
 TIMEOUT = 30
 CONCURRENCY = 12
 BROWSER_HEADERS = {
