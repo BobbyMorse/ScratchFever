@@ -1,8 +1,8 @@
-/* ScratchFever — frontend */
+/* ScratchFrenzy — frontend */
 
 // Single source of truth for the product name in user-facing strings.
 // Change this one constant when the brand is renamed.
-const BRAND = "ScratchFever";
+const BRAND = "ScratchFrenzy";
 
 // States excluded from EV rankings — no reliable ticket-count data published by state.
 // IL: publishes remaining prizes only, no total tickets or per-game odds.
@@ -553,7 +553,7 @@ async function _handleBillingReturn() {
   for (let i = 0; i < 10; i++) {
     await restoreSession();
     if (_currentUser?.is_pro) {
-      alert("You're Pro! 🎯  Thanks for backing ScratchFever.");
+      alert("You're Pro! 🎯  Thanks for backing ScratchFrenzy.");
       return;
     }
     await new Promise(r => setTimeout(r, 800));
