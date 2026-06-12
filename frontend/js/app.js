@@ -6367,8 +6367,7 @@ async function loadRiRetailers() {
 }
 
 function updateRiStats() {
-  const el = document.getElementById("riStatTotal");
-  if (el) el.textContent = allRiRetailers.length.toLocaleString();
+  updateChaseRetailerCount();
 }
 
 function getRiFilteredRows() {
