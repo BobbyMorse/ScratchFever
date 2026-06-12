@@ -8112,8 +8112,8 @@ function searchGenGameFilter() {
   if (!input) return;
   const q = input.value.trim().toLowerCase();
   clear.style.display = q ? "" : "none";
-  const games = _currentGenGames();
-  const matches = q ? games.filter(g => g.name.toLowerCase().includes(q)) : games.slice(0, 50);
+  const source = chaseSortMatches(_currentGenGames());
+  const matches = q ? source.filter(g => g.name.toLowerCase().includes(q)) : source.slice(0, 50);
   if (!matches.length) { dd.style.display = "none"; return; }
   dd.innerHTML = matches.map(g => {
     const sub = gameChooserSub(g);
