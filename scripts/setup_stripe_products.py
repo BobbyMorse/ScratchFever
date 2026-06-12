@@ -24,14 +24,14 @@ PRODUCT_DESCRIPTION = "Live EV across all 50 states · The Chase · Community si
 
 PLANS = [
     {
-        "lookup_key": "scratchfever_pro_monthly",
+        "lookup_key": "scratchfrenzy_pro_monthly",
         "amount_cents": 700,   # $7.00
         "interval": "month",
         "label": "Monthly",
         "env": "STRIPE_PRICE_MONTHLY",
     },
     {
-        "lookup_key": "scratchfever_pro_yearly",
+        "lookup_key": "scratchfrenzy_pro_yearly",
         "amount_cents": 7000,  # $70.00
         "interval": "year",
         "label": "Yearly",
