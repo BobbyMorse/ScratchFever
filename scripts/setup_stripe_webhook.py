@@ -65,7 +65,7 @@ def main() -> int:
     ep = stripe.WebhookEndpoint.create(
         url=args.url,
         enabled_events=EVENTS,
-        description="ScratchFever Pro — Stripe billing webhook",
+        description="ScratchFrenzy Pro — Stripe billing webhook",
     )
     print(f"Created: {ep.id}")
     print()
