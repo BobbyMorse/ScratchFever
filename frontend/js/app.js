@@ -6674,7 +6674,6 @@ async function loadAzRetailers() {
 
 function updateAzStats() {
   updateChaseRetailerCount();
-  if (false) {
 }
 
 function getAzFilteredRows() {
