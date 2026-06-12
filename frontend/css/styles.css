@@ -772,9 +772,11 @@ body.is-pro-user .sub-lock { display: none; }
   align-items: center;
   gap: .45rem;
   margin-left: auto;
-  padding-left: .75rem;
-  border-left: 1.5px solid var(--border);
+  padding-left: .9rem;
+  border-left: 1px solid var(--border);
   flex-shrink: 0;
+  align-self: stretch;
+  padding-top: .2rem;
 }
 
 .btn-apply-filters {
