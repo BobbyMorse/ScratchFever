@@ -116,7 +116,6 @@ async def get_me(user: dict = Depends(require_member)):
     prefs = await get_user_prefs(user["uid"])
     # "My Store" sidebar link is gated on this — role alone isn't enough
     # because admins and freshly-approved retailers may not yet own a profile.
-    from backend.database import get_pool
     async with get_pool().acquire() as conn:
         has_store = bool(await conn.fetchval(
             "SELECT 1 FROM retailer_profiles WHERE user_id=$1", user["uid"]
