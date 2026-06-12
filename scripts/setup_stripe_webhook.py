@@ -9,7 +9,7 @@ and re-run if you need a fresh secret.
 
 Usage:
     python scripts/setup_stripe_webhook.py
-    python scripts/setup_stripe_webhook.py --url https://scratchfever.app/api/stripe/webhook
+    python scripts/setup_stripe_webhook.py --url https://scratchfrenzy.app/api/stripe/webhook
 """
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 import stripe
 
-DEFAULT_URL = "https://scratchfever.app/api/stripe/webhook"
+DEFAULT_URL = "https://scratchfrenzy.app/api/stripe/webhook"
 
 # Must mirror the event types handled in backend/billing_api.py
 EVENTS = [
