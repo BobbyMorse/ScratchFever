@@ -1728,11 +1728,12 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 }
 
 @media (max-width: 700px) {
-  .stats-row { grid-template-columns: repeat(2,1fr); padding: .85rem .85rem .4rem; gap: .55rem; }
-  .stat-card { padding: .7rem .8rem; gap: .65rem; }
-  .stat-icon-wrap { width: 40px; height: 40px; font-size: 1.2rem; border-radius: 9px; }
-  .stat-value { font-size: 1.35rem; }
-  .stat-label { font-size: .6rem; letter-spacing: .07em; }
+  .stats-row { grid-template-columns: repeat(2,1fr); padding: .75rem .85rem .35rem; row-gap: .75rem; }
+  .stat-cell { padding: .1rem .85rem; }
+  .stat-cell:nth-child(3) { border-left: 0; padding-left: 0; }
+  .stat-value { font-size: 1.35rem; padding-bottom: .3rem; }
+  .stat-value::after { width: 1.3rem; height: 2px; }
+  .stat-label { font-size: .58rem; letter-spacing: .12em; }
 
   .filters-bar,
   .table-section,
