@@ -1305,6 +1305,23 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
   align-self: center;
 }
 .state-dd-trigger-name { font-size: 1.55rem; font-weight: 700; letter-spacing: -.02em; line-height: 1; }
+
+.chase-meta {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: baseline;
+  gap: .4rem;
+  color: var(--text-muted);
+  font-size: .8rem;
+}
+.chase-meta strong {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -.02em;
+}
+.chase-meta-lbl { font-size: .65rem; text-transform: uppercase; letter-spacing: .14em; font-weight: 700; }
 .state-dd-chevron { color: var(--text-muted); font-size: .95rem; margin-left: .05rem; transition: color .15s; }
 .state-dd-panel { position: absolute; top: calc(100% + 6px); left: 0; min-width: 220px; max-height: 370px; overflow-y: auto; background: var(--card); border: 1.5px solid var(--border); border-radius: 10px; box-shadow: 0 8px 32px rgba(0,0,0,.35); z-index: 200; padding: .35rem 0; }
 .state-dd-group-lbl { font-size: .6rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: var(--text-muted); padding: .5rem .85rem .25rem; opacity: .6; }
