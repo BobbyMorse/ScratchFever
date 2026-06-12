@@ -133,71 +133,11 @@ def _cb_record(state_code: str, success: bool) -> None:
         )
 
 
-# Per-state second-chance drawing portals. Applied as an overlay in
-# persist_games so we don't have to thread `has_second_chance=True` through
-# 45 scrapers. A scraper-set value always wins (MA, NY set their own URL
-# inside build_game). Listed only for states whose scratch-ticket programs
-# verifiably feed a second-chance drawing — informational badge only, never
-# rolled into EV.
-SECOND_CHANCE_PORTALS = {
-    "AZ": "https://www.arizonalottery.com/players-club/",
-    "AR": "https://www.myarkansaslottery.com/play-it-again",
-    "CA": "https://www.calottery.com/2nd-chance",
-    "CO": "https://www.coloradolottery.com/en/myLottery/",
-    "CT": "https://www.ctlottery.org/2ndChance",
-    "DC": "https://dclottery.com/playbookrewards",
-    "DE": "https://www.delottery.com/Players-Club",
-    "FL": "https://floridalottery.com/sitecore/myLottery",
-    "GA": "https://www.galottery.com/players-club/",
-    "IA": "https://ialottery.com/Pages/Players/VipClub.aspx",
-    "ID": "https://www.idaholottery.com/players-club",
-    "IL": "https://www.illinoislottery.com/players-club/",
-    "IN": "https://hoosierlottery.com/myLOTTERY",
-    "KS": "https://www.kslottery.com/PlayersClub/",
-    "KY": "https://www.kylottery.com/apps/kpis/dashboard",
-    "LA": "https://louisianalottery.com/play-it-again",
-    "MD": "https://www.mdlottery.com/my-lottery-rewards/",
-    "ME": "https://www.mainelottery.com/players_club/index.html",
-    "MI": "https://www.michiganlottery.com/myaccount/",
-    "MN": "https://www.mnlottery.com/players_club/",
-    "MO": "https://www.molottery.com/mylotterystore/index.shtm",
-    "MS": "https://www.mslotteryhome.com/2nd-chance/",
-    "MT": "https://www.montanalottery.com/en/static/players-club/",
-    "NC": "https://nclottery.com/Lucke-Rewards",
-    "ND": "https://www.lottery.nd.gov/playerstools/playersclub/",
-    "NE": "https://www.nelottery.com/homeapp/playersclub/",
-    "NH": "https://www.nhlottery.com/Lucky-Lounge",
-    "NJ": "https://www.njlottery.com/en-us/vipclub.html",
-    "NM": "https://www.nmlottery.com/play/2nd-chance/",
-    "OH": "https://www.ohiolottery.com/MyLotto/MyLottoRewards",
-    "OK": "https://www.lottery.ok.gov/players_club.asp",
-    "OR": "https://www.oregonlottery.org/scoreboard/",
-    "PA": "https://www.palottery.state.pa.us/2nd-Chance.aspx",
-    "RI": "https://www.rilot.com/en/instant-tickets/2nd-chance.html",
-    "SC": "https://www.sceducationlottery.com/Games/2ndChance",
-    "SD": "https://lottery.sd.gov/playerstools/playersclub/",
-    "TN": "https://www.tnlottery.com/playersclub",
-    "TX": "https://www.texaslottery.com/2nd-Chance/",
-    "VA": "https://www.valottery.com/myaccount",
-    "VT": "https://vtlottery.com/lotto-lounge",
-    "WA": "https://walottery.com/MyLottery/",
-    "WI": "https://wilottery.com/2nd-chance-drawings",
-    "WV": "https://wvlottery.com/Player-Resources/MyWVLottery",
-}
-
-
 async def persist_games(conn, state_code: str, state_name: str, games: list[dict]):
-    portal_url = SECOND_CHANCE_PORTALS.get(state_code)
     count = 0
     for game in games:
         try:
             tiers = game.pop("tiers", [])
-            # State-level overlay for second-chance: only apply if the scraper
-            # didn't already set a value (preserves MA/NY which set inside
-            # build_game). False stays False unless the state has a portal.
-            if portal_url and not game.get("has_second_chance"):
-                game["has_second_chance"] = True
-                game.setdefault("second_chance_url", portal_url)
             game_db_id = await upsert_game(conn, state_code, state_name, game["game_id"], game)
             if tiers:
                 await upsert_prize_tiers(conn, game_db_id, tiers)
