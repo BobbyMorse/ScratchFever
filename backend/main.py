@@ -1,5 +1,5 @@
 """
-ScratchFever API — FastAPI backend.
+ScratchFrenzy API — FastAPI backend.
 Serves game data and triggers scrapes.
 """
 import asyncio
@@ -165,7 +165,7 @@ async def lifespan(app: FastAPI):
     analytics.shutdown()
 
 
-app = FastAPI(title="ScratchFever", description="Scratch-off lottery EV tracker", lifespan=lifespan)
+app = FastAPI(title="ScratchFrenzy", description="Scratch-off lottery EV tracker", lifespan=lifespan)
 
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
