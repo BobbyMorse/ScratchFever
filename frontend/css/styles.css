@@ -738,14 +738,15 @@ body.is-pro-user .sub-lock { display: none; }
 .filter-group input[type="number"],
 .filter-group input[type="tel"],
 .filter-group input[type="date"] {
-  padding: .4rem .75rem;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--bg);
+  padding: .32rem 0 .35rem;
+  border: none;
+  border-bottom: 1.5px solid var(--border);
+  border-radius: 0;
+  background: transparent;
   color: var(--text);
-  font-size: .83rem;
+  font-size: .85rem;
   outline: none;
-  transition: border-color .12s, box-shadow .12s;
+  transition: border-color .12s;
   appearance: none;
   -webkit-appearance: none;
   cursor: pointer;
