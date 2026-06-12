@@ -55,8 +55,18 @@ pytest tests/
 
 ## Adding new sanity checks
 
-Sanity checks live in `_warn_if_suspect` in `backend/scraper/base.py`. They
-should be loud (WARNING-level logs that show in production scrape logs) but
-non-blocking (the game still ships). Add a corresponding test in
-`test_sanity_warnings.py` confirming the warning fires for the buggy shape
-and stays silent for the correct shape.
+Sanity checks live in `_check_sanity` in `backend/scraper/base.py`. There are
+two tiers:
+
+1. **Gating checks** (impossible-EV): return False, which causes `build_game`
+   to null `ev`/`return_pct`/`prize_pool_left`. Use this when firing means the
+   math is broken (e.g. return % > 300, ev > 5×price). Log at ERROR level so
+   the rejection is visible in production scrape logs. The row still ships —
+   it just can't rank or display +EV — so downstream pages get a "—" instead
+   of a fake #1.
+2. **Warning-only checks**: log at WARNING level for shapes that are
+   suspicious but recoverable (e.g. for-life-named game with no annuity tier
+   present). The row ships with its numbers intact.
+
+Add a corresponding test in `test_sanity_warnings.py` confirming the gate
+nulls fields for the buggy shape and stays silent for the correct shape.
