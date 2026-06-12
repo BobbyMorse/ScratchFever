@@ -6673,8 +6673,8 @@ async function loadAzRetailers() {
 }
 
 function updateAzStats() {
-  const el = document.getElementById("azStatTotal");
-  if (el) el.textContent = allAzRetailers.length.toLocaleString();
+  updateChaseRetailerCount();
+  if (false) {
 }
 
 function getAzFilteredRows() {
