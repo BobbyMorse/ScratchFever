@@ -7187,8 +7187,7 @@ async function loadNyRetailers() {
     const data = await res.json();
     allNyRetailers = data.retailers || [];
     nyLoaded = true;
-    const el = document.getElementById("nyStatTotal");
-    if (el) el.textContent = allNyRetailers.length.toLocaleString();
+    updateChaseRetailerCount();
     renderNyTable();
     if (!nyMapVisible) toggleNyMap();
   } catch (e) {
