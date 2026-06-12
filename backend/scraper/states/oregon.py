@@ -44,7 +44,14 @@ class OregonScraper(BaseScraper):
             return ex.submit(self._scrape_via_api).result()
 
     def _scrape_via_api(self) -> list[dict]:
+        # Bootstrap can flake (creds not captured, navigation timeout). Retry
+        # once before failing — flake here used to take a state offline for a
+        # full scrape cycle until the next run.
         creds, listing, image_map = self._bootstrap_via_playwright()
+        if not creds or not listing:
+            logger.warning("OR: bootstrap incomplete (creds=%s, listing=%s), retrying once",
+                           bool(creds), bool(listing))
+            creds, listing, image_map = self._bootstrap_via_playwright()
         if not creds:
             raise RuntimeError("OR: failed to capture API credentials from listing page")
         if not listing:
