@@ -1847,9 +1847,13 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
   .filter-group input[type="tel"],
   .filter-group input[type="date"] {
     width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
     padding: .55rem .75rem;
     font-size: 16px; /* prevents iOS zoom on focus */
   }
+  .filter-group select { background-position: right .6rem center; padding-right: 1.8rem; }
   .filter-group[style*="flex:1"] { grid-column: 1 / -1; }
 
   .filter-actions {
