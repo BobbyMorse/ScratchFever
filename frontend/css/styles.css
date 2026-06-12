@@ -635,6 +635,12 @@ body.is-pro-user .sub-lock { display: none; }
   .stat-cell, .stat-card { border-left: 0; padding-left: 0; }
 }
 
+/* Collapse stats-row when every child stat-card is hidden (Chase per-state).
+   Uses :has() — Chrome 105+/Safari 15.4+/Firefox 121+. */
+.stats-row:not(:has(.stat-cell)):not(:has(.stat-card:not([style*="display:none"]):not([style*="display: none"]))) {
+  display: none;
+}
+
 /* ── Big wins banner (lives in the header) ────────── */
 .bigwins-banner {
   display: flex;
