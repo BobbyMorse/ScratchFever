@@ -1,5 +1,5 @@
 """
-CLI for the ScratchFever caller system.
+CLI for the ScratchFrenzy caller system.
 
 Usage:
   python caller.py create --game "300X" --number 1234 --price 30
@@ -112,7 +112,7 @@ async def cmd_hits(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(prog="caller", description="ScratchFever call agent CLI")
+    parser = argparse.ArgumentParser(prog="caller", description="ScratchFrenzy call agent CLI")
     sub = parser.add_subparsers(dest="cmd")
 
     p_create = sub.add_parser("create", help="Create a new calling campaign")
