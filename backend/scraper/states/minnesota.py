@@ -32,7 +32,7 @@ class MinnesotaScraper(PlaywrightScraper):
     def scrape(self) -> list[dict]:
         # ── Step 1: game listing via static HTML ──────────────────────────────
         soup = self.soup(GAMES_URL)
-        game_stubs = []  # (slug, name, price, detail_url)
+        game_stubs = []  # (slug, name, price, detail_url, image_url)
         seen: set[str] = set()
 
         slug_to_anchor: dict[str, object] = {}
@@ -65,16 +65,25 @@ class MinnesotaScraper(PlaywrightScraper):
                 if not name:
                     continue
 
+                # Strip the heading before searching for price — names like
+                # "Red Hot $1,000's" otherwise hijack the price regex and
+                # produce $1 instead of $10 (→ 10× inflated return %).
                 card_text = card.get_text(" ", strip=True)
-                pm = re.search(r"\$\s*(\d+(?:\.\d+)?)", card_text)
+                price_text = card_text.replace(name, " ", 1) if name in card_text else card_text
+                # Negative lookahead rejects digits/commas right after the number
+                # so a stray "$1,000's" left in price_text still won't match.
+                pm = re.search(r"\$\s*(\d+(?:\.\d+)?)(?![\d,])", price_text)
                 price = float(pm.group(1)) if pm else None
                 if not price:
                     continue
 
+                img_el = card.find("img")
+                image_url = img_el.get("src") if img_el else None
+
                 seen.add(slug)
                 href = a.get("href", "")
                 detail_url = (BASE_URL + href) if href.startswith("/") else href
-                game_stubs.append((slug, name, price, detail_url))
+                game_stubs.append((slug, name, price, detail_url, image_url))
             except Exception as e:
                 logger.debug("MN listing parse error: %s", e)
 
@@ -83,7 +92,7 @@ class MinnesotaScraper(PlaywrightScraper):
         # ── Step 2: Playwright detail pages for Claimed/Remaining ─────────────
         self._ensure_browser()
         games = []
-        for slug, name, price, detail_url in game_stubs:
+        for slug, name, price, detail_url, image_url in game_stubs:
             try:
                 tiers, overall_odds, tickets_remaining, total_tickets = \
                     self._scrape_detail_pw(detail_url)
@@ -96,6 +105,7 @@ class MinnesotaScraper(PlaywrightScraper):
                     tickets_remaining=tickets_remaining,
                     total_tickets=total_tickets,
                     detail_url=detail_url,
+                    image_url=image_url,
                 ))
             except Exception as e:
                 logger.debug("MN detail failed for %s: %s", name, e)
