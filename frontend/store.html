@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title id="pageTitle">Store — ScratchFever</title>
-  <meta name="description" id="metaDesc" content="A claimed lottery retailer on ScratchFever." />
+  <title id="pageTitle">Store — ScratchFrenzy</title>
+  <meta name="description" id="metaDesc" content="A claimed lottery retailer on ScratchFrenzy." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -307,7 +307,7 @@
 <body>
 
 <header class="topbar">
-  <a href="/" class="brand">ScratchFever</a>
+  <a href="/" class="brand">ScratchFrenzy</a>
   <div class="topbar-spacer"></div>
   <a href="/" class="btn-back">← All stores</a>
 </header>
@@ -393,7 +393,7 @@
       <div class="not-claimed">
         <h2>Store not found</h2>
         <p>Try browsing all stores from the main map.</p>
-        <a href="/" class="btn btn-primary">Back to ScratchFever</a>
+        <a href="/" class="btn btn-primary">Back to ScratchFrenzy</a>
       </div>`;
   }
 
@@ -456,11 +456,11 @@
     const address    = r.address || "";
     const zip        = r.zip_code || "";
 
-    document.getElementById("pageTitle").textContent = `${name} — ScratchFever`;
+    document.getElementById("pageTitle").textContent = `${name} — ScratchFrenzy`;
     if (profile?.description) {
       document.getElementById("metaDesc").content = profile.description.slice(0, 160);
     } else if (address) {
-      document.getElementById("metaDesc").content = `${name} — ${address}, ${city} ${stateCode}. Live lottery scratch ticket inventory on ScratchFever.`;
+      document.getElementById("metaDesc").content = `${name} — ${address}, ${city} ${stateCode}. Live lottery scratch ticket inventory on ScratchFrenzy.`;
     }
 
     // Top CTA only when unclaimed. The footer ribbon stays too — different
@@ -470,7 +470,7 @@
         <span class="claim-cta-top-icon">🏪</span>
         <div class="claim-cta-top-body">
           <div class="claim-cta-top-title">Are you the owner?</div>
-          <div class="claim-cta-top-sub">Claim this store free to post promotions, mark live inventory, and drive foot traffic from ScratchFever players.</div>
+          <div class="claim-cta-top-sub">Claim this store free to post promotions, mark live inventory, and drive foot traffic from ScratchFrenzy players.</div>
         </div>
         <a class="btn btn-primary" href="${claimUrl(name, city, zip, phone)}">Claim this store</a>
       </div>` : "";
@@ -578,7 +578,7 @@
       <div class="owner-ribbon">
         ${hasProfile
           ? `Information out of date? <a href="/retailer">Sign in to your dashboard</a> to update it.`
-          : `Own this store? <a href="${claimUrl(name, city, zip, phone)}">Claim it</a> to control this page, post promotions, and drive foot traffic from ScratchFever players.`}
+          : `Own this store? <a href="${claimUrl(name, city, zip, phone)}">Claim it</a> to control this page, post promotions, and drive foot traffic from ScratchFrenzy players.`}
       </div>
     `;
   }
