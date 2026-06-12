@@ -4,6 +4,11 @@ API: https://nylottery.ny.gov/drupal-api/api/scratch_off_games?_format=json&page
   Paginated (~6-18/page), fields: title, ticket_price ("5.00"), overall_odds ("1 in 4.35"),
   game_number, art[{uri, altText}], cropped_art{uri, altText},
   odds_prizes[{prize_amount, overall_odds, prizes_remaining, prizes_paid_out}]
+
+Second-chance: as of 2026-06, NY Lottery does not run any second-chance
+drawings for scratch tickets (verified against /promotions/ — no listings).
+has_second_chance defaults to FALSE for all NY games. If NY launches a
+program later, hook a fetcher in here matching the MA pattern.
 """
 from __future__ import annotations
 import logging
