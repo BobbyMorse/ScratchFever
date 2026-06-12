@@ -1,4 +1,4 @@
-/* ScratchFever — two-tone dashboard (dark chrome + light content) */
+/* ScratchFrenzy — two-tone dashboard (dark chrome + light content) */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1611,7 +1611,7 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
 .inv-upd { font-size: .69rem; color: var(--text-muted); font-style: italic; margin-top: .38rem; }
 .inv-no-games { padding: 1.1rem; text-align: center; color: var(--text-muted); font-size: .83rem; }
 
-/* Inventory-source provenance pills. Three buckets: ScratchFever (verified by
+/* Inventory-source provenance pills. Three buckets: ScratchFrenzy (verified by
    automation or staff), Store (retailer dashboard), User (member report). */
 .inv-src {
   display: inline-flex; align-items: center; gap: .2rem;
