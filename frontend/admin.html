@@ -994,6 +994,15 @@
   const TOKEN_KEY = "sf_token";
   let token = localStorage.getItem(TOKEN_KEY);
 
+  // Decide which view to show synchronously to avoid a login-form flash
+  // for admins with a valid token. checkAuth() below still validates and
+  // will fall back to showLogin() if the token is rejected.
+  if (token) {
+    document.getElementById("mainContent").style.display = "block";
+  } else {
+    document.getElementById("loginGate").style.display = "flex";
+  }
+
   function timeAgo(iso) {
     if (!iso) return "—";
     const diff = Date.now() - new Date(iso).getTime();
