@@ -125,28 +125,49 @@ _FOR_LIFE_NAME_HINT_RE = re.compile(
 )
 
 
-def _warn_if_suspect(state_code: str, name: str, price: float, tiers: list[dict],
-                     ev_data: dict, tickets_remaining: int | None,
-                     top_tier: dict) -> None:
-    """Loud post-build sanity checks. Each warning corresponds to a bug class
-    we've seen ship to production. Catching them at scrape-time means the
-    scraper logs surface the problem before users see broken numbers."""
-    rp = ev_data.get("return_pct")
+def _check_sanity(state_code: str, name: str, price: float, tiers: list[dict],
+                  ev_data: dict, tickets_remaining: int | None,
+                  top_tier: dict) -> bool:
+    """Post-build sanity checks. Each corresponds to a bug class we've seen
+    ship to production. Returns True if EV numbers are trustworthy, False if
+    the math is visibly broken — in which case build_game nulls ev/return_pct
+    so the row can't rank or display a +EV badge.
 
-    # 1. Outlier return %. Late-stage games with big remaining prizes legitimately
-    #    push EV high; the threshold is set above realistic late-stage values so
-    #    the warning means "the math broke," not "this game is hot."
+    Threshold philosophy: set so that firing means "the math broke" (upstream
+    parser produced impossible inputs), not "this game is hot." A late-stage
+    game with legitimate +EV stays well below the rejection thresholds.
+    """
+    rp = ev_data.get("return_pct")
+    ev = ev_data.get("ev")
+    trustworthy = True
+
+    # 1. Outlier return %. Above 300% is not a real scratch-off — it means a
+    #    price or tier parse failed upstream (e.g. 2026-06-11 MN bug: the price
+    #    regex caught $1 from a title like "Red Hot $1,000's" instead of the
+    #    real $10 price, inflating return % by exactly 10×).
     if rp is not None and rp > 300:
-        logger.warning(
-            "[%s] %r return_pct=%.1f%% looks impossibly high (price=$%s, "
-            "tickets_remaining=%s). Likely a dropped/mis-typed tier.",
+        logger.error(
+            "[%s] REJECT EV for %r: return_pct=%.1f%% is impossible "
+            "(price=$%s, tickets_remaining=%s). Dropped tier or mis-parsed price.",
             state_code, name, rp, price, tickets_remaining,
         )
+        trustworthy = False
 
-    # 2. Game name implies for-life but no tier is annuity-marked. Means either
+    # 2. EV per ticket > ticket price by more than 5x. Same signal as (1) but
+    #    independent of tickets_remaining; catches bugs where prize_pool is
+    #    inflated regardless of denominator.
+    if ev is not None and price and ev > 5 * price:
+        logger.error(
+            "[%s] REJECT EV for %r: ev=$%.2f > 5×price=$%.2f. "
+            "Check tier prize_amounts.",
+            state_code, name, ev, price,
+        )
+        trustworthy = False
+
+    # 3. Game name implies for-life but no tier is annuity-marked. Means either
     #    (a) the for-life tier was silently dropped (NY/FL/GA-class bug), or
     #    (b) the heuristic ratio guard fired (which itself implies the for-life
-    #    tier was dropped — the cash tier's face was too far below the implied NPV).
+    #    tier was dropped). Warn only — the rest of the math may still be fine.
     if name and _FOR_LIFE_NAME_HINT_RE.search(name):
         if not any(t.get("is_annuity") for t in tiers):
             logger.warning(
@@ -156,15 +177,7 @@ def _warn_if_suspect(state_code: str, name: str, price: float, tiers: list[dict]
                 state_code, name,
             )
 
-    # 3. EV per ticket > ticket price by more than 5x. Same signal as (1) but
-    #    independent of tickets_remaining; catches bugs where prize_pool_left
-    #    is inflated regardless of denominator.
-    ev = ev_data.get("ev")
-    if ev is not None and price and ev > 5 * price:
-        logger.warning(
-            "[%s] %r ev=$%.2f > 5×price=$%.2f. Check tier prize_amounts.",
-            state_code, name, ev, price,
-        )
+    return trustworthy
 
 
 def _sum_prize_pool(tiers: list[dict]) -> float | None:
