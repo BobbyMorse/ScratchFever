@@ -2848,7 +2848,10 @@ function renderInventoryCluster(map, layerKey, opts) {
     maxClusterRadius: 55,
     showCoverageOnHover: false,
     spiderfyOnMaxZoom: true,
-    disableClusteringAtZoom: 16,
+    // At street-level zoom, clustering hides precise locations and produces
+    // awkward "one cluster + one stray dot" splits next to each other. Break
+    // apart earlier so individual retailers are always pinpointable up close.
+    disableClusteringAtZoom: 14,
     // Color clusters by inventory status. The in-stock signal leaks through
     // for everyone (free + pro) because individual in-stock dots already do —
     // showing blue clusters that hide a green child is misleading. Mixed

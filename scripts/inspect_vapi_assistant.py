@@ -11,7 +11,7 @@ Usage:
     python scripts/inspect_vapi_assistant.py
 
 Reads the assistant id from the first CLI arg, falls back to a baked-in
-default for ScratchFever.
+default for ScratchFrenzy.
 """
 from __future__ import annotations
 import json
