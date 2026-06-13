@@ -30,6 +30,13 @@ Three server-rendered sources:
 EV uses the MA formula:
   tickets_remaining = overall_odds × Σ prizes_remaining_i
   EV = Σ(prize_i × prizes_remaining_i) / tickets_remaining − price
+
+Second-chance: IL runs the Players Club with rotating Play-It-Again promos
+but the public eligible-games list is not exposed as a clean per-game flag
+on the main game pages, and the second-chance section is Cloudflare-gated
+just like the rest of the site. has_second_chance stays FALSE for all IL
+games until a per-game source is found. TODO: hook _cf_get against the
+real promo listing once URL is verified.
 """
 from __future__ import annotations
 
