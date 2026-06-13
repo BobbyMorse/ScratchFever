@@ -31,6 +31,13 @@ LISTING_URLS = [
 BASE_URL = "https://www.texaslottery.com"
 DETAIL_BASE = f"{BASE_URL}/export/sites/lottery/Games/Scratch_Offs"
 
+# Texas's second-chance drawings live under "Luck Zone". The public listing
+# page enumerates currently-eligible scratch games via image alt text; each
+# alt looks like "Cowboys 2663 Enter" (explicit game number) or "Jurassic
+# Park Enter" (name-only — we match by normalized name against the CSV).
+LUCK_ZONE_LISTING_URL = f"{BASE_URL}/export/sites/lottery/Games/Scratch_Offs/luckzone/index.html"
+LUCK_ZONE_PLAYER_URL = "https://www.txlotteryluckzone.com/"
+
 
 class TexasScraper(BaseScraper):
     state_code = "TX"

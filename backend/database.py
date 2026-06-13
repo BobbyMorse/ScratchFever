@@ -151,6 +151,34 @@ async def init_db():
         """)
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_ir_retailer ON inventory_reports(retailer_id)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_ir_reported ON inventory_reports(reported_at DESC)")
+        # Reporter device geo (separate from retailer's known lat/lng — used for
+        # bounty geo-verification so we can confirm the user was physically near
+        # the store when they submitted).
+        await add_column_if_missing(conn, "inventory_reports", "reporter_lat", "REAL")
+        await add_column_if_missing(conn, "inventory_reports", "reporter_lng", "REAL")
+        # Bounty session id ties a batch of reports to one display-scan session,
+        # so the claim endpoint can count "reports this user just submitted for
+        # this store" without re-counting historical submissions.
+        await add_column_if_missing(conn, "inventory_reports", "bounty_session", "TEXT")
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_ir_bounty_session ON inventory_reports(reporter_username, retailer_id, reported_at DESC) WHERE bounty_session IS NOT NULL")
+        # Bounty claim ledger. One row per granted reward — enforces the per-user
+        # per-store cooldown (a user can only claim a bounty on a given store
+        # once every COOLDOWN_DAYS).
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS bounty_claims (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                retailer_id TEXT NOT NULL,
+                state_code TEXT,
+                granted_days INTEGER NOT NULL,
+                photos_count INTEGER NOT NULL,
+                distinct_games INTEGER NOT NULL,
+                session_id TEXT,
+                claimed_at TIMESTAMPTZ DEFAULT NOW()
+            )
+        """)
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_bc_user_retailer ON bounty_claims(user_id, retailer_id, claimed_at DESC)")
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_bc_retailer_claimed ON bounty_claims(retailer_id, claimed_at DESC)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_claims_detected ON prize_claims(detected_at DESC)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_claims_prize_detected ON prize_claims(prize_amount, detected_at DESC)")
         await add_column_if_missing(conn, "games", "jackpot_odds_one_in", "REAL")
@@ -732,7 +760,9 @@ async def add_inventory_report(conn, retailer_id: str, retailer_name: str = None
                                 game_name: str = None, game_price: float = None,
                                 has_stock: bool = False, source: str = "community",
                                 reporter_ip: str = None, reporter_username: str = None,
-                                notes: str = None, reported_at=None):
+                                notes: str = None, reported_at=None,
+                                reporter_lat: float = None, reporter_lng: float = None,
+                                bounty_session: str = None):
     if isinstance(reported_at, str):
         try:
             reported_at = dt.datetime.fromisoformat(reported_at.replace("Z", "+00:00"))
@@ -741,10 +771,12 @@ async def add_inventory_report(conn, retailer_id: str, retailer_name: str = None
     await conn.execute("""
         INSERT INTO inventory_reports
         (retailer_id, retailer_name, retailer_city, lat, lng,
-         game_name, game_price, has_stock, source, reporter_ip, reporter_username, notes, reported_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, COALESCE($13, NOW()))
+         game_name, game_price, has_stock, source, reporter_ip, reporter_username, notes, reported_at,
+         reporter_lat, reporter_lng, bounty_session)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, COALESCE($13, NOW()), $14, $15, $16)
     """, retailer_id, retailer_name, retailer_city, lat, lng,
-         game_name, game_price, has_stock, source, reporter_ip, reporter_username, notes, reported_at)
+         game_name, game_price, has_stock, source, reporter_ip, reporter_username, notes, reported_at,
+         reporter_lat, reporter_lng, bounty_session)
 
 
 async def get_recent_prize_claims(conn, days: int = 7, limit: int = 200, min_prize: float = 0):

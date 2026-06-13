@@ -1457,6 +1457,14 @@ class InventoryReportBody(BaseModel):
     has_stock: bool = False
     notes: Optional[str] = None
     reported_at: Optional[str] = None
+    # Reporter's device location at submission time (separate from the retailer's
+    # known lat/lng above). Required for bounty geo-verification — without these
+    # the report is still accepted but doesn't count toward bounty progress.
+    reporter_lat: Optional[float] = None
+    reporter_lng: Optional[float] = None
+    # Bounty session id from the mobile client groups a batch of submissions
+    # made during a single display-scan session. Empty for non-bounty submits.
+    bounty_session: Optional[str] = None
 
 
 @app.post("/api/inventory/report")
@@ -1490,6 +1498,9 @@ async def submit_inventory_report(
             reporter_username=user.get("username"),
             notes=body.notes or None,
             reported_at=body.reported_at or None,
+            reporter_lat=body.reporter_lat,
+            reporter_lng=body.reporter_lng,
+            bounty_session=body.bounty_session,
         )
     return {"message": "Report submitted!", "reported_at": datetime.datetime.utcnow().isoformat()}
 
@@ -1573,6 +1584,280 @@ async def get_retailer_latest_status(
             }
             for r in rows
         }
+    }
+
+
+# ── Bounty: fresh-data rewards for hunter contributions ───────────────────────
+#
+# When a retailer's most recent inventory report is older than BOUNTY_STALE_DAYS
+# (or there are no reports at all), the location is "bounty eligible". A member
+# who runs a verified display-scan session there — at least BOUNTY_PHOTO_MIN
+# geo-verified photos that collectively detect BOUNTY_DISTINCT_GAMES_MIN unique
+# catalog games — can claim BOUNTY_REWARD_DAYS of free Pro. Per-user-per-store
+# cooldown prevents grinding the same location repeatedly.
+#
+# All thresholds live here so they can be tuned without touching client code.
+
+BOUNTY_STALE_DAYS = 14
+BOUNTY_PHOTO_MIN = 5
+BOUNTY_DISTINCT_GAMES_MIN = 20
+BOUNTY_REWARD_DAYS = 30
+BOUNTY_GEO_RADIUS_M = 200  # device must be within this many meters of the retailer
+BOUNTY_USER_COOLDOWN_DAYS = 60  # same user can't re-claim the same store this often
+BOUNTY_SESSION_WINDOW_HOURS = 24  # qualifying reports must be within this window
+
+
+def _haversine_m(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    """Great-circle distance in meters between two lat/lng points."""
+    import math
+    r = 6371000.0
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dlat = math.radians(lat2 - lat1)
+    dlng = math.radians(lng2 - lng1)
+    a = math.sin(dlat / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dlng / 2) ** 2
+    return 2 * r * math.asin(math.sqrt(a))
+
+
+async def _retailer_lookup(conn, retailer_id: str):
+    """Return (lat, lng, state_code, name) for a retailer, or (None, None, None, None).
+    Searches state_retailers (the scraped roster) first, falling back to the most
+    recent coordinates we've seen in inventory_reports."""
+    row = await conn.fetchrow(
+        "SELECT latitude, longitude, state_code, name FROM state_retailers WHERE external_id = $1 LIMIT 1",
+        retailer_id,
+    )
+    if row and row["latitude"] is not None and row["longitude"] is not None:
+        return float(row["latitude"]), float(row["longitude"]), row["state_code"], row["name"]
+    row = await conn.fetchrow(
+        """SELECT lat, lng, retailer_name FROM inventory_reports
+           WHERE retailer_id = $1 AND lat IS NOT NULL AND lng IS NOT NULL
+           ORDER BY reported_at DESC LIMIT 1""",
+        retailer_id,
+    )
+    if row:
+        return float(row["lat"]), float(row["lng"]), None, row["retailer_name"]
+    return None, None, None, None
+
+
+@app.get("/api/bounty/status/{retailer_id}")
+async def get_bounty_status(retailer_id: str, user: dict = Depends(require_member)):
+    """Whether this retailer is currently bounty-eligible and how much progress the
+    calling user has made toward claiming. Driven by the same data the inventory
+    map already reads — no separate bounty queue to maintain."""
+    user_id = user["uid"]
+    username = user.get("username")
+    async with get_pool().acquire() as conn:
+        # Eligibility: the location's most-recent inventory report is older than
+        # the stale threshold, or there are no reports at all.
+        latest_row = await conn.fetchrow(
+            "SELECT MAX(reported_at) AS latest FROM inventory_reports WHERE retailer_id = $1",
+            retailer_id,
+        )
+        latest = latest_row["latest"] if latest_row else None
+        now = datetime.datetime.now(datetime.timezone.utc)
+        stale_cutoff = now - datetime.timedelta(days=BOUNTY_STALE_DAYS)
+        is_stale = latest is None or latest < stale_cutoff
+        days_since = None
+        if latest is not None:
+            days_since = (now - latest).total_seconds() / 86400.0
+
+        # Cooldown: did this user already claim this store recently?
+        cooldown_cutoff = now - datetime.timedelta(days=BOUNTY_USER_COOLDOWN_DAYS)
+        recent_claim = await conn.fetchrow(
+            """SELECT claimed_at FROM bounty_claims
+               WHERE user_id = $1 AND retailer_id = $2 AND claimed_at > $3
+               ORDER BY claimed_at DESC LIMIT 1""",
+            user_id, retailer_id, cooldown_cutoff,
+        )
+
+        eligible = is_stale and recent_claim is None
+        reason = (
+            "claimed_recently" if recent_claim is not None
+            else "fresh_data_exists" if not is_stale
+            else "stale" if latest is not None
+            else "never_reported"
+        )
+
+        # Progress for the calling user: count qualifying submissions in the
+        # session window. "Qualifying" = report came in within BOUNTY_SESSION_WINDOW_HOURS,
+        # for this retailer, by this user. Geo verification happens at claim time
+        # using the actual retailer coords + report-row geo.
+        window_cutoff = now - datetime.timedelta(hours=BOUNTY_SESSION_WINDOW_HOURS)
+        if username:
+            progress_row = await conn.fetchrow(
+                """SELECT COUNT(*) AS reports,
+                          COUNT(DISTINCT LOWER(game_name)) AS games
+                   FROM inventory_reports
+                   WHERE retailer_id = $1
+                     AND reporter_username = $2
+                     AND reported_at > $3
+                     AND bounty_session IS NOT NULL""",
+                retailer_id, username, window_cutoff,
+            )
+            photos_submitted = int(progress_row["reports"] or 0)
+            distinct_games = int(progress_row["games"] or 0)
+        else:
+            photos_submitted = 0
+            distinct_games = 0
+
+        can_claim = (
+            eligible
+            and photos_submitted >= BOUNTY_PHOTO_MIN
+            and distinct_games >= BOUNTY_DISTINCT_GAMES_MIN
+        )
+
+    return {
+        "eligible": eligible,
+        "reason": reason,
+        "stale_days": days_since,
+        "latest_report_at": latest.isoformat() if latest else None,
+        "requirements": {
+            "photos_min": BOUNTY_PHOTO_MIN,
+            "distinct_games_min": BOUNTY_DISTINCT_GAMES_MIN,
+            "geo_radius_m": BOUNTY_GEO_RADIUS_M,
+            "stale_days": BOUNTY_STALE_DAYS,
+            "session_window_hours": BOUNTY_SESSION_WINDOW_HOURS,
+        },
+        "progress": {
+            "photos_submitted": photos_submitted,
+            "distinct_games": distinct_games,
+        },
+        "reward_days": BOUNTY_REWARD_DAYS,
+        "can_claim": can_claim,
+    }
+
+
+class BountyClaimBody(BaseModel):
+    retailer_id: str
+    session_id: Optional[str] = None
+
+
+@app.post("/api/bounty/claim")
+async def claim_bounty(body: BountyClaimBody, user: dict = Depends(require_member)):
+    """Verify the user's recent submissions for this store meet the bounty bar,
+    grant Pro days, record the claim. Idempotency: a claim within the cooldown
+    window for the same (user, retailer) is rejected."""
+    user_id = user["uid"]
+    username = user.get("username")
+    if not username:
+        raise HTTPException(status_code=400, detail="Username required to claim bounties.")
+
+    async with get_pool().acquire() as conn:
+        # Re-check eligibility server-side. Don't trust the client.
+        retailer_lat, retailer_lng, state_code, _name = await _retailer_lookup(conn, body.retailer_id)
+        if retailer_lat is None or retailer_lng is None:
+            raise HTTPException(status_code=400, detail="Retailer location unknown — cannot verify bounty.")
+
+        now = datetime.datetime.now(datetime.timezone.utc)
+
+        # Cooldown check first — fail fast.
+        cooldown_cutoff = now - datetime.timedelta(days=BOUNTY_USER_COOLDOWN_DAYS)
+        recent = await conn.fetchrow(
+            """SELECT claimed_at FROM bounty_claims
+               WHERE user_id = $1 AND retailer_id = $2 AND claimed_at > $3""",
+            user_id, body.retailer_id, cooldown_cutoff,
+        )
+        if recent:
+            raise HTTPException(
+                status_code=409,
+                detail=f"You already claimed a bounty at this store within the last {BOUNTY_USER_COOLDOWN_DAYS} days.",
+            )
+
+        # Staleness: only stale stores award bounties. (This also blocks the case
+        # where someone else just submitted, freshening the store, between the
+        # status check and the claim.)
+        latest_row = await conn.fetchrow(
+            """SELECT MAX(reported_at) AS latest FROM inventory_reports
+               WHERE retailer_id = $1 AND reporter_username != $2""",
+            body.retailer_id, username,
+        )
+        other_latest = latest_row["latest"] if latest_row else None
+        stale_cutoff = now - datetime.timedelta(days=BOUNTY_STALE_DAYS)
+        if other_latest is not None and other_latest >= stale_cutoff:
+            raise HTTPException(
+                status_code=409,
+                detail="Another hunter already refreshed this store. Bounty no longer available.",
+            )
+
+        # Pull qualifying reports. Constrain to this session_id if provided —
+        # tighter anti-abuse — else fall back to all bounty-tagged reports in
+        # the session window.
+        window_cutoff = now - datetime.timedelta(hours=BOUNTY_SESSION_WINDOW_HOURS)
+        if body.session_id:
+            rows = await conn.fetch(
+                """SELECT game_name, reporter_lat, reporter_lng
+                   FROM inventory_reports
+                   WHERE retailer_id = $1 AND reporter_username = $2
+                     AND reported_at > $3
+                     AND bounty_session = $4""",
+                body.retailer_id, username, window_cutoff, body.session_id,
+            )
+        else:
+            rows = await conn.fetch(
+                """SELECT game_name, reporter_lat, reporter_lng
+                   FROM inventory_reports
+                   WHERE retailer_id = $1 AND reporter_username = $2
+                     AND reported_at > $3
+                     AND bounty_session IS NOT NULL""",
+                body.retailer_id, username, window_cutoff,
+            )
+
+        # Geo-verify each row: reporter must have been within radius. Drop rows
+        # without geo (no geo = no credit toward bounty, but the inventory data
+        # still stands).
+        verified_games = set()
+        verified_count = 0
+        for r in rows:
+            r_lat = r["reporter_lat"]
+            r_lng = r["reporter_lng"]
+            if r_lat is None or r_lng is None:
+                continue
+            try:
+                dist = _haversine_m(float(r_lat), float(r_lng), retailer_lat, retailer_lng)
+            except (TypeError, ValueError):
+                continue
+            if dist > BOUNTY_GEO_RADIUS_M:
+                continue
+            verified_count += 1
+            if r["game_name"]:
+                verified_games.add(r["game_name"].lower())
+
+        if verified_count < BOUNTY_PHOTO_MIN or len(verified_games) < BOUNTY_DISTINCT_GAMES_MIN:
+            raise HTTPException(
+                status_code=400,
+                detail=(
+                    f"Need {BOUNTY_PHOTO_MIN}+ geo-verified reports covering "
+                    f"{BOUNTY_DISTINCT_GAMES_MIN}+ distinct games. "
+                    f"You have {verified_count} verified, {len(verified_games)} games."
+                ),
+            )
+
+        # Grant Pro days — same UPDATE shape as the admin grant. GREATEST ensures
+        # we extend from now if pro_until is in the past, or from pro_until if
+        # it's in the future (so we don't shorten an active sub).
+        granted = await conn.fetchrow(
+            """UPDATE users
+               SET pro_until = GREATEST(COALESCE(pro_until, NOW()), NOW()) + ($1 || ' days')::interval
+               WHERE id = $2
+               RETURNING pro_until""",
+            str(BOUNTY_REWARD_DAYS), user_id,
+        )
+        if not granted:
+            raise HTTPException(status_code=404, detail="User not found.")
+
+        await conn.execute(
+            """INSERT INTO bounty_claims
+               (user_id, retailer_id, state_code, granted_days, photos_count, distinct_games, session_id)
+               VALUES ($1, $2, $3, $4, $5, $6, $7)""",
+            user_id, body.retailer_id, state_code, BOUNTY_REWARD_DAYS,
+            verified_count, len(verified_games), body.session_id,
+        )
+
+    return {
+        "granted_days": BOUNTY_REWARD_DAYS,
+        "pro_until": granted["pro_until"].isoformat(),
+        "verified_photos": verified_count,
+        "distinct_games": len(verified_games),
     }
 
 
