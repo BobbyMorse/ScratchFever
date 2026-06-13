@@ -41,6 +41,20 @@ LIST_URL = "https://www.palottery.pa.gov/Scratch-Offs/Prizes-Remaining.aspx"
 BASE_URL = "https://www.palottery.pa.gov"
 CACHE_FILE = Path(__file__).parent / "pa_odds_cache_v2.json"
 
+# PA's VIP Players Club hosts second-chance drawings. The public listing
+# page (no login required) carries one img per active drawing with
+# alt="<GAME NAME> Second-Chance Drawing". We parse that to a name set and
+# match against scraped PA game names.
+SECOND_CHANCE_LISTING_URL = "https://www.palottery.pa.gov/VIP-Players-Club/Public/Second-Chance-Drawings.aspx"
+SECOND_CHANCE_PLAYER_URL = "https://www.palottery.pa.gov/VIP-Players-Club/Public/Second-Chance-Drawings.aspx"
+
+
+def _norm_pa_name(s: str) -> str:
+    s = s or ""
+    s = s.replace("$", "").replace(",", "")
+    s = re.sub(r"[^a-z0-9]+", " ", s.lower())
+    return " ".join(s.split())
+
 _CONCURRENCY = 5
 _DETAIL_TIMEOUT = 25
 
