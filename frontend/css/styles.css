@@ -1914,7 +1914,8 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 }
 
 @media (max-width: 420px) {
-  .stats-row { grid-template-columns: 1fr 1fr; }
+  .stats-row { grid-template-columns: 1fr 1fr; row-gap: .4rem !important; }
+  .stat-value { font-size: 1.15rem; }
   .filters-bar { grid-template-columns: 1fr; }
   .filter-group[style*="flex:1"] { grid-column: auto; }
 }
