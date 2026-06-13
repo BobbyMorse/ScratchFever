@@ -39,6 +39,13 @@ LUCK_ZONE_LISTING_URL = f"{BASE_URL}/export/sites/lottery/Games/Scratch_Offs/luc
 LUCK_ZONE_PLAYER_URL = "https://www.txlotteryluckzone.com/"
 
 
+def _normalize_name(s: str) -> str:
+    s = s or ""
+    s = s.replace("$", "").replace(",", "")
+    s = re.sub(r"[^a-z0-9]+", " ", s.lower())
+    return " ".join(s.split())
+
+
 class TexasScraper(BaseScraper):
     state_code = "TX"
     state_name = "Texas"
