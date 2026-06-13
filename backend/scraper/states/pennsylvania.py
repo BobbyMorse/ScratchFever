@@ -500,6 +500,8 @@ class PennsylvaniaScraper(BaseScraper):
             top_prize, top_prize_remaining = find_top_prize(all_tiers)
             jackpot_odds = calculate_jackpot_odds(all_tiers, tickets_remaining)
 
+            name_norm = _norm_pa_name(g["name"])
+            has_2c = name_norm in second_chance_names
             games.append({
                 "game_id":             gid,
                 "name":                g["name"],
@@ -515,6 +517,8 @@ class PennsylvaniaScraper(BaseScraper):
                 "detail_url":          g["detail_url"],
                 "image_url":           image_url,
                 "end_date":            None,
+                "has_second_chance":   has_2c,
+                "second_chance_url":   SECOND_CHANCE_PLAYER_URL if has_2c else None,
                 "tiers":               all_tiers,
             })
 
