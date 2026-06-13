@@ -49,6 +49,12 @@ class TexasScraper(BaseScraper):
         detail_urls = self._get_detail_urls()
         logger.info("TX: found %d detail URLs from all.html", len(detail_urls))
 
+        luck_zone_ids, luck_zone_names = self._fetch_luck_zone_set()
+        logger.info(
+            "TX Luck Zone second-chance: %d game-numbers, %d name-only",
+            len(luck_zone_ids), len(luck_zone_names),
+        )
+
         resp = self.get(CSV_URL)
         lines = resp.text.splitlines()
 
@@ -71,10 +77,43 @@ class TexasScraper(BaseScraper):
         for game_num, rows in games_raw.items():
             game = self._parse_game(game_num, rows, detail_urls.get(game_num))
             if game:
+                name_norm = _normalize_name(rows[0][1])
+                if game_num in luck_zone_ids or name_norm in luck_zone_names:
+                    game["has_second_chance"] = True
+                    game["second_chance_url"] = LUCK_ZONE_PLAYER_URL
                 games.append(game)
 
         logger.info("TX: %d games parsed", len(games))
         return games
+
+    def _fetch_luck_zone_set(self) -> tuple[set[str], set[str]]:
+        """Return (game_numbers, normalized_names) currently eligible for a
+        TX Luck Zone second-chance drawing. Source: the Luck Zone listing
+        page's img alt attrs (e.g. 'Cowboys 2663 Enter', 'Jurassic Park
+        Enter'). If the fetch fails, return empty sets — better to
+        under-report than to falsely flag every TX game."""
+        ids: set[str] = set()
+        names: set[str] = set()
+        try:
+            resp = self.get(LUCK_ZONE_LISTING_URL, timeout=15)
+        except Exception as e:
+            logger.warning("TX Luck Zone fetch failed: %s", e)
+            return ids, names
+
+        # alt="<name> Enter" (with optional inline game number)
+        for raw in re.findall(r'alt="([^"]+?)\s+Enter"', resp.text):
+            num_match = re.search(r"\b(\d{3,5})\b", raw)
+            if num_match:
+                ids.add(num_match.group(1))
+                # Strip the embedded number out before name-normalizing — the
+                # CSV's game name doesn't carry the number ("Cowboys" not
+                # "Cowboys 2663"), so leaving it in would block the fallback.
+                raw_no_num = re.sub(r"\s*\b\d{3,5}\b\s*", " ", raw)
+                names.add(_normalize_name(raw_no_num))
+            else:
+                names.add(_normalize_name(raw))
+        names.discard("")
+        return ids, names
 
     # Both all.html and closing.html annotate detail links with
     # title="View details for Game Number 2658" or
