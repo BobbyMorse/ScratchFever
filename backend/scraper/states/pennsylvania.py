@@ -294,6 +294,9 @@ class PennsylvaniaScraper(BaseScraper):
     scraper_timeout = 900
 
     def scrape(self) -> list[dict]:
+        second_chance_names = self._fetch_second_chance_set()
+        logger.info("PA second-chance eligible games: %d", len(second_chance_names))
+
         soup = self.soup(LIST_URL)
 
         table = soup.find("table", id="remaining-prizes")
