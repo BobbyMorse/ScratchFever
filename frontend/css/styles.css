@@ -2860,6 +2860,17 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 
 @media (max-width: 640px) {
   .strategy-tiles { grid-template-columns: 1fr; }
-  .strategy-controls { flex-direction: column; align-items: stretch; }
+  .strategy-controls {
+    flex-direction: column; align-items: stretch;
+    gap: .7rem;
+    margin: 0 .85rem .65rem;
+    padding: .75rem .85rem;
+  }
+  /* Kill the flex:1 1 320px on strat-ctrl-left — in column-flex the 320px
+     basis is read as VERTICAL size, leaving a huge empty gap before filters. */
+  .strat-ctrl-left { flex: 0 0 auto; min-width: 0; max-width: 100%; }
+  .strat-title { font-size: 1.05rem; }
+  .strat-sub { font-size: .78rem; }
   .strat-ctrl-right { width: 100%; }
+  .strategy-tiles-wrap { margin: .25rem .85rem 1.5rem; }
 }
