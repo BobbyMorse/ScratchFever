@@ -1795,11 +1795,12 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 
 /* ── Responsive ───────────────────────────────────── */
 @media (max-width: 900px) {
-  :root { --header-h: 56px; --sidebar-w: 260px; }
+  :root { --header-h: 60px; --sidebar-w: 260px; }
 
   .sidebar-toggle { display: inline-flex; }
   .site-header { padding: 0 .85rem; gap: .7rem; }
-  .logo-img { max-height: 34px; }
+  .logo-block { height: 44px; align-self: center; }
+  .logo-img { height: 44px; max-height: 44px; width: auto; object-fit: contain; }
   .bigwins-banner, .bigwins-freshness { display: none !important; }
 
   .sidebar {
