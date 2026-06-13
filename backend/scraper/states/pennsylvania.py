@@ -293,6 +293,24 @@ class PennsylvaniaScraper(BaseScraper):
     base_url = BASE_URL
     scraper_timeout = 900
 
+    def _fetch_second_chance_set(self) -> set[str]:
+        """Return normalized names of PA scratch games currently in a VIP
+        second-chance drawing. Source: the public Second-Chance-Drawings
+        listing, which renders one banner per active drawing with
+        alt='<GAME NAME> Second-Chance Drawing'. If the fetch fails, return
+        an empty set — better to under-report than blanket-flag."""
+        try:
+            resp = self.get(SECOND_CHANCE_LISTING_URL, timeout=20)
+        except Exception as e:
+            logger.warning("PA second-chance fetch failed: %s", e)
+            return set()
+        names = set()
+        for m in re.finditer(r'alt="([^"]+?)\s+Second[\s-]?Chance\s+Drawing"', resp.text, re.I):
+            normalized = _norm_pa_name(m.group(1))
+            if normalized:
+                names.add(normalized)
+        return names
+
     def scrape(self) -> list[dict]:
         second_chance_names = self._fetch_second_chance_set()
         logger.info("PA second-chance eligible games: %d", len(second_chance_names))
