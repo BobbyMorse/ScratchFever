@@ -124,6 +124,11 @@ class CaliforniaScraper(BaseScraper):
             remaining_estimates.sort()
             tickets_remaining = remaining_estimates[len(remaining_estimates) // 2]
 
+        # Per-game second-chance flag: CA API includes secondChanceCodeImage
+        # only on games that participate in the 2nd Chance program. Absence
+        # of the field (or empty string) means the game is excluded.
+        has_2c = bool(g.get("secondChanceCodeImage"))
+
         game = self.build_game(
             game_id=game_id or name,
             name=name,
@@ -134,6 +139,8 @@ class CaliforniaScraper(BaseScraper):
             tickets_remaining=tickets_remaining,
             detail_url=detail_url,
             image_url=image_url,
+            has_second_chance=has_2c,
+            second_chance_url="https://www.calottery.com/2nd-chance" if has_2c else None,
         )
         game["how_to_play"] = how_to_play
         return game
