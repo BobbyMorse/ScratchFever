@@ -6,6 +6,12 @@ API: https://www.njlottery.com/api/v2/instant-games/games?size=500
   prizeTiers[]: prizeAmount, winningTickets (total), paidTickets (claimed)
   totalTicketsPrinted: total tickets for the game
   Images: /content/dam/portal/images/instant-games/{gameId:05d}/ticket.png
+
+Second-chance: NJ runs Million Dollar Replay and Lottery Bonus Zone, but
+the public-facing material doesn't enumerate eligible games per program —
+the active game list lives only inside PDF rules. has_second_chance stays
+FALSE for all NJ games until a per-game source is found; we under-report
+rather than blanket-flag.
 """
 from __future__ import annotations
 import logging
