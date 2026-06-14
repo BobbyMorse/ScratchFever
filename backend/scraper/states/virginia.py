@@ -116,6 +116,7 @@ class VirginiaScraper(PlaywrightScraper):
                 if total_all > 0:
                     total_tickets = round(overall_odds * total_all)
 
+            has_2c = str(game_id) in sc_game_ids
             games.append(self.build_game(
                 game_id=str(game_id),
                 name=title,
@@ -126,6 +127,8 @@ class VirginiaScraper(PlaywrightScraper):
                 overall_odds=overall_odds,
                 detail_url=detail_url,
                 image_url=image_url,
+                has_second_chance=has_2c,
+                second_chance_url=SECOND_CHANCE_URL if has_2c else None,
             ))
 
         logger.info("VA: %d games scraped", len(games))
