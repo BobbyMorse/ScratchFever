@@ -1,6 +1,10 @@
 """
 Washington's Lottery scratch-off scraper.
 
+Second-chance: WA's second-chance subdomain (secondchance.walottery.com)
+refuses bot traffic and My Lottery 360 requires login. No public per-game
+source. has_second_chance stays FALSE for all WA games.
+
 Prize tier data:  https://walottery.com/Scratch/TopPrizesRemaining.aspx?price=X
   Server-rendered per price point. Each game is a <div class="prizes-remaining-item">.
   The child <header> contains: "GAME NAME $PRICE | GAME_ID [Last Day To Redeem: DATE]".
