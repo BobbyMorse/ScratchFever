@@ -57,9 +57,8 @@ class MassachusettsScraper(BaseScraper):
     def scrape(self) -> list[dict]:
         active_games = self._fetch_active_games()
         logger.info("MA active scratch games: %d", len(active_games))
-
-        second_chance_names = self._fetch_second_chance_set()
-        logger.info("MA second-chance eligible games: %d", len(second_chance_names))
+        sc_count = sum(1 for m in active_games.values() if m.get("has_second_chance"))
+        logger.info("MA second-chance tagged games: %d", sc_count)
 
         resp = self.get(PRIZES_URL, headers=_HEADERS)
         items = resp.json()
@@ -80,7 +79,7 @@ class MassachusettsScraper(BaseScraper):
                 game = self._parse_item(item, official_odds, image_url, start_date)
                 if game:
                     game["how_to_play"] = self._fetch_how_to_play(slug)
-                    if _normalize_game_name(item.get("gameName", "")) in second_chance_names:
+                    if meta.get("has_second_chance"):
                         game["has_second_chance"] = True
                         game["second_chance_url"] = SECOND_CHANCE_PAGE
                     time.sleep(0.3)  # polite rate limit
