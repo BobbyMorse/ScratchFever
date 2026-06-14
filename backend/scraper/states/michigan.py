@@ -107,6 +107,7 @@ class MichiganScraper(BaseScraper):
             if logo and logo.startswith("//"):
                 logo = "https:" + logo
 
+            has_2c = bool(cat.get("hasSecondChance"))
             game = self.build_game(
                 game_id=str(igt_id),
                 name=name,
@@ -117,6 +118,8 @@ class MichiganScraper(BaseScraper):
                 tickets_remaining=tickets_remaining,
                 detail_url=detail_url,
                 image_url=logo,
+                has_second_chance=has_2c,
+                second_chance_url="https://www.michiganlottery.com/secondchance" if has_2c else None,
             )
             games.append(game)
 
