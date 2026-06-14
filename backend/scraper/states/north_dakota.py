@@ -1,5 +1,9 @@
 """
 North Dakota Lottery scratch-off scraper.
+
+Second-chance: N/A — ND Lottery sells draw games only, no scratch
+tickets. has_second_chance is moot here.
+
 lottery.nd.gov only shows draw games in server-rendered HTML.
 Scratch-off data is not accessible without JavaScript. Disabled.
 """
