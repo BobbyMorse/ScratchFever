@@ -73,6 +73,17 @@ class VermontScraper(BaseScraper):
             logger.warning("VT: failed to fetch end date map: %s", e)
         return result
 
+    def _fetch_second_chance_ids(self) -> set[str]:
+        """Return set of VT scratcher game numbers currently eligible for
+        2nd Chance entry. The portal at vtlottery.2ndchanceplay.com lists
+        each as 'NAME $PRICE (NNNN)'. Empty set on failure."""
+        try:
+            resp = self.get(SECOND_CHANCE_URL, timeout=20)
+        except Exception as e:
+            logger.warning("VT second-chance fetch failed: %s", e)
+            return set()
+        return set(_VT_SC_LABEL_RE.findall(resp.text))
+
     def scrape(self) -> list[dict]:
         end_date_map = self._fetch_end_date_map()
         sc_game_ids = self._fetch_second_chance_ids()
