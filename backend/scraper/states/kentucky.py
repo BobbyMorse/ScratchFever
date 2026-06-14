@@ -1,5 +1,11 @@
 """
 Kentucky Lottery scratch-off scraper.
+
+Second-chance: KY runs Fun Club + per-promotion second-chance rules but
+eligibility lives in promo prose on per-game detail pages, not as a
+public per-game flag. has_second_chance stays FALSE for all KY games
+until a parseable per-game source is found.
+
 Listing: https://www.kylottery.com/apps/scratch_offs/
   Active games embedded as inline JS: var cmElement = []; cmElement["SOG-GAMENAME"] = "..."
   Fields: SOG-GAMENAME, SOG-PRICEPOINT, SOG-OTHER-GAME (detail path)
