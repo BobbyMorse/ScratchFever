@@ -1,5 +1,12 @@
 """
 Mississippi Lottery scratch-off scraper.
+
+Second-chance: MS's 2nd Chance portal at secondchance.mslottery.com gates
+the eligible-games list behind login. Per-promo blog posts at
+/promotype/second-chance-drawings/ name eligible games for individual
+drawings but parsing rolling promo archives is fragile. has_second_chance
+stays FALSE for all MS games until a stable per-game source is found.
+
 Listing: https://www.mslottery.com/gamestatus/active/
 Each game: <a href="/instantgames/slug/"> — no name/price in listing HTML.
 Detail page: H1 "Name ($X)", "Ticket Price $X", "Overall Odds 1:X.XX",
