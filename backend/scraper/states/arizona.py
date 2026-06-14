@@ -1,6 +1,11 @@
 """
 Arizona Lottery scratch-off scraper.
 
+Second-chance: AZ Players Club (azplayersclub.com) is a JS SPA whose
+promotions page renders empty server-side. No public per-game flag.
+has_second_chance stays FALSE for all AZ games until a headless-friendly
+2C source is wired.
+
 Uses Playwright (headless Chromium) to bypass Cloudflare WAF.
 
 Prize tables are JS-rendered and not present in raw HTML;
