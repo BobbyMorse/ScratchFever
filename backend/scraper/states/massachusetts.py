@@ -78,28 +78,6 @@ class MassachusettsScraper(BaseScraper):
         logger.info("MA: %d active games parsed, %d inactive skipped", len(games), skipped)
         return games
 
-    def _fetch_second_chance_set(self) -> set[str]:
-        """Return set of normalized game names currently in a MA second-chance
-        drawing. Source: the CMS promotions carousel filtered by promotionType.
-        If the endpoint fails, return an empty set — better to under-report
-        than to falsely flag every game."""
-        try:
-            resp = self.get(PROMOTIONS_CAROUSEL_URL, headers=_HEADERS, timeout=15)
-            data = resp.json()
-        except Exception as e:
-            logger.warning("MA second-chance carousel fetch failed: %s", e)
-            return set()
-
-        names = set()
-        for promo in data.get("promotions", []) or []:
-            if promo.get("promotionType") != "SECOND_CHANCE":
-                continue
-            raw = promo.get("name") or ""
-            normalized = _normalize_game_name(raw)
-            if normalized:
-                names.add(normalized)
-        return names
-
     def _fetch_how_to_play(self, slug: str) -> str | None:
         """Scrape the 'How to Play' section from the MA Lottery game detail page."""
         try:
