@@ -1,5 +1,12 @@
 """
 Louisiana Lottery scratch-off scraper.
+
+Second-chance: LA runs branded second-chance promos that each enumerate
+eligible scratchers on the promo's own page (e.g. Golden Nugget, Saints
+Game Ready). However, /promotions/ is Cloudflare-fronted to this scraper
+and the base scratch-off listing carries no per-game flag. has_second_chance
+stays FALSE for all LA games until a Cloudflare-passing fetch is wired.
+
 Listing: https://louisianalottery.com/scratch-offs/
 Each game card is <a href="https://louisianalottery.com/game/NUMBER-slug/" class="so-excerpt">
 containing: <h3 class="so-excerpt__title">, <dl> with <div><dt>label<dd>value pairs:
