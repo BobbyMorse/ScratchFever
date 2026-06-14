@@ -1,5 +1,10 @@
 """
 Idaho Lottery scratch-off scraper.
+
+Second-chance: ID's VIP Players Club promotions index is WAF/bot-blocked
+to scrapers, and typical promo rules read "any $1 ticket" — too broad to
+map to specific games. has_second_chance stays FALSE for all ID games.
+
 Post-2026 site redesign: /games/scratch lists all active games.
 Detail page /games/scratch/<slug> has full prize table with columns:
   Number of Prizes | Prize Amount | Remaining Prizes | Odds
