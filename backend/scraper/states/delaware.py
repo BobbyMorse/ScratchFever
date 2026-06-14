@@ -23,6 +23,18 @@ logger = logging.getLogger(__name__)
 TOP_PRIZES_URL = "https://www.delottery.com/Instant-Games/Top-Prizes-Remaining"
 BASE_URL = "https://www.delottery.com"
 
+# DE's Second-Chance page lists currently-eligible scratchers as
+# <img alt="<NAME> instant game ticket">. We match by normalized name.
+SECOND_CHANCE_URL = "https://www.delottery.com/Instant-Games/Second-Chance-Drawing"
+_DE_SC_ALT_RE = re.compile(r'alt="([^"]+?)\s+instant\s+game\s+ticket"', re.I)
+
+
+def _norm_de_name(s: str) -> str:
+    s = s or ""
+    s = s.replace("®", "").replace("™", "").replace("$", "").replace(",", "")
+    s = re.sub(r"[^a-z0-9]+", " ", s.lower())
+    return " ".join(s.split())
+
 
 class DelawareScraper(BaseScraper):
     state_code = "DE"
