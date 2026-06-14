@@ -100,12 +100,17 @@ class IndianaScraper(BaseScraper):
                 image_url = image_src or None
             detail_url = (BASE_URL + href) if href.startswith("/") else href
 
+            # Indiana exposes my2ndChance eligibility per game tile as
+            # data-second-chance="true|false" — no separate fetch needed.
+            sc_raw = (a.get("data-second-chance") or "").strip().lower()
+            has_2c = sc_raw == "true"
             stubs.append({
                 "game_id": str(a.get("data-id") or slug),
                 "name": name,
                 "price": price,
                 "detail_url": detail_url,
                 "image_url": image_url,
+                "has_second_chance": has_2c,
             })
 
         logger.info("IN: found %d games from listing", len(stubs))
