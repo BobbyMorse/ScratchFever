@@ -1,5 +1,11 @@
 """
 Nebraska Lottery scratch-off scraper.
+
+Second-chance: NE's MVP Club is auth-gated and offers "Enter Contests"
+(contest-based) rather than a per-game scratch second-chance roster.
+has_second_chance stays FALSE for all NE games until a public per-game
+source is found.
+
 Listing: https://nelottery.com/homeapp/scratch/gamessummary
 Page has <h3>$X Scratch Games</h3> headers followed by
 <a href="https://nelottery.com/homeapp/scratch/ID/0/gamedetail/web"> links.
