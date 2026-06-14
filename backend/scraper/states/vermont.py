@@ -112,6 +112,9 @@ class VermontScraper(BaseScraper):
                 try:
                     game = self._scrape_detail(slug, detail_url, end_date_map, today)
                     if game:
+                        if str(game.get("game_id")) in sc_game_ids:
+                            game["has_second_chance"] = True
+                            game["second_chance_url"] = SECOND_CHANCE_URL
                         games.append(game)
                 except Exception as e:
                     logger.debug("VT detail error for %s: %s", slug, e)
