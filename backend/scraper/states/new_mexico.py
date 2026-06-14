@@ -40,7 +40,15 @@ class NewMexicoScraper(BaseScraper):
     base_url = BASE_URL
 
     def scrape(self) -> list[dict]:
-        soup = self.soup(GAMES_URL)
+        resp = self.get(GAMES_URL)
+        sc_promo_names = {
+            _norm_nm_name(m.group(1))
+            for m in _NM_SC_PROMO_RE.finditer(resp.text)
+        }
+        logger.info("NM second-chance promo names: %s", sorted(sc_promo_names))
+
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(resp.text, "lxml")
         games = []
         seen = set()
 
