@@ -1,5 +1,9 @@
 """
 Wyoming Lottery scratch-off scraper.
+
+Second-chance: WyoLotto is statutorily prohibited from selling scratch
+tickets (the public listing has been hollowed out over time). N/A.
+
 Listing: https://www.wyolotto.com/scratch-games/
 WY lottery launched in 2020; relatively small game catalog.
 """
