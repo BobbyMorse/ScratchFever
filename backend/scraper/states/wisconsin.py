@@ -1,5 +1,10 @@
 """
 Wisconsin Lottery scratch-off scraper.
+
+Second-chance: WI's Super 2nd Chance Drawing ended 2024-12-26 and no
+replacement state-wide program exists. has_second_chance stays FALSE for
+all WI games.
+
 Listing: https://www.wilottery.com/games/instant-games/scratch-games
   div.instant-listing-item[data-type=scratch] with future data-endi = active games
   WI publishes overall odds only (no per-tier prize table) → ev=NULL by design.
