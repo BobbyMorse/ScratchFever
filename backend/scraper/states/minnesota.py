@@ -1,5 +1,11 @@
 """
 Minnesota Lottery scratch-off scraper.
+
+Second-chance: MN runs a 2nd Chance program (mnlottery.com/second-chance)
+where each ticket carries a game number + entry code, but the public site
+doesn't enumerate eligible games. has_second_chance stays FALSE for all
+MN games until a per-game source is found.
+
 Listing: https://www.mnlottery.com/games/scratch/ (static HTML)
 Detail:  https://www.mnlottery.com/games/scratch/{slug} (JavaScript-rendered)
   Static table:  "To Win | Odds* | Number of Prizes**"
