@@ -75,6 +75,8 @@ class VermontScraper(BaseScraper):
 
     def scrape(self) -> list[dict]:
         end_date_map = self._fetch_end_date_map()
+        sc_game_ids = self._fetch_second_chance_ids()
+        logger.info("VT second-chance eligible game ids: %d", len(sc_game_ids))
         today = date.today().isoformat()
         games = []
         seen = set()
