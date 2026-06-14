@@ -168,10 +168,16 @@ class MassachusettsScraper(BaseScraper):
                     if v:
                         start_date = str(v)[:10]
                         break
+                # MA flags second-chance eligibility per-game via the
+                # "Second Chance" tag in the catalog API (same source the
+                # masslottery.com UI reads to render its yellow badge).
+                tags = g.get("tags") or []
+                has_2c = "Second Chance" in tags
                 result[slug] = {
                     "odds": odds,
                     "image_url": icon_url or None,
                     "start_date": start_date,
+                    "has_second_chance": has_2c,
                 }
             return result
         except Exception as e:
