@@ -22,6 +22,14 @@ _REMAINING_URL = "https://ialottery.com/Pages/Games/RemainingPrizes.aspx"
 _DETAIL_URL = "https://ialottery.com/Pages/Games-Scratch/ScratchGamesDetail.aspx?g={}"
 _IMG_BASE = "https://ialottery.com/images/ScratchGameImages/"
 
+# IA's "Prize Zone" page is the Play-It-Again second-chance hub. Each
+# current promo embeds the eligible scratcher's detail link as
+# /Pages/Games-Scratch/ScratchGamesDetail.aspx?g=NNN — that NNN matches
+# the game_id used everywhere else in this scraper.
+_PRIZE_ZONE_URL = "https://ialottery.com/Pages/Promotions/PrizeZone.aspx"
+_PRIZE_ZONE_GAME_RE = re.compile(r"ScratchGamesDetail\.aspx\?g=(\d+)")
+SECOND_CHANCE_URL = _PRIZE_ZONE_URL
+
 
 class IowaScraper(BaseScraper):
     state_code = "IA"
