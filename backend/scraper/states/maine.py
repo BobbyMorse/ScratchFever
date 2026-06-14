@@ -1,6 +1,11 @@
 """
 Maine State Lottery scratch-off scraper.
 
+Second-chance: ME runs second-chance through club.mainelottery.com but
+the promotions index there is JS-rendered (empty server-side) and per-
+promo pages live at hand-curated slugs that change. has_second_chance
+stays FALSE for all ME games until a stable per-game source is found.
+
 Data sources
 ------------
 1. Per-price listing pages (mainelottery.com/instant/scratch{N}dollar.html)
