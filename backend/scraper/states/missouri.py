@@ -1,5 +1,11 @@
 """
 Missouri Lottery scratch-off scraper.
+
+Second-chance: MO runs Players Club drawings (playersclub.molottery.com)
+but the drawings list is a JS-rendered SPA that requires login and doesn't
+expose per-game eligibility publicly. has_second_chance stays FALSE for
+all MO games until a per-game source is found.
+
 Listing page: /scratchers-list.do — server-rendered HTML with game links ?method=d&game=<num>.
 Detail page: /scratchers.do?method=d&game=<num> — prize table has:
   Prize Level | Total Prizes | Unclaimed Prizes
