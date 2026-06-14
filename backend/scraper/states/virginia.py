@@ -19,6 +19,14 @@ logger = logging.getLogger(__name__)
 LIST_URL = "https://www.valottery.com/Scratcher-Search"
 BASE_URL = "https://www.valottery.com"
 
+# VA's Rewards/Promotions hub lists active second-chance promos. Each promo
+# page names eligible scratchers and (typically) embeds the game number as
+# "Game #NNNN". We crawl the promos index, fetch each promo page, and
+# extract game numbers — no per-game flag on the listing API itself.
+PROMOTIONS_INDEX_URL = "https://www.valottery.com/rewards/promotions"
+SECOND_CHANCE_URL = "https://www.valottery.com/rewards/promotions"
+_VA_GAME_NUM_RE = re.compile(r"Game\s*#\s*(\d{3,5})", re.I)
+
 
 class VirginiaScraper(PlaywrightScraper):
     state_code = "VA"
