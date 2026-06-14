@@ -126,3 +126,28 @@ class MarylandScraper(PlaywrightScraper):
 
         logger.info("MD: %d games scraped", len(games))
         return games
+
+    def _fetch_second_chance_names(self) -> set[str]:
+        """Extract MD scratch-off names currently in a My Lottery Rewards
+        second-chance promo. Promotions page is Cloudflare-fronted but
+        Playwright (already used for the main listing) passes through.
+        We pull all card titles + headings and rely on the per-game
+        scrape's exact-normalized name match downstream — false positives
+        from headline text get filtered by 'not a known scratcher name'.
+        Empty set on failure — never blanket-flag."""
+        names: set[str] = set()
+        try:
+            soup = self.pw_soup(
+                PROMOTIONS_URL, wait_for="load", timeout=30_000, extra_wait_ms=4_000
+            )
+        except Exception as e:
+            logger.warning("MD promotions fetch failed: %s", e)
+            return names
+        for el in soup.find_all(["h1", "h2", "h3", "h4", "a", "img"]):
+            raw = el.get("alt") or el.get_text(" ", strip=True)
+            if not raw or len(raw) < 3 or len(raw) > 80:
+                continue
+            n = _norm_md_name(raw)
+            if n and len(n) >= 3:
+                names.add(n)
+        return names
