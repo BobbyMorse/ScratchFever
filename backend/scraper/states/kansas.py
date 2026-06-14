@@ -1,5 +1,11 @@
 """
 Kansas Lottery scratch-off scraper.
+
+Second-chance: KS scratchers are now sold/managed via PlayOn
+(playonkansas.com); the Second Chance hub gates eligible games behind
+account login. has_second_chance stays FALSE for all KS games until a
+public per-game source is found.
+
 Data source: scratchodds.com/kansas/scratch-off-remaining-prizes
 The page embeds all 61 KS games with full prize-tier data in an RSC
 (React Server Component) payload as the `initialHomeScreenData` JSON blob.
