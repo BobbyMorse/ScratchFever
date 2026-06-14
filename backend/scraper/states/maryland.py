@@ -104,11 +104,10 @@ class MarylandScraper(PlaywrightScraper):
                 image_url = img_el.get("src") if img_el else None
 
                 norm = _norm_md_name(name)
-                # Match by substring either direction — promo copy says
-                # "X the Cash" but a scratcher might be "50X the Cash"; we
-                # only flag when the promo name appears as a complete token
-                # sequence inside the game name (or vice versa).
-                has_2c = any(p == norm or p in norm or norm in p for p in sc_names)
+                # Exact-normalized match only. Substring-match would falsely
+                # flag e.g. "50X the Cash" when the promo only covers "X the
+                # Cash" — better to under-report than over-report.
+                has_2c = norm in sc_names
                 games.append(self.build_game(
                     game_id=game_id,
                     name=name,
