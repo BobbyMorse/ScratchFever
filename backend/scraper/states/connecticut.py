@@ -38,6 +38,9 @@ class ConnecticutScraper(BaseScraper):
     base_url = BASE_URL
 
     def scrape(self) -> list[dict]:
+        sc_names = self._fetch_second_chance_names()
+        logger.info("CT second-chance eligible games: %d", len(sc_names))
+
         soup = self.soup(LIST_URL)
         games = []
         seen = set()
