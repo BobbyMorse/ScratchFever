@@ -14,6 +14,15 @@ logger = logging.getLogger(__name__)
 
 LIST_URL = "https://www.mdlottery.com/games/scratch-offs/"
 BASE_URL = "https://www.mdlottery.com"
+PROMOTIONS_URL = "https://www.mdlottery.com/my-lottery-rewards/promotions/"
+SECOND_CHANCE_URL = "https://www.mdlottery.com/my-lottery-rewards/promotions/"
+
+
+def _norm_md_name(s: str) -> str:
+    s = s or ""
+    s = s.replace("$", "").replace(",", "").replace(".", "")
+    s = re.sub(r"[^a-z0-9]+", " ", s.lower())
+    return " ".join(s.split())
 
 
 class MarylandScraper(PlaywrightScraper):
