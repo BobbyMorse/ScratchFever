@@ -1,6 +1,11 @@
 """
 Rhode Island Lottery scratch-off scraper.
 
+Second-chance: RI's /secondchance.html lists active themed promos
+(Soccer Fortune, NASCAR, Boston Celtics) but does not name eligible
+scratchers — that lives only in per-promo rules text. has_second_chance
+stays FALSE for all RI games.
+
 Uses Playwright to load the scratchers page, which triggers an authenticated
 API call to:
   https://ris.p1.awc.lotteryservices.net/api/v1/instant-games/games/?size=1000
