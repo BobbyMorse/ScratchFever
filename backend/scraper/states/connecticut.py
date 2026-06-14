@@ -18,6 +18,19 @@ logger = logging.getLogger(__name__)
 LIST_URL = "https://www.ctlottery.org/ScratchGamesTable"
 BASE_URL = "https://www.ctlottery.org"
 
+# CT publishes its current 2nd-chance roster on a single page. Each
+# eligible scratcher renders an img with alt="<NAME> thumb nail". We
+# match by normalized name against scraped scratcher names.
+SECOND_CHANCE_URL = "https://www.ctlottery.org/ScratchGames/2ndChanceGames"
+_CT_THUMB_ALT_RE = re.compile(r'alt="([^"]+?)\s+thumb\s+nail"', re.I)
+
+
+def _norm_ct_name(s: str) -> str:
+    s = s or ""
+    s = s.replace("®", "").replace("™", "").replace("$", "").replace(",", "")
+    s = re.sub(r"[^a-z0-9]+", " ", s.lower())
+    return " ".join(s.split())
+
 
 class ConnecticutScraper(BaseScraper):
     state_code = "CT"
