@@ -200,6 +200,7 @@ class IndianaScraper(BaseScraper):
                             "prizes_total": round(small_count),
                         }]
 
+        has_2c = bool(stub.get("has_second_chance"))
         return self.build_game(
             game_id=stub["game_id"],
             name=stub["name"],
@@ -211,4 +212,6 @@ class IndianaScraper(BaseScraper):
             detail_url=stub["detail_url"],
             image_url=stub["image_url"],
             ev_approximate=False,
+            has_second_chance=has_2c,
+            second_chance_url="https://hoosierlottery.com/2ndChance" if has_2c else None,
         )
