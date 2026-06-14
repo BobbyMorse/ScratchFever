@@ -111,6 +111,7 @@ class IowaScraper(BaseScraper):
                     "prizes_total": pt,
                 })
 
+            has_2c = gid in sc_game_ids
             games.append(self.build_game(
                 game_id=gid,
                 name=info["name"],
@@ -122,6 +123,8 @@ class IowaScraper(BaseScraper):
                 image_url=info.get("image_url"),
                 overall_odds=overall_odds,
                 ev_approximate=True,
+                has_second_chance=has_2c,
+                second_chance_url=SECOND_CHANCE_URL if has_2c else None,
             ))
 
         logger.info("IA: built %d games", len(games))
