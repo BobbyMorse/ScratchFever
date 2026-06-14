@@ -23,6 +23,11 @@ and intercepted the responses. That approach silently captured nothing when
 the auth fetch landed after networkidle fired, so the worker reported "ok"
 with 0 games. Replicating the auth flow directly is faster (~2s vs ~45s) and
 deterministic. Same credentials the retailer scraper uses.
+
+Second-chance: OH runs MyLotto Rewards but the "Enter Drawings" surface is
+a points-based prize catalog (Lottery Cash, coupons, sweepstakes), not a
+per-scratch-game second-chance roster. has_second_chance stays FALSE for
+all OH games until a per-game source is found.
 """
 from __future__ import annotations
 import logging
