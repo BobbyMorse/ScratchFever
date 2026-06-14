@@ -25,6 +25,13 @@ LIST_URL = "https://www.vtlottery.com/games/instant-tickets"
 END_DATE_URL = "https://www.vtlottery.com/games/instant-tickets/last-day-to-redeem"
 BASE_URL = "https://www.vtlottery.com"
 
+# VT's 2nd Chance portal (separate subdomain) lists eligible scratchers
+# with their game number in parens:
+#   <p class="largeLabel">NAME $PRICE (GAME_NUMBER)</p>
+# Game numbers join cleanly to vtlottery.com's scratcher numbering.
+SECOND_CHANCE_URL = "https://vtlottery.2ndchanceplay.com/index.php?nav=eligibletickets"
+_VT_SC_LABEL_RE = re.compile(r'largeLabel">[^<]+?\((\d+)\)</p>', re.I)
+
 # Nav/utility paths to skip when following links from listing
 _SKIP_PATHS = {
     "/nolink", "/promos", "/where-to-play", "/giving-back", "/about",
