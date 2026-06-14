@@ -1,5 +1,11 @@
 """
 Montana Lottery scratch-off scraper.
+
+Second-chance: MT states "all Scratch tickets are eligible for Player's
+Club" — blanket eligibility with no per-game distinction. Per the
+project rule against blanket flags, has_second_chance stays FALSE for
+all MT games.
+
 Listing: https://montanalottery.com/scratch-games/
 WordPress/Elementor page — game data is inline:
   h2 → "$PRICE NAME" (e.g. "$10 Can-Am®")
