@@ -83,12 +83,15 @@ class DelawareScraper(BaseScraper):
                     "prizes_total": None,
                 })
 
+            has_2c = _norm_de_name(e["name"]) in sc_names
             games.append(self.build_game(
                 game_id=game_id,
                 name=e["name"],
                 price=e["price"],
                 tiers=tiers,
                 image_url=image_map.get(e["game_num"]),
+                has_second_chance=has_2c,
+                second_chance_url=SECOND_CHANCE_URL if has_2c else None,
             ))
 
         logger.info("DE: %d games from PDF", len(games))
