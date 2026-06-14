@@ -134,6 +134,30 @@ class VirginiaScraper(PlaywrightScraper):
         logger.info("VA: %d games scraped", len(games))
         return games
 
+    def _fetch_second_chance_ids(self) -> set[str]:
+        """Crawl /rewards/promotions for active second-chance promos and
+        extract eligible scratcher Game #s. Each promo card links to a
+        detail page whose copy reads "Game #NNNN" for every eligible
+        scratcher. Empty set on failure — never blanket-flag."""
+        ids: set[str] = set()
+        try:
+            resp = self.get(PROMOTIONS_INDEX_URL, timeout=20)
+        except Exception as e:
+            logger.warning("VA promotions index fetch failed: %s", e)
+            return ids
+        # Index page links each promo at /rewards/promotions/<slug>.
+        slug_re = re.compile(r'href="/rewards/promotions/([a-z0-9\-]+)"', re.I)
+        slugs = set(slug_re.findall(resp.text))
+        for slug in slugs:
+            try:
+                page_resp = self.get(f"{BASE_URL}/rewards/promotions/{slug}", timeout=15)
+            except Exception as e:
+                logger.debug("VA promo %s fetch failed: %s", slug, e)
+                continue
+            for m in _VA_GAME_NUM_RE.finditer(page_resp.text):
+                ids.add(m.group(1))
+        return ids
+
     def _scrape_detail(self, url: str) -> tuple[list, float | None, str | None]:
         soup = self.soup(url)
         text = soup.get_text(" ", strip=True)
