@@ -44,6 +44,9 @@ class DCScraper(BaseScraper):
         slugs = self._collect_slugs()
         logger.info("DC: %d unique game slugs found", len(slugs))
 
+        sc_names = self._fetch_second_chance_names()
+        logger.info("DC second-chance eligible games: %d", len(sc_names))
+
         from concurrent.futures import ThreadPoolExecutor, as_completed
 
         def fetch(slug):
@@ -59,10 +62,29 @@ class DCScraper(BaseScraper):
             for fut in as_completed(futures):
                 game = fut.result()
                 if game:
+                    if _norm_dc_name(game.get("name", "")) in sc_names:
+                        game["has_second_chance"] = True
+                        game["second_chance_url"] = SECOND_CHANCE_URL
                     games.append(game)
 
         logger.info("DC: %d games scraped", len(games))
         return games
+
+    def _fetch_second_chance_names(self) -> set[str]:
+        """Pull normalized scratcher names currently in a DC 2nd-chance
+        promo. Eligible games render as <img alt="<NAME> 2nd Chance">.
+        Empty set on failure."""
+        try:
+            resp = self.get(SECOND_CHANCE_URL, timeout=20)
+        except Exception as e:
+            logger.warning("DC second-chance fetch failed: %s", e)
+            return set()
+        names = set()
+        for m in _DC_SC_ALT_RE.finditer(resp.text):
+            n = _norm_dc_name(m.group(1))
+            if n:
+                names.add(n)
+        return names
 
     # ── listing ───────────────────────────────────────────────────────────────
 
