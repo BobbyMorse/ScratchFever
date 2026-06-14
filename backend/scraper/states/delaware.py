@@ -97,6 +97,22 @@ class DelawareScraper(BaseScraper):
         logger.info("DE: %d games from PDF", len(games))
         return games
 
+    def _fetch_second_chance_names(self) -> set[str]:
+        """Pull normalized scratcher names currently on the DE 2nd-chance
+        roster. Eligible games render as
+        <img alt="<NAME> instant game ticket">. Empty set on failure."""
+        try:
+            resp = self.get(SECOND_CHANCE_URL, timeout=20)
+        except Exception as e:
+            logger.warning("DE second-chance fetch failed: %s", e)
+            return set()
+        names = set()
+        for m in _DE_SC_ALT_RE.finditer(resp.text):
+            n = _norm_de_name(m.group(1))
+            if n:
+                names.add(n)
+        return names
+
     def _fetch_image_map(self) -> dict[str, str]:
         try:
             soup = self.soup("https://www.delottery.com/Instant-Games")
