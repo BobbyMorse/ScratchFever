@@ -164,6 +164,22 @@ class ConnecticutScraper(BaseScraper):
         logger.info("CT: %d games scraped", len(games))
         return games
 
+    def _fetch_second_chance_names(self) -> set[str]:
+        """Pull normalized scratcher names currently on the 2nd-chance
+        roster. Eligible games render as <img alt="<NAME> thumb nail">.
+        Empty set on failure — never blanket-flag."""
+        try:
+            resp = self.get(SECOND_CHANCE_URL, timeout=20)
+        except Exception as e:
+            logger.warning("CT second-chance fetch failed: %s", e)
+            return set()
+        names = set()
+        for m in _CT_THUMB_ALT_RE.finditer(resp.text):
+            n = _norm_ct_name(m.group(1))
+            if n:
+                names.add(n)
+        return names
+
     def _scrape_detail(self, url: str) -> tuple[list, float | None]:
         """Returns (tiers, overall_odds)."""
         soup = self.soup(url)
