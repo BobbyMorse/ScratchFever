@@ -145,6 +145,7 @@ class ConnecticutScraper(BaseScraper):
                 unclaimed = sum(t.get("prizes_remaining") or 0 for t in tiers)
                 tickets_remaining = round(total_tickets * unclaimed / total_prizes_printed) or None
 
+            has_2c = _norm_ct_name(name) in sc_names
             games.append(self.build_game(
                 game_id=game_num,
                 name=name,
@@ -156,6 +157,8 @@ class ConnecticutScraper(BaseScraper):
                 detail_url=detail_url,
                 image_url=f"https://www.ctlottery.org/Content/images/Scratch/thumbnails/{game_num}.jpg",
                 end_date=end_date,
+                has_second_chance=has_2c,
+                second_chance_url=SECOND_CHANCE_URL if has_2c else None,
             ))
 
         logger.info("CT: %d games scraped", len(games))
