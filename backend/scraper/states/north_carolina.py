@@ -3,6 +3,11 @@ North Carolina Education Lottery scratch-off scraper.
 Listing: https://nclottery.com/scratch-off  (83 games with price in link text)
 Detail:  https://nclottery.com/scratch-off/{id}/{slug}
 Table columns: Value | Odds 1 in | Total | Remaining
+
+Second-chance: NC runs Lucke-Rewards with second-chance drawings, but the
+eligible games are only shown after login (/rewards/second-chance gates
+behind auth). has_second_chance stays FALSE for all NC games until a
+public per-game source is found.
 """
 from __future__ import annotations
 import re
