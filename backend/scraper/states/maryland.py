@@ -36,6 +36,9 @@ class MarylandScraper(PlaywrightScraper):
             LIST_URL, wait_for="load", timeout=45_000, extra_wait_ms=6_000
         )
 
+        sc_names = self._fetch_second_chance_names()
+        logger.info("MD second-chance promo games: %d", len(sc_names))
+
         games = []
         for li in soup.find_all("li", id=re.compile(r"^ticket_\d+")):
             try:
