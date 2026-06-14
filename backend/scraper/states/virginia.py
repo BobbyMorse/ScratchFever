@@ -90,6 +90,9 @@ class VirginiaScraper(PlaywrightScraper):
 
         logger.info("VA: %d games from API", len(all_games_raw))
 
+        sc_game_ids = self._fetch_second_chance_ids()
+        logger.info("VA second-chance eligible game ids: %d", len(sc_game_ids))
+
         games = []
         for game_id, meta in all_games_raw.items():
             title = (meta.get("Title") or "").strip()
