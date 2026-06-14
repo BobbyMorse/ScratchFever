@@ -1,6 +1,11 @@
 """
 South Dakota Lottery scratch-off scraper.
 
+Second-chance: SD VIP-Only 2nd Chance Draw covers "most scratch tickets
+actively sold" per the rules PDF — blanket eligibility, no per-game
+flag. Per the project rule against blanket flags, has_second_chance
+stays FALSE for all SD games.
+
 Game list via WordPress REST API (custom post type "game"):
   GET https://lottery.sd.gov/wp-json/wp/v2/game
     ?game_option=24  (Active)
