@@ -1,5 +1,10 @@
 """
 New Hampshire Lottery scratch-off scraper.
+
+Second-chance: NH "Lucky Lounge" promos live at per-promo slugs with no
+master listing. has_second_chance stays FALSE for all NH games until a
+parseable roster surface is found.
+
 Game list from the public NH Lottery CMS API; remaining prize counts from the
 Gambyt game-data service (API key embedded in the NH Lottery JS bundle); per-tier
 original odds from NH's own prize-table endpoint.
