@@ -135,6 +135,12 @@ class NewMexicoScraper(BaseScraper):
                 tickets_remaining = round(overall_odds * total_rem) if overall_odds and all_have_rem else None
                 total_tickets = round(overall_odds * total_tot) if overall_odds and total_tot else None
 
+                norm = _norm_nm_name(name)
+                # Match when the promo name appears as a contiguous token
+                # sequence inside the game name. NM promos use ALL-CAPS
+                # branded names ("JURASSIC PARK") that appear as prefix/
+                # substring of the scratcher name ("JURASSIC PARK $5").
+                has_2c = any(promo and promo in norm for promo in sc_promo_names)
                 games.append(self.build_game(
                     game_id=str(game_id),
                     name=name,
@@ -144,6 +150,8 @@ class NewMexicoScraper(BaseScraper):
                     tickets_remaining=tickets_remaining,
                     total_tickets=total_tickets,
                     image_url=image_url,
+                    has_second_chance=has_2c,
+                    second_chance_url=SECOND_CHANCE_URL if has_2c else None,
                 ))
             except Exception as e:
                 logger.debug("NM parse error: %s", e)
