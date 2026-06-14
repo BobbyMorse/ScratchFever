@@ -1,5 +1,12 @@
 """
 Arkansas Scholarship Lottery scratch-off scraper.
+
+Second-chance: AR's Play It Again states all instant games qualify, but
+the canonical eligible-games list (theclub.aslplayerservices.com/
+piaeligiblegames) requires Club login. Per the project rule against
+blanket flags, has_second_chance stays FALSE for all AR games until the
+gated list is parseable.
+
 Listing: https://myarkansaslottery.com/games/instant
 Each game: <a href="/games/slug"> containing only <img alt="Name - Game No. XXX">
 Detail page has: "Ticket price: $X", "Overall odds of winning: 1 in X.XX",
