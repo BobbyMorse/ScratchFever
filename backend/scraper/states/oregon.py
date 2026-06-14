@@ -1,6 +1,12 @@
 """
 Oregon Lottery scratch-off scraper.
 
+Second-chance: OR's site states 2nd Chance applies to all non-winning
+Scratch-its broadly but only entries for the very last top prize per game
+are recorded. There's no enumerated eligible-games list, and per the
+project rule against blanket flags, has_second_chance stays FALSE for all
+OR games.
+
 Implementation note (2026-05-31): switched from per-game Playwright DOM
 scraping to OR's JSON API at osl-gameinfo-sys-api.us-w2.cloudhub.io.
 - The site's JS bundle authenticates via client_id/client_secret headers.
