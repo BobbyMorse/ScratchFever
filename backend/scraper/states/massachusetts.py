@@ -24,10 +24,9 @@ logger = logging.getLogger(__name__)
 BASE_API = "https://mslc-prod-herokuapp-com.global.ssl.fastly.net"
 PRIZES_URL = f"{BASE_API}/api/v1/instant-game-prizes"
 GAMES_URL  = f"{BASE_API}/api/v1/games"
-# The promotions carousel is served from the www host (not the Fastly mirror)
-# and exposes promotionType, which is the only structured signal MA gives us
-# for which scratch games are actually in a second-chance drawing.
-PROMOTIONS_CAROUSEL_URL = "https://www.masslottery.com/api/v1/cms/promotions-carousel?name=EXCITING_PROMOTIONS_CAROUSEL"
+# Each scratch game in the /api/v1/games payload carries a "tags" array;
+# games with "Second Chance" as a tag are the ones MA's own UI renders the
+# yellow "Second Chance" pill on. That's our source of truth.
 SECOND_CHANCE_PAGE = "https://www.masslottery.com/promotions/second-chance"
 DETAIL_BASE = "https://www.masslottery.com/games/draw-and-instants"
 
@@ -36,17 +35,6 @@ _HEADERS = {
     "Origin": "https://www.masslottery.com",
     "Referer": "https://www.masslottery.com/",
 }
-
-
-def _normalize_game_name(s: str) -> str:
-    """Strip dollar signs, commas, punctuation, casing — for matching promo
-    titles like "$500,000 Frenzy Second Chance Drawings" against the actual
-    game name "$500,000 FRENZY"."""
-    s = s or ""
-    s = re.sub(r"second\s*chance\s*drawings?", "", s, flags=re.I)
-    s = s.replace("$", "").replace(",", "")
-    s = re.sub(r"[^a-z0-9]+", " ", s.lower())
-    return " ".join(s.split())
 
 
 class MassachusettsScraper(BaseScraper):
