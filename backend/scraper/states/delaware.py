@@ -52,6 +52,9 @@ class DelawareScraper(BaseScraper):
         image_map = self._fetch_image_map()
         logger.info("DE: %d image URLs from Instant-Games page", len(image_map))
 
+        sc_names = self._fetch_second_chance_names()
+        logger.info("DE second-chance eligible games: %d", len(sc_names))
+
         games = []
         seen_ids: set[str] = set()
 
