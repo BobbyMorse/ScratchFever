@@ -1,6 +1,11 @@
 """
 West Virginia Lottery scratch-off / instant-game scraper.
 
+Second-chance: WV runs "PlayON" promotions but the listing
+(/playon/promotions) is fully JS-rendered with empty SSR HTML. Without
+a headless browser fetch we cannot enumerate eligible games.
+has_second_chance stays FALSE for all WV games.
+
 wvlottery.com is a Next.js app. Despite the SPA shell, each detail page's
 SSR HTML embeds the full game payload (price, total tickets, overall odds,
 per-tier prizeDetails, image URL) as an escaped JSON blob inside the React
