@@ -1,6 +1,12 @@
 """
 Oklahoma Lottery scratch-off scraper.
 
+Second-chance: OK runs themed per-game promotions (50X Wild, JAWS,
+Frogger, etc.) under /promotions but no recurring per-game flag system —
+neither the Players Club portal nor the scratcher detail pages carry
+the promo tie-in. has_second_chance stays FALSE for all OK games until
+a per-game source is found.
+
 lottery.ok.gov publishes the full active-games dataset as plain JSON at:
 
   GET /scratchers/get
