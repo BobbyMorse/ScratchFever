@@ -1,5 +1,11 @@
 """
 South Carolina Education Lottery scratch-off scraper.
+
+Second-chance: SC Players' Club promo text appears in per-game detail
+page prose for select titles, but there is no clean dedicated index.
+has_second_chance stays FALSE for all SC games until we extend the per-
+game detail scraper to also parse "Players' Club" mentions.
+
 Listing: https://www.sceducationlottery.com/lottery/draw/Scratch.aspx
 Games: <a href="/Games/InstantGame?gameId=NUMBER"> with img alt "Name Scratch-Off Game Link"
 Detail page: "Ticket Price: $X", "Overall Odds: 1 in X.XX",
