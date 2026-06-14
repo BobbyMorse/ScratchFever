@@ -130,6 +130,16 @@ class IowaScraper(BaseScraper):
         logger.info("IA: built %d games", len(games))
         return games
 
+    def _fetch_second_chance_ids(self) -> set[str]:
+        """Return the set of game IDs currently in a Prize Zone /
+        Play-It-Again promotion. Empty set on failure."""
+        try:
+            resp = self.get(_PRIZE_ZONE_URL, timeout=20)
+        except Exception as e:
+            logger.warning("IA Prize Zone fetch failed: %s", e)
+            return set()
+        return set(_PRIZE_ZONE_GAME_RE.findall(resp.text))
+
     # ── Listing page ───────────────────────────────────────────────────────────
 
     def _scrape_listing(self) -> dict[str, dict]:
