@@ -17,6 +17,22 @@ logger = logging.getLogger(__name__)
 GAMES_URL = "https://www.nmlottery.com/games/scratchers/"
 BASE_URL = "https://www.nmlottery.com"
 
+# NM lists active second-chance promos in the site nav menu of the same
+# scratchers page (no extra fetch needed). Each menu item reads
+# "<NAME> Second-Chance Promo[tion]" — we extract NAME and match it
+# substring-style against scraped scratcher names.
+_NM_SC_PROMO_RE = re.compile(
+    r'>([A-Z][A-Za-z0-9 ®&é!\-]{2,60}?)\s+Second-Chance\s+(?:Promo|Promotion)<',
+)
+SECOND_CHANCE_URL = "https://www.nmlottery.com/games/scratchers/"
+
+
+def _norm_nm_name(s: str) -> str:
+    s = s or ""
+    s = s.replace("®", "").replace("™", "").replace("$", "").replace(",", "")
+    s = re.sub(r"[^a-z0-9]+", " ", s.lower())
+    return " ".join(s.split())
+
 
 class NewMexicoScraper(BaseScraper):
     state_code = "NM"
