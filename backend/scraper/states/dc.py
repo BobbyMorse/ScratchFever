@@ -19,7 +19,20 @@ logger = logging.getLogger(__name__)
 GAMES_URL = "https://dclottery.com/dc-scratchers"
 BASE_URL  = "https://dclottery.com"
 
+# DC's 2nd-chance landing page lists each active promo with an image
+# alt="<NAME> 2nd Chance[ Contest]". DC Numbers entries are draw games,
+# which won't match scraped DC scratchers — harmless under-report.
+SECOND_CHANCE_URL = "https://dclottery.com/promotions/2nd-chance"
+_DC_SC_ALT_RE = re.compile(r'alt="([^"]+?)\s+2nd\s+Chance(?:\s+Contest)?"', re.I)
+
 _SLUG_RE  = re.compile(r"/dc-scratchers/([a-z0-9][a-z0-9-]*[a-z0-9])/?$")
+
+
+def _norm_dc_name(s: str) -> str:
+    s = s or ""
+    s = s.replace("®", "").replace("™", "").replace("$", "").replace(",", "")
+    s = re.sub(r"[^a-z0-9]+", " ", s.lower())
+    return " ".join(s.split())
 
 
 class DCScraper(BaseScraper):
