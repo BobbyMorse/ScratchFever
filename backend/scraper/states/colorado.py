@@ -1,6 +1,12 @@
 """
 Colorado Lottery scratch-off scraper.
 
+Second-chance: CO runs a Monthly Second-Chance Bonus Draw covering most
+$1-$5 + "select" $10-$20-$50 games, but per-game eligibility lives only
+in a PDF exclusion list (games with their own Top-Prize Bonus Draw are
+excluded). has_second_chance stays FALSE for all CO games until a
+parseable per-game source is found.
+
 List page: https://www.coloradolottery.com/en/games/scratch/
   - Links like /en/games/scratch/game/{slug}/
 Game page: https://www.coloradolottery.com/en/games/scratch/game/{slug}/
