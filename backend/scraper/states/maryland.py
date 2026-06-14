@@ -103,6 +103,12 @@ class MarylandScraper(PlaywrightScraper):
                 img_el = li.find("img")
                 image_url = img_el.get("src") if img_el else None
 
+                norm = _norm_md_name(name)
+                # Match by substring either direction — promo copy says
+                # "X the Cash" but a scratcher might be "50X the Cash"; we
+                # only flag when the promo name appears as a complete token
+                # sequence inside the game name (or vice versa).
+                has_2c = any(p == norm or p in norm or norm in p for p in sc_names)
                 games.append(self.build_game(
                     game_id=game_id,
                     name=name,
@@ -113,6 +119,8 @@ class MarylandScraper(PlaywrightScraper):
                     tickets_remaining=tickets_remaining,
                     detail_url=f"{LIST_URL}#{li['id']}",
                     image_url=image_url,
+                    has_second_chance=has_2c,
+                    second_chance_url=SECOND_CHANCE_URL if has_2c else None,
                 ))
             except Exception as e:
                 logger.debug("MD card parse error: %s", e)
