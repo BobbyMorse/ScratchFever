@@ -1,6 +1,13 @@
 """
 Georgia Lottery scratch-off scraper.
 API: https://www.galottery.com/api/v1/instant-games/games?size=1000
+
+Second-chance: GA's /games/second-chance.html is a hub for digital
+interactive games (Frogger, Rolling Jackpots) hosted at secondchancega.com
+— entry codes come from non-winning scratch tickets but GA Lottery does
+not publish a per-scratch-game eligibility list. has_second_chance stays
+FALSE for all GA scratch games until a per-game source is found.
+
   Fields: gameId, gameName, validationStatus, ticketPrice (cents),
           prizeTiers[]: prizeAmount (1/100 cent = divide by 10000 for dollars),
           winningTickets (total printed), paidTickets (claimed)
