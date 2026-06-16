@@ -48,16 +48,15 @@ class IowaScraper(BaseScraper):
         sc_game_ids = self._fetch_second_chance_ids()
         logger.info("IA second-chance eligible game ids: %s", sorted(sc_game_ids))
 
-        # Fetch all detail pages concurrently
-        with ThreadPoolExecutor(max_workers=8) as pool:
-            futures = {pool.submit(self._scrape_detail, gid): gid for gid in listing}
-            details: dict[str, dict] = {}
-            for fut in as_completed(futures):
-                gid = futures[fut]
-                try:
-                    details[gid] = fut.result()
-                except Exception as exc:
-                    logger.warning("IA: detail failed for game %s: %s", gid, exc)
+        # Fetch all detail pages concurrently via the shared scraper-detail pool
+        futures = {DETAIL_POOL.submit(self._scrape_detail, gid): gid for gid in listing}
+        details: dict[str, dict] = {}
+        for fut in as_completed(futures):
+            gid = futures[fut]
+            try:
+                details[gid] = fut.result()
+            except Exception as exc:
+                logger.warning("IA: detail failed for game %s: %s", gid, exc)
 
         games = []
         for gid, info in listing.items():
