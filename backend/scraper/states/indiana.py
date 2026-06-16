@@ -17,7 +17,9 @@ not publish total tickets printed:
 from __future__ import annotations
 import re
 import logging
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import as_completed
+
+from backend.scraper._shared_pool import DETAIL_POOL
 
 import requests
 from bs4 import BeautifulSoup
