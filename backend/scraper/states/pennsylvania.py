@@ -21,8 +21,10 @@ import logging
 import re
 import statistics
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import as_completed
 from pathlib import Path
+
+from backend.scraper._shared_pool import DETAIL_POOL
 
 import requests
 from bs4 import BeautifulSoup
