@@ -34,7 +34,6 @@ BASE_URL = "https://hoosierlottery.com"
 _PAYOUT_RATE = 0.65  # Indiana Hoosier Lottery statewide prize payout rate
 # Assumed average prize for unpublished small-prize tiers (prizes < $40 not shown)
 _AVG_SMALL = {1: 2.0, 2: 3.0, 3: 4.0, 5: 6.0, 10: 10.0, 20: 15.0, 25: 18.0, 30: 20.0, 50: 25.0}
-_DETAIL_CONCURRENCY = 10
 _DETAIL_TIMEOUT = 15
 
 
