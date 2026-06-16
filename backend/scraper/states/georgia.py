@@ -20,8 +20,10 @@ from __future__ import annotations
 import logging
 import re
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import as_completed
 from datetime import datetime, timezone
+
+from backend.scraper._shared_pool import DETAIL_POOL
 
 import requests
 
