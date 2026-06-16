@@ -14,7 +14,9 @@ EV computed from remaining prize data.
 """
 import re
 import logging
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import as_completed
+
+from backend.scraper._shared_pool import DETAIL_POOL
 from backend.scraper.base import BaseScraper
 from backend.ev_calculator import parse_prize_amount, parse_odds
 
