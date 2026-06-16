@@ -44,7 +44,9 @@ import logging
 import random
 import re
 import time as _time
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import as_completed
+
+from backend.scraper._shared_pool import DETAIL_POOL
 
 from bs4 import BeautifulSoup
 from curl_cffi import requests as cffi_requests
