@@ -269,12 +269,11 @@ class IllinoisScraper(BaseScraper):
                 image_url = src
             return gn, {"slug": slug, "overall_odds": odds, "image_url": image_url, "detail_url": url}
 
-        with ThreadPoolExecutor(max_workers=3) as ex:
-            futs = [ex.submit(_probe, gn, slug) for gn, slug in candidates]
-            for fut in as_completed(futs):
-                gn, rec = fut.result()
-                if rec and gn not in detail_map:
-                    detail_map[gn] = rec
+        futs = [DETAIL_POOL.submit(_probe, gn, slug) for gn, slug in candidates]
+        for fut in as_completed(futs):
+            gn, rec = fut.result()
+            if rec and gn not in detail_map:
+                detail_map[gn] = rec
 
     # ── hub: enumerate slugs across all paginated pages ────────────────────────
     def _fetch_hub_slugs(self) -> set[str]:
