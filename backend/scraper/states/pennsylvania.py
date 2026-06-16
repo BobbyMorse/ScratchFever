@@ -57,7 +57,6 @@ def _norm_pa_name(s: str) -> str:
     s = re.sub(r"[^a-z0-9]+", " ", s.lower())
     return " ".join(s.split())
 
-_CONCURRENCY = 5
 _DETAIL_TIMEOUT = 25
 
 
