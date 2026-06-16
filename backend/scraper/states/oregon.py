@@ -7,20 +7,25 @@ are recorded. There's no enumerated eligible-games list, and per the
 project rule against blanket flags, has_second_chance stays FALSE for all
 OR games.
 
-Implementation note (2026-05-31): switched from per-game Playwright DOM
-scraping to OR's JSON API at osl-gameinfo-sys-api.us-w2.cloudhub.io.
-- The site's JS bundle authenticates via client_id/client_secret headers.
-  We bootstrap by loading the listing page once with Playwright and
-  intercepting those headers from the first XHR, then make all subsequent
-  per-game calls with `requests`.
-- This avoids 36 sequential JS-rendered detail pageloads (and the timing
-  fragility that caused prod scrapes to return 1-row partial results).
+Implementation note (2026-06-15): rewritten to drop Playwright entirely.
+The site's earlier Mulesoft endpoint (osl-gameinfo-sys-api.cloudhub.io,
+captured via header-sniff) was retired. The current setup:
+
+- Listing HTML at /scratch-its/list/ inlines an `olapi` config object with
+  scrambled `newClient`/`newSecret` and a `wp_scratchIts` array carrying
+  per-game image URLs. We parse both directly with regex.
+- Creds are descrambled by porting the site's `unscramble()` helper
+  (reverse-Caesar shift-3, then reverse 4-char chunks).
+- All game data comes from api.oregonlottery.org/gameinfo/v1/instant/games
+  with the decoded client_id/client_secret headers.
+
+No browser dependency = faster, no flake on credential-capture races, no
+risk of being blocked by anti-bot on JS-rendered listing pages.
 """
 from __future__ import annotations
 import re
 import json
 import logging
-import concurrent.futures
 from datetime import datetime, timezone
 
 import requests
@@ -30,7 +35,15 @@ logger = logging.getLogger(__name__)
 
 BASE_URL = "https://www.oregonlottery.org"
 LISTING_URL = f"{BASE_URL}/scratch-its/list/"
-API_BASE = "https://osl-gameinfo-sys-api.us-w2.cloudhub.io/api/v1/instant/games"
+# Prod API endpoint (Mulesoft proxy). The site's JS picks between this and
+# a UAT host based on olapi.muleProd; we always want prod.
+API_BASE = "https://api.oregonlottery.org/gameinfo/v1/instant/games"
+
+UA = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/124.0.0.0 Safari/537.36"
+)
 
 
 class OregonScraper(BaseScraper):
@@ -40,46 +53,26 @@ class OregonScraper(BaseScraper):
     scraper_timeout = 300
 
     def scrape(self) -> list[dict]:
-        try:
-            from playwright.sync_api import sync_playwright  # noqa: F401
-        except ImportError:
-            logger.warning("OR: playwright not installed")
-            return []
-
-        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as ex:
-            return ex.submit(self._scrape_via_api).result()
-
-    def _scrape_via_api(self) -> list[dict]:
-        # Bootstrap can flake (creds not captured, navigation timeout). Retry
-        # once before failing — flake here used to take a state offline for a
-        # full scrape cycle until the next run.
-        creds, listing, image_map = self._bootstrap_via_playwright()
-        if not creds or not listing:
-            logger.warning("OR: bootstrap incomplete (creds=%s, listing=%s), retrying once",
-                           bool(creds), bool(listing))
-            creds, listing, image_map = self._bootstrap_via_playwright()
-        if not creds:
-            raise RuntimeError("OR: failed to capture API credentials from listing page")
-        if not listing:
-            raise RuntimeError("OR: listing API call returned no data")
-
-        all_games = listing.get("InstantGames", [])
-        logger.info(
-            "OR: API returned %d total games, %d images sniffed from listing",
-            len(all_games), len(image_map),
-        )
-
-        active = [g for g in all_games if _is_active(g)]
-        logger.info("OR: %d active games after filtering", len(active))
-
         session = requests.Session()
         session.headers.update({
-            "User-Agent": "Mozilla/5.0",
+            "User-Agent": UA,
             "Accept": "application/json",
             "Referer": f"{BASE_URL}/",
-            "client_id": creds["client_id"],
-            "client_secret": creds["client_secret"],
         })
+
+        creds, image_map = self._load_listing_config(session)
+        session.headers["client_id"] = creds["client_id"]
+        session.headers["client_secret"] = creds["client_secret"]
+
+        listing = session.get(API_BASE, params={"count": 1000}, timeout=30)
+        listing.raise_for_status()
+        all_games = listing.json().get("InstantGames", []) or []
+
+        active = [g for g in all_games if _is_active(g)]
+        logger.info(
+            "OR: API returned %d total games, %d active, %d images sniffed from listing",
+            len(all_games), len(active), len(image_map),
+        )
 
         games: list[dict] = []
         for meta in active:
@@ -94,128 +87,44 @@ class OregonScraper(BaseScraper):
         logger.info("OR: %d games scraped", len(games))
         return games
 
-    def _bootstrap_via_playwright(self) -> tuple[dict | None, dict | None, dict[str, str]]:
-        from playwright.sync_api import sync_playwright
+    def _load_listing_config(self, session: requests.Session) -> tuple[dict, dict[str, str]]:
+        resp = session.get(LISTING_URL, headers={"User-Agent": UA}, timeout=30)
+        resp.raise_for_status()
+        html = resp.text
 
-        creds: dict[str, str] = {}
-        listing_payload: dict | None = None
-        # Sniff every image response on the listing page and key by leading
-        # game-number prefix in the filename (e.g. "1652_50Or100-Blast_*.jpg").
+        m = re.search(r"var\s+olapi\s*=\s*(\{[^;]+\})\s*;", html)
+        if not m:
+            raise RuntimeError("OR: olapi config block not found on listing page")
+        olapi = json.loads(m.group(1))
+        scrambled_client = olapi.get("newClient")
+        scrambled_secret = olapi.get("newSecret")
+        if not scrambled_client or not scrambled_secret:
+            raise RuntimeError("OR: olapi missing newClient/newSecret")
+        creds = {
+            "client_id": _unscramble(scrambled_client),
+            "client_secret": _unscramble(scrambled_secret),
+        }
+
         image_map: dict[str, str] = {}
-        # Track API requests we saw so a credential miss can log what headers
-        # were actually present (the site occasionally renames the auth
-        # header pair; without this we'd just see "no creds" and not know why).
-        seen_api_header_sets: list[list[str]] = []
-
-        with sync_playwright() as pw:
-            browser = pw.chromium.launch(headless=True)
-            ctx = browser.new_context(user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/124.0.0.0 Safari/537.36"
-            ))
-            page = ctx.new_page()
-
-            def on_request(req):
-                if "osl-gameinfo-sys-api" not in req.url or creds:
-                    return
-                # `req.headers` (property) only returns the headers Playwright
-                # saw at request-start; auth headers injected by the page's JS
-                # interceptor can land after that and get missed. `all_headers()`
-                # blocks for the full set. Lower-case for case-insensitive lookup.
-                try:
-                    raw = req.all_headers()
-                except Exception:
-                    raw = req.headers
-                hdrs = {k.lower(): v for k, v in raw.items()}
-                seen_api_header_sets.append(sorted(hdrs.keys()))
-                cid = hdrs.get("client_id") or hdrs.get("x-client-id")
-                csec = hdrs.get("client_secret") or hdrs.get("x-client-secret")
-                if cid and csec:
-                    creds["client_id"] = cid
-                    creds["client_secret"] = csec
-
-            def on_response(resp):
-                nonlocal listing_payload
-                if (
-                    "osl-gameinfo-sys-api" in resp.url
-                    and "count=1000" in resp.url
-                    and listing_payload is None
-                    and resp.status == 200
-                ):
-                    try:
-                        listing_payload = json.loads(resp.body())
-                    except Exception:
-                        pass
-
-                # Filenames in /wp-content/uploads/.../{GameNum}_*.jpg key to
-                # the game; prefer the larger non-thumbnail variant.
-                url = resp.url
-                low = url.lower()
-                if "/wp-content/uploads/" in low and any(
-                    low.split("?")[0].endswith(ext)
-                    for ext in (".jpg", ".jpeg", ".png", ".webp")
-                ):
-                    fname = url.rsplit("/", 1)[-1].split("?")[0]
-                    m = re.match(r"(\d+)_", fname)
-                    if m:
-                        gid = m.group(1)
-                        existing = image_map.get(gid, "")
-                        # Skip resized thumbnails (-WxH suffix) when a base
-                        # version is already captured.
-                        is_thumb = bool(re.search(r"-\d+x\d+\.[a-z]+$", fname, re.I))
-                        if not existing or (
-                            not is_thumb and re.search(r"-\d+x\d+\.[a-z]+$", existing, re.I)
-                        ):
-                            image_map[gid] = url.split("?")[0]
-
-            # Listen at both page and context level — context-level catches
-            # requests from iframes / service workers that page.on misses,
-            # which has bitten this scraper before when the listing JS moved
-            # the API call into a worker.
-            page.on("request", on_request)
-            page.on("response", on_response)
-            ctx.on("request", on_request)
-            ctx.on("response", on_response)
-
-            # Race the navigation against the API response so we don't return
-            # early if networkidle fires before the JSON endpoint finishes.
+        m2 = re.search(r"wp_scratchIts\s*=\s*(\[.*?\])\s*;", html, re.DOTALL)
+        if m2:
             try:
-                with page.expect_response(
-                    lambda r: "osl-gameinfo-sys-api" in r.url and "count=1000" in r.url,
-                    timeout=45_000,
-                ):
-                    page.goto(LISTING_URL, wait_until="domcontentloaded", timeout=45_000)
-            except Exception as e:
-                logger.warning("OR: listing page load: %s", e)
+                for entry in json.loads(m2.group(1)):
+                    num = str(entry.get("number") or "").strip()
+                    if not num:
+                        continue
+                    # image_preview[0] is the 300x300 resized variant; the WP
+                    # naming convention puts -WxH right before the extension,
+                    # so stripping that suffix yields the full-res original.
+                    preview = entry.get("image_preview") or []
+                    if preview and isinstance(preview, list):
+                        url = preview[0]
+                        full = re.sub(r"-\d+x\d+(\.[a-z]+)$", r"\1", url, flags=re.IGNORECASE)
+                        image_map[num] = full
+            except (ValueError, TypeError) as e:
+                logger.warning("OR: wp_scratchIts parse failed: %s", e)
 
-            # Scroll through the listing so lazy-loaded ticket images on every
-            # game tile fire their network requests; the sniffer above keys
-            # them by game-number.
-            try:
-                page.wait_for_timeout(2_000)
-                for _ in range(12):
-                    page.evaluate("window.scrollBy(0, 1500)")
-                    page.wait_for_timeout(600)
-                # Force any remaining offscreen images
-                page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                page.wait_for_timeout(2_000)
-            except Exception as e:
-                logger.debug("OR: scroll-for-images: %s", e)
-
-            browser.close()
-
-        if not creds and seen_api_header_sets:
-            # Diagnostic for when the auth-header names get renamed upstream
-            # — first 5 sets is enough to spot the new pair.
-            sample = seen_api_header_sets[:5]
-            logger.warning(
-                "OR: %d API requests sniffed but none carried client_id/client_secret; "
-                "header sets seen: %s",
-                len(seen_api_header_sets), sample,
-            )
-
-        return (creds if creds else None), listing_payload, image_map
+        return creds, image_map
 
     def _fetch_and_build(self, session: requests.Session, meta: dict, image_map: dict[str, str]) -> dict | None:
         game_num = str(meta.get("GameNumber") or "").strip()
@@ -288,14 +197,13 @@ class OregonScraper(BaseScraper):
 
 
 def _scrape_detail_image(session: requests.Session, detail_url: str, game_num: str) -> str | None:
-    """Fallback: when the listing sniffer missed a game (offscreen during
-    scroll, lazy-load never fired), fetch its detail page directly and
+    """Fallback: when wp_scratchIts has no entry for a game (rare — usually a
+    new game whose WP post hasn't published yet), fetch its detail page and
     extract the /wp-content/uploads/{game_num}_*.jpg ticket image."""
     try:
         resp = session.get(detail_url, timeout=15)
         if resp.status_code != 200:
             return None
-        # Detail pages reuse the same filename convention as the listing.
         pattern = re.compile(
             rf'/wp-content/uploads/[^"\'\s]*/{re.escape(game_num)}_[^"\'\s]*?\.(?:jpg|jpeg|png|webp)',
             re.IGNORECASE,
@@ -311,6 +219,26 @@ def _scrape_detail_image(session: requests.Session, detail_url: str, game_num: s
     except Exception as e:
         logger.debug("OR: detail-image fallback failed for %s: %s", game_num, e)
         return None
+
+
+def _unscramble(encoded: str, chunk_size: int = 4, shift: int = 3) -> str:
+    """Port of the site's helpers.js `unscramble()`. Reverse-Caesar shift on
+    ASCII letters, then reverse fixed-size chunks. Decodes olapi.newClient
+    and olapi.newSecret into the real API credentials."""
+    shift %= 26
+    out = []
+    for ch in encoded:
+        code = ord(ch)
+        if "a" <= ch <= "z":
+            out.append(chr(((code - 97 - shift + 26) % 26) + 97))
+        elif "A" <= ch <= "Z":
+            out.append(chr(((code - 65 - shift + 26) % 26) + 65))
+        else:
+            out.append(ch)
+    decoded = "".join(out)
+    chunks = [decoded[i:i + chunk_size] for i in range(0, len(decoded), chunk_size)]
+    chunks.reverse()
+    return "".join(chunks)
 
 
 def _is_active(g: dict) -> bool:
