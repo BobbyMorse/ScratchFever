@@ -349,16 +349,11 @@ class IllinoisScraper(BaseScraper):
             }
 
         detail_map: dict[str, dict] = {}
-        # 3 workers: 4 state scrapers run concurrently (HTTP_CONCURRENCY=4),
-        # and curl_cffi spawns getaddrinfo threads per request. 8 workers ×
-        # 4 states + retries was exhausting OS threads on Railway. 3 workers
-        # finishes ~58 fetches in ~25-40s — well under the 600s watchdog.
-        with ThreadPoolExecutor(max_workers=3) as ex:
-            futs = [ex.submit(_fetch, slug) for slug in slugs]
-            for fut in as_completed(futs):
-                gn, rec = fut.result()
-                if gn and rec and gn not in detail_map:
-                    detail_map[gn] = rec
+        futs = [DETAIL_POOL.submit(_fetch, slug) for slug in slugs]
+        for fut in as_completed(futs):
+            gn, rec = fut.result()
+            if gn and rec and gn not in detail_map:
+                detail_map[gn] = rec
         return detail_map
 
     # ── prizes-table row → game dict ───────────────────────────────────────────
