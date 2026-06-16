@@ -116,12 +116,11 @@ class IndianaScraper(BaseScraper):
 
         logger.info("IN: found %d games from listing", len(stubs))
 
-        with ThreadPoolExecutor(max_workers=_DETAIL_CONCURRENCY) as executor:
-            future_to_id = {
-                executor.submit(self._fetch_detail, s["detail_url"]): s["game_id"]
-                for s in stubs
-            }
-            detail_map = {future_to_id[f]: f.result() for f in as_completed(future_to_id)}
+        future_to_id = {
+            DETAIL_POOL.submit(self._fetch_detail, s["detail_url"]): s["game_id"]
+            for s in stubs
+        }
+        detail_map = {future_to_id[f]: f.result() for f in as_completed(future_to_id)}
 
         games = []
         for stub in stubs:
