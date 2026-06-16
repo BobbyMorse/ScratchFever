@@ -122,9 +122,8 @@ class GeorgiaScraper(BaseScraper):
         game_ids = [str(g.get("gameId", "")) for g in active if g.get("gameId")]
         odds_map: dict[str, float | None] = {}
 
-        with ThreadPoolExecutor(max_workers=_DETAIL_CONCURRENCY) as executor:
-            future_to_id = {executor.submit(_fetch_overall_odds, gid): gid for gid in game_ids}
-            for future in as_completed(future_to_id):
+        future_to_id = {DETAIL_POOL.submit(_fetch_overall_odds, gid): gid for gid in game_ids}
+        for future in as_completed(future_to_id):
                 odds_map[future_to_id[future]] = future.result()
 
         fetched = sum(1 for v in odds_map.values() if v is not None)
