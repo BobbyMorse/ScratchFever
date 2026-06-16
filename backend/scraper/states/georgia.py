@@ -124,7 +124,7 @@ class GeorgiaScraper(BaseScraper):
 
         future_to_id = {DETAIL_POOL.submit(_fetch_overall_odds, gid): gid for gid in game_ids}
         for future in as_completed(future_to_id):
-                odds_map[future_to_id[future]] = future.result()
+            odds_map[future_to_id[future]] = future.result()
 
         fetched = sum(1 for v in odds_map.values() if v is not None)
         logger.info("GA: fetched overall odds for %d/%d games", fetched, len(game_ids))
