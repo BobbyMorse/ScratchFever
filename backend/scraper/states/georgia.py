@@ -40,7 +40,6 @@ _API_HEADERS = {
     "Referer": "https://www.galottery.com/en-us/games/scratchers/active-games.html",
     "Accept": "application/json",
 }
-_DETAIL_CONCURRENCY = 10
 _DETAIL_TIMEOUT = 15
 
 # GA encodes top-tier prizes as prizeAmount=0 in the API (likely an int-overflow
