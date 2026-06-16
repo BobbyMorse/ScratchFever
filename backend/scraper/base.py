@@ -221,7 +221,11 @@ class BaseScraper(ABC):
         self.session.timeout = 30
 
     def get(self, url: str, **kwargs) -> requests.Response:
-        resp = self.session.get(url, timeout=30, **kwargs)
+        # Allow callers to override the default timeout — pop before merging
+        # so we don't trigger "got multiple values for keyword argument
+        # 'timeout'" when both this method and the caller specify it.
+        kwargs.setdefault("timeout", 30)
+        resp = self.session.get(url, **kwargs)
         resp.raise_for_status()
         return resp
 
