@@ -85,12 +85,11 @@ class SouthCarolinaScraper(BaseScraper):
             )
 
         games = []
-        with ThreadPoolExecutor(max_workers=5) as pool:
-            futures = {pool.submit(fetch, c): c for c in candidates}
-            for fut in as_completed(futures):
-                result = fut.result()
-                if result:
-                    games.append(result)
+        futures = {DETAIL_POOL.submit(fetch, c): c for c in candidates}
+        for fut in as_completed(futures):
+            result = fut.result()
+            if result:
+                games.append(result)
 
         logger.info("SC: %d games scraped", len(games))
         return games
