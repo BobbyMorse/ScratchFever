@@ -47,7 +47,8 @@ class DCScraper(BaseScraper):
         sc_names = self._fetch_second_chance_names()
         logger.info("DC second-chance eligible games: %d", len(sc_names))
 
-        from concurrent.futures import ThreadPoolExecutor, as_completed
+        from concurrent.futures import as_completed
+        from backend.scraper._shared_pool import DETAIL_POOL
 
         def fetch(slug):
             try:
@@ -57,15 +58,14 @@ class DCScraper(BaseScraper):
                 return None
 
         games = []
-        with ThreadPoolExecutor(max_workers=8) as pool:
-            futures = {pool.submit(fetch, s): s for s in slugs}
-            for fut in as_completed(futures):
-                game = fut.result()
-                if game:
-                    if _norm_dc_name(game.get("name", "")) in sc_names:
-                        game["has_second_chance"] = True
-                        game["second_chance_url"] = SECOND_CHANCE_URL
-                    games.append(game)
+        futures = {DETAIL_POOL.submit(fetch, s): s for s in slugs}
+        for fut in as_completed(futures):
+            game = fut.result()
+            if game:
+                if _norm_dc_name(game.get("name", "")) in sc_names:
+                    game["has_second_chance"] = True
+                    game["second_chance_url"] = SECOND_CHANCE_URL
+                games.append(game)
 
         logger.info("DC: %d games scraped", len(games))
         return games
