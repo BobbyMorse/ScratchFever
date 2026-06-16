@@ -249,16 +249,29 @@ async def init_db():
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_sc_state_date ON second_chance_drawings(state_code, drawing_date DESC)")
         # Clear stale past end_dates for states whose scrapers no longer set end_date (e.g. CA).
         # Active games with a past end_date were set by an older scraper version and should not
-        # suppress display.
-        await conn.execute(
-            "UPDATE games SET end_date = NULL WHERE is_active = TRUE AND end_date < CURRENT_DATE"
-        )
+        # suppress display. Wrapped in lock_timeout so a mid-INSERT scraper from the previous
+        # deploy can't block startup past the Railway healthcheck window.
+        try:
+            async with conn.transaction():
+                await conn.execute("SET LOCAL lock_timeout = '5s'")
+                await conn.execute(
+                    "UPDATE games SET end_date = NULL WHERE is_active = TRUE AND end_date < CURRENT_DATE"
+                )
+        except asyncpg.exceptions.LockNotAvailableError:
+            import logging
+            logging.getLogger(__name__).warning("startup: skipping end_date cleanup, games lock contended")
         # CA API returns number=0 for all prize tiers when remaining counts are unavailable,
         # causing tickets_remaining to be stored as 0 instead of NULL. The UltraRare filter
         # then removes all CA games (0 < 30000, not null). Clear the bogus zeros.
-        await conn.execute(
-            "UPDATE games SET tickets_remaining = NULL WHERE state_code = 'CA' AND tickets_remaining = 0"
-        )
+        try:
+            async with conn.transaction():
+                await conn.execute("SET LOCAL lock_timeout = '5s'")
+                await conn.execute(
+                    "UPDATE games SET tickets_remaining = NULL WHERE state_code = 'CA' AND tickets_remaining = 0"
+                )
+        except asyncpg.exceptions.LockNotAvailableError:
+            import logging
+            logging.getLogger(__name__).warning("startup: skipping CA tickets_remaining cleanup, games lock contended")
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS state_retailers (
                 id SERIAL PRIMARY KEY,
