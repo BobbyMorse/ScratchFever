@@ -1800,6 +1800,36 @@ async function loadStateHealth() {
   }
 }
 
+async function dsRescrapeGames(stateCode) {
+  if (_dsScrapeRunning[stateCode]) return;
+  _dsScrapeRunning[stateCode] = true;
+  _renderDsGrid();
+  try {
+    const res = await callerFetch(`/api/scrape?state=${encodeURIComponent(stateCode)}`, { method: "POST" });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      alert(`Failed to start scrape for ${stateCode}: ${err.detail || res.status}`);
+      _dsScrapeRunning[stateCode] = false;
+      _renderDsGrid();
+      return;
+    }
+    const poll = setInterval(async () => {
+      try {
+        const sr = await fetch("/api/scrape/status");
+        const d = await sr.json();
+        if (!d.running) {
+          clearInterval(poll);
+          _dsScrapeRunning[stateCode] = false;
+          await loadStateHealth();
+        }
+      } catch (_) {}
+    }, 3000);
+  } catch (e) {
+    _dsScrapeRunning[stateCode] = false;
+    _renderDsGrid();
+  }
+}
+
 async function dsRescrapeRetailers(stateCode) {
   if (_dsRetailerRunning[stateCode]) return;
   _dsRetailerRunning[stateCode] = true;
