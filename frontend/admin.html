@@ -1128,8 +1128,9 @@
     const chips = document.getElementById("summaryChips");
     chips.innerHTML = `
       <div class="chip ok"><span class="chip-dot"></span><span class="chip-val">${okCount}</span> OK</div>
-      <div class="chip warn"><span class="chip-dot"></span><span class="chip-val">${warnCount}</span> Warn</div>
+      <div class="chip partial"><span class="chip-dot"></span><span class="chip-val">${partialCount}</span> Partial</div>
       <div class="chip err"><span class="chip-dot"></span><span class="chip-val">${errCount}</span> Error</div>
+      <div class="chip never"><span class="chip-dot"></span><span class="chip-val">${neverCount}</span> Never</div>
     `;
     document.getElementById("lastRefreshed").textContent = `Last refreshed ${timeAgo(new Date().toISOString())}`;
   }
