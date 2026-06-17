@@ -1603,6 +1603,7 @@ let _dsSortDir = 1;
 let _dsFilterStatus = null;
 let _dsActiveCode = null;
 let _dsRetailerRunning = {};  // state_code -> bool
+let _dsScrapeRunning = {};    // state_code -> bool (manual re-scrape in flight)
 
 function dsToggleSort(col) {
   if (_dsSortCol === col) {
