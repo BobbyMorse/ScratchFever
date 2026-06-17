@@ -1025,16 +1025,13 @@
   }
 
   function statusBadge(state) {
-    if (!state.last_scrape_at && state.games_in_db === 0)
+    if (state.status === "never" || (!state.last_scrape_at && state.games_in_db === 0))
       return `<span class="status-badge no-data">Never Run</span>`;
-    if (state.games_in_db === 0) {
-      if (state.last_scrape_success === false)
-        return `<span class="status-badge error"><span class="status-dot"></span>Error</span>`;
-      return `<span class="status-badge warn"><span class="status-dot"></span>No Data</span>`;
-    }
-    if (state.last_scrape_success === false)
+    if (state.status === "error")
       return `<span class="status-badge error"><span class="status-dot"></span>Error</span>`;
-    if (state.ev_pct < 50 || state.image_pct < 50)
+    if (state.games_in_db === 0)
+      return `<span class="status-badge warn"><span class="status-dot"></span>No Data</span>`;
+    if (state.ev_pct < 50)
       return `<span class="status-badge warn"><span class="status-dot"></span>Partial</span>`;
     return `<span class="status-badge ok"><span class="status-dot"></span>OK</span>`;
   }
