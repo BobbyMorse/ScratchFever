@@ -127,12 +127,31 @@ async def main() -> None:
     logger.info("scraper_worker: healthcheck HTTP server bound on port %d", port)
 
     bootstrap_task = asyncio.create_task(_bootstrap())
+    uptime_task = asyncio.create_task(_uptime_watchdog())
 
     try:
         await server_task
     finally:
         logger.info("scraper_worker: shutting down")
         bootstrap_task.cancel()
+        uptime_task.cancel()
+
+
+async def _uptime_watchdog() -> None:
+    """Self-restart after WORKER_MAX_UPTIME_SEC. See module-level comment."""
+    started = time.monotonic()
+    while True:
+        await asyncio.sleep(60)
+        if time.monotonic() - started >= WORKER_MAX_UPTIME_SEC:
+            logger.warning(
+                "scraper_worker: max uptime %ds reached — exiting so Railway "
+                "restarts with a clean thread/process tree",
+                WORKER_MAX_UPTIME_SEC,
+            )
+            # _exit (not sys.exit) so we don't wait on any wedged Playwright
+            # subprocess pipes during shutdown — those are exactly what we're
+            # trying to escape.
+            os._exit(0)
 
 
 if __name__ == "__main__":
