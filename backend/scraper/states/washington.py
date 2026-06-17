@@ -101,19 +101,26 @@ class WashingtonScraper(PlaywrightScraper):
         logger.info("WA: %d games found in TopPrizesRemaining pages", len(games_by_id))
 
         # ── Phase 2: overall odds via Playwright (one call per game) ───────────
+        # The Explorer page is slow (~10s/game × 60 games = ~10 min) and
+        # frequently pushes the whole scrape past its 900s timeout.
+        # overall_odds and total_tickets are fixed at game launch, so reuse the
+        # DB cache and only Playwright-fetch the games we've never resolved
+        # before. This drops a steady-state run from ~600s to ~30s.
+        cached_odds = self._load_cached_overall_odds()
         games: list[dict] = []
         for game_id, gd in games_by_id.items():
-            overall_odds, total_tickets = None, None
-            try:
-                esoup = self.pw_soup(
-                    f"{EXPLORER_URL}?id={game_id}",
-                    wait_for="networkidle",
-                    extra_wait_ms=2_500,
-                    timeout=30_000,
-                )
-                overall_odds, total_tickets = self._parse_explorer(esoup)
-            except Exception as exc:
-                logger.debug("WA: Explorer failed for %s: %s", game_id, exc)
+            overall_odds, total_tickets = cached_odds.get(game_id, (None, None))
+            if overall_odds is None or total_tickets is None:
+                try:
+                    esoup = self.pw_soup(
+                        f"{EXPLORER_URL}?id={game_id}",
+                        wait_for="networkidle",
+                        extra_wait_ms=2_500,
+                        timeout=30_000,
+                    )
+                    overall_odds, total_tickets = self._parse_explorer(esoup)
+                except Exception as exc:
+                    logger.debug("WA: Explorer failed for %s: %s", game_id, exc)
 
             tiers = gd["tiers"]
 
