@@ -207,6 +207,26 @@ class ArizonaScraper(BaseScraper):
         soup = BeautifulSoup(page.content(), "lxml")
         name_el = soup.select_one("h1, .game-title, [class*='game-name']")
         name = name_el.get_text(strip=True) if name_el else ""
+
+        # ── Detail-page image fallback ───────────────────────────────────────
+        # The listing-card grid only renders ~48 cards even though 78 games
+        # are active, so older games arrive here with image_url=None. The
+        # detail page itself has a hero ticket image inside `[class*=ticket]`
+        # — pull it as a fallback before falling back further to the network
+        # sniffer in the caller.
+        if not image_url:
+            hero = soup.select_one("[class*='ticket'] img, [class*='game-image'] img, figure img")
+            if hero:
+                src = hero.get("data-img-t") or hero.get("data-img-m") or hero.get("src")
+                if src:
+                    src = src.split("?")[0]
+                    low = src.lower()
+                    if (low.endswith((".jpg", ".jpeg", ".png", ".gif", ".webp"))
+                            and "logo" not in low and "badge" not in low
+                            and "icon" not in low and "starlogo" not in low):
+                        if src.startswith("/"):
+                            src = BASE_URL + src
+                        image_url = src
         if not name:
             # Fall back to page title
             m = re.search(r"^(.+?)(?:\s*#\d+)?$", text.split("\n")[0].strip())
