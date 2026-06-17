@@ -1702,8 +1702,10 @@ function _renderDsGrid() {
       : s.status === "ok" ? "OK"
       : s.status === "warn" ? "Stale" : "Never run";
     const d = _parseTs(s.last_scrape_at);
+    const scrapeBusy = _dsScrapeRunning[s.state_code];
     const when = isActive ? `<span style="color:var(--yellow);font-weight:600">Scraping now…</span>`
                : d ? timeAgo(d) : `<span class="ds-muted">—</span>`;
+    const scrapeBtn = `<button class="ds-rescrape-btn${scrapeBusy || isActive ? ' ds-rescrape-running' : ''}" onclick="dsRescrapeGames('${s.state_code}')" title="Re-scrape ${s.state_name} now">${scrapeBusy || isActive ? '…' : '↺'}</button>`;
     const errLine = "";
     const games = s.games_in_db > 0 ? s.games_in_db.toLocaleString() : `<span class="ds-muted">—</span>`;
     const avgRet = s.avg_return
