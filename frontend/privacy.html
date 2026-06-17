@@ -9,6 +9,7 @@
     .page-wrap { max-width: 760px; margin: 3rem auto; padding: 0 1.5rem 4rem; }
     .page-wrap h1 { font-size: 2rem; font-weight: 800; margin-bottom: .5rem; background: linear-gradient(135deg, var(--pink), var(--orange), var(--lemon)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
     .page-wrap h2 { font-size: 1.15rem; font-weight: 700; color: var(--grape); margin: 2rem 0 .6rem; }
+    .page-wrap h3 { font-size: 1rem; font-weight: 700; color: var(--text); margin: 1.2rem 0 .4rem; }
     .page-wrap p, .page-wrap li { color: var(--text); line-height: 1.7; margin-bottom: .9rem; }
     .page-wrap ul { padding-left: 1.4rem; margin-bottom: .9rem; }
     .back-link { display: inline-flex; align-items: center; gap: .4rem; color: var(--grape); font-weight: 600; text-decoration: none; font-size: .88rem; margin-bottom: 2rem; }
@@ -32,46 +33,103 @@
   <main class="page-wrap">
     <a href="/" class="back-link">← Back to ScratchFrenzy</a>
     <h1>Privacy Policy</h1>
-    <p class="effective">Effective Date: May 7, 2026 &nbsp;|&nbsp; Operated by EVQ AGENTIC LLC</p>
+    <p class="effective">Effective Date: June 16, 2026 &nbsp;|&nbsp; Operated by EVQ AGENTIC LLC</p>
+
+    <p>This Privacy Policy describes how EVQ AGENTIC LLC ("we," "us," "ScratchFrenzy") collects, uses, and shares information when you use the ScratchFrenzy website at scratchfrenzy.app, the ScratchFrenzy mobile application for iOS and Android (the "Mobile App"), and related services (collectively, the "Platform").</p>
 
     <h2>1. Information We Collect</h2>
-    <p>We collect information you provide directly to us, including:</p>
+
+    <h3>1a. Information you provide directly</h3>
     <ul>
-      <li>Email address and password when you create an account</li>
-      <li>Inventory reports you voluntarily submit (store name, game, quantity)</li>
-      <li>Usage data such as pages visited, features used, and timestamps</li>
+      <li><strong>Account data:</strong> email address, username, and password when you create an account.</li>
+      <li><strong>Inventory reports:</strong> store name, game, and quantity for any sightings you choose to submit.</li>
+      <li><strong>Ticket scans:</strong> photographs of lottery tickets you take or upload through the Mobile App. Images are processed to extract game data (e.g., game name, ticket grid, prizes). See Section 2 for retention.</li>
+      <li><strong>Support correspondence:</strong> the contents of any message you send us.</li>
     </ul>
-    <p>We do not collect payment information. We do not sell lottery tickets.</p>
+
+    <h3>1b. Information collected automatically</h3>
+    <ul>
+      <li><strong>Usage data:</strong> features used, screens viewed, timestamps, app version, device model, OS version, language, and crash/diagnostic logs. We use this to operate and improve the Platform.</li>
+      <li><strong>Approximate location (web):</strong> derived from IP address.</li>
+      <li><strong>Precise location (Mobile App, only if you grant permission):</strong> used to show nearby lottery retailers on the in-app map. Location is requested only when you open features that need it and is never collected in the background.</li>
+      <li><strong>Camera access (Mobile App, only if you grant permission):</strong> used to capture and flatten lottery ticket photos for on-device scanning and OCR. Photos are sent to our ticket-scanning service for processing.</li>
+      <li><strong>Photo library access (Mobile App, only if you grant permission):</strong> used to attach existing photos of tickets you choose.</li>
+      <li><strong>Identifiers:</strong> a generated user identifier we associate with your account, plus standard identifiers your device provides to PostHog (see Section 3).</li>
+    </ul>
+
+    <h3>1c. Information from third parties</h3>
+    <ul>
+      <li><strong>Apple App Store / Google Play (via RevenueCat):</strong> when you purchase a ScratchFrenzy Pro subscription in the Mobile App, the App Store or Play Store transmits transaction metadata to our subscription provider, RevenueCat. We receive entitlement status (whether you are an active Pro subscriber), the product purchased, renewal/expiration dates, and a transaction identifier. We do <strong>not</strong> receive your credit card number, Apple ID, Google account, or billing address.</li>
+      <li><strong>Stripe (web only):</strong> if you subscribe via the website, Stripe processes payment and we receive a Stripe customer ID and subscription status.</li>
+    </ul>
 
     <h2>2. How We Use Your Information</h2>
     <ul>
-      <li>To provide and operate the ScratchFrenzy platform</li>
-      <li>To display aggregated, anonymized inventory data to other users</li>
-      <li>To send account-related communications (e.g., password reset)</li>
-      <li>To improve the platform and debug issues</li>
+      <li>Operate the Platform and the features you request (e.g., scanning a ticket, showing a retailer map, granting Pro access).</li>
+      <li>Display aggregated, anonymized inventory data to other users — individual submissions are not attributed to your account in the public UI.</li>
+      <li>Send service communications (e.g., password reset).</li>
+      <li>Detect and prevent abuse, fraud, and policy violations.</li>
+      <li>Measure how the Platform is used, in aggregate, to improve features and diagnose crashes.</li>
     </ul>
 
-    <h2>3. Data Sharing</h2>
-    <p>We do not sell, rent, or trade your personal information to third parties. We may share data with service providers (e.g., hosting, analytics) who process data on our behalf under confidentiality agreements.</p>
-    <p>Inventory reports you submit are displayed publicly within the platform in aggregated form. Individual submissions are not attributed to your account in the public UI.</p>
+    <p><strong>Ticket scan retention.</strong> When you scan a ticket, the photograph is transmitted to our scanning service and processed to extract game data. We do not use ticket scans for advertising or share them with third parties for their own purposes. Extracted text and game metadata may be retained to operate ticket history features within your account.</p>
 
-    <h2>4. Cookies &amp; Tracking</h2>
-    <p>We use session cookies to keep you logged in. We may use analytics tools to understand platform usage. We do not use advertising trackers or sell behavioral data.</p>
+    <h2>3. Service Providers (Subprocessors)</h2>
+    <p>We use the following third-party services that process limited data on our behalf:</p>
+    <ul>
+      <li><strong>RevenueCat</strong> — manages mobile subscriptions and receipt validation. Receives entitlement status and the user identifier we provide.</li>
+      <li><strong>PostHog</strong> — product analytics and crash diagnostics. Receives a generated identifier, app interaction events, device metadata, and app version. We do not configure PostHog to collect ad identifiers or precise location.</li>
+      <li><strong>Cloudflare</strong> — content delivery and our ticket-scanning edge service. Receives uploaded scan images during processing.</li>
+      <li><strong>Stripe</strong> — payment processing for web subscriptions only.</li>
+      <li><strong>Google Maps</strong> — renders retailer maps inside the Mobile App. Map tile requests include approximate viewport coordinates.</li>
+      <li><strong>Hosting providers</strong> — host our website and backend (e.g., Vercel, AWS).</li>
+    </ul>
+    <p>These providers act as our service providers / processors and are contractually limited to the purposes above.</p>
 
-    <h2>5. Data Retention</h2>
-    <p>We retain account data for as long as your account is active. You may request deletion of your account and associated data by contacting us at the address below.</p>
+    <h2>4. Data Sharing</h2>
+    <p>We do not sell or rent your personal information. We do not share your personal information with third parties for their own marketing. We may disclose information when required by law, to enforce our Terms, or to protect the rights, property, or safety of ScratchFrenzy or others.</p>
 
-    <h2>6. Security</h2>
-    <p>We use industry-standard security practices including password hashing and HTTPS. No method of transmission over the internet is 100% secure.</p>
+    <h2>5. Your Choices &amp; Rights</h2>
 
-    <h2>7. Children's Privacy</h2>
-    <p>ScratchFrenzy is intended for users 18 years of age or older. We do not knowingly collect information from minors.</p>
+    <h3>5a. Mobile permissions</h3>
+    <p>You can grant or revoke camera, photo library, and location permissions at any time from your device's Settings. The Mobile App will continue to work without these permissions; only the features that depend on them will be unavailable.</p>
 
-    <h2>8. Changes to This Policy</h2>
-    <p>We may update this Privacy Policy from time to time. Continued use of the platform after changes constitutes acceptance of the updated policy.</p>
+    <h3>5b. Account access, correction, and deletion</h3>
+    <p>You can delete your account and associated personal data at any time:</p>
+    <ul>
+      <li><strong>In the Mobile App:</strong> Profile → Delete Account.</li>
+      <li><strong>On the web:</strong> visit <a href="/delete-account" style="color:var(--grape);font-weight:600">/delete-account</a> or email us at <a href="mailto:hello@scratchfrenzy.com" style="color:var(--grape);font-weight:600">hello@scratchfrenzy.com</a>.</li>
+    </ul>
+    <p>Deletion removes your account record, email, username, password hash, preferences, ticket scan history, and any tie between your account and inventory reports. Aggregated, anonymized inventory data may remain in the Platform. We may retain limited records where required by law (e.g., transaction records for tax purposes).</p>
 
-    <h2>9. Contact</h2>
-    <p>For privacy-related questions, please visit our <a href="/contact" style="color:var(--grape);font-weight:600">Contact page</a> or email us directly.</p>
+    <h3>5c. California (CCPA/CPRA) and Other US State Rights</h3>
+    <p>If you are a California resident (or a resident of another US state with comparable privacy laws), you have the right to know what personal information we collect, to request deletion, to request correction, and to opt out of the "sale" or "sharing" of personal information. We do not sell or share personal information as defined by CCPA/CPRA. To exercise your rights, contact us at <a href="mailto:hello@scratchfrenzy.com" style="color:var(--grape);font-weight:600">hello@scratchfrenzy.com</a>.</p>
+
+    <h3>5d. EEA / UK Rights</h3>
+    <p>If you are in the European Economic Area or the United Kingdom, you have rights of access, rectification, erasure, restriction, portability, and objection under GDPR/UK GDPR. Our legal bases are contract (to provide the service you requested), legitimate interests (to operate and secure the Platform), and consent (where required for permissions).</p>
+
+    <h2>6. Subscription Data &amp; Apple App Store</h2>
+    <p>If you subscribe to ScratchFrenzy Pro in the Mobile App, the transaction is processed by Apple or Google. Their privacy policies govern that processing. We receive only the limited subscription metadata described in Section 1c. To cancel an Apple App Store subscription, open the App Store app → your profile → Subscriptions. To cancel a Google Play subscription, open Google Play → Account → Payments &amp; subscriptions.</p>
+
+    <h2>7. Data Retention</h2>
+    <p>We retain account data while your account is active. After you delete your account, we remove personal data within 30 days, subject to limited backup retention not exceeding 90 days and any legal-hold obligations.</p>
+
+    <h2>8. Security</h2>
+    <p>We use industry-standard security practices including TLS in transit, PBKDF2 password hashing, and access controls. No method of transmission or storage is 100% secure.</p>
+
+    <h2>9. Children's Privacy</h2>
+    <p>ScratchFrenzy is intended only for users 18 years of age or older. We do not knowingly collect personal information from children under 13. If we learn we have collected personal information from a child under 13, we will delete it.</p>
+
+    <h2>10. International Transfers</h2>
+    <p>We are based in the United States and process data there. If you access the Platform from outside the US, your information will be transferred to and processed in the US.</p>
+
+    <h2>11. Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time. Material changes will be notified through the Platform. Continued use after the effective date constitutes acceptance of the updated policy.</p>
+
+    <h2>12. Contact</h2>
+    <p>EVQ AGENTIC LLC<br>
+    Email: <a href="mailto:hello@scratchfrenzy.com" style="color:var(--grape);font-weight:600">hello@scratchfrenzy.com</a><br>
+    Contact form: <a href="/contact" style="color:var(--grape);font-weight:600">scratchfrenzy.app/contact</a></p>
   </main>
 
   <footer>

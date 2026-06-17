@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Delete Your Account — ScratchFrenzy</title>
+  <link rel="stylesheet" href="/static/css/styles.css?v=2" />
+  <style>
+    .page-wrap { max-width: 720px; margin: 3rem auto; padding: 0 1.5rem 4rem; }
+    .page-wrap h1 { font-size: 2rem; font-weight: 800; margin-bottom: .5rem; background: linear-gradient(135deg, var(--pink), var(--orange), var(--lemon)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .page-wrap h2 { font-size: 1.15rem; font-weight: 700; color: var(--grape); margin: 2rem 0 .6rem; }
+    .page-wrap p, .page-wrap li { color: var(--text); line-height: 1.7; margin-bottom: .9rem; }
+    .page-wrap ul, .page-wrap ol { padding-left: 1.4rem; margin-bottom: .9rem; }
+    .back-link { display: inline-flex; align-items: center; gap: .4rem; color: var(--grape); font-weight: 600; text-decoration: none; font-size: .88rem; margin-bottom: 2rem; }
+    .back-link:hover { color: var(--pink); }
+    .card {
+      background: var(--bg2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.4rem 1.6rem;
+      margin: 1rem 0 1.5rem;
+      box-shadow: var(--shadow);
+    }
+    .card.warn { border-color: var(--orange); background: rgba(255, 138, 0, 0.04); }
+    .card h3 { margin: 0 0 .8rem; font-size: 1.05rem; color: var(--text); font-weight: 700; }
+    .email-btn {
+      display: inline-block;
+      background: var(--grape);
+      color: #fff !important;
+      padding: .7rem 1.2rem;
+      border-radius: 10px;
+      font-weight: 700;
+      text-decoration: none;
+      font-size: .95rem;
+    }
+    .email-btn:hover { background: var(--pink); }
+    .effective { color: var(--text-muted); font-size: .82rem; margin-bottom: 1.5rem; }
+    code { background: var(--bg2); padding: 1px 6px; border-radius: 4px; font-size: .85em; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="/" style="text-decoration:none">
+        <div class="logo">
+          <span class="logo-icon">🎰</span>
+          <span class="logo-text">Scratch<span class="accent">Fever</span></span>
+          <span class="logo-sub">Catch the Fever. Chase the Edge.</span>
+        </div>
+      </a>
+    </div>
+  </header>
+
+  <main class="page-wrap">
+    <a href="/" class="back-link">← Back to ScratchFrenzy</a>
+    <h1>Delete Your Account</h1>
+    <p class="effective">You can delete your ScratchFrenzy account and personal data at any time.</p>
+
+    <div class="card warn">
+      <h3>What gets deleted</h3>
+      <ul>
+        <li>Your email, username, and password hash</li>
+        <li>Your profile and preferences</li>
+        <li>Your saved ticket scan history</li>
+        <li>The link between your account and any inventory reports you submitted</li>
+      </ul>
+      <p style="margin-bottom:0;color:var(--text-muted);font-size:.9rem">Aggregated, anonymized data (e.g., "10 users reported Game X in stock") may remain in the platform but will no longer be tied to you. We retain a minimal log of the deletion request for audit purposes.</p>
+    </div>
+
+    <h2>Option 1 — Delete from the Mobile App (fastest)</h2>
+    <ol>
+      <li>Open the ScratchFrenzy app on iOS or Android.</li>
+      <li>Tap the <strong>Profile</strong> tab.</li>
+      <li>Scroll to the bottom and tap <strong>Delete Account</strong>.</li>
+      <li>Confirm the deletion.</li>
+    </ol>
+    <p>Your account will be deleted immediately and you will be signed out.</p>
+
+    <h2>Option 2 — Delete from the Web</h2>
+    <p>Sign in at <a href="/" style="color:var(--grape);font-weight:600">scratchfrenzy.app</a>, open your profile, and use the <strong>Delete Account</strong> control.</p>
+
+    <h2>Option 3 — Email Request</h2>
+    <p>Send a deletion request from the email address associated with your account:</p>
+    <p><a class="email-btn" href="mailto:hello@scratchfrenzy.com?subject=Account%20deletion%20request&amp;body=Please%20delete%20the%20ScratchFrenzy%20account%20associated%20with%20this%20email%20address.%0A%0AThank%20you.">Email a deletion request</a></p>
+    <p style="color:var(--text-muted);font-size:.9rem">We will confirm and complete the deletion within 30 days, typically within 1 business day.</p>
+
+    <h2>About Active Subscriptions</h2>
+    <p>Deleting your account does <strong>not</strong> automatically cancel an active Apple App Store or Google Play subscription. To stop future renewals:</p>
+    <ul>
+      <li><strong>iOS:</strong> App Store → your profile → Subscriptions → ScratchFrenzy → Cancel Subscription.</li>
+      <li><strong>Android:</strong> Google Play → Account → Payments &amp; subscriptions → Subscriptions → ScratchFrenzy → Cancel.</li>
+    </ul>
+
+    <h2>Questions?</h2>
+    <p>See our <a href="/privacy" style="color:var(--grape);font-weight:600">Privacy Policy</a> for what data we hold, or visit <a href="/contact" style="color:var(--grape);font-weight:600">/contact</a>.</p>
+  </main>
+
+  <footer>
+    <p class="footer-legal">© 2026 EVQ AGENTIC LLC. All rights reserved.</p>
+    <p class="footer-legal">EVQBET.com is operated by EVQ AGENTIC LLC.</p>
+    <nav class="footer-links">
+      <a href="/about">About</a>
+      <a href="/privacy">Privacy Policy</a>
+      <a href="/terms">Terms of Service</a>
+      <a href="/contact">Contact</a>
+    </nav>
+  </footer>
+</body>
+</html>

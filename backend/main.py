@@ -238,6 +238,11 @@ async def contact():
     return FileResponse(os.path.join(FRONTEND_DIR, "contact.html"))
 
 
+@app.get("/delete-account", include_in_schema=False)
+async def delete_account_page():
+    return FileResponse(os.path.join(FRONTEND_DIR, "delete-account.html"))
+
+
 @app.get("/retailer", include_in_schema=False)
 async def retailer_dashboard():
     return FileResponse(os.path.join(FRONTEND_DIR, "retailer.html"))

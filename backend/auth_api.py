@@ -149,6 +149,34 @@ def _sanitize_prefs(raw: dict) -> dict:
     return out
 
 
+@router.delete("/api/auth/me")
+async def delete_me(user: dict = Depends(require_member)):
+    """Delete the authenticated user's account.
+
+    Required by Apple App Store guideline 5.1.1(v) and Google Play
+    Account Deletion policy. Most user-linked rows cascade off the users
+    FK; inventory_reports stores the username as plain text, so we null
+    those fields out by hand so a deleted user's reports become
+    anonymous but stay in the aggregate dataset.
+
+    Does NOT cancel any active App Store / Play / Stripe subscription —
+    the user must cancel that with the billing platform separately.
+    """
+    uid = user["uid"]
+    async with get_pool().acquire() as conn:
+        async with conn.transaction():
+            await conn.execute(
+                "UPDATE inventory_reports SET reporter_username = NULL, reporter_ip = NULL WHERE reporter_username = $1",
+                user.get("username") or "",
+            )
+            result = await conn.execute("DELETE FROM users WHERE id = $1", uid)
+    analytics.capture(uid, "user_deleted_account", {})
+    deleted = result.split()[-1] if isinstance(result, str) else ""
+    if deleted == "0":
+        raise HTTPException(status_code=404, detail="Account not found")
+    return {"ok": True}
+
+
 @router.get("/api/auth/prefs")
 async def get_prefs(user: dict = Depends(require_member)):
     return await get_user_prefs(user["uid"])
