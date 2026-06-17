@@ -1070,14 +1070,15 @@
       return;
     }
 
-    let okCount = 0, warnCount = 0, errCount = 0;
+    let okCount = 0, partialCount = 0, errCount = 0, neverCount = 0;
 
     tbody.innerHTML = states.map(s => {
       const badge = statusBadge(s);
       const neverScraped = !s.last_scrape_at && s.games_in_db === 0;
-      if (badge.includes('"ok"')) okCount++;
-      else if (badge.includes('"error"')) errCount++;
-      else warnCount++;
+      if (badge.includes('status-badge ok')) okCount++;
+      else if (badge.includes('status-badge error')) errCount++;
+      else if (badge.includes('no-data">Never Run')) neverCount++;
+      else partialCount++;
 
       const gamesHtml = s.games_in_db === 0
         ? `<span class="games-count games-zero">0</span>`
