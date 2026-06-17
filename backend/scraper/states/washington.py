@@ -158,27 +158,43 @@ class WashingtonScraper(PlaywrightScraper):
 
     def _load_cached_overall_odds(self) -> dict[str, tuple[float | None, int | None]]:
         """Pull (overall_odds, total_tickets) for previously-scraped WA games.
-        Synchronous psycopg2 over the asyncpg DATABASE_URL so we can run inside
-        sync_playwright's thread. Returns empty dict on any failure — caller
-        will then fall through to the live Explorer fetch.
+        Returns empty dict on any failure — caller falls through to the live
+        Explorer fetch.
         """
         import os
+        import asyncio
         dsn = os.environ.get("DATABASE_URL")
         if not dsn:
             return {}
         try:
-            import psycopg2
+            import asyncpg
         except ImportError:
             return {}
-        try:
-            with psycopg2.connect(dsn) as conn, conn.cursor() as cur:
-                cur.execute(
+
+        async def _fetch():
+            conn = await asyncpg.connect(dsn)
+            try:
+                rows = await conn.fetch(
                     "SELECT game_id, overall_odds_one_in, total_tickets "
                     "FROM games WHERE state_code='WA' "
                     "AND overall_odds_one_in IS NOT NULL"
                 )
-                return {gid: (float(odds), int(tt) if tt is not None else None)
-                        for gid, odds, tt in cur.fetchall()}
+            finally:
+                await conn.close()
+            return rows
+
+        try:
+            # sync_playwright runs us in a worker thread — its event loop (if
+            # any) belongs to the parent process. asyncio.run() spins up a
+            # fresh loop bound to this thread, exactly what asyncpg expects.
+            rows = asyncio.run(_fetch())
+            return {
+                r["game_id"]: (
+                    float(r["overall_odds_one_in"]),
+                    int(r["total_tickets"]) if r["total_tickets"] is not None else None,
+                )
+                for r in rows
+            }
         except Exception as exc:
             logger.warning("WA: overall_odds cache load failed: %s", exc)
             return {}
