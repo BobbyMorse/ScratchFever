@@ -1727,7 +1727,7 @@ function _renderDsGrid() {
     return `<tr class="ds-state-row${isActive ? " ds-state-active" : ""}">
       <td><span class="${dotCls}" title="${dotTitle.replace(/"/g, '&quot;')}"></span></td>
       <td><span class="ds-state-code">${s.state_code}</span> <span class="ds-state-name">${s.state_name}</span>${errLine}</td>
-      <td class="ds-state-when">${when}</td>
+      <td class="ds-state-when">${when} ${scrapeBtn}</td>
       <td class="ds-col-num">${games}</td>
       <td class="ds-col-num">${_pctBar(s.ev_pct)}</td>
       <td class="ds-col-num">${_pctBar(s.image_pct)}</td>
