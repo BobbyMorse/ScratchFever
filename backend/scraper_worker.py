@@ -25,6 +25,7 @@ import asyncio
 import logging
 import os
 import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 from dotenv import load_dotenv
@@ -48,6 +49,15 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 logger = logging.getLogger(__name__)
 
 STARTUP_DELAY_SEC = 30  # short delay so DB pool warms up before the first cycle
+
+# Hard ceiling on worker uptime. Playwright + curl_cffi leak OS threads (DNS
+# resolver pools, Chromium child process pipes, getaddrinfo workers) faster
+# than they release them. Past ~8h the process can no longer pthread_create
+# and the Playwright lane wedges — every PW scraper then fails with "can't
+# start new thread" until something restarts the container. Exiting cleanly
+# every WORKER_MAX_UPTIME_SEC pre-empts that: Railway's restart-on-exit
+# policy spawns a fresh process with a clean thread/process tree.
+WORKER_MAX_UPTIME_SEC = int(os.environ.get("WORKER_MAX_UPTIME_SEC", "21600"))  # 6h
 
 healthcheck_app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 _worker_status = {"phase": "booting", "error": None}
