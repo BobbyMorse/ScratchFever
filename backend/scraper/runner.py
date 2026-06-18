@@ -188,6 +188,8 @@ async def run_scraper(scraper_cls) -> tuple[str, int, str | None]:
                         count = await persist_games(conn, scraper.state_code, scraper.state_name, games)
                         if count == 0:
                             raise RuntimeError(f"0/{len(games)} upserts succeeded — rolling back to protect existing data")
+                    if count > 0:
+                        clear_games_cache()
         except RuntimeError as e:
             error = error or str(e)
             logger.error("%s: %s", scraper.state_code, e)
