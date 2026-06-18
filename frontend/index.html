@@ -1967,8 +1967,8 @@
 
 
 <!-- ── Auth modal ──────────────────────────────────────────────────────────── -->
-<div class="modal-overlay" id="authModalOverlay" onclick="closeAuthModal()">
-  <div class="modal auth-modal" onclick="event.stopPropagation()">
+<div class="modal-overlay" id="authModalOverlay" onclick="if(event.target===this)closeAuthModal()">
+  <div class="modal auth-modal">
     <button class="modal-close" onclick="closeAuthModal()">✕</button>
     <div class="auth-tabs">
       <button class="auth-tab active" id="authTabLogin" onclick="switchAuthTab('login')">Log In</button>
