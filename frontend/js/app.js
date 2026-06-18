@@ -551,6 +551,7 @@ async function _handleBillingReturn() {
   const params = new URLSearchParams(window.location.search);
   const status = params.get("billing");
   if (!status) return;
+  const sessionId = params.get("session_id");
   // Strip the params from the URL so a refresh doesn't re-trigger.
   params.delete("billing");
   params.delete("session_id");
@@ -558,7 +559,27 @@ async function _handleBillingReturn() {
   window.history.replaceState({}, "", clean);
 
   if (status !== "success") return;
-  // Poll /me briefly while the webhook flips pro_until on the server.
+
+  // Ask the backend to verify the session directly with Stripe and apply
+  // entitlement now, rather than waiting for the async webhook.
+  if (sessionId && _currentUser) {
+    try {
+      const res = await fetch("/api/billing/verify-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
+        body: JSON.stringify({ session_id: sessionId }),
+      });
+      if (res.ok) {
+        await restoreSession();
+        if (_currentUser?.is_pro) {
+          alert("You're Pro! 🎯  Thanks for backing ScratchFrenzy.");
+          return;
+        }
+      }
+    } catch (_) { /* fall through to polling */ }
+  }
+
+  // Fallback: poll /me briefly while the webhook flips pro_until on the server.
   for (let i = 0; i < 10; i++) {
     await restoreSession();
     if (_currentUser?.is_pro) {
