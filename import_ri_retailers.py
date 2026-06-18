@@ -65,7 +65,7 @@ async def main(csv_path: Path):
             if not rid:
                 skipped += 1
                 continue
-            lat, lon = validate_latlon(
+            lat, lon, geo_approx = validate_latlon(
                 "RI",
                 _float(row.get("latitude")),
                 _float(row.get("longitude")),
@@ -74,18 +74,19 @@ async def main(csv_path: Path):
                 zip_code=row.get("zipCode"),
             )
             result = await conn.execute("""
-                INSERT INTO ri_retailers (id, name, address, city, state, zip_code, phone, latitude, longitude, is_active, last_seen_at)
-                VALUES ($1,$2,$3,$4,'RI',$5,$6,$7,$8,TRUE,NOW())
+                INSERT INTO ri_retailers (id, name, address, city, state, zip_code, phone, latitude, longitude, geo_approximated, is_active, last_seen_at)
+                VALUES ($1,$2,$3,$4,'RI',$5,$6,$7,$8,$9,TRUE,NOW())
                 ON CONFLICT (id) DO UPDATE SET
-                    name         = EXCLUDED.name,
-                    address      = EXCLUDED.address,
-                    city         = EXCLUDED.city,
-                    zip_code     = EXCLUDED.zip_code,
-                    phone        = EXCLUDED.phone,
-                    latitude     = EXCLUDED.latitude,
-                    longitude    = EXCLUDED.longitude,
-                    is_active    = TRUE,
-                    last_seen_at = NOW()
+                    name             = EXCLUDED.name,
+                    address          = EXCLUDED.address,
+                    city             = EXCLUDED.city,
+                    zip_code         = EXCLUDED.zip_code,
+                    phone            = EXCLUDED.phone,
+                    latitude         = EXCLUDED.latitude,
+                    longitude        = EXCLUDED.longitude,
+                    geo_approximated = EXCLUDED.geo_approximated,
+                    is_active        = TRUE,
+                    last_seen_at     = NOW()
             """,
                 rid,
                 row.get("name", "").strip(),
@@ -95,6 +96,7 @@ async def main(csv_path: Path):
                 row.get("phone", "").strip(),
                 lat,
                 lon,
+                geo_approx,
             )
             if result == "INSERT 0 1":
                 inserted += 1
