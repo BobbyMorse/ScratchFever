@@ -42,12 +42,14 @@ PER_STATE_TABLES = [
 ]
 
 
-async def scan_table(conn, state: str, table: str) -> list[dict]:
+async def scan_table(conn, state: str, table: str, include_nulls: bool) -> list[dict]:
+    """Out-of-bbox rows, plus (when include_nulls=True) rows whose lat/lon got
+    NULLed by an earlier guard pass and have enough address info to retry."""
     bb = STATE_BBOX.get(state)
     if not bb:
         return []
     min_lat, max_lat, min_lon, max_lon = bb
-    rows = await conn.fetch(
+    bad = await conn.fetch(
         f"""SELECT id, name, address, city, zip_code, latitude, longitude
             FROM {table}
             WHERE latitude IS NOT NULL AND longitude IS NOT NULL
@@ -55,20 +57,37 @@ async def scan_table(conn, state: str, table: str) -> list[dict]:
                 OR longitude NOT BETWEEN $3 AND $4)""",
         min_lat, max_lat, min_lon, max_lon,
     )
-    return [dict(r) for r in rows]
+    rows = [dict(r) for r in bad]
+    if include_nulls:
+        null_rows = await conn.fetch(
+            f"""SELECT id, name, address, city, zip_code, latitude, longitude
+                FROM {table}
+                WHERE latitude IS NULL AND zip_code IS NOT NULL"""
+        )
+        rows.extend(dict(r) for r in null_rows)
+    return rows
 
 
-async def scan_state_retailers(conn) -> list[dict]:
-    """state_retailers is multi-state; scan once and filter per-row."""
+async def scan_state_retailers(conn, rescue_null_states: list[str] | None = None) -> list[dict]:
+    """state_retailers is multi-state. Always scan for out-of-bbox rows; only
+    scan latitude IS NULL for states explicitly opted-in (rescue_null_states),
+    to avoid stomping on backfill_retailer_geo.py's domain for states whose
+    geo is genuinely still pending."""
     rows = await conn.fetch(
         """SELECT id, state_code, name, address, city, zip_code, latitude, longitude
            FROM state_retailers
            WHERE latitude IS NOT NULL AND longitude IS NOT NULL"""
     )
-    bad = []
-    for r in rows:
-        if not in_state_bbox(r["state_code"], r["latitude"], r["longitude"]):
-            bad.append(dict(r))
+    bad = [dict(r) for r in rows if not in_state_bbox(r["state_code"], r["latitude"], r["longitude"])]
+
+    if rescue_null_states:
+        null_rows = await conn.fetch(
+            """SELECT id, state_code, name, address, city, zip_code, latitude, longitude
+               FROM state_retailers
+               WHERE latitude IS NULL AND zip_code IS NOT NULL AND state_code = ANY($1)""",
+            [s.upper() for s in rescue_null_states],
+        )
+        bad.extend(dict(r) for r in null_rows)
     return bad
 
 
