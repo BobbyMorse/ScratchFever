@@ -44,6 +44,36 @@ async def fetch_missing(conn, state_code: str) -> list[dict]:
     return [dict(r) for r in rows]
 
 
+async def apply_fallback(conn, state_code: str, rows: list[dict], census_hits: dict[int, tuple[float, float]]) -> tuple[int, int]:
+    """For rows Census couldn't place (or placed outside the state), run them
+    through the ZIP/state-centroid fallback in validate_latlon. Returns
+    (approx_applied, still_missing)."""
+    approx_applied = still_missing = 0
+    for r in rows:
+        rid = r["id"]
+        coords = census_hits.get(rid)
+        if coords and in_state_bbox(state_code, coords[0], coords[1]):
+            continue  # the in-bbox path already updated this row
+        lat, lon, approx = validate_latlon(
+            state_code,
+            coords[0] if coords else None,
+            coords[1] if coords else None,
+            address=r.get("address"),
+            city=r.get("city"),
+            zip_code=r.get("zip"),
+        )
+        if lat is None:
+            still_missing += 1
+            continue
+        await conn.execute(
+            "UPDATE state_retailers SET latitude=$1, longitude=$2, geo_approximated=$3 WHERE id=$4",
+            lat, lon, bool(approx), rid,
+        )
+        if approx:
+            approx_applied += 1
+    return approx_applied, still_missing
+
+
 def build_csv(rows: list[dict]) -> bytes:
     buf = io.StringIO()
     w = csv.writer(buf, quoting=csv.QUOTE_MINIMAL, lineterminator="\n")
