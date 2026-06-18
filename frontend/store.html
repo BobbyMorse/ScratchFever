@@ -458,18 +458,6 @@
       document.getElementById("metaDesc").content = `${name} — ${address}, ${city} ${stateCode}. Live lottery scratch ticket inventory on ScratchFrenzy.`;
     }
 
-    // Top CTA only when unclaimed. The footer ribbon stays too — different
-    // intent: top banner is "owner, come here"; footer ribbon is contextual.
-    const topClaimCta = !hasProfile ? `
-      <div class="claim-cta-top">
-        <span class="claim-cta-top-icon">🏪</span>
-        <div class="claim-cta-top-body">
-          <div class="claim-cta-top-title">Are you the owner?</div>
-          <div class="claim-cta-top-sub">Claim this store free to post promotions, mark live inventory, and drive foot traffic from ScratchFrenzy players.</div>
-        </div>
-        <a class="btn btn-primary" href="${claimUrl(name, city, zip, phone)}">Claim this store</a>
-      </div>` : "";
-
     const photoStyle = profile?.photo_url
       ? `background-image: url('${escHtml(profile.photo_url).replace(/'/g, "\\'")}');`
       : "";
