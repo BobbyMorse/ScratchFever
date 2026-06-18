@@ -434,12 +434,11 @@
     const hasSummary = !!(summary && summary.retailer);
 
     if (!hasProfile && !hasSummary) {
-      // No state passed AND no claim — bare-bones "claim it" prompt.
       document.getElementById("content").innerHTML = `
         <div class="not-claimed">
-          <h2>This store hasn't been claimed yet</h2>
-          <p>If you own or operate this store, you can claim it for free and get a custom page like the ones other stores use.</p>
-          <a href="${claimUrl("", "", "", "")}" class="btn btn-primary">Claim this store</a>
+          <h2>No information available</h2>
+          <p>We don't have details for this store yet. Try browsing all stores from the main map.</p>
+          <a href="/" class="btn btn-primary">Back to ScratchFrenzy</a>
         </div>`;
       return;
     }
