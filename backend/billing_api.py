@@ -153,9 +153,7 @@ async def verify_session(body: VerifySessionBody, user: dict = Depends(require_m
         raise HTTPException(status_code=400, detail="Invalid session_id")
 
     try:
-        session = await asyncio.to_thread(
-            stripe.checkout.Session.retrieve, session_id, expand=["subscription"]
-        )
+        session = await asyncio.to_thread(stripe.checkout.Session.retrieve, session_id)
     except stripe.error.StripeError as exc:
         logger.exception("verify-session retrieve failed")
         raise HTTPException(status_code=502, detail=str(exc))
