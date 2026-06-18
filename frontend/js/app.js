@@ -5905,7 +5905,6 @@ function storeProfileHtml(retailerId) {
     <div class="inv-game-list">
       ${games.length ? gameRows : '<div class="inv-no-games">No games tracked for this state yet.</div>'}
     </div>
-    ${claimCta}
   </div>`;
 }
 
