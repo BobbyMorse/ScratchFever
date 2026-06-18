@@ -65,7 +65,7 @@ async def main(csv_path: Path):
                 skipped += 1
                 continue
 
-            lat, lon = validate_latlon(
+            lat, lon, geo_approx = validate_latlon(
                 "MA",
                 _float(row.get("latitude")),
                 _float(row.get("longitude")),
@@ -77,7 +77,7 @@ async def main(csv_path: Path):
             result = await conn.execute("""
                 INSERT INTO ma_retailers (
                     id, retailer_id, name, address, address2, city, zip_code, phone,
-                    latitude, longitude, games,
+                    latitude, longitude, geo_approximated, games,
                     self_service, sells_draw_game,
                     keno_sold, keno_monitor, keno_type,
                     wol_sold, wol_monitor, wol_type, ada_compliant,
@@ -85,9 +85,9 @@ async def main(csv_path: Path):
                     indie_strength, review_count, is_24h, closes_early,
                     is_active, last_seen_at
                 ) VALUES (
-                    $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,
-                    $12,$13,$14,$15,$16,$17,$18,$19,$20,
-                    $21,$22,$23,$24,$25,$26,$27,$28,
+                    $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,
+                    $13,$14,$15,$16,$17,$18,$19,$20,$21,
+                    $22,$23,$24,$25,$26,$27,$28,$29,
                     TRUE, NOW()
                 )
                 ON CONFLICT (id) DO UPDATE SET
