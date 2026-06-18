@@ -291,6 +291,16 @@ async def init_db():
         """)
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_state_retailers_state ON state_retailers(state_code)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_state_retailers_geo ON state_retailers(latitude, longitude)")
+        # geo_approximated: TRUE when lat/lon comes from a ZIP-centroid or
+        # state-centroid fallback (source feed was out of bbox AND Census
+        # couldn't place the address). Lets the UI show a softer pin/marker
+        # for "rough location" so users don't trust it as precise.
+        await add_column_if_missing(conn, "state_retailers", "geo_approximated", "BOOLEAN DEFAULT FALSE")
+        for _tbl in ("ma_retailers", "az_retailers", "fl_retailers", "ga_retailers", "ny_retailers", "ri_retailers"):
+            try:
+                await add_column_if_missing(conn, _tbl, "geo_approximated", "BOOLEAN DEFAULT FALSE")
+            except asyncpg.exceptions.UndefinedTableError:
+                pass
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS retailer_scrape_log (
                 state_code TEXT PRIMARY KEY,
