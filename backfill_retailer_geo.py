@@ -117,15 +117,24 @@ def geocode_batch(rows: list[dict]) -> dict[int, tuple[float, float]]:
     return out
 
 
-async def apply_updates(conn, updates: dict[int, tuple[float, float]]) -> int:
+async def apply_updates(conn, state_code: str, updates: dict[int, tuple[float, float]]) -> int:
+    """Apply Census results, but only when they fall inside the claimed state's
+    bbox. Out-of-bbox hits get dropped here and fall through to the ZIP/state
+    centroid fallback in apply_fallback()."""
     if not updates:
         return 0
-    args = [(lat, lng, rid) for rid, (lat, lng) in updates.items()]
+    in_bbox_args = [
+        (lat, lng, rid)
+        for rid, (lat, lng) in updates.items()
+        if in_state_bbox(state_code, lat, lng)
+    ]
+    if not in_bbox_args:
+        return 0
     await conn.executemany(
-        "UPDATE state_retailers SET latitude = $1, longitude = $2 WHERE id = $3",
-        args,
+        "UPDATE state_retailers SET latitude = $1, longitude = $2, geo_approximated = FALSE WHERE id = $3",
+        in_bbox_args,
     )
-    return len(args)
+    return len(in_bbox_args)
 
 
 async def process_state(conn, state_code: str) -> None:
