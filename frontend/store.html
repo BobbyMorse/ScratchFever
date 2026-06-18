@@ -563,11 +563,10 @@
         </div>
       </div>
 
+      ${hasProfile ? `
       <div class="owner-ribbon">
-        ${hasProfile
-          ? `Information out of date? <a href="/retailer">Sign in to your dashboard</a> to update it.`
-          : `Own this store? <a href="${claimUrl(name, city, zip, phone)}">Claim it</a> to control this page, post promotions, and drive foot traffic from ScratchFrenzy players.`}
-      </div>
+        Information out of date? <a href="/retailer">Sign in to your dashboard</a> to update it.
+      </div>` : ""}
     `;
   }
 
