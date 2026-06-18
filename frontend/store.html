@@ -361,18 +361,6 @@
     return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   }
 
-  function claimUrl(name, city, zip, phone) {
-    const qs = new URLSearchParams({
-      retailer_id: RID,
-      state_code:  STATE || "",
-      store_name:  name || "",
-      city:        city || "",
-      zip:         zip  || "",
-      phone:       phone || "",
-    });
-    return `/claim?${qs.toString()}`;
-  }
-
   async function load() {
     if (!RID) { renderNotFound(); return; }
     try {
