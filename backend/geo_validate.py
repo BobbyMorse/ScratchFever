@@ -86,7 +86,62 @@ STATE_BBOX: dict[str, tuple[float, float, float, float]] = {
     "WY": (40.85, 45.15, -111.15, -103.95),
 }
 
+# Rough geographic centroids per state (lat, lon). Last-resort fallback when
+# we can't geocode an address — pins land somewhere inside the right state,
+# marked as approximated so the UI can show them differently.
+STATE_CENTROID: dict[str, tuple[float, float]] = {
+    "AL": (32.806, -86.791), "AK": (61.370, -152.404), "AZ": (33.730, -111.431),
+    "AR": (34.969, -92.373), "CA": (36.116, -119.682), "CO": (39.059, -105.311),
+    "CT": (41.598, -72.755), "DE": (39.318, -75.507),  "DC": (38.897, -77.026),
+    "FL": (27.766, -81.687), "GA": (33.040, -83.643),  "HI": (21.094, -157.498),
+    "ID": (44.240, -114.479),"IL": (40.349, -88.986),  "IN": (39.849, -86.258),
+    "IA": (42.011, -93.210), "KS": (38.526, -96.726),  "KY": (37.668, -84.670),
+    "LA": (31.169, -91.867), "ME": (44.693, -69.381),  "MD": (39.064, -76.802),
+    "MA": (42.230, -71.530), "MI": (43.326, -84.536),  "MN": (45.694, -93.900),
+    "MS": (32.741, -89.678), "MO": (38.456, -92.288),  "MT": (46.921, -110.454),
+    "NE": (41.125, -98.268), "NV": (38.314, -117.055), "NH": (43.452, -71.563),
+    "NJ": (40.298, -74.521), "NM": (34.840, -106.248), "NY": (42.165, -74.948),
+    "NC": (35.630, -79.806), "ND": (47.529, -99.784),  "OH": (40.388, -82.764),
+    "OK": (35.565, -96.928), "OR": (44.572, -122.071), "PA": (40.590, -77.209),
+    "RI": (41.680, -71.512), "SC": (33.856, -80.945),  "SD": (44.299, -99.439),
+    "TN": (35.747, -86.692), "TX": (31.054, -97.563),  "UT": (40.150, -111.862),
+    "VT": (44.045, -72.711), "VA": (37.769, -78.170),  "WA": (47.400, -121.490),
+    "WV": (38.491, -80.954), "WI": (44.268, -89.616),  "WY": (42.755, -107.302),
+}
+
 CENSUS_URL = "https://geocoding.geo.census.gov/geocoder/locations/address"
+
+# Lazy-loaded pgeocode Nominatim client — opens a small embedded GeoNames
+# dataset on first use. None until needed; never re-initialized.
+_zip_nomi = None
+
+
+def _zip_centroid(zip_code: Optional[str]) -> Optional[tuple[float, float]]:
+    """Look up the rough centroid of a US ZIP code via pgeocode (offline)."""
+    if not zip_code:
+        return None
+    z = str(zip_code).strip().split("-", 1)[0]
+    if not z or not z[:5].isdigit():
+        return None
+    z = z[:5].zfill(5)
+    global _zip_nomi
+    try:
+        if _zip_nomi is None:
+            import pgeocode  # imported lazily — first call downloads ~3MB
+            _zip_nomi = pgeocode.Nominatim("us")
+        info = _zip_nomi.query_postal_code(z)
+    except Exception as e:
+        logger.warning("pgeocode lookup failed for zip=%s: %s", z, e)
+        return None
+    try:
+        lat = float(info.latitude)
+        lon = float(info.longitude)
+    except (TypeError, ValueError):
+        return None
+    # pgeocode returns NaN for unknown ZIPs; NaN != NaN, easiest sentinel check
+    if lat != lat or lon != lon:
+        return None
+    return lat, lon
 
 
 def in_state_bbox(state: Optional[str], lat: Optional[float], lon: Optional[float]) -> bool:
