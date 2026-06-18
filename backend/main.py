@@ -253,11 +253,6 @@ async def admin_page():
     return FileResponse(os.path.join(FRONTEND_DIR, "admin.html"))
 
 
-@app.get("/claim", include_in_schema=False)
-async def claim_page():
-    return FileResponse(os.path.join(FRONTEND_DIR, "claim.html"))
-
-
 @app.get("/store/{retailer_id}", include_in_schema=False)
 async def store_page(retailer_id: str):
     # Public store page — the retailer_id is parsed client-side from window.location.
