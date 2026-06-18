@@ -8,18 +8,19 @@ to catch the next one before it goes live.
 
 Usage in importers:
     from backend.geo_validate import validate_latlon
-    lat, lon = validate_latlon("MA", raw_lat, raw_lon,
-                               address=row["address"],
-                               city=row["city"],
-                               zip_code=row["zipCode"])
+    lat, lon, geo_approximated = validate_latlon(
+        "MA", raw_lat, raw_lon,
+        address=row["address"], city=row["city"], zip_code=row["zipCode"],
+    )
 
-Behavior:
-  - lat/lon in the state's rough bbox -> returned as-is
-  - lat/lon out of bbox AND we have an address -> single-address Census
-    geocode; if the new coords are in-bbox, use those
-  - otherwise -> (None, None) so the row inserts without geo and gets
-    picked up by backfill_retailer_geo.py, rather than pinning to the
-    wrong spot on the map
+Behavior — fallback chain when feed lat/lon is out-of-bbox:
+  1. Census single-address geocode -> in-bbox? use it, geo_approximated=False
+  2. ZIP centroid via pgeocode -> in-bbox? use it, geo_approximated=True
+  3. State centroid -> use it, geo_approximated=True
+  4. No state at all -> (None, None, False)
+
+Approximated rows still pin on the map, but the UI can render them softer
+(wider zoom, no marker pin, caption) so users don't trust the location.
 """
 from __future__ import annotations
 import logging
