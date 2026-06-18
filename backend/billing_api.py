@@ -140,6 +140,42 @@ async def create_portal(request: Request, user: dict = Depends(require_member)):
     return {"url": portal.url}
 
 
+# ── Synchronous activation on redirect back from Checkout ─────────────────
+# The webhook is the durable source of truth, but it can land 5–15s after the
+# user returns. Verifying the session directly with Stripe on redirect makes
+# Pro flip on the next /me poll instead of waiting on the webhook.
+
+@router.post("/api/billing/verify-session")
+async def verify_session(body: VerifySessionBody, user: dict = Depends(require_member)):
+    _stripe_key()
+    session_id = (body.session_id or "").strip()
+    if not session_id or not session_id.startswith("cs_"):
+        raise HTTPException(status_code=400, detail="Invalid session_id")
+
+    try:
+        session = await asyncio.to_thread(
+            stripe.checkout.Session.retrieve, session_id, expand=["subscription"]
+        )
+    except stripe.error.StripeError as exc:
+        logger.exception("verify-session retrieve failed")
+        raise HTTPException(status_code=502, detail=str(exc))
+
+    # The session must belong to the caller — defense against guessing/replay.
+    ref = session.get("client_reference_id")
+    if str(ref or "") != str(user["uid"]):
+        raise HTTPException(status_code=403, detail="Session does not belong to this user")
+
+    if session.get("payment_status") != "paid":
+        return {"ok": False, "payment_status": session.get("payment_status")}
+
+    await _apply_checkout_session(session)
+    pro_until = await get_user_pro_until(user["uid"])
+    return {
+        "ok": True,
+        "pro_until": pro_until.isoformat() if pro_until else None,
+    }
+
+
 # ── Webhook ────────────────────────────────────────────────────────────────
 
 def _ts_to_dt(ts) -> Optional[dt.datetime]:
