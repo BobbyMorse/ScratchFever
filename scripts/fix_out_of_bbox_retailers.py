@@ -124,52 +124,59 @@ async def fix_row(conn, table: str, state: str, row: dict, apply: bool) -> str:
     return verdict
 
 
-async def main(apply: bool):
+async def main(apply: bool, include_nulls: bool, rescue_null_states: list[str]):
     conn = await asyncpg.connect(os.environ["DATABASE_URL"], statement_cache_size=0)
     try:
-        total_bad = total_fixed = total_nulled = 0
+        total_bad = total_fixed = total_approx = total_nulled = 0
         for state, table in PER_STATE_TABLES:
             try:
-                bad = await scan_table(conn, state, table)
+                bad = await scan_table(conn, state, table, include_nulls)
             except asyncpg.UndefinedTableError:
                 print(f"[{state}] {table}: table missing — skipping")
                 continue
             if not bad:
                 print(f"[{state}] {table}: clean")
                 continue
-            print(f"[{state}] {table}: {len(bad)} out-of-bbox row(s)")
+            print(f"[{state}] {table}: {len(bad)} row(s) needing review")
             for r in bad:
                 verdict = await fix_row(conn, table, state, r, apply)
+                feed = ("(NULL,NULL)" if r['latitude'] is None
+                        else f"({r['latitude']:.5f}, {r['longitude']:.5f})")
                 print(f"   id={r['id']} {r.get('name')!r} @ {r.get('city')}, {r.get('zip_code')}  "
-                      f"feed=({r['latitude']:.5f}, {r['longitude']:.5f})  {verdict}")
+                      f"feed={feed}  {verdict}")
                 total_bad += 1
                 if "NULL" in verdict:
                     total_nulled += 1
+                elif "[approx]" in verdict:
+                    total_approx += 1
                 elif "->" in verdict:
                     total_fixed += 1
 
-        # state_retailers (multi-state)
         try:
-            sr_bad = await scan_state_retailers(conn)
+            sr_bad = await scan_state_retailers(conn, rescue_null_states)
         except asyncpg.UndefinedTableError:
             sr_bad = []
         if sr_bad:
-            print(f"[state_retailers] {len(sr_bad)} out-of-bbox row(s)")
+            print(f"[state_retailers] {len(sr_bad)} row(s) needing review")
             for r in sr_bad:
                 verdict = await fix_row(conn, "state_retailers", r["state_code"], r, apply)
+                feed = ("(NULL,NULL)" if r['latitude'] is None
+                        else f"({r['latitude']:.5f}, {r['longitude']:.5f})")
                 print(f"   id={r['id']} state={r['state_code']} {r.get('name')!r} @ {r.get('city')}, {r.get('zip_code')}  "
-                      f"feed=({r['latitude']:.5f}, {r['longitude']:.5f})  {verdict}")
+                      f"feed={feed}  {verdict}")
                 total_bad += 1
                 if "NULL" in verdict:
                     total_nulled += 1
+                elif "[approx]" in verdict:
+                    total_approx += 1
                 elif "->" in verdict:
                     total_fixed += 1
         else:
             print("[state_retailers] clean")
 
         verb = "applied" if apply else "would apply"
-        print(f"\nSummary: {total_bad} bad row(s); {verb} {total_fixed} re-geocode(s), "
-              f"{total_nulled} NULL-out(s).")
+        print(f"\nSummary: {total_bad} row(s); {verb} {total_fixed} census-fix, "
+              f"{total_approx} approx-fallback, {total_nulled} unfixable.")
         if not apply and total_bad:
             print("Re-run with --apply to write changes.")
     finally:
@@ -180,5 +187,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--apply", action="store_true",
                         help="Write changes (default: dry-run)")
+    parser.add_argument("--include-nulls", action="store_true",
+                        help="Also rescue per-state-table rows whose lat/lon is NULL (small populations)")
+    parser.add_argument("--rescue-null-states", nargs="*", default=[],
+                        help="state codes in state_retailers to also rescue from NULL (skip otherwise: backfill_retailer_geo.py owns those)")
     args = parser.parse_args()
-    asyncio.run(main(args.apply))
+    asyncio.run(main(args.apply, args.include_nulls, args.rescue_null_states))
