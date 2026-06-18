@@ -23,6 +23,8 @@ import asyncpg
 import requests
 from dotenv import load_dotenv
 
+from backend.geo_validate import in_state_bbox, validate_latlon
+
 load_dotenv()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 logger = logging.getLogger(__name__)
