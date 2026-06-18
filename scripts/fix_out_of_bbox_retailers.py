@@ -73,7 +73,7 @@ async def scan_state_retailers(conn) -> list[dict]:
 
 
 async def fix_row(conn, table: str, state: str, row: dict, apply: bool) -> str:
-    new_lat, new_lon = validate_latlon(
+    new_lat, new_lon, approx = validate_latlon(
         state,
         row["latitude"],
         row["longitude"],
@@ -83,22 +83,24 @@ async def fix_row(conn, table: str, state: str, row: dict, apply: bool) -> str:
     )
     old = (row["latitude"], row["longitude"])
     if new_lat is None:
-        verdict = "NULL  (no good Census match)"
+        verdict = "NULL  (no centroid available)"
     elif (new_lat, new_lon) == old:
         verdict = "no change"
+    elif approx:
+        verdict = f"~> ({new_lat:.5f}, {new_lon:.5f}) [approx]"
     else:
         verdict = f"-> ({new_lat:.5f}, {new_lon:.5f})"
 
-    if apply and (new_lat, new_lon) != old:
+    if apply:
         if table == "state_retailers":
             await conn.execute(
-                "UPDATE state_retailers SET latitude=$1, longitude=$2 WHERE id=$3",
-                new_lat, new_lon, row["id"],
+                "UPDATE state_retailers SET latitude=$1, longitude=$2, geo_approximated=$3 WHERE id=$4",
+                new_lat, new_lon, bool(approx), row["id"],
             )
         else:
             await conn.execute(
-                f"UPDATE {table} SET latitude=$1, longitude=$2 WHERE id::text=$3",
-                new_lat, new_lon, str(row["id"]),
+                f"UPDATE {table} SET latitude=$1, longitude=$2, geo_approximated=$3 WHERE id::text=$4",
+                new_lat, new_lon, bool(approx), str(row["id"]),
             )
     return verdict
 
