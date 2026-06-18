@@ -7,6 +7,8 @@ import logging
 import time
 import requests
 
+from backend.geo_validate import validate_latlon
+
 logger = logging.getLogger(__name__)
 
 SESSION = requests.Session()
