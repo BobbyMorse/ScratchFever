@@ -53,6 +53,14 @@ async def upsert_retailers(conn, state_code: str, retailers: list[dict]) -> int:
         return 0
     count = 0
     for r in retailers:
+        lat, lon = validate_latlon(
+            state_code,
+            r.get("latitude"),
+            r.get("longitude"),
+            address=r.get("address"),
+            city=r.get("city"),
+            zip_code=r.get("zip_code"),
+        )
         await conn.execute("""
             INSERT INTO state_retailers
                 (state_code, external_id, name, address, city, zip_code, phone, latitude, longitude, scraped_at)
@@ -75,8 +83,8 @@ async def upsert_retailers(conn, state_code: str, retailers: list[dict]) -> int:
             r.get("city"),
             r.get("zip_code"),
             r.get("phone"),
-            r.get("latitude"),
-            r.get("longitude"),
+            lat,
+            lon,
         )
         count += 1
     return count
