@@ -93,8 +93,8 @@ async def main(csv_path: Path):
                 row.get("city", "").strip(),
                 row.get("zipCode", "").strip(),
                 row.get("phone", "").strip(),
-                _float(row.get("latitude")),
-                _float(row.get("longitude")),
+                lat,
+                lon,
             )
             if result == "INSERT 0 1":
                 inserted += 1
