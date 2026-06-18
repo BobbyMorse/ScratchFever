@@ -53,7 +53,7 @@ async def upsert_retailers(conn, state_code: str, retailers: list[dict]) -> int:
         return 0
     count = 0
     for r in retailers:
-        lat, lon = validate_latlon(
+        lat, lon, geo_approx = validate_latlon(
             state_code,
             r.get("latitude"),
             r.get("longitude"),
@@ -63,18 +63,19 @@ async def upsert_retailers(conn, state_code: str, retailers: list[dict]) -> int:
         )
         await conn.execute("""
             INSERT INTO state_retailers
-                (state_code, external_id, name, address, city, zip_code, phone, latitude, longitude, scraped_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
+                (state_code, external_id, name, address, city, zip_code, phone, latitude, longitude, geo_approximated, scraped_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
             ON CONFLICT (state_code, external_id) DO UPDATE SET
-                name       = EXCLUDED.name,
-                address    = EXCLUDED.address,
-                city       = EXCLUDED.city,
-                zip_code   = EXCLUDED.zip_code,
-                phone      = EXCLUDED.phone,
-                latitude   = EXCLUDED.latitude,
-                longitude  = EXCLUDED.longitude,
-                is_active  = TRUE,
-                scraped_at = NOW()
+                name             = EXCLUDED.name,
+                address          = EXCLUDED.address,
+                city             = EXCLUDED.city,
+                zip_code         = EXCLUDED.zip_code,
+                phone            = EXCLUDED.phone,
+                latitude         = EXCLUDED.latitude,
+                longitude        = EXCLUDED.longitude,
+                geo_approximated = EXCLUDED.geo_approximated,
+                is_active        = TRUE,
+                scraped_at       = NOW()
         """,
             state_code,
             r["external_id"],
@@ -85,6 +86,7 @@ async def upsert_retailers(conn, state_code: str, retailers: list[dict]) -> int:
             r.get("phone"),
             lat,
             lon,
+            geo_approx,
         )
         count += 1
     return count
