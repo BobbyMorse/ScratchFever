@@ -142,14 +142,20 @@ async def process_state(conn, state_code: str) -> None:
     logger.info("[%s] %d rows missing geo", state_code, len(rows))
     if not rows:
         return
-    total_matched = 0
+    total_matched = total_approx = total_dropped = 0
     for i in range(0, len(rows), BATCH_SIZE):
         batch = rows[i : i + BATCH_SIZE]
         logger.info("[%s] batch %d-%d (%d rows) → Census …", state_code, i, i + len(batch), len(batch))
         result = await asyncio.to_thread(geocode_batch, batch)
-        applied = await apply_updates(conn, result)
+        applied = await apply_updates(conn, state_code, result)
+        approx, dropped = await apply_fallback(conn, state_code, batch, result)
         total_matched += applied
-        logger.info("[%s]   matched %d / %d → updated %d", state_code, len(result), len(batch), applied)
+        total_approx += approx
+        total_dropped += dropped
+        logger.info(
+            "[%s]   census-in-bbox %d, zip/state fallback %d, unfixable %d / %d",
+            state_code, applied, approx, dropped, len(batch),
+        )
 
     final_geo = await conn.fetchval(
         "SELECT count(*) FROM state_retailers WHERE state_code=$1 AND latitude IS NOT NULL",
