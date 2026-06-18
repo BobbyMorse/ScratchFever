@@ -1346,7 +1346,7 @@ function renderStrategyView() {
   let pool = (allGamesUnfiltered || []).filter(g => !EV_EXCLUDED_STATES.has(g.state_code));
   if (stateFilter) pool = pool.filter(g => g.state_code === stateFilter);
   if (priceFilter) { const p = Number(priceFilter); pool = pool.filter(g => g.price === p); }
-  if (hideEstimated) pool = pool.filter(g => !ESTIMATED_STATES.has(g.state_code));
+  if (hideEstimated) pool = pool.filter(g => !g.ev_approximate && !ESTIMATED_STATES.has(g.state_code));
 
   const titleEl = document.getElementById("stratTitle");
   const subEl   = document.getElementById("stratSubtitle");
