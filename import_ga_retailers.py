@@ -16,6 +16,8 @@ from pathlib import Path
 import asyncpg
 from dotenv import load_dotenv
 
+from backend.geo_validate import validate_latlon
+
 load_dotenv()
 
 CSV_PATH = Path("ga_retailers.csv")
