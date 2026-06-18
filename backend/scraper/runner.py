@@ -14,7 +14,7 @@ import asyncio
 import logging
 import time
 
-from backend.database import get_pool, upsert_game, upsert_prize_tiers, log_scrape
+from backend.database import get_pool, upsert_game, upsert_prize_tiers, log_scrape, clear_games_cache
 from backend.scraper.playwright_base import PlaywrightScraper
 from backend.scraper.states.texas import TexasScraper
 from backend.scraper.states.florida import FloridaScraper
