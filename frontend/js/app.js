@@ -5842,17 +5842,6 @@ function storeProfileHtml(retailerId) {
   // Filled by loadOwnerProfile(rid) after the panel is rendered.
   const ownerMount = `<div class="store-owner-mount" data-rid="${rid}"></div>`;
 
-  // "Claim this store" CTA — visible to everyone; the click target itself
-  // gates on auth. Cheap, high-value for owners discovering the product.
-  const claimCta = `<div class="store-claim-cta">
-    <span class="store-claim-cta-icon">🏪</span>
-    <div class="store-claim-cta-body">
-      <div class="store-claim-cta-title">Own this store?</div>
-      <div class="store-claim-cta-sub">Claim your free dashboard to manage inventory, post promotions, and drive foot traffic.</div>
-    </div>
-    <a class="btn btn-claim" href="${_claimUrl(retailerId)}">Claim this store</a>
-  </div>`;
-
   const gameRows = games.map(g => {
     const key = (g.name || '').toLowerCase();
     const status = perGameStatuses[key] ?? null;
