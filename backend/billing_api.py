@@ -79,6 +79,10 @@ class CheckoutBody(BaseModel):
     plan: str  # "monthly" or "yearly"
 
 
+class VerifySessionBody(BaseModel):
+    session_id: str
+
+
 @router.post("/api/billing/checkout")
 async def create_checkout(body: CheckoutBody, request: Request, user: dict = Depends(require_member)):
     if body.plan not in (PLAN_MONTHLY, PLAN_YEARLY):
