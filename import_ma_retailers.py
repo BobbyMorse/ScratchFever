@@ -131,6 +131,7 @@ async def main(csv_path: Path):
                 row.get("phone", "").strip(),
                 lat,
                 lon,
+                geo_approx,
                 row.get("games", ""),
                 _bool(row.get("selfService", "")),
                 _bool(row.get("sellsDrawGame", "")),
