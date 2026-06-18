@@ -527,11 +527,17 @@
     // Embed OpenStreetMap via the no-key iframe. We control the URL — only
     // numeric lat/lng from the API can land in it, so no injection surface.
     const lat = r.latitude, lng = r.longitude;
+    const approx = !!r.geo_approximated;
+    // Approximated pins get a wider bbox + a caption so the user understands
+    // it's a rough placeholder (ZIP or state centroid), not the actual store.
+    const bboxPad = approx ? 0.05 : 0.01;
+    const bboxPadLat = approx ? 0.04 : 0.008;
     const mapHtml = (lat && lng) ? `
       <div class="card map-card">
         <iframe class="map-frame" loading="lazy" referrerpolicy="no-referrer"
-                src="https://www.openstreetmap.org/export/embed.html?bbox=${(lng-0.01).toFixed(5)}%2C${(lat-0.008).toFixed(5)}%2C${(+lng+0.01).toFixed(5)}%2C${(+lat+0.008).toFixed(5)}&layer=mapnik&marker=${lat}%2C${lng}"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=${(lng-bboxPad).toFixed(5)}%2C${(lat-bboxPadLat).toFixed(5)}%2C${(+lng+bboxPad).toFixed(5)}%2C${(+lat+bboxPadLat).toFixed(5)}&layer=mapnik${approx ? '' : `&marker=${lat}%2C${lng}`}"
                 title="Map of ${escHtml(name)}"></iframe>
+        ${approx ? `<div class="map-approx-note">Approximate location — the lottery's feed didn't include precise coordinates for this store. Use the address above for directions.</div>` : ""}
       </div>` : "";
 
     const inventoryHtml = renderInventoryCard(summary);
