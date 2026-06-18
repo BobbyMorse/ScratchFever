@@ -5812,19 +5812,6 @@ function _findRetailerAcrossStates(retailerId) {
   return { retailer: null, state_code: getRetailerState(retailerId) };
 }
 
-function _claimUrl(retailerId) {
-  const { retailer, state_code } = _findRetailerAcrossStates(retailerId);
-  const qs = new URLSearchParams({
-    retailer_id: String(retailerId),
-    state_code:  state_code || '',
-    store_name:  retailer?.name || '',
-    city:        retailer?.city || '',
-    zip:         retailer?.zip_code || retailer?.zip || '',
-    phone:       retailer?.phone || '',
-  });
-  return `/claim?${qs.toString()}`;
-}
-
 // Public per-store page. Resolves state from the loaded retailer arrays so
 // the unclaimed-page renderer can look up address/lat/lng in the right
 // per-state table.
