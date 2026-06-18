@@ -1,7 +1,10 @@
 """
-Auth endpoints: login, register, me.
+Auth endpoints: login, register, me, send-otp, verify-otp.
 """
+import logging
+import os
 import re
+import secrets
 import time
 from collections import deque
 
@@ -12,9 +15,13 @@ from backend.users import (
     create_user, get_user_by_email, verify_password,
     create_token, require_member, is_user_pro,
     get_user_prefs, set_user_prefs, get_user_by_id,
+    get_user_by_phone, create_user_by_phone,
+    store_phone_otp, consume_phone_otp,
 )
 from backend.database import get_pool
 from backend import analytics
+
+logger = logging.getLogger(__name__)
 
 _ALLOWED_PREF_KEYS = {"defaultHuntState", "evDefaultState"}
 _MAX_PREF_VALUE_LEN = 64
@@ -33,6 +40,23 @@ _login_attempts: dict[str, deque[float]] = {}
 _REGISTER_WINDOW_SEC = 3600
 _REGISTER_MAX_PER_WINDOW = 5
 _register_attempts: dict[str, deque[float]] = {}
+
+# OTP throttles. Every send costs real money via Twilio, so we throttle on
+# both axes: by phone (a target can't be spammed) and by IP (one attacker
+# can't fan out across many numbers).
+_OTP_SEND_PHONE_WINDOW_SEC = 3600
+_OTP_SEND_PHONE_MAX = 3
+_otp_send_by_phone: dict[str, deque[float]] = {}
+
+_OTP_SEND_IP_WINDOW_SEC = 3600
+_OTP_SEND_IP_MAX = 10
+_otp_send_by_ip: dict[str, deque[float]] = {}
+
+_OTP_VERIFY_WINDOW_SEC = 60
+_OTP_VERIFY_MAX = 10
+_otp_verify_by_ip: dict[str, deque[float]] = {}
+
+_E164_RE = re.compile(r"^\+[1-9]\d{7,14}$")
 
 
 def _check_rate(store: dict[str, deque[float]], ip: str, window_sec: int, max_per_window: int, detail: str) -> None:
@@ -107,6 +131,93 @@ async def register(body: RegisterBody, request: Request):
     return {"token": token, "email": user["email"], "username": user.get("username"), "role": user["role"]}
 
 
+class SendOtpBody(BaseModel):
+    phone: str
+
+
+class VerifyOtpBody(BaseModel):
+    phone: str
+    code: str
+
+
+def _normalize_phone(raw: str) -> str:
+    phone = raw.strip().replace(" ", "").replace("-", "").replace("(", "").replace(")", "")
+    if not _E164_RE.match(phone):
+        raise HTTPException(status_code=400, detail="Phone must be E.164 (e.g. +15555551234)")
+    return phone
+
+
+def _send_twilio_sms(phone: str, code: str) -> None:
+    """Send the OTP via the same Twilio account used by the retailer caller.
+    Raises HTTPException(503) if credentials are unconfigured."""
+    account_sid = os.getenv("TWILIO_ACCOUNT_SID")
+    auth_token  = os.getenv("TWILIO_AUTH_TOKEN")
+    from_number = os.getenv("TWILIO_PHONE_NUMBER")
+    if not all([account_sid, auth_token, from_number]):
+        logger.error("OTP send: Twilio credentials missing")
+        raise HTTPException(status_code=503, detail="SMS service unavailable")
+    try:
+        from twilio.rest import Client as TwilioClient
+        client = TwilioClient(account_sid, auth_token)
+        client.messages.create(
+            to=phone,
+            from_=from_number,
+            body=f"Your ScratchFrenzy code is {code}. It expires in 10 minutes.",
+        )
+    except Exception as exc:
+        logger.error("OTP send to %s failed: %s", phone, exc)
+        raise HTTPException(status_code=502, detail="Could not send code. Try again.")
+
+
+@router.post("/api/auth/send-otp")
+async def send_otp(body: SendOtpBody, request: Request):
+    ip = request.client.host if request.client else "unknown"
+    phone = _normalize_phone(body.phone)
+    _check_rate(_otp_send_by_ip, ip, _OTP_SEND_IP_WINDOW_SEC, _OTP_SEND_IP_MAX,
+                "Too many code requests from this network. Try again later.")
+    _check_rate(_otp_send_by_phone, phone, _OTP_SEND_PHONE_WINDOW_SEC, _OTP_SEND_PHONE_MAX,
+                "Too many codes sent to this number. Try again later.")
+    code = f"{secrets.randbelow(1_000_000):06d}"
+    await store_phone_otp(phone, code, ttl_seconds=600)
+    _send_twilio_sms(phone, code)
+    return {"ok": True}
+
+
+@router.post("/api/auth/verify-otp")
+async def verify_otp(body: VerifyOtpBody, request: Request):
+    ip = request.client.host if request.client else "unknown"
+    _check_rate(_otp_verify_by_ip, ip, _OTP_VERIFY_WINDOW_SEC, _OTP_VERIFY_MAX,
+                "Too many verification attempts. Try again in a minute.")
+    phone = _normalize_phone(body.phone)
+    if not re.match(r"^\d{6}$", body.code or ""):
+        raise HTTPException(status_code=400, detail="Code must be 6 digits")
+    if not await consume_phone_otp(phone, body.code):
+        raise HTTPException(status_code=401, detail="Invalid or expired code")
+
+    existing = await get_user_by_phone(phone)
+    if existing:
+        user_row = existing
+        async with get_pool().acquire() as conn:
+            await conn.execute(
+                "UPDATE users SET last_login_at = NOW(), login_count = COALESCE(login_count, 0) + 1 WHERE id = $1",
+                user_row["id"],
+            )
+        analytics.capture(user_row["id"], "user_logged_in", {"role": user_row["role"], "method": "phone"})
+    else:
+        user_row = await create_user_by_phone(phone)
+        analytics.identify(user_row["id"], {"phone": phone, "role": user_row["role"]})
+        analytics.capture(user_row["id"], "user_signed_up", {"role": user_row["role"], "method": "phone"})
+
+    token = create_token(user_row["id"], user_row.get("email"), user_row["role"], user_row.get("username"))
+    return {
+        "token": token,
+        "phone": phone,
+        "email": user_row.get("email"),
+        "username": user_row.get("username"),
+        "role": user_row["role"],
+    }
+
+
 @router.get("/api/auth/me")
 async def get_me(user: dict = Depends(require_member)):
     db_user = await get_user_by_id(user["uid"]) or {}
@@ -122,8 +233,9 @@ async def get_me(user: dict = Depends(require_member)):
         ))
     return {
         "id": user["uid"],
-        "email": user["email"],
-        "username": user.get("username"),
+        "email": db_user.get("email") or "",
+        "phone": db_user.get("phone"),
+        "username": db_user.get("username") or user.get("username"),
         "role": user["role"],
         "is_pro": is_pro,
         "pro_until": pro_until.isoformat() if pro_until else None,

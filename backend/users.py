@@ -60,6 +60,15 @@ async def init_users_db():
         await conn.execute(
             "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username ON users(username) WHERE username IS NOT NULL"
         )
+        # Phone-only signups: email + password_hash become nullable so a user
+        # can exist with just a verified phone. Existing email users are
+        # unaffected — their rows still have both fields populated.
+        await add_column_if_missing(conn, "users", "phone", "TEXT")
+        await conn.execute("ALTER TABLE users ALTER COLUMN email DROP NOT NULL")
+        await conn.execute("ALTER TABLE users ALTER COLUMN password_hash DROP NOT NULL")
+        await conn.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_users_phone ON users(phone) WHERE phone IS NOT NULL"
+        )
         # Mirror of the "pro" entitlement. Source of truth is whichever billing
         # provider granted it — Stripe (web) and RevenueCat (mobile) both write here.
         # NULL or past = not Pro; future = Pro until that timestamp.
@@ -83,6 +92,18 @@ async def init_users_db():
                 created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
                 redeemed_by_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
                 redeemed_at TIMESTAMPTZ
+            )
+        """)
+        # Phone OTP codes. Phone is PK so a new send overwrites any pending
+        # code for the same number — prevents stacking and simplifies cleanup.
+        # We store the hash, not the code, so a DB leak can't be used to log in.
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS phone_otps (
+                phone TEXT PRIMARY KEY,
+                code_hash TEXT NOT NULL,
+                attempts INTEGER NOT NULL DEFAULT 0,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                expires_at TIMESTAMPTZ NOT NULL
             )
         """)
 
@@ -112,6 +133,74 @@ async def get_user_by_email(email: str) -> Optional[dict]:
             email.lower().strip(),
         )
         return dict(row) if row else None
+
+
+async def get_user_by_phone(phone: str) -> Optional[dict]:
+    async with get_pool().acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT id, email, phone, username, role FROM users WHERE phone=$1",
+            phone,
+        )
+        return dict(row) if row else None
+
+
+async def create_user_by_phone(phone: str, role: str = "member") -> dict:
+    """Create a phone-only user — no email, no password. Used after OTP verify."""
+    async with get_pool().acquire() as conn:
+        row = await conn.fetchrow(
+            "INSERT INTO users (phone, role) VALUES ($1, $2) RETURNING id",
+            phone, role,
+        )
+        return {"id": row["id"], "phone": phone, "email": None, "username": None, "role": role}
+
+
+async def store_phone_otp(phone: str, code: str, ttl_seconds: int = 600) -> None:
+    """Hash + store an OTP. Overwrites any prior unverified code for this phone."""
+    code_hash = _hash_password(code)
+    async with get_pool().acquire() as conn:
+        await conn.execute(
+            """
+            INSERT INTO phone_otps (phone, code_hash, attempts, created_at, expires_at)
+            VALUES ($1, $2, 0, NOW(), NOW() + ($3 || ' seconds')::interval)
+            ON CONFLICT (phone) DO UPDATE SET
+                code_hash = EXCLUDED.code_hash,
+                attempts = 0,
+                created_at = NOW(),
+                expires_at = EXCLUDED.expires_at
+            """,
+            phone, code_hash, str(ttl_seconds),
+        )
+
+
+async def consume_phone_otp(phone: str, code: str, max_attempts: int = 5) -> bool:
+    """Verify a submitted code. Returns True on match, False otherwise.
+
+    Increments attempt counter on every call. Deletes the row on success
+    (one-shot) and on attempt exhaustion (forces a resend).
+    """
+    async with get_pool().acquire() as conn:
+        async with conn.transaction():
+            row = await conn.fetchrow(
+                "SELECT code_hash, attempts, expires_at FROM phone_otps WHERE phone=$1 FOR UPDATE",
+                phone,
+            )
+            if not row:
+                return False
+            import datetime as _dt
+            if row["expires_at"] < _dt.datetime.now(_dt.timezone.utc):
+                await conn.execute("DELETE FROM phone_otps WHERE phone=$1", phone)
+                return False
+            if row["attempts"] >= max_attempts:
+                await conn.execute("DELETE FROM phone_otps WHERE phone=$1", phone)
+                return False
+            if verify_password(code, row["code_hash"]):
+                await conn.execute("DELETE FROM phone_otps WHERE phone=$1", phone)
+                return True
+            await conn.execute(
+                "UPDATE phone_otps SET attempts = attempts + 1 WHERE phone=$1",
+                phone,
+            )
+            return False
 
 
 async def is_user_pro(user_id: int) -> bool:
@@ -166,7 +255,7 @@ async def get_user_pro_until(user_id: int):
 async def get_user_by_id(user_id: int) -> Optional[dict]:
     async with get_pool().acquire() as conn:
         row = await conn.fetchrow(
-            "SELECT id, email, username, role, stripe_customer_id, stripe_subscription_id, pro_until FROM users WHERE id=$1",
+            "SELECT id, email, phone, username, role, stripe_customer_id, stripe_subscription_id, pro_until FROM users WHERE id=$1",
             user_id,
         )
         return dict(row) if row else None
@@ -221,9 +310,9 @@ def verify_password(password: str, password_hash: str) -> bool:
         return False
 
 
-def create_token(user_id: int, email: str, role: str, username: str = None) -> str:
+def create_token(user_id: int, email: Optional[str], role: str, username: str = None) -> str:
     payload = json.dumps(
-        {"uid": user_id, "email": email, "username": username, "role": role,
+        {"uid": user_id, "email": email or "", "username": username, "role": role,
          "exp": int(time.time()) + 86400 * TOKEN_TTL_DAYS},
         separators=(",", ":"),
     )
