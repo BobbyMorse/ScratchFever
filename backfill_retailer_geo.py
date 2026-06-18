@@ -49,33 +49,31 @@ async def fetch_missing(conn, state_code: str) -> list[dict]:
 
 
 async def apply_fallback(conn, state_code: str, rows: list[dict], census_hits: dict[int, tuple[float, float]]) -> tuple[int, int]:
-    """For rows Census couldn't place (or placed outside the state), run them
-    through the ZIP/state-centroid fallback in validate_latlon. Returns
-    (approx_applied, still_missing)."""
-    approx_applied = still_missing = 0
+    """For rows Census couldn't place inside the state, drop down to the
+    ZIP-centroid → state-centroid fallback. Census was already tried in batch
+    upstream, so skip the per-row Census re-call in validate_latlon and hit
+    the offline pgeocode dataset directly. Returns (approx_applied, still_missing)."""
+    st_centroid = STATE_CENTROID.get(state_code.upper())
+    approx_updates: list[tuple[float, float, int]] = []
+    still_missing = 0
     for r in rows:
         rid = r["id"]
-        coords = census_hits.get(rid)
-        if coords and in_state_bbox(state_code, coords[0], coords[1]):
-            continue  # the in-bbox path already updated this row
-        lat, lon, approx = validate_latlon(
-            state_code,
-            coords[0] if coords else None,
-            coords[1] if coords else None,
-            address=r.get("address"),
-            city=r.get("city"),
-            zip_code=r.get("zip"),
-        )
-        if lat is None:
+        hit = census_hits.get(rid)
+        if hit and in_state_bbox(state_code, hit[0], hit[1]):
+            continue  # already updated via apply_updates
+        z = _zip_centroid(r.get("zip"))
+        if z and in_state_bbox(state_code, z[0], z[1]):
+            approx_updates.append((z[0], z[1], rid))
+        elif st_centroid:
+            approx_updates.append((st_centroid[0], st_centroid[1], rid))
+        else:
             still_missing += 1
-            continue
-        await conn.execute(
-            "UPDATE state_retailers SET latitude=$1, longitude=$2, geo_approximated=$3 WHERE id=$4",
-            lat, lon, bool(approx), rid,
+    if approx_updates:
+        await conn.executemany(
+            "UPDATE state_retailers SET latitude=$1, longitude=$2, geo_approximated=TRUE WHERE id=$3",
+            approx_updates,
         )
-        if approx:
-            approx_applied += 1
-    return approx_applied, still_missing
+    return len(approx_updates), still_missing
 
 
 def build_csv(rows: list[dict]) -> bytes:
