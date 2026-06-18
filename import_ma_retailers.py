@@ -99,6 +99,7 @@ async def main(csv_path: Path):
                     phone              = EXCLUDED.phone,
                     latitude           = EXCLUDED.latitude,
                     longitude          = EXCLUDED.longitude,
+                    geo_approximated   = EXCLUDED.geo_approximated,
                     games              = EXCLUDED.games,
                     self_service       = EXCLUDED.self_service,
                     sells_draw_game    = EXCLUDED.sells_draw_game,
