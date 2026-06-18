@@ -590,6 +590,7 @@ async def get_public_retailer_summary(state_code: str, retailer_id: str):
             "phone":      row["phone"] or "",
             "latitude":   row["latitude"],
             "longitude":  row["longitude"],
+            "geo_approximated": bool(row["geo_approximated"]) if row["geo_approximated"] is not None else False,
         },
         "has_profile": has_profile,
         "inventory": [
