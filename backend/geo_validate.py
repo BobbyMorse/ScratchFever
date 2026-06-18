@@ -196,30 +196,57 @@ def validate_latlon(
     address: Optional[str] = None,
     city: Optional[str] = None,
     zip_code: Optional[str] = None,
-) -> tuple[Optional[float], Optional[float]]:
-    """Return validated (lat, lon) — or geocoded replacements — for a retailer.
+) -> tuple[Optional[float], Optional[float], bool]:
+    """Return (lat, lon, approximated) — never drops a pin if we can avoid it.
 
-    Falls back to Census single-address geocoding when the supplied coords
-    fall outside the claimed state's bbox. If Census also can't place it
-    inside the state, returns (None, None) so the row goes in geo-less and
-    the daily Census backfill can have another go later.
+    Fallback chain when the feed coords are out of the claimed state's bbox:
+      1. Census single-address geocode (street + city + state + zip).
+         If the match is in-bbox, use it; approximated=False.
+      2. ZIP code centroid via pgeocode (offline GeoNames dataset).
+         If in-bbox, use it; approximated=True.
+      3. State centroid. approximated=True.
+      4. (Genuinely no state) -> (None, None, False) so the row inserts geo-less.
+
+    Approximated rows still get a map pin but the UI can render them softer
+    so users don't trust the location as precise. Better than no pin per the
+    "data integrity > availability" principle as applied to retailer maps:
+    a roughly-right pin is more useful than a missing one, as long as we mark
+    it as rough.
     """
     if in_state_bbox(state, lat, lon):
-        return lat, lon
+        return lat, lon, False
+
+    state_u = (state or "").upper()
 
     if address:
-        coords = _census_single(address, city or "", state or "", zip_code or "")
-        if coords and in_state_bbox(state, coords[0], coords[1]):
-            logger.warning(
-                "geo_guard: re-geocoded out-of-bbox row state=%s addr=%r "
-                "feed=(%s,%s) -> census=(%s,%s)",
-                state, address, lat, lon, coords[0], coords[1],
+        coords = _census_single(address, city or "", state_u, zip_code or "")
+        if coords and in_state_bbox(state_u, coords[0], coords[1]):
+            logger.info(
+                "geo_guard: census-fixed state=%s addr=%r feed=(%s,%s) -> (%s,%s)",
+                state_u, address, lat, lon, coords[0], coords[1],
             )
-            return coords
+            return coords[0], coords[1], False
+
+    z_coords = _zip_centroid(zip_code)
+    if z_coords and in_state_bbox(state_u, z_coords[0], z_coords[1]):
+        logger.info(
+            "geo_guard: zip-centroid fallback state=%s zip=%s -> (%s,%s)",
+            state_u, zip_code, z_coords[0], z_coords[1],
+        )
+        return z_coords[0], z_coords[1], True
+
+    st_coords = STATE_CENTROID.get(state_u)
+    if st_coords:
+        logger.info(
+            "geo_guard: state-centroid fallback state=%s -> (%s,%s)",
+            state_u, st_coords[0], st_coords[1],
+        )
+        return st_coords[0], st_coords[1], True
 
     if lat is not None or lon is not None:
         logger.warning(
-            "geo_guard: dropping out-of-bbox lat/lon state=%s addr=%r feed=(%s,%s)",
+            "geo_guard: dropping out-of-bbox lat/lon (no state centroid) "
+            "state=%s addr=%r feed=(%s,%s)",
             state, address, lat, lon,
         )
-    return None, None
+    return None, None, False
