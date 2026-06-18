@@ -23,7 +23,11 @@ import asyncpg
 import requests
 from dotenv import load_dotenv
 
-from backend.geo_validate import in_state_bbox, validate_latlon
+from backend.geo_validate import (
+    STATE_CENTROID,
+    in_state_bbox,
+    _zip_centroid,
+)
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
