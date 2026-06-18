@@ -65,6 +65,15 @@ async def main(csv_path: Path):
                 skipped += 1
                 continue
 
+            lat, lon = validate_latlon(
+                "MA",
+                _float(row.get("latitude")),
+                _float(row.get("longitude")),
+                address=row.get("address"),
+                city=row.get("city"),
+                zip_code=row.get("zipCode"),
+            )
+
             result = await conn.execute("""
                 INSERT INTO ma_retailers (
                     id, retailer_id, name, address, address2, city, zip_code, phone,
