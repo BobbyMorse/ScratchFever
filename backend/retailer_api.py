@@ -545,7 +545,7 @@ async def get_public_retailer_summary(state_code: str, retailer_id: str):
             # enough on these (<10k row) tables that losing the index is fine.
             row = await conn.fetchrow(
                 f"""SELECT id, name, address, city, zip_code, phone,
-                           latitude, longitude
+                           latitude, longitude, geo_approximated
                     FROM {table} WHERE id::text = $1""",
                 rid,
             )
@@ -554,7 +554,7 @@ async def get_public_retailer_summary(state_code: str, retailer_id: str):
             # before round-tripping through URLs, so cast to text here too.
             row = await conn.fetchrow(
                 """SELECT id, name, address, city, zip_code, phone,
-                          latitude, longitude
+                          latitude, longitude, geo_approximated
                    FROM state_retailers
                    WHERE id::text = $1 AND state_code=$2""",
                 rid, code,
