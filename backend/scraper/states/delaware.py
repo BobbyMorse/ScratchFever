@@ -5,9 +5,18 @@ Top Prizes page: https://www.delottery.com/Instant-Games/Top-Prizes-Remaining
   Links to a PDF: "Big Prizes Remaining" with columns:
     Game # | Game Name | $ AMT | Top Prize | Prizes Remaining | 2nd Top Tier Prize | Prizes Remaining
 
-Delaware does not publish per-game odds tables, so EV remains NULL.
-We populate top_prize and top_prize_remaining from the PDF so those fields
-appear on the site even without EV data.
+EV strategy:
+  DE never publishes per-game odds in HTML/PDF form, but every game's
+  marketing image (e.g. DE512OSv3.jpg) embeds a complete prize-tier table
+  including ODDS of 1 IN, WINNERS (prizes_total), total tickets ordered,
+  and overall odds. We OCR that image via Claude vision (see de_ocr.py),
+  cache per image URL, and merge:
+    - top + 2nd tier prizes_remaining from the PDF
+    - all other tiers' odds + prizes_total from OCR
+    - total_tickets from OCR
+    - tickets_remaining estimated from top-tier remainder ratio
+  EV is marked approximate because the sub-top tier remainders are
+  scaled from the top-tier sell-through, not directly observed.
 """
 import io
 import logging
@@ -17,6 +26,7 @@ import pdfplumber
 
 from backend.scraper.base import BaseScraper
 from backend.ev_calculator import parse_prize_amount
+from backend.scraper.states import de_ocr
 
 logger = logging.getLogger(__name__)
 
