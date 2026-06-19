@@ -74,6 +74,16 @@ WINNERS_FEED_STATES = sorted({s.state_code for s in ALL_WINNERS_SCRAPERS})
 TIMEOUT_SEC = 600
 
 
+async def _log_attempt(code: str, rows: int, error: str | None) -> None:
+    """Best-effort write to winners_scrape_log. Never raises — the log is
+    diagnostic; if it fails we don't want to mask the real scrape result."""
+    try:
+        async with get_pool().acquire() as conn:
+            await upsert_winners_scrape_log(conn, code, rows, error)
+    except Exception:
+        logger.exception("%s winners scrape-log write failed", code)
+
+
 async def run_one(scraper_cls, days: int = 14) -> dict:
     scraper = scraper_cls()
     code = scraper.state_code
@@ -83,6 +93,7 @@ async def run_one(scraper_cls, days: int = 14) -> dict:
             timeout=TIMEOUT_SEC,
         )
     except asyncio.TimeoutError:
+        await _log_attempt(code, 0, f"timed out after {TIMEOUT_SEC}s")
         return {"state": code, "saved": 0, "error": f"timed out after {TIMEOUT_SEC}s"}
     except Exception as e:
         # Defends the run_all sequential loop from being killed mid-cycle by
@@ -92,15 +103,19 @@ async def run_one(scraper_cls, days: int = 14) -> dict:
         # it — explaining why states near the end of _SCRAPER_SPECS were stale
         # for 8+ days.
         logger.exception("%s winners run_one crashed", code)
+        await _log_attempt(code, 0, f"runner: {e}")
         return {"state": code, "saved": 0, "error": f"runner: {e}"}
     if error:
+        await _log_attempt(code, 0, error)
         return {"state": code, "saved": 0, "error": error}
     saved = 0
     try:
         async with get_pool().acquire() as conn:
             saved = await upsert_reported_wins(conn, code, wins)
+            await upsert_winners_scrape_log(conn, code, len(wins), None)
     except Exception as e:
         logger.exception("%s winners upsert failed", code)
+        await _log_attempt(code, 0, f"db: {e}")
         return {"state": code, "saved": 0, "error": f"db: {e}"}
     return {"state": code, "saved": saved, "error": None}
 
