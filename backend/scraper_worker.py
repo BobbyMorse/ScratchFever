@@ -55,20 +55,55 @@ STARTUP_DELAY_SEC = 30  # short delay so DB pool warms up before the first cycle
 # resolver pools, Chromium child process pipes, getaddrinfo workers) faster
 # than they release them. Past ~8h the process can no longer pthread_create
 # and the Playwright lane wedges — every PW scraper then fails with "can't
-# start new thread" until something restarts the container. Exiting cleanly
-# every WORKER_MAX_UPTIME_SEC pre-empts that: Railway's restart-on-exit
-# policy spawns a fresh process with a clean thread/process tree.
+# start new thread" until something restarts the container. Exiting every
+# WORKER_MAX_UPTIME_SEC pre-empts that: we exit with a non-zero code so
+# Railway's ON_FAILURE restart policy (the default) spawns a fresh process.
+# Exit-0 would NOT trigger a restart — that bug stranded the worker for 7+
+# hours on 2026-06-19 (winners API stopped getting ingested mid-day).
 WORKER_MAX_UPTIME_SEC = int(os.environ.get("WORKER_MAX_UPTIME_SEC", "21600"))  # 6h
+
+# If the winners job hasn't completed successfully in this long, something
+# wedged the scheduler (job ran past max_instances, event loop blocked, etc.)
+# Exit non-zero so Railway restarts us — a 7h silent stall is unacceptable.
+# Winners runs hourly with a 30-min misfire grace, so 2.5h is the slack we
+# give before declaring the scheduler dead.
+WORKER_STALE_THRESHOLD_SEC = int(os.environ.get("WORKER_STALE_THRESHOLD_SEC", "9000"))  # 2.5h
 
 healthcheck_app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 _worker_status = {"phase": "booting", "error": None}
+# Mutated in-place by scheduler_jobs.register_jobs(heartbeat=_heartbeat).
+# Keys: games_last_success, winners_last_success, retailer_last_success (UTC).
+_heartbeat: dict[str, datetime.datetime] = {}
+_worker_started_at = datetime.datetime.utcnow()
+
+
+def _isoformat(d: datetime.datetime | None) -> str | None:
+    return d.isoformat() + "Z" if d else None
 
 
 @healthcheck_app.get("/health", include_in_schema=False)
 async def health() -> dict:
     # Always return 200 once the process is up — Railway just needs to see a
-    # response. Detailed phase is included for debugging via the dashboard.
-    return {"status": "ok", "service": "scraper_worker", **_worker_status}
+    # response. Detailed phase + heartbeat ages are surfaced for debugging
+    # via the dashboard and the API-side staleness probe.
+    now = datetime.datetime.utcnow()
+    def _age_sec(d):
+        return (now - d).total_seconds() if d else None
+    return {
+        "status": "ok",
+        "service": "scraper_worker",
+        "started_at": _isoformat(_worker_started_at),
+        "uptime_sec": int((now - _worker_started_at).total_seconds()),
+        "heartbeat": {
+            "games_last_success":    _isoformat(_heartbeat.get("games_last_success")),
+            "winners_last_success":  _isoformat(_heartbeat.get("winners_last_success")),
+            "retailer_last_success": _isoformat(_heartbeat.get("retailer_last_success")),
+            "games_age_sec":    _age_sec(_heartbeat.get("games_last_success")),
+            "winners_age_sec":  _age_sec(_heartbeat.get("winners_last_success")),
+            "retailer_age_sec": _age_sec(_heartbeat.get("retailer_last_success")),
+        },
+        **_worker_status,
+    }
 
 
 async def _bootstrap() -> None:
