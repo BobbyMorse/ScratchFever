@@ -943,6 +943,9 @@ async def upsert_reported_wins(conn, state_code: str, wins: list[dict]) -> int:
             retailer_zip     = COALESCE(EXCLUDED.retailer_zip, reported_wins.retailer_zip),
             winner_city      = COALESCE(EXCLUDED.winner_city, reported_wins.winner_city),
             source_game_name = COALESCE(EXCLUDED.source_game_name, reported_wins.source_game_name),
+            -- Refresh claim_date so scrapers can correct placeholder dates
+            -- (e.g. PA/MO upgrading from first-of-month to end-of-month).
+            claim_date       = COALESCE(EXCLUDED.claim_date, reported_wins.claim_date),
             scraped_at = NOW()
     """
     BATCH = 1000
