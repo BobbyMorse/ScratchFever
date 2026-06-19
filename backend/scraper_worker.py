@@ -117,7 +117,7 @@ async def _bootstrap() -> None:
 
         _worker_status["phase"] = "scheduler_start"
         scheduler = AsyncIOScheduler()
-        kick_games_now = register_jobs(scheduler)
+        kick_games_now = register_jobs(scheduler, heartbeat=_heartbeat)
         scheduler.start()
         logger.info("scraper_worker: scheduler started (winners hourly, retailer-freshness daily)")
         _worker_status["phase"] = "scheduled"
