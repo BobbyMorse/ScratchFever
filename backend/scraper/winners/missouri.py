@@ -69,7 +69,7 @@ class MissouriWinnersScraper(WinnersScraper):
             except Exception as e:
                 logger.warning("MO %d-%d failed: %s", year, month, e)
                 continue
-            claim_date = dt.date(year, month, 1)
+            claim_date = _month_end_or_today(year, month, today)
             for m in ROW_RE.finditer(resp.text):
                 city, retailer, address, game, prize_raw = m.groups()
                 try:
