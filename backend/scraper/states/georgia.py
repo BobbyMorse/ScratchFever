@@ -154,14 +154,50 @@ class GeorgiaScraper(BaseScraper):
         logger.info("GA: %d active games from API (of %d total)", len(active), len(raw_games))
 
         game_ids = [str(g.get("gameId", "")) for g in active if g.get("gameId")]
-        odds_map: dict[str, float | None] = {}
+        cache = _load_cache()
+        odds_map: dict[str, float | None] = {
+            gid: cache[gid] for gid in game_ids if gid in cache
+        }
+        to_fetch = [gid for gid in game_ids if gid not in cache]
+        logger.info(
+            "GA: %d/%d games have cached odds; fetching %d new",
+            len(odds_map), len(game_ids), len(to_fetch),
+        )
 
-        future_to_id = {DETAIL_POOL.submit(_fetch_overall_odds, gid): gid for gid in game_ids}
-        for future in as_completed(future_to_id):
-            odds_map[future_to_id[future]] = future.result()
+        if to_fetch:
+            deadline = time.monotonic() + _FETCH_BUDGET_S
+            cache_dirty = False
+            new_count = 0
+            future_to_id = {
+                DETAIL_POOL.submit(_fetch_overall_odds, gid): gid for gid in to_fetch
+            }
+            for future in as_completed(future_to_id):
+                gid = future_to_id[future]
+                odds = future.result()
+                odds_map[gid] = odds
+                if odds is not None:
+                    cache[gid] = odds
+                    cache_dirty = True
+                    new_count += 1
+                    if new_count % _CACHE_SAVE_EVERY == 0:
+                        _save_cache(cache)
+                if time.monotonic() >= deadline:
+                    remaining = sum(1 for f in future_to_id if not f.done())
+                    logger.warning(
+                        "GA: fetch budget hit, %d/%d new odds collected, %d skipped this run",
+                        new_count, len(to_fetch), remaining,
+                    )
+                    # Cancel queued (not-yet-started) futures so the shared pool
+                    # isn't tied up. Running futures finish on their own.
+                    for f in future_to_id:
+                        if not f.done():
+                            f.cancel()
+                    break
+            if cache_dirty:
+                _save_cache(cache)
 
         fetched = sum(1 for v in odds_map.values() if v is not None)
-        logger.info("GA: fetched overall odds for %d/%d games", fetched, len(game_ids))
+        logger.info("GA: have overall odds for %d/%d games", fetched, len(game_ids))
 
         games = []
         for g in active:
