@@ -238,6 +238,7 @@ class MississippiScraper(BaseScraper):
                 total_tickets=parsed["total_tickets"],
                 detail_url=detail_url,
                 image_url=parsed["image_url"],
+                has_second_chance=parsed["has_second_chance"],
             ))
 
         logger.info("MS: %d games scraped", len(games))
