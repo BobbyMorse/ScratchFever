@@ -112,14 +112,21 @@ def _parse_city(loc: str | None) -> str | None:
 
 def _parse_date_from_url(url: str | None) -> dt.date | None:
     """Press URLs are slugged like '?id=2025-12-duval-county-man-wins...'.
-    We map that to the first day of the month — exact day is in the article
-    body, but we don't need to fetch it for map placement."""
+    The slug only carries year + month, not day. Map to month-end (or today
+    if the slug is the current month) so the dashboard's "most recent claim"
+    metric reflects how fresh the data actually is — using day=1 made every
+    just-published Jan win appear 30 days old and tripped the SOURCE QUIET
+    flag on a healthy feed."""
     if not url:
         return None
     m = re.search(r"id=(\d{4})-(\d{2})-", url)
     if not m:
         return None
     try:
-        return dt.date(int(m.group(1)), int(m.group(2)), 1)
+        year, month = int(m.group(1)), int(m.group(2))
+        last_day = calendar.monthrange(year, month)[1]
+        candidate = dt.date(year, month, last_day)
+        today = dt.date.today()
+        return min(candidate, today)
     except ValueError:
         return None
