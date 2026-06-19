@@ -65,8 +65,20 @@ class DelawareScraper(BaseScraper):
         sc_names = self._fetch_second_chance_names()
         logger.info("DE second-chance eligible games: %d", len(sc_names))
 
+        # OCR every game image up-front so we batch-share the cache and the
+        # time budget across all DE games in this run.
+        ocr_cache = de_ocr.load_cache()
+        wanted_urls = [image_map.get(e["game_num"]) for e in entries]
+        wanted_urls = [u for u in wanted_urls if u]
+        ocr_results = de_ocr.ocr_batch(wanted_urls, cache=ocr_cache, session=self.session)
+        logger.info(
+            "DE OCR: %d/%d images resolved (cache + fresh)",
+            len(ocr_results), len(wanted_urls),
+        )
+
         games = []
         seen_ids: set[str] = set()
+        ocr_hits = 0
 
         for e in entries:
             base_id = f"de{e['game_num']}"
@@ -77,21 +89,14 @@ class DelawareScraper(BaseScraper):
                 suffix += 1
             seen_ids.add(game_id)
 
-            tiers = []
-            if e["top_prize"] and e["top_remaining"] is not None:
-                tiers.append({
-                    "prize_amount": e["top_prize"],
-                    "odds_one_in": None,
-                    "prizes_remaining": e["top_remaining"],
-                    "prizes_total": None,
-                })
-            if e["second_prize"] and e["second_remaining"] is not None:
-                tiers.append({
-                    "prize_amount": e["second_prize"],
-                    "odds_one_in": None,
-                    "prizes_remaining": e["second_remaining"],
-                    "prizes_total": None,
-                })
+            image_url = image_map.get(e["game_num"])
+            ocr = ocr_results.get(image_url) if image_url else None
+
+            tiers, tickets_remaining, total_tickets, overall_odds, ev_approx = (
+                self._build_tiers(e, ocr)
+            )
+            if ocr and ocr.get("tiers"):
+                ocr_hits += 1
 
             has_2c = _norm_de_name(e["name"]) in sc_names
             games.append(self.build_game(
@@ -99,13 +104,99 @@ class DelawareScraper(BaseScraper):
                 name=e["name"],
                 price=e["price"],
                 tiers=tiers,
-                image_url=image_map.get(e["game_num"]),
+                tickets_remaining=tickets_remaining,
+                total_tickets=total_tickets,
+                overall_odds=overall_odds,
+                image_url=image_url,
+                ev_approximate=ev_approx,
                 has_second_chance=has_2c,
                 second_chance_url=SECOND_CHANCE_URL if has_2c else None,
             ))
 
-        logger.info("DE: %d games from PDF", len(games))
+        logger.info("DE: %d games (%d with OCR-derived EV)", len(games), ocr_hits)
         return games
+
+    def _build_tiers(self, entry: dict, ocr: dict | None):
+        """Merge PDF top/2nd remainders with OCR full-tier data.
+
+        Returns (tiers, tickets_remaining, total_tickets, overall_odds, ev_approximate).
+        Falls back to PDF-only tiers (no EV) when OCR is missing or unusable."""
+        # PDF tiers — always available, used as the fallback shape.
+        pdf_tiers: list[dict] = []
+        if entry["top_prize"] and entry["top_remaining"] is not None:
+            pdf_tiers.append({
+                "prize_amount": entry["top_prize"],
+                "odds_one_in": None,
+                "prizes_remaining": entry["top_remaining"],
+                "prizes_total": None,
+            })
+        if entry["second_prize"] and entry["second_remaining"] is not None:
+            pdf_tiers.append({
+                "prize_amount": entry["second_prize"],
+                "odds_one_in": None,
+                "prizes_remaining": entry["second_remaining"],
+                "prizes_total": None,
+            })
+
+        if not ocr or not ocr.get("tiers"):
+            return pdf_tiers, None, None, None, False
+
+        ocr_tiers = ocr["tiers"]
+        total_tickets = ocr.get("total_tickets")
+        overall_odds = ocr.get("overall_odds_one_in")
+
+        # Pair PDF remainders to their OCR rows by largest-prize match.
+        # OCR rows are sorted descending so the top OCR tier maps to PDF "top".
+        ocr_tiers_sorted = sorted(
+            ocr_tiers, key=lambda t: t["prize_amount"], reverse=True
+        )
+
+        pdf_remaining_by_amount: dict[float, int] = {}
+        if entry["top_prize"] and entry["top_remaining"] is not None:
+            pdf_remaining_by_amount[float(entry["top_prize"])] = entry["top_remaining"]
+        if entry["second_prize"] and entry["second_remaining"] is not None:
+            # If top == second prize, don't overwrite the larger remainder.
+            pdf_remaining_by_amount.setdefault(
+                float(entry["second_prize"]), entry["second_remaining"]
+            )
+
+        # Sell-through ratio from the top tier (the most reliable signal).
+        sell_ratio = None  # remaining_fraction
+        top_ocr = ocr_tiers_sorted[0] if ocr_tiers_sorted else None
+        if (
+            top_ocr
+            and top_ocr.get("prizes_total")
+            and top_ocr["prizes_total"] > 0
+            and entry["top_remaining"] is not None
+        ):
+            ratio = entry["top_remaining"] / top_ocr["prizes_total"]
+            # Clamp: a brand-new game can show >1 if PDF leads OCR; cap at 1.
+            sell_ratio = max(0.0, min(1.0, ratio))
+
+        tiers: list[dict] = []
+        for ot in ocr_tiers_sorted:
+            prize = ot["prize_amount"]
+            odds = ot["odds_one_in"]
+            total = ot.get("prizes_total")
+            remaining = pdf_remaining_by_amount.get(float(prize))
+            if remaining is None and total is not None and sell_ratio is not None:
+                remaining = int(round(total * sell_ratio))
+            tiers.append({
+                "prize_amount": prize,
+                "odds_one_in": odds,
+                "prizes_total": total,
+                "prizes_remaining": remaining,
+            })
+
+        # tickets_remaining estimated from total × sell_ratio. Only set if we
+        # have both pieces — otherwise the EV calculator falls back to odds-only.
+        tickets_remaining = None
+        if total_tickets and sell_ratio is not None:
+            tickets_remaining = int(round(total_tickets * sell_ratio))
+
+        # EV is approximate whenever any tier's remainder was scaled rather
+        # than directly observed (i.e. always, given DE only reports top + 2nd).
+        return tiers, tickets_remaining, total_tickets, overall_odds, True
 
     def _fetch_second_chance_names(self) -> set[str]:
         """Pull normalized scratcher names currently on the DE 2nd-chance
