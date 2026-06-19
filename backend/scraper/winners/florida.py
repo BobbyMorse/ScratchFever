@@ -18,6 +18,7 @@ No retailer info. City → pgeocode centroid for map pins. Small dataset but
 all wins are 6+ figures.
 """
 from __future__ import annotations
+import calendar
 import datetime as dt
 import logging
 import re
