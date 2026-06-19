@@ -36,7 +36,11 @@ class ArkansasWinnersScraper(WinnersScraper):
     min_prize = 10000.0
 
     def scrape(self, days: int = 14) -> list[dict]:
-        cutoff = dt.date.today() - dt.timedelta(days=days)
+        # AR has very few $10K+ scratch wins (most rows are sub-$10K). A 14d
+        # default window almost always returns 0; floor at 120d so a single
+        # qualifying win every 1-2 months still lands.
+        lookback_days = max(days, 120)
+        cutoff = dt.date.today() - dt.timedelta(days=lookback_days)
         out: list[dict] = []
         seen: set[str] = set()
         page = 1
