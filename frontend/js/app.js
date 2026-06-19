@@ -1367,7 +1367,6 @@ function renderStrategyView() {
           <div class="strat-ev-paywall-title">The +EV ranked list is Pro</div>
           <div class="strat-ev-paywall-sub">See every state's positive-EV games ranked by Return %, with full Net EV, $1M+ odds, prize pool data, and the ordered list of best plays right now.</div>
           <button class="strat-ev-paywall-btn" onclick="openPaywallOrLogin()">Upgrade to Pro →</button>
-          <button class="strat-ev-paywall-link" onclick="openPaywall(); togglePaywallBeta()">or redeem a beta code</button>
         </div>`;
       return;
     }
