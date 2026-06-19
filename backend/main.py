@@ -384,11 +384,20 @@ async def admin_health_winners(user: dict = Depends(require_admin)):
             FROM reported_wins
             GROUP BY state_code
         """)
+        # Per-state run log — distinguishes "scraper crashed" from "scraper
+        # ran fine, source quiet" (both look identical from reported_wins alone).
+        log_rows = await conn.fetch("""
+            SELECT state_code, last_attempted_at, last_success_at,
+                   rows_last_run, last_error
+            FROM winners_scrape_log
+        """)
 
     by_state = {r["state_code"]: r for r in rows}
+    log_by = {r["state_code"]: r for r in log_rows}
     out = []
     for code, name in configured.items():
         r = by_state.get(code)
+        lg = log_by.get(code)
         out.append({
             "state_code": code,
             "state_name": name,
@@ -399,6 +408,13 @@ async def admin_health_winners(user: dict = Depends(require_admin)):
             "last_scraped": r["last_scraped"].isoformat() if r and r["last_scraped"] else None,
             "most_recent_claim": r["most_recent_claim"].isoformat() if r and r["most_recent_claim"] else None,
             "geo_pct": float(r["geo_pct"] or 0) if r else 0.0,
+            # Run-log fields. last_attempted_at advances on every cycle;
+            # last_success_at only advances when the scraper finished without
+            # raising. last_error is the most recent error string or null.
+            "last_attempted_at": lg["last_attempted_at"].isoformat() if lg and lg["last_attempted_at"] else None,
+            "last_success_at": lg["last_success_at"].isoformat() if lg and lg["last_success_at"] else None,
+            "rows_last_run": int(lg["rows_last_run"]) if lg else None,
+            "last_error": lg["last_error"] if lg else None,
         })
     out.sort(key=lambda s: s["state_name"])
     return {"states": out}
