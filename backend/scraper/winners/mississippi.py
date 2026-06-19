@@ -19,6 +19,7 @@ from backend.scraper.winners.base import WinnersScraper, is_draw_game
 logger = logging.getLogger(__name__)
 
 URL = "https://www.mslottery.com/winners/"
+PAGE_URL = "https://www.mslottery.com/winners/page/{page}/"
 
 POST_RE = re.compile(
     r'itemid="(https://www\.mslottery\.com/[^"]+)"[^>]*content="([^"]+?Wins\s+\$[^"]+)"'
