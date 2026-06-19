@@ -72,7 +72,8 @@ def ensure_playwright_browsers() -> None:
 # ── Scheduler wiring ───────────────────────────────────────────────────────
 
 def register_jobs(scheduler, status_dict: Optional[dict] = None,
-                  on_winners_finish: Optional[Callable[[], None]] = None) -> Callable:
+                  on_winners_finish: Optional[Callable[[], None]] = None,
+                  heartbeat: Optional[dict] = None) -> Callable:
     """Register the three recurring jobs on the given AsyncIOScheduler.
 
     Returns a coroutine function `kick_games_now()` the caller can `await`
@@ -80,7 +81,17 @@ def register_jobs(scheduler, status_dict: Optional[dict] = None,
 
     status_dict, if passed, is mutated with keys: running, current_state,
     last_results, last_run. The API process reads these for /api/scrape/status.
+
+    heartbeat, if passed, is mutated on every successful job completion with
+    keys: games_last_success, winners_last_success, retailer_last_success
+    (all UTC datetimes). The scraper_worker uses this to (a) surface staleness
+    on /health and (b) self-exit when the scheduler goes silent so Railway
+    restarts the container.
     """
+    def _stamp_heartbeat(key: str):
+        if heartbeat is not None:
+            heartbeat[key] = datetime.datetime.utcnow()
+
     async def _games_with_status():
         if status_dict and status_dict.get("running"):
             logger.info("Games scrape already running, skipping")
@@ -97,6 +108,7 @@ def register_jobs(scheduler, status_dict: Optional[dict] = None,
             if status_dict is not None:
                 status_dict["last_results"] = results
                 status_dict["last_run"] = datetime.datetime.utcnow().isoformat()
+            _stamp_heartbeat("games_last_success")
             logger.info("Games scrape complete — next cycle in %ds", SCRAPE_COOLDOWN_SEC)
         except Exception as e:
             logger.error("Games scrape cycle failed: %s", e, exc_info=True)
@@ -114,6 +126,7 @@ def register_jobs(scheduler, status_dict: Optional[dict] = None,
         try:
             results = await run_winners_scrape_cycle()
             logger.info("winners scrape: %s", results)
+            _stamp_heartbeat("winners_last_success")
             if on_winners_finish is not None:
                 try:
                     on_winners_finish()
@@ -125,6 +138,7 @@ def register_jobs(scheduler, status_dict: Optional[dict] = None,
     async def _retailer_job():
         try:
             results = await run_retailer_freshness_cycle()
+            _stamp_heartbeat("retailer_last_success")
             if results:
                 logger.info("Retailer scrape complete: %s", results)
         except Exception:
@@ -136,9 +150,13 @@ def register_jobs(scheduler, status_dict: Optional[dict] = None,
     # interval. APScheduler's `interval` trigger otherwise waits one whole
     # interval before its first firing — meaning a fresh deploy could sit an
     # hour with no winners data.
+    #
+    # max_instances=1 + misfire_grace_time prevent both overlapping runs (if
+    # one pass takes >1h) and silent skips (if the loop was paused briefly).
     scheduler.add_job(
         _winners_job, "interval", hours=1, id="scrape_winners",
         next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=180),
+        max_instances=1, misfire_grace_time=1800, coalesce=True,
     )
 
     return _games_with_status
