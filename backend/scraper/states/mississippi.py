@@ -1,11 +1,11 @@
 """
 Mississippi Lottery scratch-off scraper.
 
-Second-chance: MS's 2nd Chance portal at secondchance.mslottery.com gates
-the eligible-games list behind login. Per-promo blog posts at
-/promotype/second-chance-drawings/ name eligible games for individual
-drawings but parsing rolling promo archives is fragile. has_second_chance
-stays FALSE for all MS games until a stable per-game source is found.
+Second-chance: detected per-game from the prize table. MS marks 2nd-chance
+tiers by putting the literal text "2nd Chance Prize" in the Original Prize
+Count column (e.g. Gold 7s has a $200,000 2nd-chance row). Any such row
+sets has_second_chance=True. The portal at secondchance.mslottery.com is
+login-gated and the promo blog archives are too churny to parse.
 
 Listing: https://www.mslottery.com/gamestatus/active/
 Each game: <a href="/instantgames/slug/"> — no name/price in listing HTML.
