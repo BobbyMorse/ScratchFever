@@ -2389,8 +2389,11 @@
       if (cat === "noscratch") {
         return `<strong>${name}</strong><br>No state scratch lottery.`;
       }
-      if (s && s.has_winners_scraper && s.winners_count > 0) {
-        return `<strong>${name}</strong><br>${s.winners_count.toLocaleString()} reported $10K+ scratch wins.`;
+      if (s && s.has_winners_scraper && (s.winners_recent_count || 0) > 0) {
+        return `<strong>${name}</strong><br>${s.winners_count.toLocaleString()} reported $10K+ scratch wins · ${s.winners_recent_count.toLocaleString()} in last 60 days.`;
+      }
+      if (s && s.has_winners_scraper && (s.winners_count || 0) > 0) {
+        return `<strong>${name}</strong><br>${s.winners_count.toLocaleString()} historical wins · source has gone quiet (no $10K+ in 60 days).`;
       }
       return `<strong>${name}</strong><br>Big-winners feed on our roadmap.`;
     }
