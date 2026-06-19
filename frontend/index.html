@@ -2343,9 +2343,16 @@
     }
     if (layer === "winners") {
       if (cat === "noscratch") return { fill: "#cbd5e1", label: "noscratch" };
-      return (s && s.has_winners_scraper && s.winners_count > 0)
-        ? { fill: "#db2777", label: "live" }
-        : { fill: "#e5e7eb", label: "todo" };
+      // "live" requires recent data — having a feed configured but no $10K+
+      // win in 60 days means the source has gone quiet, and painting it as
+      // fully live overpromises coverage.
+      if (s && s.has_winners_scraper && (s.winners_recent_count || 0) > 0) {
+        return { fill: "#db2777", label: "live" };
+      }
+      if (s && s.has_winners_scraper && (s.winners_count || 0) > 0) {
+        return { fill: "#fbcfe8", label: "stale" };
+      }
+      return { fill: "#e5e7eb", label: "todo" };
     }
   }
 
