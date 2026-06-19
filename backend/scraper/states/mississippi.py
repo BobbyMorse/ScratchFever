@@ -169,6 +169,7 @@ def _parse_detail_soup(soup: BeautifulSoup):
         "tickets_remaining": tickets_remaining,
         "total_tickets": total_tickets,
         "image_url": image_url,
+        "has_second_chance": has_second_chance,
     }
 
 
