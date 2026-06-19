@@ -174,20 +174,40 @@ async def main() -> None:
 
 
 async def _uptime_watchdog() -> None:
-    """Self-restart after WORKER_MAX_UPTIME_SEC. See module-level comment."""
+    """Self-restart when (a) max uptime is hit or (b) the winners job has
+    gone silent past WORKER_STALE_THRESHOLD_SEC. See module-level comments
+    on WORKER_MAX_UPTIME_SEC / WORKER_STALE_THRESHOLD_SEC for reasoning.
+
+    Always exits non-zero so Railway's ON_FAILURE restart policy restarts
+    the container. Uses os._exit so we don't block on wedged Playwright
+    subprocess pipes during shutdown — escaping those is the whole point.
+    """
     started = time.monotonic()
     while True:
         await asyncio.sleep(60)
+
+        # (a) Hard uptime ceiling.
         if time.monotonic() - started >= WORKER_MAX_UPTIME_SEC:
             logger.warning(
-                "scraper_worker: max uptime %ds reached — exiting so Railway "
-                "restarts with a clean thread/process tree",
+                "scraper_worker: max uptime %ds reached — exiting (code 1) so "
+                "Railway restarts with a clean thread/process tree",
                 WORKER_MAX_UPTIME_SEC,
             )
-            # _exit (not sys.exit) so we don't wait on any wedged Playwright
-            # subprocess pipes during shutdown — those are exactly what we're
-            # trying to escape.
-            os._exit(0)
+            os._exit(1)
+
+        # (b) Scheduler staleness. Only fires once we've HAD a successful
+        # winners run — otherwise the very first 3-minute boot grace would
+        # always trip it.
+        last_winners = _heartbeat.get("winners_last_success")
+        if last_winners is not None:
+            stale_sec = (datetime.datetime.utcnow() - last_winners).total_seconds()
+            if stale_sec >= WORKER_STALE_THRESHOLD_SEC:
+                logger.error(
+                    "scraper_worker: winners job last succeeded %.0fs ago "
+                    "(threshold %ds) — scheduler appears wedged, exiting (code 1)",
+                    stale_sec, WORKER_STALE_THRESHOLD_SEC,
+                )
+                os._exit(1)
 
 
 if __name__ == "__main__":
