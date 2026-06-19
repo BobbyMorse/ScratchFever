@@ -1569,6 +1569,9 @@
            <div style="font-size:.7rem;color:#c0c8d5">${s.most_recent_claim.slice(0,10)}</div>`
         : `<span class="no-error">—</span>`;
       const geoCell = s.wins_total > 0 ? pctBar(Math.round(s.geo_pct)) : `<span class="no-error">—</span>`;
+      // Prefer the run-log attempt time; fall back to MAX(scraped_at) until
+      // the new log table has been written to by at least one cycle.
+      const lastRunStr = s.last_attempted_at || s.last_scraped;
 
       return `<tr>
         <td>
@@ -1577,8 +1580,8 @@
         </td>
         <td>${badge}</td>
         <td>
-          <div class="time-str">${timeAgo(s.last_scraped)}</div>
-          <div style="font-size:.7rem;color:#c0c8d5">${s.last_scraped ? s.last_scraped.slice(0,16).replace("T"," ") : ""}</div>
+          <div class="time-str">${timeAgo(lastRunStr)}</div>
+          <div style="font-size:.7rem;color:#c0c8d5">${lastRunStr ? lastRunStr.slice(0,16).replace("T"," ") : ""}</div>
         </td>
         <td>${scrape24h}</td>
         <td>${claim7d}</td>
