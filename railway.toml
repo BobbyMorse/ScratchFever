@@ -5,3 +5,10 @@ dockerfilePath = "Dockerfile"
 [deploy]
 healthcheckPath = "/health"
 healthcheckTimeout = 120
+# Restart on any non-zero exit. The scraper_worker self-exits with code 1
+# after WORKER_MAX_UPTIME_SEC (6h) or when the winners scheduler goes silent
+# >2.5h — both rely on Railway restarting us. Without an explicit policy here
+# the default is ON_FAILURE with 10 retries; we want enough headroom that
+# routine 6h restarts never exhaust the budget.
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 100
