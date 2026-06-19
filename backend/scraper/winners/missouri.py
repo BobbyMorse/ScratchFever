@@ -9,10 +9,20 @@ returns one month's $10K+ wins as a single HTML table with rows of:
 We iterate the last `days/30 + 1` months to cover the requested window.
 """
 from __future__ import annotations
+import calendar
 import datetime as dt
 import logging
 import re
 from backend.scraper.winners.base import WinnersScraper, is_draw_game
+
+
+def _month_end_or_today(year: int, month: int, today: dt.date) -> dt.date:
+    """Latest plausible claim date for a month-granularity win — keeps
+    prior-month wins in the 30d display window long enough for the next
+    month's data to publish."""
+    last_day = calendar.monthrange(year, month)[1]
+    candidate = dt.date(year, month, last_day)
+    return min(candidate, today)
 
 logger = logging.getLogger(__name__)
 
