@@ -126,8 +126,7 @@ class PennsylvaniaWinnersScraper(WinnersScraper):
         winner_city = (w.get("city") or "").strip().title() or None
         if not winner_city:
             return None
-        # PA gives no day-of-claim — use the first of the month as a placeholder.
-        claim_date = dt.date(year, month_num, 1)
+        claim_date = _month_end_or_today(year, month_num, dt.date.today())
 
         # Synth a stable id: PA does not expose a per-win id, but name+city+game+prize+month is unique in practice.
         winner_name = (w.get("name") or "").strip()
