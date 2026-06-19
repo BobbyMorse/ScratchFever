@@ -122,8 +122,11 @@ def _parse_detail_soup(soup: BeautifulSoup):
 
             orig = None
             if orig_col is not None and len(cells) > orig_col:
+                orig_text = cells[orig_col].get_text(strip=True)
+                if re.search(r"(?:2nd|second)\s*chance", orig_text, re.I):
+                    has_second_chance = True
                 try:
-                    orig = int(cells[orig_col].get_text(strip=True).replace(",", ""))
+                    orig = int(orig_text.replace(",", ""))
                 except (ValueError, TypeError):
                     pass
 
