@@ -35,7 +35,12 @@ class LouisianaWinnersScraper(WinnersScraper):
     min_prize = 10000.0
 
     def scrape(self, days: int = 14) -> list[dict]:
-        cutoff = dt.date.today() - dt.timedelta(days=days)
+        # LA is a low-volume feed (~1-2 qualifying $10K+ wins per month).
+        # The default 14d window misses too much when wins trickle in slowly
+        # and the scraper has had a single bad cycle. Floor at 120d so we
+        # backfill missed wins idempotently.
+        lookback_days = max(days, 120)
+        cutoff = dt.date.today() - dt.timedelta(days=lookback_days)
         out: list[dict] = []
         seen: set[str] = set()
         page = 1
