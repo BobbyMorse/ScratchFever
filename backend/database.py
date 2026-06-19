@@ -324,6 +324,34 @@ async def init_db():
             )
         """)
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_plays_user ON user_plays(user_id, played_at DESC)")
+        # Per-user scratch-ticket scan history — server mirror of the mobile
+        # app's local AsyncStorage. Client-generated `client_id` (uuid) is the
+        # sync key so reinstalls/cross-device merge cleanly. updated_at drives
+        # last-writer-wins conflict resolution.
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS user_tickets (
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                client_id TEXT NOT NULL,
+                scanned_at TIMESTAMPTZ NOT NULL,
+                game_name TEXT NOT NULL,
+                ticket_number TEXT,
+                state TEXT,
+                won BOOLEAN,
+                prize_amount REAL,
+                ticket_price REAL,
+                game_return_pct REAL,
+                game_top_prize REAL,
+                game_jackpot_odds_one_in REAL,
+                game_ev REAL,
+                game_has_second_chance BOOLEAN,
+                notes TEXT,
+                raw_ocr_text TEXT,
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                PRIMARY KEY (user_id, client_id)
+            )
+        """)
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_user_tickets_user ON user_tickets(user_id, scanned_at DESC)")
         await conn.execute("""
             CREATE TABLE IF NOT EXISTS reported_wins (
                 id SERIAL PRIMARY KEY,

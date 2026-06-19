@@ -40,6 +40,7 @@ from backend.auth_api import router as auth_router
 from backend import analytics
 from backend.retailer_api import router as retailer_router, public_router as retailer_public_router, admin_router as retailer_admin_router
 from backend.plays_api import router as plays_router
+from backend.tickets_api import router as tickets_router
 from backend.revenuecat_webhook import router as revenuecat_router
 from backend.billing_api import router as billing_router
 
@@ -200,6 +201,7 @@ app.include_router(retailer_router)
 app.include_router(retailer_public_router)
 app.include_router(retailer_admin_router)
 app.include_router(plays_router)
+app.include_router(tickets_router)
 app.include_router(revenuecat_router)
 app.include_router(billing_router)
 
