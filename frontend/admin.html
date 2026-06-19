@@ -1491,13 +1491,27 @@
     if (!s.last_scraped) {
       return `<span class="status-badge no-data">Never Run</span>`;
     }
+    const DAY = 86400000;
     const hoursSinceScrape = (Date.now() - new Date(s.last_scraped).getTime()) / 3600000;
-    // Scheduler runs hourly; flag if we haven't seen a scrape in >6h.
-    if (hoursSinceScrape > 6) {
+    const daysSinceClaim = s.most_recent_claim
+      ? (Date.now() - new Date(s.most_recent_claim).getTime()) / DAY
+      : Infinity;
+    // "last_scraped" is MAX(scraped_at) on reported_wins rows, not raw scraper-run
+    // time, so a scraper that runs hourly but upserts no rows looks idle. Use 14d
+    // as a hard error and 36h as the "scraper hasn't even bumped existing rows"
+    // warning. Source-side quiet (no $10K+ claims in 60d) is its own state — a
+    // healthy scraper hitting an empty source shouldn't show red.
+    if (hoursSinceScrape > 24 * 14) {
       return `<span class="status-badge error"><span class="status-dot"></span>Stale</span>`;
+    }
+    if (hoursSinceScrape > 36) {
+      return `<span class="status-badge warn"><span class="status-dot"></span>Stale</span>`;
     }
     if (s.wins_total === 0) {
       return `<span class="status-badge warn"><span class="status-dot"></span>No Wins</span>`;
+    }
+    if (daysSinceClaim > 60) {
+      return `<span class="status-badge warn"><span class="status-dot"></span>Source Quiet</span>`;
     }
     if (s.geo_pct < 50) {
       return `<span class="status-badge warn"><span class="status-dot"></span>Low Geo</span>`;
