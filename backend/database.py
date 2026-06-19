@@ -985,6 +985,33 @@ async def upsert_reported_wins(conn, state_code: str, wins: list[dict]) -> int:
     return saved
 
 
+async def upsert_winners_scrape_log(conn, state_code: str, rows: int, error: str | None) -> None:
+    """Record a winners-scrape attempt for the admin dashboard.
+
+    `rows` is the count returned by the scraper for this run (0 is valid when
+    the source is quiet). `error` is None on success or a short message on
+    failure. `last_success_at` only advances when error is None — that's the
+    field the dashboard uses to tell "scraper is healthy, source quiet" from
+    "scraper is broken".
+    """
+    await conn.execute(
+        """
+        INSERT INTO winners_scrape_log (state_code, last_attempted_at, last_success_at,
+                                        rows_last_run, last_error)
+        VALUES ($1, NOW(), CASE WHEN $3::TEXT IS NULL THEN NOW() ELSE NULL END, $2, $3)
+        ON CONFLICT (state_code) DO UPDATE SET
+            last_attempted_at = NOW(),
+            last_success_at = CASE
+                WHEN $3::TEXT IS NULL THEN NOW()
+                ELSE winners_scrape_log.last_success_at
+            END,
+            rows_last_run = $2,
+            last_error = $3
+        """,
+        state_code, rows, error,
+    )
+
+
 _PER_STATE_RETAILER_TABLES = {
     "MA": "ma_retailers",
     "AZ": "az_retailers",
