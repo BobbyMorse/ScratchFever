@@ -1491,24 +1491,40 @@
   let _winnersLoaded = false;
 
   function winnersStatusBadge(s) {
-    if (!s.last_scraped) {
+    // Prefer the run log when present — it distinguishes "scraper crashed"
+    // from "scraper ran fine but source returned no $10K+ wins in window."
+    // Older deploys won't have log rows yet; fall back to data-freshness in
+    // that case so the dashboard isn't blank after rollout.
+    const lastAttempt = s.last_attempted_at ? new Date(s.last_attempted_at).getTime() : null;
+    const lastSuccess = s.last_success_at  ? new Date(s.last_success_at).getTime()  : null;
+    if (!lastAttempt && !s.last_scraped) {
       return `<span class="status-badge no-data">Never Run</span>`;
     }
     const DAY = 86400000;
-    const hoursSinceScrape = (Date.now() - new Date(s.last_scraped).getTime()) / 3600000;
+    const now = Date.now();
+    const hoursSinceAttempt = lastAttempt ? (now - lastAttempt) / 3600000 : null;
+    const hoursSinceSuccess = lastSuccess ? (now - lastSuccess) / 3600000 : Infinity;
     const daysSinceClaim = s.most_recent_claim
-      ? (Date.now() - new Date(s.most_recent_claim).getTime()) / DAY
+      ? (now - new Date(s.most_recent_claim).getTime()) / DAY
       : Infinity;
-    // "last_scraped" is MAX(scraped_at) on reported_wins rows, not raw scraper-run
-    // time, so a scraper that runs hourly but upserts no rows looks idle. Use 14d
-    // as a hard error and 36h as the "scraper hasn't even bumped existing rows"
-    // warning. Source-side quiet (no $10K+ claims in 60d) is its own state — a
-    // healthy scraper hitting an empty source shouldn't show red.
-    if (hoursSinceScrape > 24 * 14) {
-      return `<span class="status-badge error"><span class="status-dot"></span>Broken</span>`;
+
+    // Broken: last attempt failed AND we haven't had a successful run in 24h+.
+    // A single transient failure shouldn't go red — the hourly cycle retries.
+    if (s.last_error && hoursSinceSuccess > 24) {
+      return `<span class="status-badge error" title="${escHtml(s.last_error).slice(0,200)}"><span class="status-dot"></span>Broken</span>`;
     }
-    if (hoursSinceScrape > 36) {
+    // Scrape lag: cron isn't firing this state. We run hourly; >3h means
+    // either the scheduler is wedged or the scraper is hanging past timeout.
+    if (hoursSinceAttempt !== null && hoursSinceAttempt > 3) {
       return `<span class="status-badge warn"><span class="status-dot"></span>Scrape Lag</span>`;
+    }
+    // Pre-log fallback (no winners_scrape_log row yet): use the old heuristic
+    // of MAX(scraped_at). Will go away once the new code has run one cycle.
+    if (hoursSinceAttempt === null && s.last_scraped) {
+      const hoursSinceData = (now - new Date(s.last_scraped).getTime()) / 3600000;
+      if (hoursSinceData > 24 * 14) {
+        return `<span class="status-badge error"><span class="status-dot"></span>Broken</span>`;
+      }
     }
     if (s.wins_total === 0) {
       return `<span class="status-badge warn"><span class="status-dot"></span>No Wins</span>`;
