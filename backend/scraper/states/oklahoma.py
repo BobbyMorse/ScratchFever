@@ -37,6 +37,9 @@ logger = logging.getLogger(__name__)
 
 BASE_URL = "https://www.lottery.ok.gov"
 LIST_URL = f"{BASE_URL}/scratchers/get"
+# Their Vue bundle builds image URLs as `lccontent/games/inserts/{PrimaryImage}.jpg`,
+# where `lccontent` is an internal placeholder rewritten to this CDN host.
+IMAGE_BASE = "https://content.lottery.ok.gov/games/inserts"
 
 _UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
