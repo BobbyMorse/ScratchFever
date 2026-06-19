@@ -62,8 +62,13 @@ class MississippiWinnersScraper(WinnersScraper):
         html_headers = {"Accept": "text/html,application/xhtml+xml"}
         page = 1
         while page < 30:
+            # MS switched from `?paged=N` query params to `/page/N/` path-based
+            # pagination; the old query-param URL now 301-redirects to the base
+            # /winners/ page (losing the page number) so every page after 1
+            # returned the same first page of results.
+            page_url = URL if page == 1 else PAGE_URL.format(page=page)
             try:
-                resp = self.get(URL, params={"paged": page}, headers=html_headers)
+                resp = self.get(page_url, headers=html_headers)
             except Exception as e:
                 logger.warning("MS page %d failed: %s", page, e)
                 break
