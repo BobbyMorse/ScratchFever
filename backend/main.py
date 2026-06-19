@@ -240,23 +240,6 @@ async def contact():
     return FileResponse(os.path.join(FRONTEND_DIR, "contact.html"))
 
 
-@app.get("/blog", include_in_schema=False)
-async def blog_index():
-    return FileResponse(os.path.join(FRONTEND_DIR, "blog", "index.html"))
-
-
-@app.get("/blog/{slug}", include_in_schema=False)
-async def blog_post(slug: str):
-    # Allow only safe slug characters; map to a file in /frontend/blog/
-    safe = "".join(c for c in slug if c.isalnum() or c in ("-", "_"))
-    if not safe or safe != slug:
-        return FileResponse(os.path.join(FRONTEND_DIR, "blog", "index.html"))
-    path = os.path.join(FRONTEND_DIR, "blog", f"{safe}.html")
-    if os.path.isfile(path):
-        return FileResponse(path)
-    return FileResponse(os.path.join(FRONTEND_DIR, "blog", "index.html"))
-
-
 @app.get("/delete-account", include_in_schema=False)
 async def delete_account_page():
     return FileResponse(os.path.join(FRONTEND_DIR, "delete-account.html"))
