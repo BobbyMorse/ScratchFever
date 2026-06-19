@@ -17,11 +17,13 @@ Per-tier paidTickets is published and reliable across all observed games
 computed directly from winningTickets - paidTickets for every tier.
 """
 from __future__ import annotations
+import json
 import logging
 import re
 import time
 from concurrent.futures import as_completed
 from datetime import datetime, timezone
+from pathlib import Path
 
 from backend.scraper._shared_pool import DETAIL_POOL
 
@@ -41,6 +43,38 @@ _API_HEADERS = {
     "Accept": "application/json",
 }
 _DETAIL_TIMEOUT = 15
+
+# GA publishes ~200 active scratch games and only exposes overall odds via per-game
+# HTML detail pages. With the shared DETAIL_POOL (8 workers split across 4 concurrent
+# state scrapers ≈ 2 effective workers), fetching all detail pages every run pushes
+# us past the runner's 120s ceiling. Odds are an immutable property of a print run,
+# so we cache them per game_id and only fetch new IDs on subsequent runs.
+CACHE_FILE = Path(__file__).parent / "ga_odds_cache.json"
+# Soft budget for new-game odds fetching so this scraper always returns inside the
+# runner's 120s wall, even on a cold cache. Anything not fetched this run gets
+# picked up next cycle.
+_FETCH_BUDGET_S = 90
+# Save cache every N successful fetches so partial progress survives if we get
+# killed by the runner timeout despite the soft budget.
+_CACHE_SAVE_EVERY = 20
+
+
+def _load_cache() -> dict:
+    if CACHE_FILE.exists():
+        try:
+            return json.loads(CACHE_FILE.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    return {}
+
+
+def _save_cache(cache: dict) -> None:
+    try:
+        CACHE_FILE.write_text(
+            json.dumps(cache, indent=2, sort_keys=True), encoding="utf-8"
+        )
+    except Exception as e:
+        logger.warning("GA: could not save odds cache: %s", e)
 
 # GA encodes top-tier prizes as prizeAmount=0 in the API (likely an int-overflow
 # convention). For "for-life" games this strips out the headline prize entirely.
