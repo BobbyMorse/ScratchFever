@@ -129,6 +129,9 @@ class OklahomaScraper(BaseScraper):
             if total_printed_prizes > 0:
                 total_tickets = round(overall_odds * total_printed_prizes)
 
+        image_key = str(r.get("PrimaryImage") or r.get("ThumbnailImage") or game_number).strip()
+        image_url = f"{IMAGE_BASE}/{image_key}.jpg" if image_key else None
+
         return self.build_game(
             game_id=game_number,
             name=name,
@@ -138,7 +141,7 @@ class OklahomaScraper(BaseScraper):
             total_tickets=total_tickets,
             tickets_remaining=tickets_remaining,
             detail_url=f"{BASE_URL}/scratchers/{r.get('Id') or game_number}",
-            image_url=None,  # API only carries the game id as the image field; no public URL pattern resolves.
+            image_url=image_url,
         )
 
     @staticmethod
