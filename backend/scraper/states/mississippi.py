@@ -93,6 +93,7 @@ def _parse_detail_soup(soup: BeautifulSoup):
     tiers = []
     total_prizes = 0
     remaining_prizes = 0
+    has_second_chance = False
 
     for table in soup.find_all("table"):
         hdrs = [th.get_text(strip=True).lower() for th in table.find_all("th")]
