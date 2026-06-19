@@ -2554,6 +2554,34 @@ function closeModal() {
   _openModalGame = null;
 }
 
+function openTicketZoom(src, alt) {
+  let overlay = document.getElementById("ticketZoomOverlay");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "ticketZoomOverlay";
+    overlay.className = "ticket-zoom-overlay";
+    overlay.innerHTML = `
+      <button type="button" class="ticket-zoom-close" aria-label="Close">&times;</button>
+      <img class="ticket-zoom-img" alt="">
+    `;
+    overlay.addEventListener("click", e => {
+      if (e.target === overlay || e.target.classList.contains("ticket-zoom-close")) {
+        closeTicketZoom();
+      }
+    });
+    document.body.appendChild(overlay);
+  }
+  const img = overlay.querySelector(".ticket-zoom-img");
+  img.src = src;
+  img.alt = alt || "";
+  overlay.classList.add("open");
+}
+
+function closeTicketZoom() {
+  const overlay = document.getElementById("ticketZoomOverlay");
+  if (overlay) overlay.classList.remove("open");
+}
+
 function refreshOpenModalCommunity() {
   if (!_openModalGame) return;
   const wrapper = document.getElementById("modalCommunityWrapper");
