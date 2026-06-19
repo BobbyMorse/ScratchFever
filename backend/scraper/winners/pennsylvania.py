@@ -54,9 +54,25 @@ MONTH_NAMES = ("January", "February", "March", "April", "May", "June",
 
 def _months_back(today: dt.date, days: int):
     """Yield (year, month_name, month_num) tuples covering the last `days` days,
-    most recent first."""
+    most recent first.
+
+    Always yields at least the current month AND the previous full month —
+    PA publishes month-by-month, and on the first of June there are zero
+    June wins yet, but May is still the freshest real data. The old
+    "stop when first_of_month < cutoff" rule skipped May entirely once the
+    14d window ended after June 1st, leaving the scraper returning 0 rows
+    for ~3 weeks each month."""
     cutoff = today - dt.timedelta(days=days)
     cursor_year, cursor_month = today.year, today.month
+    # Always include the current month, then unconditionally include the
+    # immediately-prior month, then continue walking back until first-of-month
+    # is older than the lookback cutoff.
+    yield cursor_year, MONTH_NAMES[cursor_month - 1], cursor_month
+    if cursor_month == 1:
+        cursor_year -= 1
+        cursor_month = 12
+    else:
+        cursor_month -= 1
     while True:
         yield cursor_year, MONTH_NAMES[cursor_month - 1], cursor_month
         first_of_month = dt.date(cursor_year, cursor_month, 1)
