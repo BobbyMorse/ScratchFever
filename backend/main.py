@@ -894,6 +894,7 @@ async def api_status_states():
             "retailer_last_scraped": ret["last_scraped_at"].isoformat() if ret else None,
             "has_winners_scraper": state_code in winners_scraper_set,
             "winners_count": int(w["wins"]) if w else 0,
+            "winners_recent_count": int(w["wins_60d"]) if w else 0,
             "winners_latest": w["latest"].isoformat() if (w and w["latest"]) else None,
             "winners_geocoded_pct": int(round(100 * w["geocoded"] / w["wins"])) if (w and w["wins"]) else 0,
             "winners_has_retailer": bool(w and w["with_retailer"] and w["with_retailer"] > 0),
