@@ -8,7 +8,7 @@ import asyncio
 import importlib
 import logging
 
-from backend.database import get_pool, upsert_reported_wins
+from backend.database import get_pool, upsert_reported_wins, upsert_winners_scrape_log
 
 logger = logging.getLogger(__name__)
 
