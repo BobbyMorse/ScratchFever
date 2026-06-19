@@ -55,10 +55,14 @@ class MississippiWinnersScraper(WinnersScraper):
         cutoff = dt.date.today() - dt.timedelta(days=days)
         out: list[dict] = []
         seen: set[str] = set()
+        # MS Lottery's CDN returns 406 unless Accept is a plain HTML mimetype;
+        # the base scraper's default Accept ("application/json, text/html;q=0.9, */*;q=0.5")
+        # tripped this server-side filter and the scraper was silently dead.
+        html_headers = {"Accept": "text/html,application/xhtml+xml"}
         page = 1
         while page < 30:
             try:
-                resp = self.get(URL, params={"paged": page})
+                resp = self.get(URL, params={"paged": page}, headers=html_headers)
             except Exception as e:
                 logger.warning("MS page %d failed: %s", page, e)
                 break
