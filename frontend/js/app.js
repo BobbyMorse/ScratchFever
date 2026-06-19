@@ -2460,7 +2460,7 @@ function renderModal(g) {
   const noSalesData = g.tickets_remaining == null && g.total_tickets == null;
 
   document.getElementById("modalContent").innerHTML = `
-    ${g.image_url ? `<img src="${escHtml(g.image_url)}" alt="${escHtml(g.name)}" class="modal-ticket-img" onerror="this.style.display='none'">` : ""}
+    ${g.image_url ? `<img src="${escHtml(g.image_url)}" alt="${escHtml(g.name)}" class="modal-ticket-img" onclick="openTicketZoom(${escHtml(JSON.stringify(g.image_url))},${escHtml(JSON.stringify(g.name))})" onerror="this.style.display='none'">` : ""}
     <div class="modal-title">${escHtml(g.name)}</div>
     <div class="modal-state">${g.state_name} • $${g.price} ticket</div>
     ${CHASE_HANDLERS[g.state_code] ? `<div class="modal-chase-link-row"><a class="modal-chase-link" href="javascript:void(0)" onclick="viewGameInChase(${escHtml(JSON.stringify(g.name))},${escHtml(JSON.stringify(g.state_code || ""))})">Find this ticket in The Chase →</a></div>` : ""}
