@@ -1502,10 +1502,10 @@
     // warning. Source-side quiet (no $10K+ claims in 60d) is its own state — a
     // healthy scraper hitting an empty source shouldn't show red.
     if (hoursSinceScrape > 24 * 14) {
-      return `<span class="status-badge error"><span class="status-dot"></span>Stale</span>`;
+      return `<span class="status-badge error"><span class="status-dot"></span>Broken</span>`;
     }
     if (hoursSinceScrape > 36) {
-      return `<span class="status-badge warn"><span class="status-dot"></span>Stale</span>`;
+      return `<span class="status-badge warn"><span class="status-dot"></span>Scrape Lag</span>`;
     }
     if (s.wins_total === 0) {
       return `<span class="status-badge warn"><span class="status-dot"></span>No Wins</span>`;
