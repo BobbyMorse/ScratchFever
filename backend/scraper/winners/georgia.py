@@ -20,7 +20,7 @@ from backend.scraper.winners.base import WinnersScraper, is_draw_game
 
 logger = logging.getLogger(__name__)
 
-URL = ("https://www.galottery.com/content/portal/en/winners/"
+URL = ("https://www.galottery.com/en-us/winners/"
        "winners-gallery.infinity.json")
 
 
