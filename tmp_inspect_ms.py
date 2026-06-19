@@ -1,38 +1,49 @@
-import sys, io, re
+import sys, io, os
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+sys.path.insert(0, ".")
+os.environ.setdefault("DATABASE_URL", "postgresql://x:x@localhost/x")
 import requests
 from bs4 import BeautifulSoup
+from backend.scraper.states.mississippi import _parse_detail_soup, GAMES_URL, BASE_URL
+from backend.scraper.base import HEADERS
 
-HEADERS = {"User-Agent": "Mozilla/5.0"}
-r = requests.get("https://www.mslottery.com/instantgames/triple-red-7s/", headers=HEADERS, timeout=20)
-soup = BeautifulSoup(r.text, "lxml")
-text = soup.get_text(" ", strip=True)
+resp = requests.get(GAMES_URL, headers=HEADERS, timeout=15)
+soup = BeautifulSoup(resp.text, "lxml")
+slugs = []
+seen = set()
+for a in soup.find_all("a", href=True):
+    href = a["href"]
+    if "/instantgames/" not in href:
+        continue
+    slug = href.rstrip("/").split("/")[-1]
+    if slug and slug != "instantgames" and slug not in seen:
+        seen.add(slug)
+        slugs.append((slug, (BASE_URL + href) if href.startswith("/") else href))
 
-h1 = soup.find("h1")
-print("H1:", repr(h1.get_text(strip=True)) if h1 else None)
+print(f"Found {len(slugs)} game links on listing")
 
-patterns = [
-    r"\(\$(\d+)\)",
-    r"ticket\s+price[:\s]+\$?([\d.]+)",
-    r"price[:\s]+\$?([\d.]+)",
-    r"\$(\d+)\s+(?:ticket|game)",
-]
-for pat in patterns:
-    m = re.search(pat, text, re.I)
-    print(f"  {pat:55} -> {m.group(0) if m else None}")
+import concurrent.futures as cf
+def fetch(slug, url):
+    try:
+        r = requests.get(url, headers=HEADERS, timeout=20)
+        return slug, url, _parse_detail_soup(BeautifulSoup(r.text, "lxml"))
+    except Exception as e:
+        return slug, url, None
 
-idx = text.lower().find("price")
-print("---price context:", repr(text[max(0, idx - 30):idx + 200]) if idx > 0 else "NOT FOUND")
+ok = 0
+sample_print = 0
+with cf.ThreadPoolExecutor(max_workers=8) as pool:
+    futs = [pool.submit(fetch, s, u) for s, u in slugs]
+    for f in cf.as_completed(futs):
+        slug, url, parsed = f.result()
+        if parsed:
+            ok += 1
+            if sample_print < 3:
+                sample_print += 1
+                print(f"  OK {slug}: name={parsed['name']!r} price={parsed['price']} tiers={len(parsed['tiers'])} odds={parsed['overall_odds']}")
+        else:
+            if sample_print < 6:
+                print(f"  FAIL {slug}: {url}")
+                sample_print += 1
 
-idx = text.lower().find("overall")
-print("---overall context:", repr(text[max(0, idx - 30):idx + 200]) if idx > 0 else "NOT FOUND")
-
-tables = soup.find_all("table")
-print(f"Tables: {len(tables)}")
-for i, t in enumerate(tables[:5]):
-    hdrs = [th.get_text(strip=True) for th in t.find_all("th")]
-    print(f"  table {i} headers: {hdrs}")
-    rows = t.find_all("tr")
-    if rows and len(rows) > 1:
-        first_data = [c.get_text(strip=True) for c in rows[1].find_all(["td", "th"])]
-        print(f"      first data row: {first_data}")
+print(f"\nParsed {ok}/{len(slugs)} pages")
