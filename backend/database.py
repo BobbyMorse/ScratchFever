@@ -379,6 +379,21 @@ async def init_db():
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_rw_game ON reported_wins(game_db_id)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_rw_geo ON reported_wins(retailer_lat, retailer_lng) WHERE retailer_lat IS NOT NULL")
 
+        # Per-state scrape attempt log. Distinguishes "scraper crashed" from
+        # "scraper ran fine but source had no new $10K+ wins in window" — both
+        # used to look identical because MAX(scraped_at) on reported_wins only
+        # advances when a row is actually upserted, so a healthy scraper hitting
+        # a quiet source appeared "broken" in the admin dashboard.
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS winners_scrape_log (
+                state_code TEXT PRIMARY KEY,
+                last_attempted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                last_success_at TIMESTAMPTZ,
+                rows_last_run INTEGER NOT NULL DEFAULT 0,
+                last_error TEXT
+            )
+        """)
+
 
 async def init_retailer_db():
     async with _pool.acquire() as conn:
