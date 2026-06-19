@@ -833,7 +833,8 @@ async def api_status_states():
                    COUNT(*) AS wins,
                    MAX(claim_date) AS latest,
                    SUM(CASE WHEN retailer_lat IS NOT NULL THEN 1 ELSE 0 END) AS geocoded,
-                   SUM(CASE WHEN retailer_name IS NOT NULL THEN 1 ELSE 0 END) AS with_retailer
+                   SUM(CASE WHEN retailer_name IS NOT NULL THEN 1 ELSE 0 END) AS with_retailer,
+                   COUNT(*) FILTER (WHERE claim_date > CURRENT_DATE - INTERVAL '60 days') AS wins_60d
             FROM reported_wins
             GROUP BY state_code
         """)
