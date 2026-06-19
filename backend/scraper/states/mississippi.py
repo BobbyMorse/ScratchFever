@@ -65,17 +65,22 @@ def _parse_detail_soup(soup: BeautifulSoup):
         image_url = u if u.startswith("http") else (BASE_URL + u)
         break
 
-    # Name and price from H1: "Wheel of Fortune ($10)"
+    # Name from H1. Historically the H1 included the price in parens
+    # ("Wheel of Fortune ($10)"); newer pages drop it ("Wheel of Fortune"),
+    # so strip a trailing "($X)" if present and otherwise use the H1 verbatim.
     name = price = None
     h1 = soup.find("h1")
     if h1:
         h1_text = h1.get_text(strip=True)
-        pm = re.search(r"\(\$(\d+)\)\s*$", h1_text)
+        pm = re.search(r"\s*\(\$(\d+)\)\s*$", h1_text)
         if pm:
             price = float(pm.group(1))
             name = h1_text[:pm.start()].strip()
+        else:
+            name = h1_text
+    # Price almost always comes from the "Ticket Price $X" info row now.
     if not price:
-        pm2 = re.search(r"ticket\s+price\s+\$?([\d.]+)", page_text, re.I)
+        pm2 = re.search(r"ticket\s+price[:\s]+\$?([\d.]+)", page_text, re.I)
         if pm2:
             price = float(pm2.group(1))
 
