@@ -2590,7 +2590,7 @@ function refreshOpenModalCommunity() {
 }
 
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape") { closeModal(); closeAuthModal(); closePaywall(); closeReportModal(); closeGameNotes(); }
+  if (e.key === "Escape") { closeTicketZoom(); closeModal(); closeAuthModal(); closePaywall(); closeReportModal(); closeGameNotes(); }
 });
 
 // ── Scrape trigger ────────────────────────────────────────────────────────────
