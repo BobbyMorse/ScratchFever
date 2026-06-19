@@ -19,6 +19,16 @@ import logging
 import time
 from backend.scraper.winners.base import WinnersScraper, is_draw_game
 
+
+def _month_end_or_today(year: int, month: int, today: dt.date) -> dt.date:
+    """Latest plausible claim date for a month-granularity win. Using the
+    first-of-month placeholder caused every prior-month win to age out of the
+    30d window before the next month's data was published, leaving the state
+    permanently empty."""
+    last_day = calendar.monthrange(year, month)[1]
+    candidate = dt.date(year, month, last_day)
+    return min(candidate, today)
+
 logger = logging.getLogger(__name__)
 
 URL = "https://www.palottery.pa.gov/Custom/ebw/JsWinners.aspx"
