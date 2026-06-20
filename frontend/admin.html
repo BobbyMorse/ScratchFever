@@ -1662,8 +1662,8 @@
     let okCount = 0, warnCount = 0, errCount = 0;
     tbody.innerHTML = states.map(s => {
       const badge = retailerStatusBadge(s);
-      if (badge.includes('"ok"')) okCount++;
-      else if (badge.includes('"error"')) errCount++;
+      if (badge.includes('status-badge ok')) okCount++;
+      else if (badge.includes('status-badge error')) errCount++;
       else warnCount++;
 
       let ageCell = '<span class="no-error">—</span>';
