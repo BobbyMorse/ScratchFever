@@ -214,7 +214,12 @@ def ocr_image(image_url: str, session: requests.Session | None = None) -> dict |
             }],
         )
     except Exception as e:
-        logger.warning("DE OCR: API call failed for %s: %s", image_url, e)
+        # Include exception type so 401 / 404 / network / format errors are
+        # distinguishable in Railway logs without exc_info noise.
+        logger.warning(
+            "DE OCR: API call failed for %s: %s: %s",
+            image_url, type(e).__name__, e,
+        )
         return None
 
     text = "".join(getattr(b, "text", "") for b in msg.content)
