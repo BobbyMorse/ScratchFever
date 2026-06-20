@@ -1,0 +1,298 @@
+[
+  {
+    "id": 324132,
+    "game_id": "de500",
+    "name": "ACES HIGH",
+    "price": 1.0,
+    "top_prize": 1000.0,
+    "top_prize_remaining": 8
+  },
+  {
+    "id": 324133,
+    "game_id": "de506",
+    "name": "Grand Slam",
+    "price": 1.0,
+    "top_prize": 1000.0,
+    "top_prize_remaining": 4
+  },
+  {
+    "id": 324135,
+    "game_id": "de498",
+    "name": "HOT 8's",
+    "price": 1.0,
+    "top_prize": 888.0,
+    "top_prize_remaining": 0
+  },
+  {
+    "id": 637212,
+    "game_id": "de512",
+    "name": "Monopoly 5X",
+    "price": 1.0,
+    "top_prize": 1000.0,
+    "top_prize_remaining": 7
+  },
+  {
+    "id": 324128,
+    "game_id": "de483",
+    "name": "$TICKY NOTE$",
+    "price": 2.0,
+    "top_prize": 4000.0,
+    "top_prize_remaining": 4
+  },
+  {
+    "id": 324129,
+    "game_id": "de493",
+    "name": "10X WILD",
+    "price": 2.0,
+    "top_prize": 5000.0,
+    "top_prize_remaining": 1
+  },
+  {
+    "id": 324131,
+    "game_id": "de484",
+    "name": "Cash Wheel",
+    "price": 2.0,
+    "top_prize": 2500.0,
+    "top_prize_remaining": 1
+  },
+  {
+    "id": 324130,
+    "game_id": "de501b",
+    "name": "Jumbo Bucks Bonus",
+    "price": 2.0,
+    "top_prize": 2500.0,
+    "top_prize_remaining": 1
+  },
+  {
+    "id": 637201,
+    "game_id": "de513",
+    "name": "Monopoly 10X",
+    "price": 2.0,
+    "top_prize": 5000.0,
+    "top_prize_remaining": 8
+  },
+  {
+    "id": 324127,
+    "game_id": "de499",
+    "name": "Power 7",
+    "price": 2.0,
+    "top_prize": 2500.0,
+    "top_prize_remaining": 4
+  },
+  {
+    "id": 324118,
+    "game_id": "de468",
+    "name": "$25,000 Lucky Dog",
+    "price": 5.0,
+    "top_prize": 25000.0,
+    "top_prize_remaining": 2
+  },
+  {
+    "id": 324119,
+    "game_id": "de494",
+    "name": "20X WILD",
+    "price": 5.0,
+    "top_prize": 20000.0,
+    "top_prize_remaining": 2
+  },
+  {
+    "id": 324122,
+    "game_id": "de472",
+    "name": "7",
+    "price": 5.0,
+    "top_prize": 15000.0,
+    "top_prize_remaining": 1
+  },
+  {
+    "id": 324123,
+    "game_id": "de485",
+    "name": "Bullseye Bingo",
+    "price": 5.0,
+    "top_prize": 10000.0,
+    "top_prize_remaining": 2
+  },
+  {
+    "id": 324124,
+    "game_id": "de491",
+    "name": "Jurrasic Park",
+    "price": 5.0,
+    "top_prize": 50000.0,
+    "top_prize_remaining": 0
+  },
+  {
+    "id": 324117,
+    "game_id": "de510",
+    "name": "Lotteria Fiesta",
+    "price": 5.0,
+    "top_prize": 10000.0,
+    "top_prize_remaining": 8
+  },
+  {
+    "id": 324125,
+    "game_id": "de482",
+    "name": "Lucky 7's Cashword",
+    "price": 5.0,
+    "top_prize": 10000.0,
+    "top_prize_remaining": 1
+  },
+  {
+    "id": 324126,
+    "game_id": "de410",
+    "name": "Money Talks",
+    "price": 5.0,
+    "top_prize": 25000.0,
+    "top_prize_remaining": 1
+  },
+  {
+    "id": 637177,
+    "game_id": "de514",
+    "name": "Monopoloy 20X",
+    "price": 5.0,
+    "top_prize": 20000.0,
+    "top_prize_remaining": 3
+  },
+  {
+    "id": 324120,
+    "game_id": "de497",
+    "name": "SCRABBLE",
+    "price": 5.0,
+    "top_prize": 10000.0,
+    "top_prize_remaining": 2
+  },
+  {
+    "id": 324111,
+    "game_id": "de503",
+    "name": "$50 or $100",
+    "price": 10.0,
+    "top_prize": 100.0,
+    "top_prize_remaining": 4792
+  },
+  {
+    "id": 324115,
+    "game_id": "de467",
+    "name": "$50,000 Crossword",
+    "price": 10.0,
+    "top_prize": 50000.0,
+    "top_prize_remaining": 2
+  },
+  {
+    "id": 324112,
+    "game_id": "de477",
+    "name": "$50,000 Payout Party",
+    "price": 10.0,
+    "top_prize": 50000.0,
+    "top_prize_remaining": 2
+  },
+  {
+    "id": 324113,
+    "game_id": "de495",
+    "name": "50X WILD",
+    "price": 10.0,
+    "top_prize": 50000.0,
+    "top_prize_remaining": 2
+  },
+  {
+    "id": 637161,
+    "game_id": "de515",
+    "name": "Monopoly 50X",
+    "price": 10.0,
+    "top_prize": 50000.0,
+    "top_prize_remaining": 2
+  },
+  {
+    "id": 324116,
+    "game_id": "de425",
+    "name": "SUMMER Dreamin",
+    "price": 10.0,
+    "top_prize": 50000.0,
+    "top_prize_remaining": 2
+  },
+  {
+    "id": 324110,
+    "game_id": "de476",
+    "name": "100X The Celebration",
+    "price": 20.0,
+    "top_prize": 100000.0,
+    "top_prize_remaining": 2
+  },
+  {
+    "id": 324106,
+    "game_id": "de496",
+    "name": "100X WILD",
+    "price": 20.0,
+    "top_prize": 100000.0,
+    "top_prize_remaining": 2
+  },
+  {
+    "id": 324109,
+    "game_id": "de464",
+    "name": "FAST BUCKS",
+    "price": 20.0,
+    "top_prize": 150000.0,
+    "top_prize_remaining": 1
+  },
+  {
+    "id": 324105,
+    "game_id": "de505",
+    "name": "Loaded Ca$h Explosion",
+    "price": 20.0,
+    "top_prize": 150000.0,
+    "top_prize_remaining": 2
+  },
+  {
+    "id": 324108,
+    "game_id": "de470",
+    "name": "LUCKY STARS",
+    "price": 20.0,
+    "top_prize": 100000.0,
+    "top_prize_remaining": 2
+  },
+  {
+    "id": 637148,
+    "game_id": "de516",
+    "name": "Monopoly 100X",
+    "price": 20.0,
+    "top_prize": 100000.0,
+    "top_prize_remaining": 3
+  },
+  {
+    "id": 324103,
+    "game_id": "de478",
+    "name": "Cash King",
+    "price": 30.0,
+    "top_prize": 300000.0,
+    "top_prize_remaining": 2
+  },
+  {
+    "id": 324102,
+    "game_id": "de509",
+    "name": "Lucky Times 50",
+    "price": 30.0,
+    "top_prize": 300000.0,
+    "top_prize_remaining": 3
+  },
+  {
+    "id": 324104,
+    "game_id": "de451",
+    "name": "WIN BIG",
+    "price": 30.0,
+    "top_prize": 300000.0,
+    "top_prize_remaining": 2
+  },
+  {
+    "id": 324100,
+    "game_id": "de501",
+    "name": "$1 MILLION VAULT",
+    "price": 50.0,
+    "top_prize": 1000000.0,
+    "top_prize_remaining": 2
+  },
+  {
+    "id": 324101,
+    "game_id": "de443",
+    "name": "50th Anniversary",
+    "price": 50.0,
+    "top_prize": 1000000.0,
+    "top_prize_remaining": 1
+  }
+]

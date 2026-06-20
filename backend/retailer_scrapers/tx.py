@@ -2,14 +2,18 @@
 Texas Lottery retailer scraper.
 POST to texaslottery.com/opencms/Games/Scratch_Offs/Retailer_Locator.jsp with city name.
 Fetches all ~1,200 TX cities from the form's select element, then scrapes each.
-Returns HTML tables; parsed with stdlib html.parser (no extra deps).
+
+Each results row has 7 td cells:
+    Name | Street Address | City | Phone | Smoking | Self Check | <a>Map</a>
+The Map link's href embeds the ZIP (q=<addr>, <city>, Texas, <zip>), which we
+extract since the table itself has no ZIP column. There are no lat/lng in the
+source — those are filled in afterwards by `backfill_retailer_geo.py`.
 """
 from __future__ import annotations
 import html as html_mod
 import logging
 import re
 import time
-from html.parser import HTMLParser
 from .base import make_external_id, upsert_retailers
 
 logger = logging.getLogger(__name__)
@@ -17,42 +21,22 @@ logger = logging.getLogger(__name__)
 BASE_URL = "https://www.texaslottery.com"
 LOCATOR_URL = BASE_URL + "/opencms/Games/Scratch_Offs/Retailer_Locator.jsp"
 
-
-class _TableParser(HTMLParser):
-    """Extract <td> text from the results table."""
-    def __init__(self):
-        super().__init__()
-        self._in_td = False
-        self._cells: list[str] = []
-        self._current: list[str] = []
-
-    def handle_starttag(self, tag, attrs):
-        if tag == "td":
-            self._in_td = True
-            self._current = []
-
-    def handle_endtag(self, tag):
-        if tag == "td":
-            self._cells.append("".join(self._current).strip())
-            self._in_td = False
-
-    def handle_data(self, data):
-        if self._in_td:
-            self._current.append(data)
-
-    def handle_entityref(self, name):
-        if self._in_td:
-            self._current.append(html_mod.unescape(f"&{name};"))
-
-    def handle_charref(self, name):
-        if self._in_td:
-            self._current.append(html_mod.unescape(f"&#{name};"))
-
-
 _UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 )
+
+_ROW_RE  = re.compile(r"<tr>(.*?)</tr>", re.DOTALL | re.IGNORECASE)
+_CELL_RE = re.compile(r"<td[^>]*>(.*?)</td>", re.DOTALL | re.IGNORECASE)
+_TBODY_RE = re.compile(r"<tbody[^>]*>(.*?)</tbody>", re.DOTALL | re.IGNORECASE)
+# Map URL looks like: q=<addr>, <city>, Texas, <zip>
+# Anchor on "Texas," so we don't accidentally grab a 5-digit street number.
+_ZIP_RE  = re.compile(r"Texas,\s*(\d{5})", re.IGNORECASE)
+_TAG_RE  = re.compile(r"<[^>]+>")
+
+
+def _clean(cell: str) -> str:
+    return html_mod.unescape(_TAG_RE.sub("", cell)).strip()
 
 
 def _fetch_cities() -> list[str]:
@@ -73,19 +57,21 @@ def _fetch_cities() -> list[str]:
 
 
 def _parse_rows(html: str) -> list[dict]:
-    """Parse retailer table rows. Columns: Name, Address, City."""
-    parser = _TableParser()
-    parser.feed(html)
-    cells = parser._cells
-    # Every 3 cells = one retailer row (Name, Address, City)
+    """Parse retailer table rows. 7 cells per row; ZIP comes from the Map href."""
+    tbody = _TBODY_RE.search(html)
+    body = tbody.group(1) if tbody else html
     retailers: list[dict] = []
-    i = 0
-    while i + 2 < len(cells):
-        name = cells[i].strip()
-        address = cells[i + 1].strip()
-        city = cells[i + 2].strip()
-        i += 3
-        if not name or name.lower() in ("name", "business name", ""):
+    for row_html in _ROW_RE.findall(body):
+        cells = _CELL_RE.findall(row_html)
+        if len(cells) < 7:
+            continue
+        name    = _clean(cells[0])
+        address = _clean(cells[1])
+        city    = _clean(cells[2])
+        phone   = _clean(cells[3])
+        zm = _ZIP_RE.search(cells[6])
+        zip_code = zm.group(1) if zm else None
+        if not name or name.lower() in ("retailer name", "name"):
             continue
         if not re.search(r"[A-Z]", name):
             continue
@@ -93,11 +79,11 @@ def _parse_rows(html: str) -> list[dict]:
             "name": name,
             "address": address or None,
             "city": city or None,
-            "zip_code": None,
-            "phone": None,
+            "zip_code": zip_code,
+            "phone": phone or None,
             "latitude": None,
             "longitude": None,
-            "external_id": make_external_id(name, address, city),
+            "external_id": make_external_id(name, address, city, zip_code or ""),
         })
     return retailers
 
@@ -106,7 +92,7 @@ def scrape_tx() -> list[dict]:
     import requests
     session = requests.Session()
     session.headers.update({
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        "User-Agent": _UA,
         "Content-Type": "application/x-www-form-urlencoded",
         "Referer": LOCATOR_URL,
     })
@@ -135,8 +121,6 @@ def scrape_tx() -> list[dict]:
                     logger.warning("TX: HTTP 403 on city %s (consecutive=%d) — IP throttled, backing off 60s",
                                    city, consecutive_403)
                 if consecutive_403 >= 5:
-                    # IP is banned. Bail out — runs that would silently get 403 for hundreds of cities just
-                    # waste time and inflate the runtime; better to fail fast and re-run after the ban lifts.
                     logger.error("TX: aborting after %d consecutive 403s (banned). Partial result: %d retailers from %d cities",
                                  consecutive_403, len(all_retailers), i)
                     break
@@ -169,6 +153,24 @@ def scrape_tx() -> list[dict]:
 
 
 async def run(conn) -> int:
+    """Scrape TX, upsert new rows, then deactivate stale ones from the old broken parse.
+
+    The pre-fix scraper stored rows with name="Map" / address=<store_name> /
+    city=<street_address> and a stable hash of those bogus fields, so the
+    re-scraped rows insert under fresh external_ids alongside the old ones.
+    After a successful run (guarded by a sanity floor) we drop anything not
+    re-touched by this run so the UI doesn't show 5,700 rows for ~2,800 stores.
+    """
     import asyncio
+    from datetime import datetime, timezone
+    run_started = datetime.now(timezone.utc)
     retailers = await asyncio.to_thread(scrape_tx)
-    return await upsert_retailers(conn, "TX", retailers)
+    count = await upsert_retailers(conn, "TX", retailers)
+    if count >= 1000:
+        deleted = await conn.fetchval(
+            "WITH d AS (DELETE FROM state_retailers WHERE state_code='TX' AND scraped_at < $1 RETURNING 1) SELECT count(*) FROM d",
+            run_started,
+        )
+        if deleted:
+            logger.info("TX: removed %s stale retailer rows from prior scrape", deleted)
+    return count
