@@ -144,7 +144,17 @@ def register_jobs(scheduler, status_dict: Optional[dict] = None,
         except Exception:
             logger.exception("retailer staleness check failed")
 
-    scheduler.add_job(_retailer_job, "interval", days=1, id="check_retailer_freshness")
+    # First retailer pass kicks off ~5 minutes after boot. Without an explicit
+    # next_run_time APScheduler waits one full interval (24h) before its first
+    # firing — combined with the scraper_worker's 6h max-uptime self-restart,
+    # the daily job would never fire at all and stale states (>30d) would never
+    # auto-refresh. misfire_grace_time generous because a full sweep of all
+    # stale states can take many minutes if multiple are due at once.
+    scheduler.add_job(
+        _retailer_job, "interval", days=1, id="check_retailer_freshness",
+        next_run_time=datetime.datetime.now() + datetime.timedelta(seconds=300),
+        max_instances=1, misfire_grace_time=3600, coalesce=True,
+    )
     # First winners pass kicks off ~3 minutes after boot so newly-added state
     # scrapers get ingested on the very first deploy without waiting a full
     # interval. APScheduler's `interval` trigger otherwise waits one whole
