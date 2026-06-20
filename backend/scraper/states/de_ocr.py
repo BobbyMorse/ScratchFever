@@ -258,6 +258,17 @@ def ocr_batch(
     out: dict[str, dict] = {}
     started = time.monotonic()
     fresh = 0
+    fails = 0
+    attempted = 0
+
+    # Loud one-shot signal if the API key is missing — without this the only
+    # evidence is a single warning per call, easy to miss in Railway logs.
+    if not _get_client():
+        logger.error(
+            "DE OCR: ANTHROPIC_API_KEY not set in this service — all %d images "
+            "will fall back to PDF-only (no EV). Set the env var and redeploy.",
+            len([u for u in image_urls if u]),
+        )
 
     for url in image_urls:
         if not url:
@@ -272,8 +283,10 @@ def ocr_batch(
                 budget_s, len(image_urls) - len(out),
             )
             break
+        attempted += 1
         parsed = ocr_image(url, session=session)
         if parsed is None:
+            fails += 1
             continue
         cache[url] = parsed
         out[url] = parsed
@@ -283,4 +296,10 @@ def ocr_batch(
 
     if fresh:
         save_cache(cache)
+    # End-of-batch summary so we can spot systematic failure modes (e.g. every
+    # attempt failing → 0% EV ship-back, which we saw on 2026-06-20).
+    logger.info(
+        "DE OCR batch: %d total · %d cache-hit · %d fresh-ok · %d fresh-fail",
+        len([u for u in image_urls if u]), len(out) - fresh, fresh, fails,
+    )
     return out
