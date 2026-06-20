@@ -1549,8 +1549,8 @@
     let okCount = 0, warnCount = 0, errCount = 0;
     tbody.innerHTML = states.map(s => {
       const badge = winnersStatusBadge(s);
-      if (badge.includes('"ok"')) okCount++;
-      else if (badge.includes('"error"')) errCount++;
+      if (badge.includes('status-badge ok')) okCount++;
+      else if (badge.includes('status-badge error')) errCount++;
       else warnCount++;
 
       const totalCls = s.wins_total === 0 ? "games-count games-zero" : "games-count";
