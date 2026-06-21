@@ -804,6 +804,13 @@ async def api_states():
 async def api_status_states():
     from backend.scraper.runner import ALL_SCRAPERS
     all_known = {cls.state_code: cls.state_name for cls in ALL_SCRAPERS}
+    # States where the official source publishes no per-tier data so EV is
+    # unattainable — used below to skip the ev_pct demotion that would
+    # otherwise flag them as "Stale" forever.
+    ev_unsupported_states = {
+        cls.state_code for cls in ALL_SCRAPERS
+        if not getattr(cls, "ev_supported", True)
+    }
 
     from backend.retailer_scrapers.runner import SCRAPERS as RETAILER_STATES
     retailer_state_set = set(RETAILER_STATES)
