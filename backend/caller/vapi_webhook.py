@@ -704,7 +704,7 @@ async def _apply_analysis_for_row(
                 ended_early_reason         = COALESCE(ended_early_reason,         $11)
             WHERE id = $1
             RETURNING retailer_external_id, retailer_name, retailer_city,
-                      to_phone, ended_at, is_voicemail, game_name,
+                      to_phone, ended_at, is_voicemail, game_name, state_code,
                       inventory_mirrored_at IS NOT NULL AS mirrored
             """,
             local_id,
