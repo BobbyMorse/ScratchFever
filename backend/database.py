@@ -837,21 +837,23 @@ async def add_inventory_report(conn, retailer_id: str, retailer_name: str = None
                                 reporter_ip: str = None, reporter_username: str = None,
                                 notes: str = None, reported_at=None,
                                 reporter_lat: float = None, reporter_lng: float = None,
-                                bounty_session: str = None):
+                                bounty_session: str = None, state_code: str = None):
     if isinstance(reported_at, str):
         try:
             reported_at = dt.datetime.fromisoformat(reported_at.replace("Z", "+00:00"))
         except ValueError:
             reported_at = None
+    if state_code:
+        state_code = state_code.strip().upper() or None
     await conn.execute("""
         INSERT INTO inventory_reports
         (retailer_id, retailer_name, retailer_city, lat, lng,
          game_name, game_price, has_stock, source, reporter_ip, reporter_username, notes, reported_at,
-         reporter_lat, reporter_lng, bounty_session)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, COALESCE($13, NOW()), $14, $15, $16)
+         reporter_lat, reporter_lng, bounty_session, state_code)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, COALESCE($13, NOW()), $14, $15, $16, $17)
     """, retailer_id, retailer_name, retailer_city, lat, lng,
          game_name, game_price, has_stock, source, reporter_ip, reporter_username, notes, reported_at,
-         reporter_lat, reporter_lng, bounty_session)
+         reporter_lat, reporter_lng, bounty_session, state_code)
 
 
 async def get_recent_prize_claims(conn, days: int = 7, limit: int = 200, min_prize: float = 0):
