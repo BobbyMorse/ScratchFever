@@ -17,7 +17,10 @@ game_price taxonomy → dollar amounts:
   {41: $1, 40: $2, 42: $3, 43: $5, 44: $10, 45: $20, 49: $30}
 
 Detail pages: https://lottery.sd.gov/game/{slug}/
-  Prize table is JS-rendered via IGT's platform.
+  Prize table is JS-rendered via IGT's platform and split across two tabs:
+    "PRIZES REMAINING" (default) → PRIZE | PRIZES REMAINING
+    "ODDS"                       → PRIZE | ODDS (e.g. "1:12")
+  We scrape both and merge by prize_amount so EV can be computed.
   Uses Playwright; tries HTML table parse first, falls back to inner_text regex.
 """
 from __future__ import annotations
