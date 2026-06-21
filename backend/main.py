@@ -1493,6 +1493,10 @@ class InventoryReportBody(BaseModel):
     # Bounty session id from the mobile client groups a batch of submissions
     # made during a single display-scan session. Empty for non-bounty submits.
     bounty_session: Optional[str] = None
+    # Required to disambiguate cross-state retailer_id collisions (e.g. MA id 9482
+    # and RI external_id "9482" are two unrelated stores). Without it, this report
+    # would silently leak onto the other state's map.
+    state_code: Optional[str] = None
 
 
 @app.post("/api/inventory/report")
