@@ -1533,6 +1533,7 @@ async def submit_inventory_report(
             reporter_lat=body.reporter_lat,
             reporter_lng=body.reporter_lng,
             bounty_session=body.bounty_session,
+            state_code=body.state_code,
         )
     return {"message": "Report submitted!", "reported_at": datetime.datetime.utcnow().isoformat()}
 
