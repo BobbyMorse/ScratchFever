@@ -5648,6 +5648,7 @@ async function submitInventoryReport() {
       has_stock:     _reportStock,
       notes:         document.getElementById("reportNotes").value.trim(),
       reported_at:   document.getElementById("reportDate").value || null,
+      state_code:    currentHuntState || "MA",
     };
     const res = await protectedFetch("/api/inventory/report", {
       method: "POST",
