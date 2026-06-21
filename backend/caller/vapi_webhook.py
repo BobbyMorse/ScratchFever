@@ -460,6 +460,7 @@ async def vapi_webhook(
                         reporter_username="vapi",
                         notes=" · ".join(note_parts) or None,
                         reported_at=parsed["ended_at"],
+                        state_code=parsed["state_code"],
                     )
                     inventory_rows_written += 1
             logger.info(
