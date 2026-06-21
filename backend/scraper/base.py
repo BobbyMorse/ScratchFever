@@ -214,6 +214,11 @@ class BaseScraper(ABC):
     state_name: str = ""
     base_url: str = ""
     disabled: bool = False
+    # Set False when the state's official source publishes no per-tier odds
+    # or sufficient remainder data to compute EV (e.g. WI shows overall
+    # odds only). The data-status chip uses this to avoid flagging these
+    # states as "Stale" forever for a coverage gap that can't be closed.
+    ev_supported: bool = True
 
     def __init__(self):
         self.session = requests.Session()
