@@ -127,6 +127,7 @@ async def init_db():
                 reporter_ip TEXT,
                 reporter_username TEXT,
                 notes TEXT,
+                state_code TEXT,
                 reported_at TIMESTAMPTZ DEFAULT NOW()
             )
         """)
