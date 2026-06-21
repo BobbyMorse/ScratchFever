@@ -235,9 +235,54 @@ class SouthDakotaScraper(BaseScraper):
         )
 
 
+def _click_odds_tab(page) -> str | None:
+    """Click SD's ODDS tab and return the inner_text of the surfaced table.
+    Returns None on failure — caller continues with whatever odds we already have."""
+    try:
+        page.click("text=ODDS", timeout=5_000)
+    except Exception:
+        return None
+    try:
+        # New table is in the DOM — wait for any TD that looks like "1:N".
+        page.wait_for_function(
+            "Array.from(document.querySelectorAll('td')).some(td => /^\\s*1\\s*[:/]/.test(td.textContent))",
+            timeout=5_000,
+        )
+    except Exception:
+        pass
+    try:
+        return page.inner_text("body")
+    except Exception:
+        return None
+
+
+def _parse_odds_pairs(text: str) -> dict[float, float]:
+    """Extract {prize_amount: odds_one_in} pairs from the ODDS-tab inner_text.
+    Lines look like '$20\t1:12'. Tolerant of whitespace and 1-in/1:/1/ separators."""
+    out: dict[float, float] = {}
+    for line in text.splitlines():
+        m = re.match(
+            r"\s*\$([\d,]+(?:\.\d+)?(?:\s+(?:Million|Thousand))?)\s+1\s*[:/]\s*([\d,]+(?:\.\d+)?)\s*$",
+            line, re.I,
+        )
+        if not m:
+            m = re.match(
+                r"\s*\$([\d,]+(?:\.\d+)?(?:\s+(?:Million|Thousand))?)\s+1\s+in\s+([\d,]+(?:\.\d+)?)\s*$",
+                line, re.I,
+            )
+        if not m:
+            continue
+        prize = parse_prize_amount("$" + m.group(1))
+        odds = float(m.group(2).replace(",", ""))
+        if prize and prize > 0 and odds > 0:
+            out[float(prize)] = odds
+    return out
+
+
 def _extract_overall_odds(text: str) -> float | None:
+    # Accepts: "Overall Odds: 1 in 3.94", "Overall Odds: 1:3.94", "odds of winning any prize 1 in 4"
     m = re.search(
-        r"(?:overall\s+odds?|odds?\s+of\s+winning\s+any\s+prize)[:\s]+1\s+in\s+([\d,]+(?:\.\d+)?)",
+        r"(?:overall\s+odds?|odds?\s+of\s+winning\s+any\s+prize)[:\s]+1\s*(?:in|[:/])\s*([\d,]+(?:\.\d+)?)",
         text, re.I,
     )
     return float(m.group(1).replace(",", "")) if m else None
