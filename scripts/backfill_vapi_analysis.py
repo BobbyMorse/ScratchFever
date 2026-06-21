@@ -170,6 +170,7 @@ async def main() -> int:
                             reporter_username="vapi",
                             notes=(t.get("notes") or None),
                             reported_at=r["ended_at"],
+                            state_code=r["state_code"],
                         )
                         rows_this_call += 1
                 if rows_this_call > 0:
