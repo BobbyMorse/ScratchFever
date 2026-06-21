@@ -1049,7 +1049,11 @@ document.addEventListener("click", e => {
 
 async function loadRetailerCounts() {
   try {
-    const res = await protectedFetch("/api/inventory/retailer-counts");
+    // Scope to the currently-viewed state so cross-state retailer_id
+    // collisions don't inflate report badges (a MA call to id 9482 used
+    // to surface as a report count on RI's external_id "9482" store).
+    const state = encodeURIComponent(currentHuntState || "MA");
+    const res = await protectedFetch(`/api/inventory/retailer-counts?state=${state}`);
     if (!res.ok) return;
     const data = await res.json();
     retailerCounts = data.counts || {};
@@ -1059,9 +1063,10 @@ async function loadRetailerCounts() {
 
 async function loadRetailerLatest(gameName) {
   try {
+    const state = encodeURIComponent(currentHuntState || "MA");
     const url = gameName
-      ? `/api/inventory/retailer-latest?game_name=${encodeURIComponent(gameName)}`
-      : "/api/inventory/retailer-latest";
+      ? `/api/inventory/retailer-latest?game_name=${encodeURIComponent(gameName)}&state=${state}`
+      : `/api/inventory/retailer-latest?state=${state}`;
     const res = await protectedFetch(url);
     if (!res.ok) return;
     const data = await res.json();
