@@ -816,7 +816,10 @@ async function openStoreFromUrl() {
 
 async function loadGameCounts() {
   try {
-    const res = await protectedFetch("/api/inventory/game-counts");
+    // Web is MA-only; scoping prevents cross-state retailer_id collisions
+    // (MA's ma_retailers.id and other states' state_retailers.external_id
+    // share a small-integer keyspace) from inflating MA's counts.
+    const res = await protectedFetch("/api/inventory/game-counts?state=MA");
     if (!res.ok) return;
     const data = await res.json();
     gameCounts = data.counts || {};
