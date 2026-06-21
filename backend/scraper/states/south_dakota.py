@@ -178,7 +178,18 @@ class SouthDakotaScraper(BaseScraper):
             logger.debug("SD: no prize tiers for %s", slug)
             return None
 
+        # The default "PRIZES REMAINING" tab carries prize + remaining only.
+        # Odds live behind the "ODDS" tab — click it, scrape, merge by prize.
+        odds_text = _click_odds_tab(page)
+        if odds_text:
+            odds_by_prize = _parse_odds_pairs(odds_text)
+            for t in tiers:
+                if t.get("odds_one_in") is None:
+                    t["odds_one_in"] = odds_by_prize.get(float(t["prize_amount"]))
+
         page_text = soup.get_text(" ", strip=True)
+        if odds_text:
+            page_text = page_text + " " + odds_text
         overall_odds = _extract_overall_odds(page_text)
 
         total_prizes_printed = sum(t.get("prizes_total") or 0 for t in tiers)
