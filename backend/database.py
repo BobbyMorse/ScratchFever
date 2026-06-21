@@ -162,6 +162,14 @@ async def init_db():
         # this store" without re-counting historical submissions.
         await add_column_if_missing(conn, "inventory_reports", "bounty_session", "TEXT")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_ir_bounty_session ON inventory_reports(reporter_username, retailer_id, reported_at DESC) WHERE bounty_session IS NOT NULL")
+        # state_code disambiguates cross-state retailer_id collisions (MA's
+        # ma_retailers.id and RI's state_retailers.external_id both use small
+        # integers — id "9482" exists as a real store in BOTH states). Without
+        # this, a VAPI call to an MA store would surface as inventory on a
+        # different RI store on the mobile map. Filter retailer-latest /
+        # game-counts / retailer-counts on it.
+        await add_column_if_missing(conn, "inventory_reports", "state_code", "TEXT")
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_ir_state_retailer ON inventory_reports(state_code, retailer_id)")
         # Bounty claim ledger. One row per granted reward — enforces the per-user
         # per-store cooldown (a user can only claim a bounty on a given store
         # once every COOLDOWN_DAYS).
