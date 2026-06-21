@@ -6089,6 +6089,7 @@ async function toggleGameInv(retailerId, gameName, gamePrice, hasStock, notes) {
         game_price:    gamePrice,
         has_stock:     hasStock,
         notes:         notes || null,
+        state_code:    currentHuntState || "MA",
       }),
     });
     if (!res.ok) {
