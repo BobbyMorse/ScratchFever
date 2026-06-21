@@ -80,7 +80,7 @@ async def main() -> int:
     async with pool.acquire() as conn:
         rows = await conn.fetch("""
             SELECT id, vapi_call_id, retailer_external_id, retailer_name, retailer_city,
-                   to_phone, ended_at, is_voicemail, inventory_mirrored_at, game_name
+                   to_phone, ended_at, is_voicemail, inventory_mirrored_at, game_name, state_code
             FROM vapi_calls
             WHERE vapi_call_id IS NOT NULL
               AND (summary IS NULL OR customer_disposition IS NULL
