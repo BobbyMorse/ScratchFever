@@ -865,8 +865,9 @@ async def add_inventory_report(conn, retailer_id: str, retailer_name: str = None
             reported_at = dt.datetime.fromisoformat(reported_at.replace("Z", "+00:00"))
         except ValueError:
             reported_at = None
-    if state_code:
-        state_code = state_code.strip().upper() or None
+    # Normalize empties to NULL so the filter `state_code = $1` doesn't
+    # accidentally include garbage rows under an empty key.
+    state_code = (state_code or "").strip().upper() or None
     await conn.execute("""
         INSERT INTO inventory_reports
         (retailer_id, retailer_name, retailer_city, lat, lng,
