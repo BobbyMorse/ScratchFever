@@ -170,6 +170,28 @@ async def init_db():
         # game-counts / retailer-counts on it.
         await add_column_if_missing(conn, "inventory_reports", "state_code", "TEXT")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_ir_state_retailer ON inventory_reports(state_code, retailer_id)")
+        # One-shot backfill for legacy VAPI-sourced rows. Safe to run on every
+        # boot — once all source='vapi_call' rows have state_code set, the
+        # UPDATE matches zero rows and returns quickly. Community rows can't
+        # be backfilled deterministically (the collision IS the unknown), so
+        # they stay NULL until they roll over from new client-side submissions.
+        try:
+            await conn.execute("""
+                UPDATE inventory_reports ir
+                SET state_code = vc.state_code
+                FROM vapi_calls vc
+                WHERE ir.state_code IS NULL
+                  AND ir.source = 'vapi_call'
+                  AND ir.retailer_id = vc.retailer_external_id
+                  AND vc.state_code IS NOT NULL
+                  AND ir.reported_at BETWEEN
+                        COALESCE(vc.started_at, vc.received_at) - INTERVAL '2 hours'
+                    AND COALESCE(vc.ended_at, vc.received_at) + INTERVAL '2 hours'
+            """)
+        except Exception:
+            # vapi_calls may not exist yet on a fresh DB before the caller
+            # module's init_vapi_db has run — that's fine, nothing to backfill.
+            pass
         # Bounty claim ledger. One row per granted reward — enforces the per-user
         # per-store cooldown (a user can only claim a bounty on a given store
         # once every COOLDOWN_DAYS).
