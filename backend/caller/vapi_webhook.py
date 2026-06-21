@@ -764,6 +764,7 @@ async def _apply_analysis_for_row(
                 reporter_username="vapi",
                 notes=" · ".join(note_parts) or None,
                 reported_at=row["ended_at"],
+                state_code=row["state_code"],
             )
             rows_written += 1
     if rows_written > 0:
