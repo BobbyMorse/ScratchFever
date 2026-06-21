@@ -902,10 +902,13 @@ async def api_status_states():
         # Demote "ok" to "warn" when coverage is materially incomplete so the
         # data-page status dot/filter chip surfaces the gap. Matches the
         # threshold the public _apBadge already enforces client-side.
+        # Skip the EV check for states whose source publishes no per-tier
+        # data — they'd be flagged forever for a gap that can't be closed.
         if status == "ok" and g:
             img_pct = int(g["image_pct"] or 0)
             ev_pct = int(g["ev_pct"] or 0)
-            if img_pct < 50 or ev_pct < 50:
+            ev_check = ev_pct < 50 and state_code not in ev_unsupported_states
+            if img_pct < 50 or ev_check:
                 status = "warn"
         ret = retailer_by_state.get(state_code)
         w = winners_by_state.get(state_code)
