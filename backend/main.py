@@ -1553,42 +1553,95 @@ async def get_inventory_reports(
 
 
 @app.get("/api/inventory/game-counts")
-async def get_inventory_game_counts(user: dict = Depends(require_member)):
+async def get_inventory_game_counts(
+    state: Optional[str] = Query(None, min_length=2, max_length=2),
+    user: dict = Depends(require_member),
+):
     """Members-only: returns count of distinct retailers per game whose latest
-    report says the game is in stock. Games with zero in-stock retailers are omitted."""
+    report says the game is in stock. Games with zero in-stock retailers are omitted.
+
+    Pass `state` to scope counts to one state — required to avoid cross-state
+    retailer_id collisions (MA's ma_retailers.id and RI's external_id share a
+    small-integer keyspace; without state filtering, MA inventory leaks onto
+    the RI map and vice versa)."""
+    state_norm = state.upper() if state else None
     async with get_pool().acquire() as conn:
-        rows = await conn.fetch("""
-            WITH latest AS (
-                SELECT DISTINCT ON (retailer_id, LOWER(game_name))
-                    LOWER(game_name) AS gname, has_stock
-                FROM inventory_reports
-                WHERE game_name IS NOT NULL AND retailer_id IS NOT NULL
-                ORDER BY retailer_id, LOWER(game_name), reported_at DESC
-            )
-            SELECT gname, COUNT(*) FROM latest WHERE has_stock = TRUE GROUP BY gname
-        """)
+        if state_norm:
+            rows = await conn.fetch("""
+                WITH latest AS (
+                    SELECT DISTINCT ON (retailer_id, LOWER(game_name))
+                        LOWER(game_name) AS gname, has_stock
+                    FROM inventory_reports
+                    WHERE game_name IS NOT NULL AND retailer_id IS NOT NULL
+                      AND state_code = $1
+                    ORDER BY retailer_id, LOWER(game_name), reported_at DESC
+                )
+                SELECT gname, COUNT(*) FROM latest WHERE has_stock = TRUE GROUP BY gname
+            """, state_norm)
+        else:
+            rows = await conn.fetch("""
+                WITH latest AS (
+                    SELECT DISTINCT ON (retailer_id, LOWER(game_name))
+                        LOWER(game_name) AS gname, has_stock
+                    FROM inventory_reports
+                    WHERE game_name IS NOT NULL AND retailer_id IS NOT NULL
+                    ORDER BY retailer_id, LOWER(game_name), reported_at DESC
+                )
+                SELECT gname, COUNT(*) FROM latest WHERE has_stock = TRUE GROUP BY gname
+            """)
     return {"counts": {r[0]: r[1] for r in rows}}
 
 
 @app.get("/api/inventory/retailer-counts")
-async def get_inventory_retailer_counts(user: dict = Depends(require_member)):
-    """Members-only: returns report counts per retailer ID."""
+async def get_inventory_retailer_counts(
+    state: Optional[str] = Query(None, min_length=2, max_length=2),
+    user: dict = Depends(require_member),
+):
+    """Members-only: returns report counts per retailer ID. Pass `state` to
+    scope to one state — see retailer-latest docstring for the collision
+    reason this filter exists."""
+    state_norm = state.upper() if state else None
     async with get_pool().acquire() as conn:
-        rows = await conn.fetch(
-            "SELECT retailer_id, COUNT(*) FROM inventory_reports WHERE retailer_id IS NOT NULL GROUP BY retailer_id"
-        )
+        if state_norm:
+            rows = await conn.fetch(
+                "SELECT retailer_id, COUNT(*) FROM inventory_reports "
+                "WHERE retailer_id IS NOT NULL AND state_code = $1 GROUP BY retailer_id",
+                state_norm,
+            )
+        else:
+            rows = await conn.fetch(
+                "SELECT retailer_id, COUNT(*) FROM inventory_reports WHERE retailer_id IS NOT NULL GROUP BY retailer_id"
+            )
     return {"counts": {r[0]: r[1] for r in rows}}
 
 
 @app.get("/api/inventory/retailer-latest")
 async def get_retailer_latest_status(
     game_name: Optional[str] = Query(None),
+    state: Optional[str] = Query(None, min_length=2, max_length=2),
     user: dict = Depends(require_member),
 ):
     """Members-only: latest inventory status per retailer.
-    Pass game_name to filter to a specific game."""
+    Pass game_name to filter to a specific game.
+
+    Pass `state` to scope the response to one state. This is REQUIRED in
+    practice — without it, a VAPI call to an MA store with id 9482 leaks
+    onto the RI map's Li'L General #30 (RI external_id "9482"), because
+    retailer_id alone is not unique across state retailer tables."""
+    state_norm = state.upper() if state else None
     async with get_pool().acquire() as conn:
-        if game_name:
+        if game_name and state_norm:
+            rows = await conn.fetch("""
+                SELECT DISTINCT ON (retailer_id)
+                    retailer_id, has_stock, reported_at,
+                    game_name, game_price, reporter_username
+                FROM inventory_reports
+                WHERE retailer_id IS NOT NULL
+                  AND LOWER(game_name) = LOWER($1)
+                  AND state_code = $2
+                ORDER BY retailer_id, reported_at DESC
+            """, game_name, state_norm)
+        elif game_name:
             rows = await conn.fetch("""
                 SELECT DISTINCT ON (retailer_id)
                     retailer_id, has_stock, reported_at,
@@ -1597,6 +1650,15 @@ async def get_retailer_latest_status(
                 WHERE retailer_id IS NOT NULL AND LOWER(game_name) = LOWER($1)
                 ORDER BY retailer_id, reported_at DESC
             """, game_name)
+        elif state_norm:
+            rows = await conn.fetch("""
+                SELECT DISTINCT ON (retailer_id)
+                    retailer_id, has_stock, reported_at,
+                    game_name, game_price, reporter_username
+                FROM inventory_reports
+                WHERE retailer_id IS NOT NULL AND state_code = $1
+                ORDER BY retailer_id, reported_at DESC
+            """, state_norm)
         else:
             rows = await conn.fetch("""
                 SELECT DISTINCT ON (retailer_id)
