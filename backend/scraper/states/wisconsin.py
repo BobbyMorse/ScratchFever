@@ -27,6 +27,7 @@ class WisconsinScraper(BaseScraper):
     state_code = "WI"
     state_name = "Wisconsin"
     base_url = BASE_URL
+    ev_supported = False  # WI publishes overall odds only; per-tier table never exposed.
 
     def __init__(self):
         super().__init__()
