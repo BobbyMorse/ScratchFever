@@ -1068,13 +1068,23 @@ async function loadRetailerCounts() {
 }
 
 async function loadRetailerLatest(gameName) {
+  const reqId = ++_retailerLatestReqId;
+  const reqState = currentHuntState || "MA";
+  const reqGame = gameName || null;
   try {
-    const state = encodeURIComponent(currentHuntState || "MA");
+    const state = encodeURIComponent(reqState);
     const url = gameName
       ? `/api/inventory/retailer-latest?game_name=${encodeURIComponent(gameName)}&state=${state}`
       : `/api/inventory/retailer-latest?state=${state}`;
     const res = await protectedFetch(url);
     if (!res.ok) return;
+    // Discard stale responses: a newer request superseded us, OR the
+    // user's selection moved on (different state / game) since we fired.
+    if (reqId !== _retailerLatestReqId) return;
+    const activeGame = _activeHuntGame();
+    const currentGame = activeGame?.name || null;
+    if (reqState !== (currentHuntState || "MA")) return;
+    if (reqGame !== currentGame) return;
     const data = await res.json();
     retailerLatestStatus = data.statuses || {};
     updateLastReportCells();
@@ -1082,6 +1092,24 @@ async function loadRetailerLatest(gameName) {
     if (currentHuntState === "AZ") renderAzTable();
     else renderMaTable();
   } catch (_) {}
+}
+
+// Single source of truth for "what game is the user currently chasing in
+// the current hunt state". Used to validate that an in-flight retailer-
+// latest response still matches the user's selection at the moment it
+// resolves — without this, stale responses can repaint the map with the
+// wrong game's stock data.
+function _activeHuntGame() {
+  return currentHuntState === 'AZ' ? selectedAzGame
+    : currentHuntState === 'RI' ? selectedRiGame
+    : currentHuntState === 'FL' ? selectedFlGame
+    : currentHuntState === 'GA' ? selectedGaGame
+    : currentHuntState === 'NY' ? selectedNyGame
+    : currentHuntState === 'VA' ? selectedVaGame
+    : currentHuntState === 'DC' ? selectedDcGame
+    : currentHuntState === 'VT' ? selectedVtGame
+    : (typeof GEN_STATES !== 'undefined' && GEN_STATES[currentHuntState]) ? selectedGenGame
+    : selectedGame;
 }
 
 function _refreshStatCounts() {
