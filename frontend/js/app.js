@@ -2122,20 +2122,36 @@ function rebuildBigWinsGameDropdown() {
   const sel = document.getElementById("bigwinsGameFilter");
   if (!sel) return;
   const prev = sel.value;
-  let sorted;
+  const state = document.getElementById("bigwinsStateFilter")?.value || "";
+  const counts = new Map();
   if (bigwinsView === "map") {
-    sorted = bigwinsMapGameCounts.map(gc => [gc.name, gc.count]);
+    if (state) {
+      for (const g of bigwinsMapGroups) {
+        if (g.state_code !== state) continue;
+        for (const [name, n] of Object.entries(g.games || {})) {
+          counts.set(name, (counts.get(name) || 0) + n);
+        }
+      }
+    } else {
+      for (const gc of bigwinsMapGameCounts) counts.set(gc.name, gc.count);
+    }
   } else {
-    const counts = new Map();
     for (const c of allBigWins) {
+      if (state && c.state_code !== state) continue;
       const key = (c.game_name || "").trim() || "(unknown)";
       counts.set(key, (counts.get(key) || 0) + 1);
     }
-    sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
   }
+  const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
   sel.innerHTML = '<option value="">All Tickets</option>' +
     sorted.map(([name, n]) => `<option value="${escAttr(name)}">${escHtml(name)} (${n})</option>`).join("");
   if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
+  else sel.value = "";
+}
+
+function onBigWinsStateChange() {
+  rebuildBigWinsGameDropdown();
+  filterBigWins();
 }
 
 function escAttr(s) {
