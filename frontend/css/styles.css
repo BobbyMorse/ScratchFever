@@ -1396,7 +1396,8 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
 .cf-ticket-row { display: flex; align-items: center; gap: .55rem; padding: .35rem .55rem; border-radius: 6px; cursor: pointer; font-size: .85rem; user-select: none; }
 .cf-ticket-row:hover { background: var(--bg); }
 .cf-ticket-row input[type=checkbox] { margin: 0; cursor: pointer; }
-.cf-ticket-row .cf-ticket-price { color: var(--text-muted); margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: .78rem; }
+.cf-ticket-row .cf-ticket-return { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: .78rem; font-weight: 600; min-width: 3.4rem; text-align: right; }
+.cf-ticket-row .cf-ticket-price { color: var(--text-muted); font-family: 'JetBrains Mono', monospace; font-size: .78rem; min-width: 2.8rem; text-align: right; }
 .cf-view-btn { background: #fff; color: var(--text-muted); }
 .cf-view-btn:hover { background: var(--bg); color: var(--text); }
 .cf-view-btn.cf-view-active { background: var(--orange); color: #fff; }
