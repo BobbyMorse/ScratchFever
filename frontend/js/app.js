@@ -8756,7 +8756,32 @@ function _apRetailerCell(s) {
 // ── Settings tab ──────────────────────────────────────────────────────────────
 function populateSettingsTab() {
   const huntSel = document.getElementById("prefDefaultHuntState");
-  if (huntSel) huntSel.value = _prefs.defaultHuntState || "MA";
+  if (huntSel) {
+    // Build the option list from every state the Chase actually supports:
+    // hand-built per-state pages (CHASE_HANDLERS) + generic dispatcher (GEN_STATES).
+    const nameByCode = {};
+    states.forEach(s => { nameByCode[s.state_code] = s.state_name; });
+    const codes = new Set([
+      ...Object.keys(CHASE_HANDLERS),
+      ...(typeof GEN_STATES !== "undefined" ? Object.keys(GEN_STATES) : []),
+    ]);
+    const opts = [...codes]
+      .map(code => ({
+        code,
+        name: nameByCode[code]
+          || (typeof GEN_STATES !== "undefined" && GEN_STATES[code]?.name)
+          || code,
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+    huntSel.innerHTML = "";
+    opts.forEach(o => {
+      const el = document.createElement("option");
+      el.value = o.code;
+      el.textContent = o.name;
+      huntSel.appendChild(el);
+    });
+    huntSel.value = _prefs.defaultHuntState || "MA";
+  }
 
   const evSel = document.getElementById("prefEvDefaultState");
   if (evSel) {
