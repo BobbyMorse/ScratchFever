@@ -931,16 +931,22 @@ function renderTicketsPicker() {
   if (!matches.length) {
     listEl.innerHTML = `<div class="cf-tickets-empty">No games match.</div>`;
   } else {
-    // Selected first, then the rest
-    const selected   = matches.filter(g => _selectedTickets.has(g.name));
-    const unselected = matches.filter(g => !_selectedTickets.has(g.name));
+    const byReturn = (a, b) => (b.return_pct ?? -1) - (a.return_pct ?? -1);
+    const selected   = matches.filter(g => _selectedTickets.has(g.name)).sort(byReturn);
+    const unselected = matches.filter(g => !_selectedTickets.has(g.name)).sort(byReturn);
     const ordered    = [...selected, ...unselected];
     listEl.innerHTML = ordered.map(g => {
       const checked = _selectedTickets.has(g.name) ? "checked" : "";
       const priceStr = g.price != null ? `$${g.price}` : "";
+      const retStr = g.return_pct != null ? `${g.return_pct.toFixed(1)}%` : "";
+      const retColor = g.return_pct == null ? "var(--text-muted)"
+        : g.return_pct >= 100 ? "var(--green)"
+        : g.return_pct >= 70  ? "var(--text)"
+        : "var(--text-muted)";
       return `<label class="cf-ticket-row">
         <input type="checkbox" data-name="${escHtml(g.name)}" ${checked} onchange="toggleTicket(this)" />
         <span>${escHtml(g.name)}</span>
+        <span class="cf-ticket-return" style="color:${retColor}">${retStr}</span>
         <span class="cf-ticket-price">${priceStr}</span>
       </label>`;
     }).join("");
