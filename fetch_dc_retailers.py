@@ -15,6 +15,7 @@ import csv
 import re
 import logging
 from pathlib import Path
+from urllib.parse import unquote
 
 import requests
 from bs4 import BeautifulSoup
