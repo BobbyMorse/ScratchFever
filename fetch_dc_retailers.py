@@ -42,6 +42,11 @@ _ZIP_RE   = re.compile(r"^\d{5}(?:-\d{4})?$")
 _PHONE_RE = re.compile(r"\(\d{3}\)\s*\d{3}-\d{4}")
 
 
+def _phone_from_tel(href: str) -> str:
+    """Strip the tel: scheme and URL-decode (DC's site encodes '(' and ')')."""
+    return unquote(href.replace("tel:", "", 1)).strip()
+
+
 def fetch_page() -> BeautifulSoup:
     resp = requests.get(URL, headers=HEADERS, timeout=30)
     resp.raise_for_status()
