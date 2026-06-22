@@ -162,6 +162,12 @@ let communityReports = [];
 let gameCounts = {};               // {game_name_lower: count} — members only
 let retailerCounts = {};           // {retailer_id: count} — members only
 let retailerLatestStatus = {};     // {retailer_id: {has_stock, reported_at}} — members only
+// Race-condition guard: an older loadRetailerLatest() (e.g. the boot-time
+// no-game call) must not overwrite a newer game-filtered response. We tag
+// each in-flight request and the trailing fields (gameName, state) so the
+// response handler can discard itself if a fresher request has been issued
+// OR if the user's selection has changed since the request was made.
+let _retailerLatestReqId = 0;
 let _reportStock = true;
 let _openProfileId = null;
 
