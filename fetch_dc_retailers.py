@@ -87,7 +87,7 @@ def parse_from_table(table) -> list[dict]:
             # Phone may be a tel: link
             if "phone" in col and len(cells) > col["phone"]:
                 tel = cells[col["phone"]].find("a", href=re.compile(r"^tel:"))
-                phone = (tel["href"].replace("tel:", "").strip() if tel
+                phone = (_phone_from_tel(tel["href"]) if tel
                          else cells[col["phone"]].get_text(strip=True))
             else:
                 phone = ""
