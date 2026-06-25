@@ -2881,8 +2881,27 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 /* ── Most Wanted (Chase sub-view) ─────────────────────────────────────────── */
 #chaseViewMostWanted { padding: 1.25rem 1.5rem 2rem; max-width: 980px; }
 .chase-mw-masthead { padding: 0 0 1rem 0; border: 0; }
+.mw-title-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
 .chase-mw-title { font-size: 1.85rem; font-weight: 800; margin: .35rem 0 .35rem 0; letter-spacing: -.01em; }
 .chase-mw-subtitle { color: var(--text-muted); max-width: 62ch; margin: 0; line-height: 1.45; }
+
+.mw-state-picker { display: flex; flex-direction: column; gap: .3rem; min-width: 200px; }
+.mw-state-picker-lbl { font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); font-weight: 700; }
+.mw-state-picker-select {
+  appearance: none; -webkit-appearance: none;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: .55rem 2rem .55rem .8rem;
+  font: inherit; font-size: .9rem; font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path fill='%2364748b' d='M2.5 4.5l3.5 3.5 3.5-3.5'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right .7rem center;
+}
+.mw-state-picker-select:hover { border-color: var(--orange); }
+.mw-state-picker-select:focus { outline: none; border-color: var(--orange); box-shadow: 0 0 0 3px rgba(249,115,22,.15); }
 
 .mw-stats-card {
   display: grid;
