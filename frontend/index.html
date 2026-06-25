@@ -86,6 +86,12 @@
         The Chase
       </button>
 
+      <!-- Sub-views under The Chase: Map (existing hunt UI) vs Most Wanted (upvote queue) -->
+      <div class="sidebar-subnav" id="chaseSubnav">
+        <button class="sidebar-subitem active" data-chaseview="map" onclick="selectChaseView('map')">Map</button>
+        <button class="sidebar-subitem" data-chaseview="mostwanted" onclick="selectChaseView('mostwanted')">Most Wanted</button>
+      </div>
+
       <button class="sidebar-item tab-btn" data-tab="bigwins" onclick="switchTab('bigwins')">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6m12 0h1.5a2.5 2.5 0 0 1 0 5H18"/>
