@@ -212,6 +212,24 @@ async def init_db():
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_bc_retailer_claimed ON bounty_claims(retailer_id, claimed_at DESC)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_claims_detected ON prize_claims(detected_at DESC)")
         await conn.execute("CREATE INDEX IF NOT EXISTS idx_claims_prize_detected ON prize_claims(prize_amount, detected_at DESC)")
+        # Chase requests — Pro members upvote tickets they want the caller
+        # agent to verify inventory for. One (user, game) row IS the upvote;
+        # vote count = COUNT of rows per game. fulfilled_at + fulfillment_vapi_call_id
+        # link the request to the call that satisfied it.
+        await conn.execute("""
+            CREATE TABLE IF NOT EXISTS chase_requests (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                game_db_id INTEGER NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+                created_at TIMESTAMPTZ DEFAULT NOW(),
+                fulfilled_at TIMESTAMPTZ,
+                fulfillment_vapi_call_id TEXT,
+                UNIQUE(user_id, game_db_id)
+            )
+        """)
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_chase_req_game_open ON chase_requests(game_db_id) WHERE fulfilled_at IS NULL")
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_chase_req_user ON chase_requests(user_id, created_at DESC)")
+        await conn.execute("CREATE INDEX IF NOT EXISTS idx_chase_req_pending ON chase_requests(created_at DESC) WHERE fulfilled_at IS NULL")
         await add_column_if_missing(conn, "games", "jackpot_odds_one_in", "REAL")
         await add_column_if_missing(conn, "games", "how_to_play", "TEXT")
         await add_column_if_missing(conn, "games", "end_date", "DATE")
