@@ -2713,6 +2713,8 @@ function switchTab(name) {
   document.querySelector(`.tab-btn[data-tab="${name}"]`).classList.add("active");
   if (name === "ma") {
     selectHuntState(currentHuntState);
+    // Restore whichever Chase sub-view was last active (default 'map' on first entry).
+    _applyChaseView(currentChaseView);
   }
   if (name === "settings") {
     populateSettingsTab();
