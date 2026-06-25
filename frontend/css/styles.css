@@ -2877,3 +2877,93 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
   .strat-ctrl-right { width: 100%; }
   .strategy-tiles-wrap { margin: .25rem .85rem 1.5rem; }
 }
+
+/* ── Most Wanted (Chase sub-view) ─────────────────────────────────────────── */
+#chaseViewMostWanted { padding: 1.25rem 1.5rem 2rem; max-width: 980px; }
+.chase-mw-masthead { padding: 0 0 1rem 0; border: 0; }
+.chase-mw-title { font-size: 1.85rem; font-weight: 800; margin: .35rem 0 .35rem 0; letter-spacing: -.01em; }
+.chase-mw-subtitle { color: var(--text-muted); max-width: 62ch; margin: 0; line-height: 1.45; }
+
+.mw-stats-card {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.5rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.15rem 1.4rem;
+  margin: 1rem 0 1.5rem 0;
+}
+.mw-stat { min-width: 0; }
+.mw-stat-num { font-size: 1.7rem; font-weight: 800; line-height: 1; letter-spacing: -.02em; }
+.mw-stat-in   { color: var(--green); }
+.mw-stat-out  { color: var(--red); }
+.mw-stat-time { font-size: 1.05rem; font-weight: 700; color: var(--text); }
+.mw-stat-lbl  { font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); margin-top: .45rem; font-weight: 600; }
+
+.mw-locked-card {
+  background: linear-gradient(135deg, var(--card), var(--bg));
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 2.2rem 1.6rem;
+  text-align: center;
+  max-width: 560px;
+  margin: 0 auto;
+}
+.mw-locked-emoji { font-size: 2.2rem; margin-bottom: .6rem; }
+.mw-locked-title { font-size: 1.3rem; font-weight: 800; margin: 0 0 .55rem 0; }
+.mw-locked-body  { color: var(--text-muted); margin: 0 0 1.25rem 0; line-height: 1.5; }
+.mw-cta-btn {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: var(--orange); color: white;
+  border: 0; border-radius: 999px;
+  padding: .75rem 1.4rem;
+  font-weight: 800; font-size: .95rem;
+  cursor: pointer;
+  transition: transform .12s, box-shadow .12s;
+}
+.mw-cta-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(249,115,22,.3); }
+
+.mw-list-header { display: flex; align-items: center; justify-content: space-between; margin: 0 0 .75rem 0; }
+.mw-list-title { font-weight: 700; font-size: 1rem; color: var(--text); }
+.mw-list-title span { color: var(--orange); }
+.mw-refresh-btn { background: none; border: 1px solid var(--border); width: 34px; height: 34px; border-radius: 8px; cursor: pointer; font-size: 1rem; color: var(--text-muted); }
+.mw-refresh-btn:hover { color: var(--orange); border-color: var(--orange); }
+
+.mw-list-body { display: flex; flex-direction: column; gap: .5rem; }
+.mw-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--card);
+}
+.mw-row-info { min-width: 0; flex: 1; }
+.mw-row-name { font-weight: 700; font-size: .95rem; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mw-row-meta { font-size: .8rem; color: var(--text-muted); margin-top: .2rem; }
+.mw-vote-btn {
+  background: white; color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: .5rem .95rem;
+  font-weight: 700; font-size: .82rem;
+  cursor: pointer;
+  transition: all .12s;
+  white-space: nowrap;
+  display: inline-flex; align-items: center; gap: .35rem;
+}
+.mw-vote-btn:hover { background: var(--bg); border-color: var(--orange); color: var(--orange); }
+.mw-vote-btn.voted { background: var(--orange); color: white; border-color: var(--orange); }
+.mw-vote-btn:disabled { opacity: .6; cursor: wait; }
+.mw-loading, .mw-empty { padding: 1.5rem; text-align: center; color: var(--text-muted); }
+.mw-empty .btn-link, .mw-loading .btn-link { background: none; border: 0; color: var(--orange); cursor: pointer; font-weight: 700; }
+
+@media (max-width: 720px) {
+  #chaseViewMostWanted { padding: 1rem; }
+  .mw-stats-card { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; padding: 1rem; }
+  .mw-stat-num { font-size: 1.45rem; }
+  .chase-mw-title { font-size: 1.4rem; }
+}
