@@ -43,6 +43,7 @@ from backend.plays_api import router as plays_router
 from backend.tickets_api import router as tickets_router
 from backend.revenuecat_webhook import router as revenuecat_router
 from backend.billing_api import router as billing_router
+from backend.chase_api import router as chase_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
