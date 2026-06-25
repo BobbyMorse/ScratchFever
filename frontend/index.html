@@ -1328,7 +1328,14 @@
       <div id="chaseViewMostWanted" style="display:none">
         <header class="chase-masthead chase-mw-masthead">
           <div class="chase-kicker"><span class="chase-kicker-dot"></span>MOST WANTED</div>
-          <h1 class="chase-mw-title">Vote on what we hunt next</h1>
+          <div class="mw-title-row">
+            <h1 class="chase-mw-title">Vote on what we hunt next</h1>
+            <!-- State picker — populated from the global hunt-state list by populateMostWantedStateSelect() -->
+            <div class="mw-state-picker">
+              <label class="mw-state-picker-lbl" for="mwStateSelect">State</label>
+              <select id="mwStateSelect" class="mw-state-picker-select" onchange="onMostWantedStateChange(this.value)"></select>
+            </div>
+          </div>
           <p class="chase-mw-subtitle">Pro members upvote tickets to send the call agent looking. Most-wanted tickets get prioritized first.</p>
         </header>
 
