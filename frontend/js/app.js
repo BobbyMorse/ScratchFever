@@ -2909,14 +2909,39 @@ function _renderMostWantedRows(items) {
     const voted    = !!it.user_voted;
     const cls      = voted ? "mw-vote-btn voted" : "mw-vote-btn";
     const label    = voted ? `▲ ${it.vote_count} · Voted` : `▲ ${it.vote_count} Upvote`;
-    return `<div class="mw-row" data-game="${it.game_db_id}">
+    const inCt     = it.in_count  || 0;
+    const outCt    = it.out_count || 0;
+    // In/out chips: only render the half that has data — a row with no
+    // inventory observations at all (cold-start games) should look clean,
+    // not show "0 / 0". Clicking the row dives into the chase map filtered
+    // to this game; clicking the vote button only toggles the vote.
+    const inChip  = inCt  ? `<span class="mw-chip mw-chip-in" title="Confirmed stocked retailers">● ${inCt} in</span>` : "";
+    const outChip = outCt ? `<span class="mw-chip mw-chip-out" title="Confirmed out retailers">● ${outCt} out</span>` : "";
+    const chips   = (inChip || outChip) ? `<div class="mw-row-chips">${inChip}${outChip}</div>` : "";
+    const nameJson  = JSON.stringify(it.name).replace(/"/g, "&quot;");
+    const stateJson = JSON.stringify(it.state_code || "").replace(/"/g, "&quot;");
+    return `<div class="mw-row mw-row-click" data-game="${it.game_db_id}" onclick="openTicketInChaseMap(${stateJson}, ${nameJson})" title="View ${escHtml(it.name)} on the map">
       <div class="mw-row-info">
         <div class="mw-row-name">${escHtml(it.name)}</div>
         <div class="mw-row-meta">${escHtml(meta)}</div>
+        ${chips}
       </div>
-      <button class="${cls}" onclick="toggleChaseVote(${it.game_db_id}, ${voted}, this)">${label}</button>
+      <button class="${cls}" onclick="event.stopPropagation();toggleChaseVote(${it.game_db_id}, ${voted}, this)">${label}</button>
     </div>`;
   }).join("");
+}
+
+// Click handler for Most Wanted rows: switch from the votes list to the map
+// view with that ticket pre-selected. Forces currentChaseView=map before
+// invoking the state switcher so switchTab's restore-last-view logic doesn't
+// drop the user back in Most Wanted.
+function openTicketInChaseMap(stateCode, gameName) {
+  currentChaseView = "map";
+  // viewGameInChase handles tab switch, state switch, and per-state game
+  // filter selection with the right deferred-call ordering.
+  if (typeof viewGameInChase === "function") {
+    viewGameInChase(gameName, stateCode);
+  }
 }
 
 async function toggleChaseVote(gameDbId, currentlyVoted, btn) {
