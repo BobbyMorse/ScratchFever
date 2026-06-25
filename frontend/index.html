@@ -1323,6 +1323,41 @@
 
         </div><!-- /hunt-main -->
       </div><!-- /hunt-layout -->
+
+      <!-- ── Most Wanted sub-view (toggled by selectChaseView('mostwanted')) ── -->
+      <div id="chaseViewMostWanted" style="display:none">
+        <header class="chase-masthead chase-mw-masthead">
+          <div class="chase-kicker"><span class="chase-kicker-dot"></span>MOST WANTED</div>
+          <h1 class="chase-mw-title">Vote on what we hunt next</h1>
+          <p class="chase-mw-subtitle">Pro members upvote tickets to send the call agent looking. Most-wanted tickets get verified first.</p>
+        </header>
+
+        <!-- Public aggregate stats — visible to everyone, no ticket identities -->
+        <div class="mw-stats-card" id="mwStatsCard">
+          <div class="mw-stat"><div class="mw-stat-num" id="mwStatTracked">—</div><div class="mw-stat-lbl">Tickets tracked</div></div>
+          <div class="mw-stat"><div class="mw-stat-num mw-stat-in" id="mwStatStocked">—</div><div class="mw-stat-lbl">Confirmed stocked</div></div>
+          <div class="mw-stat"><div class="mw-stat-num mw-stat-out" id="mwStatOut">—</div><div class="mw-stat-lbl">Confirmed out</div></div>
+          <div class="mw-stat"><div class="mw-stat-num mw-stat-time" id="mwStatFresh">—</div><div class="mw-stat-lbl">Last update</div></div>
+        </div>
+
+        <div id="mwLockedCard" class="mw-locked-card" style="display:none">
+          <div class="mw-locked-emoji">🎯</div>
+          <h2 class="mw-locked-title">Pro members choose what gets called next</h2>
+          <p class="mw-locked-body">Upvote tickets you want verified. Our call agent dials retailers and reports back on stock. Free preview shows the totals above — Pro unlocks the list.</p>
+          <button class="mw-cta-btn" onclick="onMostWantedUpgradeClick()">Unlock Pro →</button>
+        </div>
+
+        <div id="mwProList" style="display:none">
+          <div class="mw-list-header">
+            <div class="mw-list-title">Top requests in <span id="mwListStateName">Massachusetts</span></div>
+            <button class="mw-refresh-btn" onclick="loadChaseMostWanted()" title="Refresh">↻</button>
+          </div>
+          <div id="mwListBody" class="mw-list-body">
+            <div class="mw-loading">Loading…</div>
+          </div>
+        </div>
+      </div>
+
       </div><!-- /tab-ma -->
 
 
