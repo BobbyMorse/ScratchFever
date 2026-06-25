@@ -2960,9 +2960,22 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
   border-radius: 10px;
   background: var(--card);
 }
+.mw-row-click { cursor: pointer; transition: border-color .12s, transform .12s, box-shadow .12s; }
+.mw-row-click:hover { border-color: var(--orange); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(15,23,42,.06); }
 .mw-row-info { min-width: 0; flex: 1; }
 .mw-row-name { font-weight: 700; font-size: .95rem; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mw-row-meta { font-size: .8rem; color: var(--text-muted); margin-top: .2rem; }
+.mw-row-chips { display: flex; gap: .35rem; margin-top: .4rem; flex-wrap: wrap; }
+.mw-chip {
+  display: inline-flex; align-items: center; gap: .25rem;
+  font-size: .7rem; font-weight: 700;
+  padding: .15rem .5rem;
+  border-radius: 999px;
+  letter-spacing: .01em;
+  background: var(--bg);
+}
+.mw-chip-in  { color: var(--green); border: 1px solid color-mix(in srgb, var(--green) 35%, transparent); }
+.mw-chip-out { color: var(--red);   border: 1px solid color-mix(in srgb, var(--red)   35%, transparent); }
 .mw-vote-btn {
   background: white; color: var(--text);
   border: 1px solid var(--border);
