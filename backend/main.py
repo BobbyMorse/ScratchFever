@@ -205,6 +205,7 @@ app.include_router(plays_router)
 app.include_router(tickets_router)
 app.include_router(revenuecat_router)
 app.include_router(billing_router)
+app.include_router(chase_router)
 
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
 if os.path.isdir(FRONTEND_DIR):
