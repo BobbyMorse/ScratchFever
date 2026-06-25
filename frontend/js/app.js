@@ -327,6 +327,9 @@ function _setUser(user) {
   // Re-render the active strategy so the EV paywall card swaps to real
   // tiles (or vice versa) the instant the user's Pro status flips.
   try { if (typeof renderStrategyView === "function") renderStrategyView(); } catch (_) {}
+  // Same for Most Wanted — the locked card should swap to the live list as
+  // soon as the auth/Pro state changes.
+  try { if (currentTab === "ma" && currentChaseView === "mostwanted") loadChaseMostWanted(); } catch (_) {}
   const btn        = document.getElementById("loginBtn");
   const accountBtn = document.getElementById("accountTabBtn");
   const caller     = document.getElementById("callerTabBtn");
