@@ -2998,4 +2998,6 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
   .mw-stats-card { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; padding: 1rem; }
   .mw-stat-num { font-size: 1.45rem; }
   .chase-mw-title { font-size: 1.4rem; }
+  .mw-title-row { flex-direction: column; align-items: stretch; gap: .5rem; }
+  .mw-state-picker { min-width: 0; }
 }
