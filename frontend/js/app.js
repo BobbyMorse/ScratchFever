@@ -2820,7 +2820,38 @@ function selectChaseView(name) {
 }
 
 let _mwPublicStatsLoadedAt = 0;
+
+// Mirrors the master hunt-state dropdown so users can pick a state without
+// having to leave the Most Wanted view. Built once on init by reading the
+// existing .state-dd-item nodes — keeps a single source of truth for the
+// state list across both UIs.
+function populateMostWantedStateSelect() {
+  const sel = document.getElementById("mwStateSelect");
+  if (!sel || sel.dataset.populated === "1") return;
+  const items = document.querySelectorAll("#stateDropdownPanel .state-dd-item");
+  if (!items.length) return;
+  const html = [];
+  items.forEach(btn => {
+    const code = btn.dataset.state;
+    const name = btn.querySelector(".state-dd-item-name")?.textContent?.trim() || code;
+    html.push(`<option value="${code}">${name}</option>`);
+  });
+  sel.innerHTML = html.join("");
+  sel.value = currentHuntState || "MA";
+  sel.dataset.populated = "1";
+}
+
+function onMostWantedStateChange(code) {
+  if (!code || code === currentHuntState) return;
+  // Reuse the master state switcher — keeps map view, votes, and other
+  // state-scoped UIs in sync. selectHuntState reloads Most Wanted at the end.
+  selectHuntState(code);
+}
+
 async function loadChaseMostWanted() {
+  populateMostWantedStateSelect();
+  const sel = document.getElementById("mwStateSelect");
+  if (sel && sel.value !== currentHuntState) sel.value = currentHuntState;
   // Update state name in the list header so it tracks the hunt-state dropdown.
   const nameEl = document.getElementById("mwListStateName");
   if (nameEl) nameEl.textContent = CHASE_HUNT_STATE_NAMES[currentHuntState] || currentHuntState;
