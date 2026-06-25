@@ -3003,6 +3003,11 @@ function selectHuntState(code) {
     loadGenericState(code);
   }
   updateChaseRetailerCount();
+  // If the user is in Most Wanted view, refresh the list — votes are scoped to
+  // the active hunt state.
+  if (currentTab === "ma" && currentChaseView === "mostwanted") {
+    loadChaseMostWanted();
+  }
 }
 
 async function loadGenericState(code) {
