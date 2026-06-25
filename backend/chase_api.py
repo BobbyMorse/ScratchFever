@@ -131,7 +131,30 @@ async def top_votes(
     back to ranking by return_pct when no votes exist yet (cold-start UX)."""
     limit = max(1, min(limit, 200))
     async with get_pool().acquire() as conn:
+        # inv_agg = latest has_stock per (state, game, retailer) over the last
+        # 30 days, rolled up to in/out counts per (state, game). Matches the
+        # public-stats aggregation so the per-game numbers reconcile with the
+        # banner totals above the list.
         rows = await conn.fetch("""
+            WITH latest_inv AS (
+                SELECT DISTINCT ON (state_code, LOWER(game_name), retailer_id)
+                       state_code,
+                       LOWER(game_name) AS game_name_lc,
+                       has_stock
+                  FROM inventory_reports
+                 WHERE reported_at > NOW() - INTERVAL '30 days'
+                   AND game_name IS NOT NULL
+                   AND retailer_id IS NOT NULL
+                 ORDER BY state_code, LOWER(game_name), retailer_id, reported_at DESC
+            ),
+            inv_agg AS (
+                SELECT state_code,
+                       game_name_lc,
+                       COUNT(*) FILTER (WHERE has_stock = TRUE)  AS in_count,
+                       COUNT(*) FILTER (WHERE has_stock = FALSE) AS out_count
+                  FROM latest_inv
+                 GROUP BY state_code, game_name_lc
+            )
             SELECT g.id                          AS game_db_id,
                    g.state_code,
                    g.name,
@@ -139,13 +162,17 @@ async def top_votes(
                    g.return_pct,
                    COUNT(cr.id)                  AS vote_count,
                    bool_or(cr.user_id = $1)      AS user_voted,
-                   MAX(cr.created_at)            AS last_voted_at
+                   MAX(cr.created_at)            AS last_voted_at,
+                   COALESCE(ia.in_count, 0)      AS in_count,
+                   COALESCE(ia.out_count, 0)     AS out_count
               FROM games g
               LEFT JOIN chase_requests cr
                 ON cr.game_db_id = g.id AND cr.fulfilled_at IS NULL
+              LEFT JOIN inv_agg ia
+                ON ia.state_code = g.state_code AND ia.game_name_lc = LOWER(g.name)
              WHERE g.is_active = TRUE
                AND ($2::text IS NULL OR g.state_code = $2)
-             GROUP BY g.id
+             GROUP BY g.id, ia.in_count, ia.out_count
             HAVING COUNT(cr.id) > 0 OR g.return_pct IS NOT NULL
              ORDER BY vote_count DESC, g.return_pct DESC NULLS LAST
              LIMIT $3
@@ -161,6 +188,8 @@ async def top_votes(
                 "vote_count": int(r["vote_count"] or 0),
                 "user_voted": bool(r["user_voted"]),
                 "last_voted_at": r["last_voted_at"].isoformat() if r["last_voted_at"] else None,
+                "in_count": int(r["in_count"] or 0),
+                "out_count": int(r["out_count"] or 0),
             }
             for r in rows
         ],
