@@ -2936,12 +2936,26 @@ function _renderMostWantedRows(items) {
 // invoking the state switcher so switchTab's restore-last-view logic doesn't
 // drop the user back in Most Wanted.
 function openTicketInChaseMap(stateCode, gameName) {
+  const code = (stateCode || "MA").toUpperCase();
   currentChaseView = "map";
-  // viewGameInChase handles tab switch, state switch, and per-state game
-  // filter selection with the right deferred-call ordering.
-  if (typeof viewGameInChase === "function") {
-    viewGameInChase(gameName, stateCode);
+  if (code in CHASE_HANDLERS) {
+    // Per-state handler exists (MA/AZ/RI/FL/GA/NY/VA/DC/VT) — use the same
+    // path the ticket modal uses, which also sets the inventory-filter chip
+    // to "checked" so the map highlights stores stocked with that game.
+    if (typeof viewGameInChase === "function") {
+      viewGameInChase(gameName, code);
+    }
+    return;
   }
+  // Generic-state path (CO/CT/ME/MI/NH/NJ/OR/SC/WA/AR/CA/...) — no per-state
+  // handler, so we drive selectGenGameFilter directly after the state load.
+  switchTab("ma");
+  selectHuntState(code);
+  setTimeout(() => {
+    try {
+      if (typeof selectGenGameFilter === "function") selectGenGameFilter(gameName);
+    } catch (_) {}
+  }, 80);
 }
 
 async function toggleChaseVote(gameDbId, currentlyVoted, btn) {
