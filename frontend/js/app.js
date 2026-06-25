@@ -2783,6 +2783,150 @@ function updateChaseRetailerCount() {
   el.textContent = (arr && arr.length) ? arr.length.toLocaleString() : "—";
 }
 
+// ── Chase sub-views (Map / Most Wanted) ──────────────────────────────────────
+// Map = the existing per-state retailer map. Most Wanted = the new upvote
+// queue where Pro members request inventory checks. Both sit under tab-ma so
+// the state-dropdown header still applies.
+let currentChaseView = "map";
+
+const CHASE_HUNT_STATE_NAMES = {
+  MA: "Massachusetts", AZ: "Arizona", RI: "Rhode Island", FL: "Florida",
+  GA: "Georgia", NY: "New York", VA: "Virginia", DC: "Washington DC", VT: "Vermont",
+  CO: "Colorado", CT: "Connecticut", ME: "Maine", MI: "Michigan",
+};
+
+function _applyChaseView(name) {
+  document.querySelectorAll("#chaseSubnav .sidebar-subitem").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.chaseview === name);
+  });
+  const huntLayout = document.querySelector("#tab-ma > .hunt-layout");
+  const mostWanted = document.getElementById("chaseViewMostWanted");
+  if (huntLayout) huntLayout.style.display = (name === "map") ? "" : "none";
+  if (mostWanted) mostWanted.style.display = (name === "mostwanted") ? "" : "none";
+  if (name === "mostwanted") loadChaseMostWanted();
+}
+
+function selectChaseView(name) {
+  currentChaseView = name;
+  if (currentTab !== "ma") {
+    // switchTab will invoke _applyChaseView at the end of its 'ma' branch.
+    switchTab("ma");
+  } else {
+    _applyChaseView(name);
+  }
+}
+
+let _mwPublicStatsLoadedAt = 0;
+async function loadChaseMostWanted() {
+  // Update state name in the list header so it tracks the hunt-state dropdown.
+  const nameEl = document.getElementById("mwListStateName");
+  if (nameEl) nameEl.textContent = CHASE_HUNT_STATE_NAMES[currentHuntState] || currentHuntState;
+  // Public stats — no auth, server-cached for 60s, refresh client-side every 5 min max.
+  if (Date.now() - _mwPublicStatsLoadedAt > 5 * 60 * 1000) {
+    try {
+      const r = await fetch("/api/chase/public-stats");
+      if (r.ok) {
+        const j = await r.json();
+        const setNum = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = (n || 0).toLocaleString(); };
+        setNum("mwStatTracked", j.tracked_count);
+        setNum("mwStatStocked", j.stocked_count);
+        setNum("mwStatOut",     j.out_count);
+        const fresh = document.getElementById("mwStatFresh");
+        if (fresh) fresh.textContent = j.last_update_at ? _relTime(new Date(j.last_update_at)) : "—";
+        _mwPublicStatsLoadedAt = Date.now();
+      }
+    } catch (_) { /* silent — banner stays at "—" */ }
+  }
+  // Pro list (or locked card for free / logged-out)
+  const locked = document.getElementById("mwLockedCard");
+  const list   = document.getElementById("mwProList");
+  if (!isPro()) {
+    if (locked) locked.style.display = "";
+    if (list)   list.style.display = "none";
+    return;
+  }
+  if (locked) locked.style.display = "none";
+  if (list)   list.style.display = "";
+  const body = document.getElementById("mwListBody");
+  if (body) body.innerHTML = '<div class="mw-loading">Loading…</div>';
+  try {
+    const r = await fetch(`/api/chase/votes?state_code=${encodeURIComponent(currentHuntState)}&limit=50`, {
+      headers: authHeaders(),
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const j = await r.json();
+    _renderMostWantedRows(j.items || []);
+  } catch (e) {
+    if (body) body.innerHTML = `<div class="mw-loading" style="color:var(--red)">Couldn't load. <button class="btn-link" onclick="loadChaseMostWanted()">Retry</button></div>`;
+  }
+}
+
+function _renderMostWantedRows(items) {
+  const body = document.getElementById("mwListBody");
+  if (!body) return;
+  if (!items.length) {
+    body.innerHTML = '<div class="mw-empty">No active games to vote on in this state yet. <button class="btn-link" onclick="loadChaseMostWanted()">Refresh</button></div>';
+    return;
+  }
+  body.innerHTML = items.map(it => {
+    const evTxt    = (it.return_pct != null) ? `${it.return_pct.toFixed(1)}% return` : "—";
+    const priceTxt = (it.price != null) ? `$${it.price}` : "";
+    const meta     = [priceTxt, evTxt].filter(Boolean).join(" · ");
+    const voted    = !!it.user_voted;
+    const cls      = voted ? "mw-vote-btn voted" : "mw-vote-btn";
+    const label    = voted ? `▲ ${it.vote_count} · Voted` : `▲ ${it.vote_count} Upvote`;
+    return `<div class="mw-row" data-game="${it.game_db_id}">
+      <div class="mw-row-info">
+        <div class="mw-row-name">${escHtml(it.name)}</div>
+        <div class="mw-row-meta">${escHtml(meta)}</div>
+      </div>
+      <button class="${cls}" onclick="toggleChaseVote(${it.game_db_id}, ${voted}, this)">${label}</button>
+    </div>`;
+  }).join("");
+}
+
+async function toggleChaseVote(gameDbId, currentlyVoted, btn) {
+  if (!isPro()) { onMostWantedUpgradeClick(); return; }
+  if (btn) btn.disabled = true;
+  try {
+    const url  = currentlyVoted ? `/api/chase/request/${gameDbId}` : "/api/chase/request";
+    const opts = {
+      method:  currentlyVoted ? "DELETE" : "POST",
+      headers: { ...authHeaders(), "Content-Type": "application/json" },
+    };
+    if (!currentlyVoted) opts.body = JSON.stringify({ game_db_id: gameDbId });
+    const r = await fetch(url, opts);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    loadChaseMostWanted();
+  } catch (_) {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function onMostWantedUpgradeClick() {
+  // Fire conversion event before routing — keeps the funnel attributable even
+  // if the paywall flow loses context (login redirect, etc).
+  try {
+    fetch("/api/chase/upgrade-intent", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({ source: "most_wanted_locked", state_code: currentHuntState }),
+    });
+  } catch (_) {}
+  if (typeof openPaywallOrLogin === "function") openPaywallOrLogin();
+}
+
+function _relTime(date) {
+  const sec = Math.max(0, Math.round((Date.now() - date.getTime()) / 1000));
+  if (sec < 90) return "just now";
+  const min = Math.round(sec / 60);
+  if (min < 60) return `${min} min ago`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr} hr ago`;
+  const day = Math.round(hr / 24);
+  return `${day} day${day === 1 ? "" : "s"} ago`;
+}
+
 function selectHuntState(code) {
   currentHuntState = code;
   document.querySelectorAll(".state-dd-item").forEach(el =>
