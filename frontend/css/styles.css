@@ -3002,3 +3002,459 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
   .mw-title-row { flex-direction: column; align-items: stretch; gap: .5rem; }
   .mw-state-picker { min-width: 0; }
 }
+
+/* ── ScratchSim ─────────────────────────────────────────────────────────────── */
+.scratchsim-page { padding: 1.25rem 1.5rem 2rem; }
+
+/* Picker view */
+.scratchsim-masthead { padding: 0 0 1rem 0; }
+.scratchsim-kicker {
+  display: inline-flex; align-items: center; gap: .4rem;
+  font-size: .7rem; font-weight: 800;
+  letter-spacing: .14em;
+  color: var(--orange);
+  text-transform: uppercase;
+  margin-bottom: .35rem;
+}
+.scratchsim-kicker-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--orange);
+  box-shadow: 0 0 8px var(--orange);
+}
+.scratchsim-title {
+  font-size: 1.85rem; font-weight: 800;
+  letter-spacing: -.01em;
+  color: var(--text);
+  margin: .15rem 0 .35rem;
+}
+.scratchsim-sub {
+  color: var(--text-muted); max-width: 64ch;
+  margin: 0; line-height: 1.45;
+  font-size: .92rem;
+}
+
+.scratchsim-filters {
+  display: flex; flex-wrap: wrap; gap: .75rem;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: .85rem 1rem;
+  margin-bottom: 1rem;
+  align-items: flex-end;
+}
+
+.scratchsim-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: .85rem;
+}
+.scratchsim-tile {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: .75rem .8rem .9rem;
+  cursor: pointer;
+  display: flex; flex-direction: column; gap: .55rem;
+  transition: border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+  position: relative;
+  overflow: hidden;
+}
+.scratchsim-tile:hover {
+  border-color: var(--orange);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,.07);
+}
+.scratchsim-tile-head {
+  display: flex; align-items: center; gap: .5rem;
+}
+.scratchsim-tile-img {
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  height: 120px;
+  overflow: hidden;
+}
+.scratchsim-tile-img img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.scratchsim-tile-img-empty { color: var(--text-dim); font-size: .8rem; }
+.scratchsim-tile-name {
+  font-size: .9rem; font-weight: 800;
+  letter-spacing: -.01em;
+  line-height: 1.25;
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.4em;
+}
+.scratchsim-tile-meta {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: .76rem; color: var(--text-muted);
+}
+.scratchsim-tile-top {
+  color: var(--orange); font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+}
+.scratchsim-tile-play {
+  margin-top: .15rem;
+  display: inline-flex; align-items: center; justify-content: center; gap: .3rem;
+  background: var(--orange);
+  color: #fff;
+  font-weight: 800;
+  font-size: .8rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  padding: .55rem .65rem;
+  border-radius: 8px;
+}
+.scratchsim-tile:hover .scratchsim-tile-play { background: var(--orange-dark); }
+.scratchsim-tile-empty {
+  grid-column: 1 / -1;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--card);
+  border: 1.5px dashed var(--border);
+  border-radius: 12px;
+}
+
+/* Play view */
+.scratchsim-play-header {
+  display: flex; align-items: center; gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.scratchsim-back-btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: .5rem .8rem;
+  font-size: .85rem; font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color .15s ease, background .15s ease;
+}
+.scratchsim-back-btn:hover { border-color: var(--orange); background: var(--orange-dim); }
+.scratchsim-back-btn svg { width: 16px; height: 16px; }
+.scratchsim-play-title-wrap { flex: 1; min-width: 0; }
+.scratchsim-play-title {
+  font-size: 1.4rem; font-weight: 800;
+  color: var(--text); letter-spacing: -.01em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.scratchsim-play-sub {
+  font-size: .78rem; color: var(--text-muted);
+  letter-spacing: .04em; text-transform: uppercase;
+  font-weight: 600;
+}
+
+.scratchsim-board {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+/* Ticket + overlay */
+.scratchsim-ticket-wrap {
+  position: relative;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  aspect-ratio: 1.5 / 1;
+  width: 100%;
+}
+.scratchsim-ticket-img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: contain;
+  background: var(--bg);
+}
+.scratchsim-ticket-placeholder {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-dim);
+  font-size: .9rem;
+}
+
+/* Foil — 14x9 grid of cells the scratcher reveals */
+.scratchsim-foil {
+  position: absolute; inset: 0;
+  display: grid;
+  grid-template-columns: repeat(14, 1fr);
+  grid-template-rows: repeat(9, 1fr);
+  pointer-events: none;
+  background: rgba(0,0,0,0.55);
+  opacity: 0;
+  transition: opacity .18s ease;
+}
+.scratchsim-foil.is-active { opacity: 1; }
+.scratchsim-foil-cell {
+  background: linear-gradient(135deg, #b8b8b8 0%, #909090 50%, #b8b8b8 100%);
+  border: 0.5px solid rgba(0,0,0,0.18);
+  opacity: 1;
+  transition: opacity .22s ease;
+}
+.scratchsim-foil-cell.is-revealed { opacity: 0; }
+
+.scratchsim-coin {
+  position: absolute;
+  width: 44px; height: 44px;
+  margin-left: -22px; margin-top: -22px;
+  font-size: 32px;
+  display: none;
+  align-items: center; justify-content: center;
+  pointer-events: none;
+  filter: drop-shadow(0 0 10px rgba(234,179,8,0.9));
+  z-index: 3;
+}
+.scratchsim-coin.is-active { display: flex; }
+
+/* Result badge */
+.scratchsim-badge {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(.5);
+  opacity: 0;
+  padding: 1.2rem 1.7rem;
+  border-radius: 16px;
+  text-align: center;
+  border-width: 3px; border-style: solid;
+  background: rgba(0,0,0,0.55);
+  min-width: 220px;
+  z-index: 4;
+  pointer-events: none;
+  transition: opacity .22s ease, transform .35s cubic-bezier(.34,1.56,.64,1);
+}
+.scratchsim-badge.is-visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+.scratchsim-badge.is-win {
+  background: rgba(16,185,129,0.18);
+  border-color: var(--mint);
+  box-shadow: 0 0 32px rgba(16,185,129,0.55);
+}
+.scratchsim-badge.is-bigwin {
+  background: rgba(245,158,11,0.18);
+  border-color: var(--lemon);
+  box-shadow: 0 0 36px rgba(234,179,8,0.7);
+}
+.scratchsim-badge.is-lose {
+  background: rgba(0,0,0,0.55);
+  border-color: var(--chrome-border);
+}
+.scratchsim-badge-label {
+  font-size: .72rem; letter-spacing: .22em; font-weight: 800;
+  color: #cbd5e1;
+}
+.scratchsim-badge.is-win .scratchsim-badge-label { color: var(--mint); }
+.scratchsim-badge.is-bigwin .scratchsim-badge-label { color: var(--lemon); }
+.scratchsim-badge-amount {
+  font-size: 2.6rem; font-weight: 900;
+  color: #94a3b8;
+  margin-top: .35rem;
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 1;
+}
+.scratchsim-badge.is-win .scratchsim-badge-amount { color: var(--mint); }
+.scratchsim-badge.is-bigwin .scratchsim-badge-amount { color: var(--lemon); }
+.scratchsim-badge-odds {
+  font-size: .72rem;
+  color: #cbd5e1;
+  margin-top: .55rem;
+  letter-spacing: .04em;
+}
+
+/* Confetti */
+.scratchsim-confetti {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  overflow: hidden;
+}
+.scratchsim-confetti-piece {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  opacity: 0;
+  animation: scratchsim-confetti 1.3s ease-out forwards;
+}
+@keyframes scratchsim-confetti {
+  0%   { opacity: 0; transform: translate(0,0) rotate(0); }
+  10%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--tx), calc(var(--ty) + 70px)) rotate(var(--rot)); }
+}
+
+/* Side panel */
+.scratchsim-side { display: flex; flex-direction: column; gap: .85rem; }
+
+.scratchsim-inventory {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: .85rem .95rem .9rem;
+}
+.scratchsim-inv-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: .55rem;
+}
+.scratchsim-inv-label {
+  font-size: .68rem; text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--text-muted); font-weight: 700;
+}
+.scratchsim-inv-tickets {
+  font-size: 1.45rem; font-weight: 900;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: -.02em;
+}
+.scratchsim-tiers {
+  display: flex; flex-wrap: wrap; gap: .35rem;
+}
+.scratchsim-tier-pill {
+  display: inline-flex; flex-direction: column; align-items: center;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: .25rem .55rem;
+  min-width: 56px;
+}
+.scratchsim-tier-amount {
+  color: var(--orange); font-weight: 800; font-size: .78rem;
+  font-family: 'JetBrains Mono', monospace;
+}
+.scratchsim-tier-count {
+  color: var(--text-muted); font-size: .65rem;
+  font-family: 'JetBrains Mono', monospace;
+  margin-top: 1px;
+}
+
+.scratchsim-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: .65rem .3rem;
+}
+.scratchsim-stat { text-align: center; padding: 0 .25rem; }
+.scratchsim-stat-lbl {
+  font-size: .62rem; text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--text-muted); font-weight: 700;
+}
+.scratchsim-stat-val {
+  font-size: 1rem; font-weight: 800; margin-top: .25rem;
+  color: var(--text);
+  font-family: 'JetBrains Mono', monospace;
+}
+.scratchsim-stat-val.is-pos { color: var(--green); }
+.scratchsim-stat-val.is-neg { color: var(--red); }
+
+.scratchsim-history {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: .75rem .9rem .55rem;
+  max-height: 240px;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.scratchsim-history-head {
+  font-size: .68rem; text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--text-muted); font-weight: 700;
+  margin-bottom: .35rem;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.scratchsim-history-clear {
+  background: none; border: none;
+  color: var(--orange);
+  font: inherit; font-weight: 700; font-size: .68rem;
+  letter-spacing: .07em; text-transform: uppercase;
+  cursor: pointer;
+  padding: 0;
+}
+.scratchsim-history-clear:hover { text-decoration: underline; }
+.scratchsim-history-list {
+  flex: 1; overflow-y: auto;
+  font-family: 'JetBrains Mono', monospace;
+}
+.scratchsim-history-row {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center;
+  gap: .5rem;
+  padding: .3rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: .78rem;
+}
+.scratchsim-history-row:last-child { border-bottom: 0; }
+.scratchsim-history-idx { color: var(--text-dim); }
+.scratchsim-history-outcome { font-weight: 800; letter-spacing: .04em; font-size: .72rem; }
+.scratchsim-history-outcome.is-win { color: var(--green); }
+.scratchsim-history-outcome.is-lose { color: var(--text-muted); }
+.scratchsim-history-amount { text-align: right; font-weight: 800; }
+.scratchsim-history-amount.is-win { color: var(--green); }
+.scratchsim-history-amount.is-lose { color: var(--text-dim); }
+.scratchsim-history-empty {
+  color: var(--text-muted); font-size: .82rem; padding: .35rem 0;
+}
+
+.scratchsim-spin-btn {
+  background: var(--orange);
+  color: #fff;
+  font: inherit; font-weight: 800; font-size: 1.05rem;
+  letter-spacing: .06em; text-transform: uppercase;
+  padding: .95rem 1rem;
+  border: none; border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(249,115,22,.28);
+  transition: background .15s ease, transform .12s ease, box-shadow .15s ease;
+}
+.scratchsim-spin-btn:hover:not(:disabled) {
+  background: var(--orange-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(249,115,22,.32);
+}
+.scratchsim-spin-btn:active:not(:disabled) { transform: translateY(0); }
+.scratchsim-spin-btn:disabled {
+  background: var(--bg);
+  color: var(--text-dim);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.scratchsim-unavailable {
+  text-align: center;
+  font-size: .82rem;
+  color: var(--text-muted);
+  padding-top: .35rem;
+}
+
+@media (max-width: 900px) {
+  .scratchsim-board {
+    grid-template-columns: 1fr;
+  }
+  .scratchsim-history { max-height: 200px; }
+}
+@media (max-width: 640px) {
+  .scratchsim-page { padding: 1rem .9rem 1.5rem; }
+  .scratchsim-title { font-size: 1.35rem; }
+  .scratchsim-sub { font-size: .85rem; }
+  .scratchsim-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+  .scratchsim-tile-img { height: 95px; }
+  .scratchsim-tile-name { font-size: .8rem; }
+  .scratchsim-badge-amount { font-size: 1.8rem; }
+  .scratchsim-badge { min-width: 170px; padding: .9rem 1.2rem; }
+  .scratchsim-stats { padding: .55rem .15rem; }
+  .scratchsim-stat-val { font-size: .9rem; }
+  .scratchsim-inv-tickets { font-size: 1.2rem; }
+}
