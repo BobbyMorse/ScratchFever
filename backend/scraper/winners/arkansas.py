@@ -13,11 +13,8 @@ loop iterated to the safety cap of 2000 pages × ~0.4s each and tripped the
 """
 from __future__ import annotations
 import datetime as dt
-import logging
 import re
 from backend.scraper.winners.base import WinnersScraper, is_draw_game
-
-logger = logging.getLogger(__name__)
 
 URL = "https://www.myarkansaslottery.com/winners"
 
