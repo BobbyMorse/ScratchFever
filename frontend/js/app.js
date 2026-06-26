@@ -2822,7 +2822,10 @@ function selectChaseView(name) {
   }
 }
 
-let _mwPublicStatsLoadedAt = 0;
+// Keyed by state code so switching the Most Wanted state picker bypasses the
+// freshness gate and pulls that state's counts instead of reusing the previous
+// state's (or the unfiltered total).
+const _mwPublicStatsLoadedAt = {};
 
 // Mirrors the master hunt-state dropdown so users can pick a state without
 // having to leave the Most Wanted view. Built once on init by reading the
