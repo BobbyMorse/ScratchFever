@@ -30,6 +30,16 @@ ROW_RE = re.compile(
 )
 
 
+def _parse_date(raw: str) -> dt.date | None:
+    raw = (raw or "").strip()
+    for fmt in ("%B %d, %Y", "%b %d, %Y"):
+        try:
+            return dt.datetime.strptime(raw, fmt).date()
+        except ValueError:
+            pass
+    return None
+
+
 class ArkansasWinnersScraper(WinnersScraper):
     state_code = "AR"
     state_name = "Arkansas"
