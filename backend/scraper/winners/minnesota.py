@@ -98,13 +98,7 @@ class MinnesotaWinnersScraper(WinnersScraper):
         im = INFO_RE.match(info.strip())
         retailer = im.group("store").strip() if im else None
         city = im.group("city").strip() if im else None
-        claim_date = None
-        for fmt in ("%B %d, %Y", "%b %d, %Y"):
-            try:
-                claim_date = dt.datetime.strptime(date_raw.strip(), fmt).date()
-                break
-            except ValueError:
-                pass
+        claim_date = _parse_date(date_raw)
         sid_parts = [
             claim_date.isoformat() if claim_date else "",
             retailer or "", city or "", game, f"{int(prize)}",
