@@ -1817,6 +1817,139 @@
 
       </div><!-- /tab-plays -->
 
+      <!-- ══════════════ SCRATCHSIM TAB ══════════════ -->
+      <div id="tab-scratchsim" class="tab-content" style="display:none">
+        <section class="scratchsim-page">
+
+          <!-- PICKER VIEW: grid of games to pick from -->
+          <div id="scratchsimPicker" class="scratchsim-picker">
+            <header class="scratchsim-masthead">
+              <div>
+                <div class="scratchsim-kicker"><span class="scratchsim-kicker-dot"></span>SCRATCHSIM</div>
+                <h2 class="scratchsim-title">Scratch a ticket — for free.</h2>
+                <p class="scratchsim-sub">Pick any active scratch ticket and simulate scratching it. Each tap pulls from the real prize pool based on the state lottery's published odds. Educational only — no real money.</p>
+              </div>
+            </header>
+
+            <div class="scratchsim-filters">
+              <div class="filter-group">
+                <label>State</label>
+                <select id="simStateFilter" onchange="renderScratchSimList()">
+                  <option value="">All States</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>Price</label>
+                <select id="simPriceFilter" onchange="renderScratchSimList()">
+                  <option value="">Any Price</option>
+                  <option value="1">$1</option>
+                  <option value="2">$2</option>
+                  <option value="5">$5</option>
+                  <option value="10">$10</option>
+                  <option value="20">$20</option>
+                  <option value="30">$30</option>
+                  <option value="50">$50</option>
+                </select>
+              </div>
+              <div class="filter-group" style="flex:1;min-width:160px">
+                <label>Search</label>
+                <input type="text" id="simSearchInput" placeholder="Search game name…" oninput="renderScratchSimList()" />
+              </div>
+              <div class="filter-group">
+                <label>Sort</label>
+                <select id="simSortBy" onchange="renderScratchSimList()">
+                  <option value="top_prize">Top Prize</option>
+                  <option value="price">Price (low→high)</option>
+                  <option value="price_desc">Price (high→low)</option>
+                  <option value="name">Name</option>
+                  <option value="state">State</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="scratchsim-grid" id="scratchsimGrid">
+              <div class="loading-cell" style="grid-column:1/-1;padding:2rem;text-align:center">Loading games…</div>
+            </div>
+          </div>
+
+          <!-- SIM VIEW: the actual scratching interface -->
+          <div id="scratchsimPlay" class="scratchsim-play" style="display:none">
+            <div class="scratchsim-play-header">
+              <button class="scratchsim-back-btn" onclick="closeScratchSim()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+                </svg>
+                All games
+              </button>
+              <div class="scratchsim-play-title-wrap">
+                <div class="scratchsim-play-title" id="scratchsimTitle">—</div>
+                <div class="scratchsim-play-sub" id="scratchsimSubtitle">Educational only · no real money</div>
+              </div>
+            </div>
+
+            <div class="scratchsim-board">
+              <div class="scratchsim-ticket-wrap" id="scratchsimTicketWrap">
+                <img class="scratchsim-ticket-img" id="scratchsimTicketImg" alt="" />
+                <div class="scratchsim-ticket-placeholder" id="scratchsimTicketPlaceholder" style="display:none">No ticket image</div>
+                <div class="scratchsim-foil" id="scratchsimFoil"></div>
+                <div class="scratchsim-coin" id="scratchsimCoin">🪙</div>
+                <div class="scratchsim-badge" id="scratchsimBadge" style="display:none">
+                  <div class="scratchsim-badge-label" id="scratchsimBadgeLabel">WINNER!</div>
+                  <div class="scratchsim-badge-amount" id="scratchsimBadgeAmount">$0</div>
+                  <div class="scratchsim-badge-odds" id="scratchsimBadgeOdds">—</div>
+                </div>
+                <div class="scratchsim-confetti" id="scratchsimConfetti"></div>
+              </div>
+
+              <div class="scratchsim-side">
+                <div class="scratchsim-inventory" id="scratchsimInventory">
+                  <div class="scratchsim-inv-head">
+                    <span class="scratchsim-inv-label">Tickets left in game</span>
+                    <span class="scratchsim-inv-tickets" id="scratchsimInvTickets">—</span>
+                  </div>
+                  <div class="scratchsim-tiers" id="scratchsimTiers"></div>
+                </div>
+
+                <div class="scratchsim-stats">
+                  <div class="scratchsim-stat">
+                    <div class="scratchsim-stat-lbl">Scratches</div>
+                    <div class="scratchsim-stat-val" id="scratchsimStatSpins">0</div>
+                  </div>
+                  <div class="scratchsim-stat">
+                    <div class="scratchsim-stat-lbl">Wins</div>
+                    <div class="scratchsim-stat-val" id="scratchsimStatWins">0</div>
+                  </div>
+                  <div class="scratchsim-stat">
+                    <div class="scratchsim-stat-lbl">Spent</div>
+                    <div class="scratchsim-stat-val" id="scratchsimStatSpent">$0</div>
+                  </div>
+                  <div class="scratchsim-stat">
+                    <div class="scratchsim-stat-lbl">Net</div>
+                    <div class="scratchsim-stat-val" id="scratchsimStatNet">$0</div>
+                  </div>
+                </div>
+
+                <div class="scratchsim-history">
+                  <div class="scratchsim-history-head">
+                    <span>Results</span>
+                    <button class="scratchsim-history-clear" id="scratchsimResetBtn" onclick="resetScratchSimSession()" style="display:none">Reset</button>
+                  </div>
+                  <div class="scratchsim-history-list" id="scratchsimHistoryList">
+                    <div class="scratchsim-history-empty">Tap Scratch to begin.</div>
+                  </div>
+                </div>
+
+                <button class="scratchsim-spin-btn" id="scratchsimSpinBtn" onclick="scratchSimSpin()">
+                  <span id="scratchsimSpinBtnLabel">Scratch!</span>
+                </button>
+                <div class="scratchsim-unavailable" id="scratchsimUnavailable" style="display:none"></div>
+              </div>
+            </div>
+          </div>
+
+        </section>
+      </div><!-- /tab-scratchsim -->
+
       <!-- ══════════════ SETTINGS TAB ══════════════ -->
       <div id="tab-settings" class="tab-content" style="display:none">
         <div class="settings-page">
