@@ -62,20 +62,31 @@ class WisconsinWinnersScraper(WinnersScraper):
             cards = CARD_RE.findall(page_html)
             if not cards:
                 break
-            stale_count = 0
+            # Stale-page detection runs against raw card dates (not normalized
+            # rows). The feed lists ALL prize tiers — recent pages are mostly
+            # sub-$10K — so comparing stale_count against len(cards) never
+            # converges and the scraper crawls to the 2000-page safety cap,
+            # exceeding the 600s timeout.
+            dated = 0
+            stale = 0
+            for _, _, _, _, _, date_str in cards:
+                d = _parse_date(date_str)
+                if d is None:
+                    continue
+                dated += 1
+                if d < cutoff:
+                    stale += 1
             for game, prize_raw, winner, retailer, city, date_str in cards:
                 norm = self._normalize(game, prize_raw, winner, retailer, city, date_str)
                 if not norm:
                     continue
                 if norm["claim_date"] and norm["claim_date"] < cutoff:
-                    stale_count += 1
                     continue
                 if norm["source_id"] in seen:
                     continue
                 seen.add(norm["source_id"])
                 out.append(norm)
-            # If every card on this page was older than cutoff, stop paging back.
-            if stale_count == len(cards) and stale_count > 0:
+            if dated > 0 and stale == dated:
                 break
             page += 1
         return out
