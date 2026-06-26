@@ -2915,8 +2915,8 @@ function _renderMostWantedRows(items) {
     // inventory observations at all (cold-start games) should look clean,
     // not show "0 / 0". Clicking the row dives into the chase map filtered
     // to this game; clicking the vote button only toggles the vote.
-    const inChip  = inCt  ? `<span class="mw-chip mw-chip-in" title="Confirmed stocked retailers">● ${inCt} in</span>` : "";
-    const outChip = outCt ? `<span class="mw-chip mw-chip-out" title="Confirmed out retailers">● ${outCt} out</span>` : "";
+    const inChip  = inCt  ? `<span class="mw-chip mw-chip-in" title="Retailer leads reporting in stock">● ${inCt} in</span>` : "";
+    const outChip = outCt ? `<span class="mw-chip mw-chip-out" title="Retailer leads reporting out of stock">● ${outCt} out</span>` : "";
     const chips   = (inChip || outChip) ? `<div class="mw-row-chips">${inChip}${outChip}</div>` : "";
     const nameJson  = JSON.stringify(it.name).replace(/"/g, "&quot;");
     const stateJson = JSON.stringify(it.state_code || "").replace(/"/g, "&quot;");
