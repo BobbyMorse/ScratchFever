@@ -53,46 +53,19 @@ class ArkansasWinnersScraper(WinnersScraper):
         # qualifying win every 1-2 months still lands.
         lookback_days = max(days, 120)
         cutoff = dt.date.today() - dt.timedelta(days=lookback_days)
+        resp = self.get(URL)
         out: list[dict] = []
         seen: set[str] = set()
-        page = 1
-        # Safety: AR has ~800+ pages.
-        while page < 2000:
-            try:
-                resp = self.get(URL, params={"page": page})
-            except Exception as e:
-                logger.warning("AR page %d failed: %s", page, e)
-                break
-            matches = list(ROW_RE.finditer(resp.text))
-            if not matches:
-                break
-            # Stale-page detection runs against raw row dates (not normalized
-            # rows). The page lists ALL prize tiers — only ~6 of ~72 rows per
-            # page clear the $10K floor — so basing the stop on _normalize'd
-            # rows let pagination run to the 2000-page safety cap and hit the
-            # 600s timeout. Parse the date column directly here.
-            dated = 0
-            stale = 0
-            for m in matches:
-                d = _parse_date(m.group(5))
-                if d is None:
-                    continue
-                dated += 1
-                if d < cutoff:
-                    stale += 1
-            for m in matches:
-                norm = self._normalize(m)
-                if not norm:
-                    continue
-                if norm["claim_date"] and norm["claim_date"] < cutoff:
-                    continue
-                if norm["source_id"] in seen:
-                    continue
-                seen.add(norm["source_id"])
-                out.append(norm)
-            if dated > 0 and stale == dated:
-                break
-            page += 1
+        for m in ROW_RE.finditer(resp.text):
+            norm = self._normalize(m)
+            if not norm:
+                continue
+            if norm["claim_date"] and norm["claim_date"] < cutoff:
+                continue
+            if norm["source_id"] in seen:
+                continue
+            seen.add(norm["source_id"])
+            out.append(norm)
         return out
 
     def _normalize(self, m) -> dict | None:
