@@ -55,19 +55,31 @@ class MinnesotaWinnersScraper(WinnersScraper):
             matches = list(CARD_RE.finditer(resp.text))
             if not matches:
                 break
+            # Stale-page detection runs against raw card dates (not normalized
+            # rows). Powerball/Mega Millions cards are stripped by
+            # is_draw_game in _normalize; comparing stale against len(matches)
+            # would never converge on a Powerball-heavy page and the scraper
+            # would crawl to the safety cap, exceeding the 600s timeout.
+            dated = 0
             stale = 0
+            for m in matches:
+                d = _parse_date(m.group(3))
+                if d is None:
+                    continue
+                dated += 1
+                if d < cutoff:
+                    stale += 1
             for m in matches:
                 norm = self._normalize(m)
                 if not norm:
                     continue
                 if norm["claim_date"] and norm["claim_date"] < cutoff:
-                    stale += 1
                     continue
                 if norm["source_id"] in seen:
                     continue
                 seen.add(norm["source_id"])
                 out.append(norm)
-            if stale == len(matches) and stale > 0:
+            if dated > 0 and stale == dated:
                 break
             page += 1
         return out
