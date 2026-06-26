@@ -9035,9 +9035,8 @@ const SCRATCHSIM_PATH_MS = 1100;
 const SCRATCHSIM_PATH_PASSES = 3;
 const SCRATCHSIM_BADGE_DELAY = SCRATCHSIM_PATH_MS + 100;
 const SCRATCHSIM_REVEAL_DELAY = SCRATCHSIM_BADGE_DELAY; // total time until amount is visible
-// Lockout ends ~200ms after the badge pops — long enough for the spring to
-// settle visibly, short enough that "Scratch Again!" is clickable promptly.
-const SCRATCHSIM_ANIM_END = SCRATCHSIM_BADGE_DELAY + 200;
+// Button re-enables the instant the result lands — no lockout gap.
+const SCRATCHSIM_ANIM_END = SCRATCHSIM_BADGE_DELAY;
 
 const SCRATCHSIM_WAYPOINTS = (() => {
   const pts = [];
