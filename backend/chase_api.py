@@ -19,7 +19,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from backend import analytics
@@ -30,25 +30,33 @@ router = APIRouter(prefix="/api/chase", tags=["chase"])
 
 # In-process cache for the public-stats aggregate. The marketing banner doesn't
 # need real-time freshness — a 60s TTL keeps the COUNT-DISTINCT query off the
-# critical path even when crawlers hit the landing page in bursts.
+# critical path even when crawlers hit the landing page in bursts. Keyed by
+# state code (or "_ALL_" for the unfiltered total) so each Most Wanted state
+# picks up its own cached counts.
 _PUBLIC_STATS_TTL = 60.0
-_public_stats_cache: dict[str, Any] = {"expires_at": 0.0, "payload": None}
+_public_stats_cache: dict[str, dict[str, Any]] = {}
 
 
 @router.get("/public-stats")
-async def public_stats() -> dict[str, Any]:
+async def public_stats(
+    state_code: str | None = Query(default=None, max_length=2),
+) -> dict[str, Any]:
+    sc = (state_code or "").upper().strip() or None
+    cache_key = sc or "_ALL_"
     now = time.time()
-    cached = _public_stats_cache.get("payload")
-    if cached and _public_stats_cache["expires_at"] > now:
-        return cached
+    entry = _public_stats_cache.get(cache_key)
+    if entry and entry["expires_at"] > now:
+        return entry["payload"]
     async with get_pool().acquire() as conn:
-        row = await conn.fetchrow("""
+        row = await conn.fetchrow(
+            """
             WITH latest_per_retailer_game AS (
                 SELECT DISTINCT ON (retailer_id, state_code, game_name)
                        retailer_id, state_code, game_name, has_stock, reported_at
                   FROM inventory_reports
                  WHERE reported_at > NOW() - INTERVAL '30 days'
                    AND game_name IS NOT NULL
+                   AND ($1::text IS NULL OR state_code = $1)
                  ORDER BY retailer_id, state_code, game_name, reported_at DESC
             )
             SELECT
@@ -58,15 +66,17 @@ async def public_stats() -> dict[str, Any]:
                 COUNT(*) FILTER (WHERE has_stock = FALSE)  AS out_count,
                 MAX(reported_at)                           AS last_update_at
               FROM latest_per_retailer_game
-        """)
+            """,
+            sc,
+        )
     payload = {
+        "state_code": sc,
         "tracked_count": int(row["tracked_count"] or 0) if row else 0,
         "stocked_count": int(row["stocked_count"] or 0) if row else 0,
         "out_count": int(row["out_count"] or 0) if row else 0,
         "last_update_at": row["last_update_at"].isoformat() if row and row["last_update_at"] else None,
     }
-    _public_stats_cache["payload"] = payload
-    _public_stats_cache["expires_at"] = now + _PUBLIC_STATS_TTL
+    _public_stats_cache[cache_key] = {"payload": payload, "expires_at": now + _PUBLIC_STATS_TTL}
     return payload
 
 
