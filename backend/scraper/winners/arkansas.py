@@ -107,13 +107,7 @@ class ArkansasWinnersScraper(WinnersScraper):
         city = city.strip().title() or None
         if not city:
             return None
-        claim_date = None
-        for fmt in ("%B %d, %Y", "%b %d, %Y"):
-            try:
-                claim_date = dt.datetime.strptime(date_raw.strip(), fmt).date()
-                break
-            except ValueError:
-                pass
+        claim_date = _parse_date(date_raw)
         sid_parts = [
             claim_date.isoformat() if claim_date else "",
             name.strip(), city, game, f"{int(prize)}",
