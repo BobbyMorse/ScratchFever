@@ -110,12 +110,7 @@ class WisconsinWinnersScraper(WinnersScraper):
         city = (city_raw or "").strip() or None
         date_str = (date_str or "").strip()
 
-        claim_date = None
-        if date_str:
-            try:
-                claim_date = dt.datetime.strptime(date_str, "%m/%d/%Y").date()
-            except ValueError:
-                pass
+        claim_date = _parse_date(date_str)
 
         # Skip online/digital pseudo-retailers (no physical store).
         if retailer and retailer.lower() in {"online", "ilottery", "internet", "wilottery"}:
