@@ -2861,19 +2861,31 @@ async function loadChaseMostWanted() {
   // Update state name in the list header so it tracks the hunt-state dropdown.
   const nameEl = document.getElementById("mwListStateName");
   if (nameEl) nameEl.textContent = CHASE_HUNT_STATE_NAMES[currentHuntState] || currentHuntState;
-  // Public stats — no auth, server-cached for 60s, refresh client-side every 5 min max.
-  if (Date.now() - _mwPublicStatsLoadedAt > 5 * 60 * 1000) {
+  // Public stats — no auth, server-cached for 60s, refresh client-side every 5
+  // min max per-state. Reset tiles to "—" while the new state loads so the user
+  // doesn't read the previous state's numbers as belonging to the one they just
+  // picked.
+  const stateCode = currentHuntState || "";
+  const stale = !_mwPublicStatsLoadedAt[stateCode]
+              || Date.now() - _mwPublicStatsLoadedAt[stateCode] > 5 * 60 * 1000;
+  if (stale) {
+    ["mwStatTracked", "mwStatStocked", "mwStatOut", "mwStatFresh"].forEach(id => {
+      const el = document.getElementById(id); if (el) el.textContent = "—";
+    });
     try {
-      const r = await fetch("/api/chase/public-stats");
+      const r = await fetch(`/api/chase/public-stats?state_code=${encodeURIComponent(stateCode)}`);
       if (r.ok) {
         const j = await r.json();
-        const setNum = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = (n || 0).toLocaleString(); };
-        setNum("mwStatTracked", j.tracked_count);
-        setNum("mwStatStocked", j.stocked_count);
-        setNum("mwStatOut",     j.out_count);
-        const fresh = document.getElementById("mwStatFresh");
-        if (fresh) fresh.textContent = j.last_update_at ? _relTime(new Date(j.last_update_at)) : "—";
-        _mwPublicStatsLoadedAt = Date.now();
+        // Drop the response if the user has already moved to a different state.
+        if ((j.state_code || "") === stateCode) {
+          const setNum = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = (n || 0).toLocaleString(); };
+          setNum("mwStatTracked", j.tracked_count);
+          setNum("mwStatStocked", j.stocked_count);
+          setNum("mwStatOut",     j.out_count);
+          const fresh = document.getElementById("mwStatFresh");
+          if (fresh) fresh.textContent = j.last_update_at ? _relTime(new Date(j.last_update_at)) : "—";
+          _mwPublicStatsLoadedAt[stateCode] = Date.now();
+        }
       }
     } catch (_) { /* silent — banner stays at "—" */ }
   }
