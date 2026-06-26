@@ -9,24 +9,91 @@
   <link rel="apple-touch-icon" href="/static/images/logo.png" />
   <link rel="stylesheet" href="/static/css/styles.css?v=2" />
   <style>
-    .page-wrap { max-width: 760px; margin: 3rem auto; padding: 0 1.5rem 4rem; }
-    .page-wrap h1 { font-size: 2rem; font-weight: 800; margin-bottom: .5rem; background: linear-gradient(135deg, var(--pink), var(--orange), var(--lemon)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .page-wrap h2 { font-size: 1.15rem; font-weight: 700; color: var(--grape); margin: 2rem 0 .6rem; }
-    .page-wrap p, .page-wrap li { color: var(--text); line-height: 1.7; margin-bottom: .9rem; }
-    .back-link { display: inline-flex; align-items: center; gap: .4rem; color: var(--grape); font-weight: 600; text-decoration: none; font-size: .88rem; margin-bottom: 2rem; }
-    .back-link:hover { color: var(--pink); }
-    .contact-card {
-      background: var(--bg2);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.5rem 2rem;
-      margin-top: 1rem;
-      box-shadow: var(--shadow);
+    body { background: #f5f7fa !important; color: #111827; }
+
+    .page-wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 5rem;
     }
-    .contact-card a { color: var(--grape); font-weight: 700; text-decoration: none; }
-    .contact-card a:hover { color: var(--pink); text-decoration: underline; }
-    .contact-label { font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--text-muted); font-weight: 700; margin-bottom: .25rem; }
-    .contact-value { font-size: 1rem; color: var(--text); margin-bottom: 1rem; }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: .4rem;
+      color: #f97316; font-weight: 600; text-decoration: none;
+      font-size: .88rem; margin-bottom: 2rem;
+    }
+    .back-link:hover { color: #ec4899; }
+
+    .page-wrap h1 {
+      font-size: 2rem; font-weight: 800; margin-bottom: .5rem;
+      background: linear-gradient(135deg, #ec4899, #f97316, #facc15);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .lede { color: #4b5563; line-height: 1.65; font-size: 1rem; margin-bottom: 2rem; }
+
+    .contact-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 1.75rem 1.75rem 1.5rem;
+      box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05);
+      margin-bottom: 2.5rem;
+    }
+
+    .contact-row { padding: .9rem 0; border-bottom: 1px solid #f1f5f9; }
+    .contact-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .contact-row:first-child { padding-top: 0; }
+
+    .contact-label {
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #6b7280;
+      font-weight: 700;
+      margin-bottom: .25rem;
+    }
+    .contact-value { font-size: 1rem; color: #111827; font-weight: 500; }
+
+    .email-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; flex-wrap: wrap;
+    }
+    .email-row a {
+      color: #f97316;
+      font-weight: 700;
+      text-decoration: none;
+      font-size: 1.05rem;
+    }
+    .email-row a:hover { color: #ea580c; text-decoration: underline; }
+    .email-btn {
+      display: inline-flex; align-items: center; gap: .35rem;
+      background: #f97316; color: #fff;
+      padding: .5rem .95rem; border-radius: 8px;
+      font-size: .85rem; font-weight: 600;
+      text-decoration: none;
+      transition: background .15s;
+    }
+    .email-btn:hover { background: #ea580c; color: #fff; }
+
+    .help-section h2 {
+      font-size: 1.1rem; font-weight: 700; color: #111827;
+      margin: 0 0 1rem;
+    }
+    .help-list {
+      list-style: none; padding: 0; margin: 0;
+      display: grid; gap: .85rem;
+    }
+    .help-list li {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-left: 3px solid #f97316;
+      border-radius: 8px;
+      padding: .85rem 1rem;
+      color: #374151;
+      line-height: 1.55;
+      font-size: .94rem;
+    }
+    .help-list strong { color: #111827; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -45,28 +112,40 @@
   <main class="page-wrap">
     <a href="/" class="back-link">← Back to ScratchFrenzy</a>
     <h1>Contact Us</h1>
-    <p>Have a question, report a bug, or need to reach us for a legal matter? We're happy to hear from you.</p>
+    <p class="lede">Have a question, bug report, or legal matter? Send us a note — we read everything.</p>
 
     <div class="contact-card">
-      <div class="contact-label">Company</div>
-      <div class="contact-value">EVQ AGENTIC LLC</div>
+      <div class="contact-row email-row">
+        <div>
+          <div class="contact-label">Email</div>
+          <a href="mailto:support@scratchfrenzy.app">support@scratchfrenzy.app</a>
+        </div>
+        <a class="email-btn" href="mailto:support@scratchfrenzy.app">Send Email</a>
+      </div>
 
-      <div class="contact-label">Platform</div>
-      <div class="contact-value">ScratchFrenzy / EVQBET.com</div>
+      <div class="contact-row">
+        <div class="contact-label">Company</div>
+        <div class="contact-value">EVQ AGENTIC LLC</div>
+      </div>
 
-      <div class="contact-label">Email</div>
-      <div class="contact-value"><a href="mailto:hello@scratchfrenzy.com">hello@scratchfrenzy.com</a></div>
+      <div class="contact-row">
+        <div class="contact-label">Platform</div>
+        <div class="contact-value">ScratchFrenzy</div>
+      </div>
     </div>
 
-    <h2>What to include in your message</h2>
-    <p>For bug reports: describe what you expected, what happened, and which browser/device you used.</p>
-    <p>For data issues: include the game name and state so we can investigate.</p>
-    <p>For legal or privacy requests: please reference the relevant policy and we will respond promptly.</p>
+    <section class="help-section">
+      <h2>What to include in your message</h2>
+      <ul class="help-list">
+        <li><strong>Bug reports:</strong> what you expected, what happened, and which browser or device you used.</li>
+        <li><strong>Data issues:</strong> the game name and state so we can investigate.</li>
+        <li><strong>Legal or privacy requests:</strong> reference the relevant policy and we'll respond promptly.</li>
+      </ul>
+    </section>
   </main>
 
   <footer>
     <p class="footer-legal">© 2026 EVQ AGENTIC LLC. All rights reserved.</p>
-    <p class="footer-legal">EVQBET.com is operated by EVQ AGENTIC LLC.</p>
     <nav class="footer-links">
       <a href="/about">About</a>
       <a href="/privacy">Privacy Policy</a>
