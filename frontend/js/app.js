@@ -9031,11 +9031,13 @@ function populateSettingsTab() {
 const SCRATCHSIM_COLS = 14;
 const SCRATCHSIM_ROWS = 9;
 const SCRATCHSIM_TOTAL_CELLS = SCRATCHSIM_COLS * SCRATCHSIM_ROWS;
-const SCRATCHSIM_PATH_MS = 750;
+const SCRATCHSIM_PATH_MS = 1100;
 const SCRATCHSIM_PATH_PASSES = 3;
-const SCRATCHSIM_BADGE_DELAY = SCRATCHSIM_PATH_MS + 80;
+const SCRATCHSIM_BADGE_DELAY = SCRATCHSIM_PATH_MS + 100;
 const SCRATCHSIM_REVEAL_DELAY = SCRATCHSIM_BADGE_DELAY; // total time until amount is visible
-const SCRATCHSIM_ANIM_END = SCRATCHSIM_BADGE_DELAY + 180;
+// Lockout ends ~200ms after the badge pops — long enough for the spring to
+// settle visibly, short enough that "Scratch Again!" is clickable promptly.
+const SCRATCHSIM_ANIM_END = SCRATCHSIM_BADGE_DELAY + 200;
 
 const SCRATCHSIM_WAYPOINTS = (() => {
   const pts = [];
