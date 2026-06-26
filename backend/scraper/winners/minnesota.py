@@ -1,10 +1,15 @@
 """
 Minnesota winners scraper.
 
-MN Lottery's winners page returns 12 cards per page with structured spans:
-  https://www.mnlottery.com/winners/game?page=N
+MN Lottery's winners page returns the 12 most-recent cards at:
+  https://www.mnlottery.com/winners/game
 Card spans: winner-category (game), winner-info ("<store> in <city>, MN"),
 winner-date ("Month D, YYYY"), winner-payout ($amount).
+
+The page accepts a `?page=N` query param, but the param is silently ignored
+— every page returns the same 12 cards. (Verified 2026-06-26.) The old
+paginated loop iterated to the 1000-page safety cap and tripped the 600s
+scrape timeout every cycle, leaving MN stuck. We just fetch once.
 """
 from __future__ import annotations
 import datetime as dt
