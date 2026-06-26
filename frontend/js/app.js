@@ -9020,3 +9020,550 @@ function populateSettingsTab() {
     evSel.value = _prefs.evDefaultState || "";
   }
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ScratchSim — port of the mobile TestSpinModal (educational scratch-off sim)
+// ══════════════════════════════════════════════════════════════════════════════
+
+const SCRATCHSIM_COLS = 14;
+const SCRATCHSIM_ROWS = 9;
+const SCRATCHSIM_TOTAL_CELLS = SCRATCHSIM_COLS * SCRATCHSIM_ROWS;
+const SCRATCHSIM_PATH_MS = 1100;
+const SCRATCHSIM_PATH_PASSES = 3;
+const SCRATCHSIM_BADGE_DELAY = SCRATCHSIM_PATH_MS + 100;
+const SCRATCHSIM_REVEAL_DELAY = SCRATCHSIM_BADGE_DELAY; // total time until amount is visible
+const SCRATCHSIM_ANIM_END = SCRATCHSIM_BADGE_DELAY + 700;
+
+const SCRATCHSIM_WAYPOINTS = (() => {
+  const pts = [];
+  for (let i = 0; i <= SCRATCHSIM_PATH_PASSES; i++) {
+    const y = (i + 0.5) / (SCRATCHSIM_PATH_PASSES + 1);
+    const goingRight = i % 2 === 0;
+    pts.push({ x: goingRight ? 0.05 : 0.95, y });
+    pts.push({ x: goingRight ? 0.95 : 0.05, y });
+  }
+  return pts;
+})();
+
+let _scratchsimInited = false;
+let _scratchsimFoilBuilt = false;
+let _scratchsimDeck = null;
+let _scratchsimGame = null;
+let _scratchsimStats = { spins: 0, wins: 0, totalWinnings: 0 };
+let _scratchsimHistory = [];
+let _scratchsimSpinning = false;
+let _scratchsimRevealTimer = null;
+let _scratchsimLockTimer = null;
+let _scratchsimCoinRaf = null;
+
+function scratchsimSyntheticSmallPrize(ticketPrice) {
+  if (ticketPrice <= 1) return Math.random() < 0.6 ? 1 : 2;
+  if (ticketPrice <= 2) return Math.random() < 0.5 ? 2 : 5;
+  if (ticketPrice <= 5) return Math.random() < 0.5 ? 5 : 10;
+  if (ticketPrice <= 10) return Math.random() < 0.5 ? 10 : 20;
+  if (ticketPrice <= 20) return Math.random() < 0.5 ? 20 : 50;
+  if (ticketPrice <= 30) return Math.random() < 0.5 ? 30 : 50;
+  return Math.random() < 0.5 ? 50 : 100;
+}
+
+// Draw-without-replacement scratch deck — every ticket has the published
+// per-tier probability of being a winner, but stored as O(numTiers) buckets
+// rather than a literal shuffled array. Mirror of mobile's ScratchDeck class.
+function buildScratchSimDeck(opts) {
+  const { ticketsRemaining, prizeTiers, ticketPrice, overallOddsOneIn } = opts;
+
+  const tiers = (prizeTiers || [])
+    .filter(t => t.prizes_remaining != null && t.prizes_remaining > 0)
+    .map(t => ({
+      amount: t.prize_amount,
+      remaining: t.prizes_remaining,
+      oddsOneIn: ticketsRemaining / t.prizes_remaining,
+    }))
+    .sort((a, b) => b.amount - a.amount);
+
+  const trackedWinners = tiers.reduce((s, t) => s + t.remaining, 0);
+  const totalTickets = Math.max(ticketsRemaining || 0, trackedWinners);
+
+  let syntheticWinners = 0;
+  if (overallOddsOneIn && overallOddsOneIn > 1) {
+    const expectedWinners = totalTickets / overallOddsOneIn;
+    syntheticWinners = Math.max(0, Math.round(expectedWinners - trackedWinners));
+  }
+  const synthOddsOneIn = syntheticWinners > 0 ? totalTickets / syntheticWinners : Infinity;
+
+  return {
+    tickets: totalTickets,
+    tiers,
+    synthLeft: syntheticWinners,
+    synthOddsOneIn,
+    ticketPrice,
+    get ticketsLeft() { return this.tickets; },
+    get winnersLeft() {
+      return this.tiers.reduce((s, t) => s + t.remaining, 0) + this.synthLeft;
+    },
+    get currentOddsOneIn() {
+      const w = this.winnersLeft;
+      return w > 0 ? this.tickets / w : Infinity;
+    },
+    tierSnapshot() {
+      return this.tiers.map(t => ({ amount: t.amount, remaining: t.remaining }));
+    },
+    draw() {
+      if (this.tickets <= 0) return null;
+      const roll = Math.floor(Math.random() * this.tickets);
+      this.tickets--;
+      let cum = 0;
+      for (const tier of this.tiers) {
+        if (roll < cum + tier.remaining) {
+          tier.remaining--;
+          return { amount: tier.amount, oddsOneIn: tier.oddsOneIn };
+        }
+        cum += tier.remaining;
+      }
+      if (roll < cum + this.synthLeft) {
+        this.synthLeft--;
+        return {
+          amount: scratchsimSyntheticSmallPrize(this.ticketPrice),
+          oddsOneIn: this.synthOddsOneIn,
+          estimated: true,
+        };
+      }
+      return { amount: 0, oddsOneIn: this.currentOddsOneIn };
+    },
+  };
+}
+
+function initScratchSim() {
+  if (_scratchsimInited) {
+    renderScratchSimList();
+    return;
+  }
+  _scratchsimInited = true;
+  // Populate state filter from already-loaded games.
+  const stateSel = document.getElementById("simStateFilter");
+  if (stateSel && allGamesUnfiltered?.length) {
+    const states = [...new Set(allGamesUnfiltered.map(g => g.state_code))].sort();
+    for (const code of states) {
+      const opt = document.createElement("option");
+      opt.value = code;
+      opt.textContent = code;
+      stateSel.appendChild(opt);
+    }
+  }
+  renderScratchSimList();
+}
+
+function _scratchsimFormatPrize(n) {
+  if (n >= 1_000_000) {
+    const v = n / 1_000_000;
+    return `$${v % 1 === 0 ? v : v.toFixed(1)}M`;
+  }
+  if (n >= 1_000) {
+    const v = n / 1_000;
+    return `$${v % 1 === 0 ? v : v.toFixed(1)}K`;
+  }
+  return `$${n}`;
+}
+
+function renderScratchSimList() {
+  const grid = document.getElementById("scratchsimGrid");
+  if (!grid) return;
+  if (!allGamesUnfiltered?.length) {
+    grid.innerHTML = `<div class="scratchsim-tile-empty">Loading games…</div>`;
+    return;
+  }
+  const stateF = document.getElementById("simStateFilter")?.value || "";
+  const priceF = document.getElementById("simPriceFilter")?.value || "";
+  const search = (document.getElementById("simSearchInput")?.value || "").toLowerCase().trim();
+  const sortBy = document.getElementById("simSortBy")?.value || "top_prize";
+
+  let games = allGamesUnfiltered.filter(g =>
+    g.is_active !== false &&
+    (g.tickets_remaining == null || g.tickets_remaining > 0)
+  );
+  if (stateF) games = games.filter(g => g.state_code === stateF);
+  if (priceF) games = games.filter(g => Math.round(g.price) === Number(priceF));
+  if (search) games = games.filter(g => (g.name || "").toLowerCase().includes(search));
+
+  games.sort((a, b) => {
+    if (sortBy === "name") return (a.name || "").localeCompare(b.name || "");
+    if (sortBy === "state") return (a.state_code || "").localeCompare(b.state_code || "");
+    if (sortBy === "price") return (a.price || 0) - (b.price || 0);
+    if (sortBy === "price_desc") return (b.price || 0) - (a.price || 0);
+    return (b.top_prize || 0) - (a.top_prize || 0);
+  });
+
+  games = games.slice(0, 240);
+
+  if (!games.length) {
+    grid.innerHTML = `<div class="scratchsim-tile-empty">No games match those filters.</div>`;
+    return;
+  }
+
+  grid.innerHTML = games.map(g => {
+    const img = g.image_url
+      ? `<img src="${escHtml(g.image_url)}" alt="${escHtml(g.name)}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'scratchsim-tile-img-empty',textContent:'No image'}))">`
+      : `<div class="scratchsim-tile-img-empty">No image</div>`;
+    const top = g.top_prize ? _scratchsimFormatPrize(g.top_prize) : "—";
+    return `
+      <div class="scratchsim-tile" onclick="openScratchSim(${g.id})">
+        <div class="scratchsim-tile-head">
+          <span class="state-pill">${escHtml(g.state_code)}</span>
+          <span class="price-pill">$${Math.round(g.price)}</span>
+        </div>
+        <div class="scratchsim-tile-img">${img}</div>
+        <div class="scratchsim-tile-name">${escHtml(g.name)}</div>
+        <div class="scratchsim-tile-meta">
+          <span>Top Prize</span>
+          <span class="scratchsim-tile-top">${top}</span>
+        </div>
+        <div class="scratchsim-tile-play">Scratch this</div>
+      </div>
+    `;
+  }).join("");
+}
+
+async function openScratchSim(id) {
+  document.getElementById("scratchsimPicker").style.display = "none";
+  document.getElementById("scratchsimPlay").style.display = "";
+  document.getElementById("scratchsimTitle").textContent = "Loading…";
+  document.getElementById("scratchsimSubtitle").textContent = "";
+  _resetScratchSimUI();
+
+  try {
+    const res = await fetch(`/api/games/${id}`);
+    if (!res.ok) throw new Error("not found");
+    const g = await res.json();
+    _scratchsimGame = g;
+    _startScratchSimSession(g);
+  } catch (e) {
+    document.getElementById("scratchsimTitle").textContent = "Couldn't load that game.";
+    document.getElementById("scratchsimUnavailable").textContent = "Try a different one.";
+    document.getElementById("scratchsimUnavailable").style.display = "";
+  }
+}
+
+function _buildScratchSimFoilCellsOnce() {
+  if (_scratchsimFoilBuilt) return;
+  const foil = document.getElementById("scratchsimFoil");
+  if (!foil) return;
+  const cells = [];
+  for (let i = 0; i < SCRATCHSIM_TOTAL_CELLS; i++) {
+    cells.push(`<div class="scratchsim-foil-cell" data-i="${i}"></div>`);
+  }
+  foil.innerHTML = cells.join("");
+  _scratchsimFoilBuilt = true;
+}
+
+function _resetScratchSimUI() {
+  if (_scratchsimRevealTimer) { clearTimeout(_scratchsimRevealTimer); _scratchsimRevealTimer = null; }
+  if (_scratchsimLockTimer) { clearTimeout(_scratchsimLockTimer); _scratchsimLockTimer = null; }
+  if (_scratchsimCoinRaf) { cancelAnimationFrame(_scratchsimCoinRaf); _scratchsimCoinRaf = null; }
+  _scratchsimSpinning = false;
+  _scratchsimStats = { spins: 0, wins: 0, totalWinnings: 0 };
+  _scratchsimHistory = [];
+  document.getElementById("scratchsimUnavailable").style.display = "none";
+  document.getElementById("scratchsimResetBtn").style.display = "none";
+  _renderScratchSimStats();
+  _renderScratchSimHistory();
+  _hideScratchSimResult();
+}
+
+function _hideScratchSimResult() {
+  const foil = document.getElementById("scratchsimFoil");
+  const badge = document.getElementById("scratchsimBadge");
+  const coin = document.getElementById("scratchsimCoin");
+  const confetti = document.getElementById("scratchsimConfetti");
+  if (foil) {
+    foil.classList.remove("is-active");
+    foil.querySelectorAll(".scratchsim-foil-cell").forEach(c => c.classList.remove("is-revealed"));
+  }
+  if (badge) {
+    badge.classList.remove("is-visible", "is-win", "is-bigwin", "is-lose");
+    badge.style.display = "none";
+  }
+  if (coin) coin.classList.remove("is-active");
+  if (confetti) confetti.innerHTML = "";
+}
+
+function _startScratchSimSession(g) {
+  _buildScratchSimFoilCellsOnce();
+
+  document.getElementById("scratchsimTitle").textContent = g.name;
+  document.getElementById("scratchsimSubtitle").textContent =
+    `${g.state_name} · $${Math.round(g.price)} ticket · Educational only`;
+
+  const ticketImg = document.getElementById("scratchsimTicketImg");
+  const placeholder = document.getElementById("scratchsimTicketPlaceholder");
+  if (g.image_url) {
+    ticketImg.src = g.image_url;
+    ticketImg.style.display = "";
+    placeholder.style.display = "none";
+    ticketImg.onerror = () => {
+      ticketImg.style.display = "none";
+      placeholder.style.display = "";
+    };
+  } else {
+    ticketImg.style.display = "none";
+    placeholder.style.display = "";
+  }
+
+  const tickets = g.tickets_remaining;
+  const hasTiers = (g.prize_tiers || []).some(t => t.prizes_remaining != null && t.prizes_remaining > 0);
+  if (!tickets || tickets <= 0 || !hasTiers) {
+    _scratchsimDeck = null;
+    document.getElementById("scratchsimInvTickets").textContent = "—";
+    document.getElementById("scratchsimTiers").innerHTML = "";
+    const unavail = document.getElementById("scratchsimUnavailable");
+    unavail.textContent = "This game doesn't have enough prize data to simulate.";
+    unavail.style.display = "";
+    _setScratchSimSpinDisabled(true, "Unavailable");
+    return;
+  }
+
+  _scratchsimDeck = buildScratchSimDeck({
+    ticketsRemaining: tickets,
+    prizeTiers: g.prize_tiers,
+    ticketPrice: g.price,
+    overallOddsOneIn: g.overall_odds_one_in,
+  });
+  _renderScratchSimInventory();
+  _setScratchSimSpinDisabled(false, "Scratch!");
+}
+
+function _renderScratchSimInventory() {
+  if (!_scratchsimDeck) return;
+  document.getElementById("scratchsimInvTickets").textContent =
+    _scratchsimDeck.ticketsLeft.toLocaleString();
+  const tiers = _scratchsimDeck.tierSnapshot();
+  document.getElementById("scratchsimTiers").innerHTML = tiers.map(t => `
+    <div class="scratchsim-tier-pill">
+      <span class="scratchsim-tier-amount">${_scratchsimFormatPrize(t.amount)}</span>
+      <span class="scratchsim-tier-count">${t.remaining.toLocaleString()}</span>
+    </div>
+  `).join("");
+}
+
+function _renderScratchSimStats() {
+  const price = _scratchsimGame?.price || 0;
+  const spent = _scratchsimStats.spins * price;
+  const net = _scratchsimStats.totalWinnings - spent;
+  document.getElementById("scratchsimStatSpins").textContent = _scratchsimStats.spins.toLocaleString();
+  document.getElementById("scratchsimStatWins").textContent = _scratchsimStats.wins.toLocaleString();
+  document.getElementById("scratchsimStatSpent").textContent = `$${spent.toLocaleString()}`;
+  const netEl = document.getElementById("scratchsimStatNet");
+  netEl.textContent = `${net >= 0 ? "+" : ""}$${net.toLocaleString()}`;
+  netEl.classList.remove("is-pos", "is-neg");
+  if (net > 0) netEl.classList.add("is-pos");
+  else if (net < 0) netEl.classList.add("is-neg");
+}
+
+function _renderScratchSimHistory() {
+  const list = document.getElementById("scratchsimHistoryList");
+  if (!_scratchsimHistory.length) {
+    list.innerHTML = `<div class="scratchsim-history-empty">Tap Scratch to begin.</div>`;
+    return;
+  }
+  list.innerHTML = _scratchsimHistory.map(h => {
+    const won = h.amount > 0;
+    return `
+      <div class="scratchsim-history-row">
+        <span class="scratchsim-history-idx">#${h.id}</span>
+        <span class="scratchsim-history-outcome ${won ? "is-win" : "is-lose"}">${won ? "WIN" : "No win"}</span>
+        <span class="scratchsim-history-amount ${won ? "is-win" : "is-lose"}">${won ? `+$${h.amount.toLocaleString()}${h.estimated ? "*" : ""}` : "—"}</span>
+      </div>
+    `;
+  }).join("");
+}
+
+function _setScratchSimSpinDisabled(disabled, label) {
+  const btn = document.getElementById("scratchsimSpinBtn");
+  btn.disabled = !!disabled;
+  if (label != null) document.getElementById("scratchsimSpinBtnLabel").textContent = label;
+}
+
+// Precompute the reveal-time-per-cell using the same waypoint sampling as mobile.
+function _computeScratchSimReveals() {
+  const reveals = new Array(SCRATCHSIM_TOTAL_CELLS);
+  const REVEAL_RADIUS = 0.18;
+  const numSegs = SCRATCHSIM_WAYPOINTS.length - 1;
+  for (let row = 0; row < SCRATCHSIM_ROWS; row++) {
+    for (let col = 0; col < SCRATCHSIM_COLS; col++) {
+      const cx = (col + 0.5) / SCRATCHSIM_COLS;
+      const cy = (row + 0.5) / SCRATCHSIM_ROWS;
+      let bestT = 1;
+      for (let s = 0; s < numSegs; s++) {
+        const a = SCRATCHSIM_WAYPOINTS[s];
+        const b = SCRATCHSIM_WAYPOINTS[s + 1];
+        const segStart = s / numSegs;
+        const segEnd = (s + 1) / numSegs;
+        const samples = 8;
+        for (let i = 0; i <= samples; i++) {
+          const u = i / samples;
+          const x = a.x + (b.x - a.x) * u;
+          const y = a.y + (b.y - a.y) * u;
+          const dx = x - cx, dy = y - cy;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < REVEAL_RADIUS) {
+            const t = segStart + (segEnd - segStart) * u;
+            if (t < bestT) bestT = t;
+          }
+        }
+      }
+      reveals[row * SCRATCHSIM_COLS + col] = bestT;
+    }
+  }
+  return reveals;
+}
+
+function _animateScratchSimCoin() {
+  const coin = document.getElementById("scratchsimCoin");
+  const wrap = document.getElementById("scratchsimTicketWrap");
+  if (!coin || !wrap) return;
+  coin.classList.add("is-active");
+  const startedAt = performance.now();
+  const numSegs = SCRATCHSIM_WAYPOINTS.length - 1;
+
+  function step(now) {
+    const elapsed = now - startedAt;
+    let t = elapsed / SCRATCHSIM_PATH_MS;
+    if (t >= 1) {
+      coin.classList.remove("is-active");
+      _scratchsimCoinRaf = null;
+      return;
+    }
+    // ease in-out quad
+    t = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    const segIdx = Math.min(numSegs - 1, Math.floor(t * numSegs));
+    const segT = t * numSegs - segIdx;
+    const a = SCRATCHSIM_WAYPOINTS[segIdx];
+    const b = SCRATCHSIM_WAYPOINTS[segIdx + 1];
+    const x = a.x + (b.x - a.x) * segT;
+    const y = a.y + (b.y - a.y) * segT;
+    coin.style.left = `${x * 100}%`;
+    coin.style.top = `${y * 100}%`;
+    _scratchsimCoinRaf = requestAnimationFrame(step);
+  }
+  _scratchsimCoinRaf = requestAnimationFrame(step);
+}
+
+function _showScratchSimBadge(result) {
+  const badge = document.getElementById("scratchsimBadge");
+  const labelEl = document.getElementById("scratchsimBadgeLabel");
+  const amountEl = document.getElementById("scratchsimBadgeAmount");
+  const oddsEl = document.getElementById("scratchsimBadgeOdds");
+  const won = result.amount > 0;
+  const bigWin = result.amount >= 1000;
+  badge.classList.remove("is-win", "is-bigwin", "is-lose");
+  badge.classList.add(bigWin ? "is-bigwin" : won ? "is-win" : "is-lose");
+  labelEl.textContent = bigWin ? "🎉 BIG WIN 🎉" : won ? "WINNER!" : "NOT A WINNER";
+  amountEl.textContent = won ? `$${result.amount.toLocaleString()}` : "—";
+  const odds = Number.isFinite(result.oddsOneIn) ? result.oddsOneIn : 0;
+  oddsEl.textContent = won
+    ? `1 in ${Math.round(odds).toLocaleString()} for this prize`
+    : `1 in ${odds.toFixed(2)} to win any prize`;
+  badge.style.display = "";
+  // Next frame so the transition fires.
+  requestAnimationFrame(() => badge.classList.add("is-visible"));
+  if (won) _emitScratchSimConfetti(bigWin);
+}
+
+function _emitScratchSimConfetti(big) {
+  const container = document.getElementById("scratchsimConfetti");
+  if (!container) return;
+  container.innerHTML = "";
+  const count = big ? 28 : 16;
+  const colors = ["#eab308", "#ef4444", "#10b981", "#38bdf8", "#f97316", "#ec4899", "#14b8a6"];
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+    const distance = 100 + Math.random() * 140;
+    const size = 7 + Math.random() * 7;
+    const rot = (Math.random() - 0.5) * 720;
+    const tx = distance * Math.cos(angle);
+    const ty = distance * Math.sin(angle);
+    const piece = document.createElement("div");
+    piece.className = "scratchsim-confetti-piece";
+    piece.style.width = `${size}px`;
+    piece.style.height = `${size}px`;
+    piece.style.marginLeft = `-${size / 2}px`;
+    piece.style.marginTop = `-${size / 2}px`;
+    piece.style.background = colors[i % colors.length];
+    piece.style.setProperty("--tx", `${tx}px`);
+    piece.style.setProperty("--ty", `${ty}px`);
+    piece.style.setProperty("--rot", `${rot}deg`);
+    container.appendChild(piece);
+  }
+}
+
+function scratchSimSpin() {
+  if (_scratchsimSpinning) return;
+  if (!_scratchsimDeck || _scratchsimDeck.ticketsLeft <= 0) return;
+
+  const result = _scratchsimDeck.draw();
+  if (!result) return;
+  _scratchsimSpinning = true;
+  _setScratchSimSpinDisabled(true, "Scratching…");
+  _hideScratchSimResult();
+
+  // Activate foil (cover the ticket) and start cell-by-cell reveal timed
+  // against the coin path — matches mobile's ResultOverlay choreography.
+  const foil = document.getElementById("scratchsimFoil");
+  foil.classList.add("is-active");
+  const cells = foil.querySelectorAll(".scratchsim-foil-cell");
+  cells.forEach(c => c.classList.remove("is-revealed"));
+  const reveals = _computeScratchSimReveals();
+  reveals.forEach((t, i) => {
+    setTimeout(() => cells[i]?.classList.add("is-revealed"), t * SCRATCHSIM_PATH_MS);
+  });
+  _animateScratchSimCoin();
+
+  // Defer stats + history + inventory updates until reveal moment so numbers
+  // tick over when the user SEES the result, not when they tap.
+  _scratchsimRevealTimer = setTimeout(() => {
+    _scratchsimStats = {
+      spins: _scratchsimStats.spins + 1,
+      wins: _scratchsimStats.wins + (result.amount > 0 ? 1 : 0),
+      totalWinnings: _scratchsimStats.totalWinnings + result.amount,
+    };
+    _scratchsimHistory.unshift({
+      id: _scratchsimHistory.length + 1,
+      amount: result.amount,
+      estimated: result.estimated,
+    });
+    _renderScratchSimStats();
+    _renderScratchSimHistory();
+    _renderScratchSimInventory();
+    _showScratchSimBadge(result);
+    document.getElementById("scratchsimResetBtn").style.display = "";
+  }, SCRATCHSIM_REVEAL_DELAY);
+
+  _scratchsimLockTimer = setTimeout(() => {
+    _scratchsimSpinning = false;
+    const exhausted = _scratchsimDeck.ticketsLeft <= 0;
+    if (exhausted) _setScratchSimSpinDisabled(true, "Sold Out");
+    else _setScratchSimSpinDisabled(false, "Scratch Again!");
+  }, SCRATCHSIM_ANIM_END);
+}
+
+function resetScratchSimSession() {
+  if (!_scratchsimGame) return;
+  _startScratchSimSession(_scratchsimGame);
+  _scratchsimStats = { spins: 0, wins: 0, totalWinnings: 0 };
+  _scratchsimHistory = [];
+  _renderScratchSimStats();
+  _renderScratchSimHistory();
+  _hideScratchSimResult();
+  document.getElementById("scratchsimResetBtn").style.display = "none";
+}
+
+function closeScratchSim() {
+  if (_scratchsimRevealTimer) { clearTimeout(_scratchsimRevealTimer); _scratchsimRevealTimer = null; }
+  if (_scratchsimLockTimer) { clearTimeout(_scratchsimLockTimer); _scratchsimLockTimer = null; }
+  if (_scratchsimCoinRaf) { cancelAnimationFrame(_scratchsimCoinRaf); _scratchsimCoinRaf = null; }
+  _scratchsimSpinning = false;
+  _scratchsimDeck = null;
+  _scratchsimGame = null;
+  _hideScratchSimResult();
+  document.getElementById("scratchsimPlay").style.display = "none";
+  document.getElementById("scratchsimPicker").style.display = "";
+}
