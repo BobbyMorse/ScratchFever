@@ -99,6 +99,21 @@ class PennsylvaniaWinnersScraper(WinnersScraper):
                 items = self._fetch(county, year, month_name)
                 if not items:
                     continue
+                # Defense against the MO-style "URL silently ignores params" rot:
+                # PA tags each row with its own year/month; refuse to ingest a
+                # response whose first row's period doesn't match what we asked
+                # for. Without this, a broken endpoint would let us re-stamp
+                # the same wins into every iterated month (see missouri.py
+                # postmortem note).
+                first = items[0]
+                got_year = first.get("year")
+                got_month = (first.get("month") or "").lower()
+                if got_year != year or got_month != month_name.lower():
+                    logger.warning(
+                        "PA %s/%s/%d returned rows tagged %s/%s — skipping batch",
+                        county, month_name, year, got_year, got_month,
+                    )
+                    continue
                 for w in items:
                     norm = self._normalize(w, year, month_num)
                     if norm and norm["source_id"] not in seen:
