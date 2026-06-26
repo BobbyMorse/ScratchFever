@@ -2,11 +2,21 @@
 Missouri winners scraper.
 
 MO Lottery's monthly winners page:
-  GET https://www.molottery.com/news/monthlywinners.do?method=Display&y=YYYY&m=M
-returns one month's $10K+ wins as a single HTML table with rows of:
+  GET https://www.molottery.com/news/monthlywinners.do?method=Display
+returns ONE month's $1K+ wins as a single HTML table with rows of:
   City (bold), Retailer, Address, Game, Prize.
 
-We iterate the last `days/30 + 1` months to cover the requested window.
+The page is now Drupal-rendered and silently ignores the legacy `y`/`m` query
+params — every request returns whichever month MO is currently publishing
+(usually the most recently completed month). The earlier version of this
+scraper iterated `_months_back(today, days)` and copied the same response
+into each iterated month with a synthesized claim_date, which produced
+fake "same retailer wins $100K on the 1st of every month for the past year"
+records in reported_wins. Lesson logged in feedback memory.
+
+We now make a single request, parse the month/year from the page header
+("...sold in May 2026."), and stamp claim_date as month-end (or today, if
+that month is still in progress).
 """
 from __future__ import annotations
 import calendar
@@ -15,14 +25,6 @@ import logging
 import re
 from backend.scraper.winners.base import WinnersScraper, is_draw_game
 
-
-def _month_end_or_today(year: int, month: int, today: dt.date) -> dt.date:
-    """Latest plausible claim date for a month-granularity win — keeps
-    prior-month wins in the 30d display window long enough for the next
-    month's data to publish."""
-    last_day = calendar.monthrange(year, month)[1]
-    candidate = dt.date(year, month, last_day)
-    return min(candidate, today)
 
 logger = logging.getLogger(__name__)
 
@@ -38,20 +40,18 @@ ROW_RE = re.compile(
     re.IGNORECASE,
 )
 
+MONTH_RE = re.compile(r'sold in (\w+)\s+(\d{4})', re.IGNORECASE)
 
-def _months_back(today: dt.date, days: int):
-    cutoff = today - dt.timedelta(days=days)
-    cur_y, cur_m = today.year, today.month
-    while True:
-        yield cur_y, cur_m
-        first = dt.date(cur_y, cur_m, 1)
-        if first < cutoff:
-            return
-        if cur_m == 1:
-            cur_y -= 1
-            cur_m = 12
-        else:
-            cur_m -= 1
+_MONTHS = {
+    "january": 1, "february": 2, "march": 3, "april": 4, "may": 5, "june": 6,
+    "july": 7, "august": 8, "september": 9, "october": 10, "november": 11, "december": 12,
+}
+
+
+def _month_end_or_today(year: int, month: int, today: dt.date) -> dt.date:
+    last_day = calendar.monthrange(year, month)[1]
+    candidate = dt.date(year, month, last_day)
+    return min(candidate, today)
 
 
 class MissouriWinnersScraper(WinnersScraper):
@@ -60,49 +60,63 @@ class MissouriWinnersScraper(WinnersScraper):
     min_prize = 10000.0
 
     def scrape(self, days: int = 14) -> list[dict]:
+        # `days` is ignored: the MO page only ever publishes one month.
+        # We accept the param for runner-API compatibility.
+        resp = self.get(URL, params={"method": "Display"})
+        text = resp.text
+
+        m_meta = MONTH_RE.search(text)
+        if not m_meta:
+            logger.warning("MO: could not locate 'sold in <Month> <Year>' header — page format may have changed")
+            return []
+        month_name, year_str = m_meta.groups()
+        month = _MONTHS.get(month_name.lower())
+        try:
+            year = int(year_str)
+        except ValueError:
+            year = None
+        if not month or not year:
+            logger.warning("MO: unparseable month/year header (%s %s)", month_name, year_str)
+            return []
+
         today = dt.date.today()
+        claim_date = _month_end_or_today(year, month, today)
+
         out: list[dict] = []
         seen: set[str] = set()
-        for year, month in _months_back(today, days):
+        for m in ROW_RE.finditer(text):
+            city, retailer, address, game, prize_raw = m.groups()
             try:
-                resp = self.get(URL, params={"method": "Display", "y": str(year), "m": str(month)})
-            except Exception as e:
-                logger.warning("MO %d-%d failed: %s", year, month, e)
+                prize = float(prize_raw.replace(",", ""))
+            except ValueError:
                 continue
-            claim_date = _month_end_or_today(year, month, today)
-            for m in ROW_RE.finditer(resp.text):
-                city, retailer, address, game, prize_raw = m.groups()
-                try:
-                    prize = float(prize_raw.replace(",", ""))
-                except ValueError:
-                    continue
-                if prize < self.min_prize:
-                    continue
-                game = game.strip()
-                if not game or is_draw_game(self.state_code, game):
-                    continue
-                city = city.strip() or None
-                retailer = retailer.strip() or None
-                address = address.strip() or None
-                sid_parts = [f"{year:04d}-{month:02d}", retailer or "", city or "",
-                             game, f"{int(prize)}"]
-                source_id = "|".join(sid_parts)
-                if source_id in seen:
-                    continue
-                seen.add(source_id)
-                out.append({
-                    "source_id": source_id,
-                    "source_game_id": None,
-                    "source_game_name": game,
-                    "prize_amount": prize,
-                    "claim_date": claim_date,
-                    "retailer_name": retailer,
-                    "retailer_city": city,
-                    "retailer_address": address,
-                    "retailer_zip": None,
-                    "winner_city": None,
-                    "retailer_lat": None,
-                    "retailer_lng": None,
-                    "source_url": "https://www.molottery.com/news/monthlywinners.do",
-                })
+            if prize < self.min_prize:
+                continue
+            game = game.strip()
+            if not game or is_draw_game(self.state_code, game):
+                continue
+            city = city.strip() or None
+            retailer = retailer.strip() or None
+            address = address.strip() or None
+            sid_parts = [f"{year:04d}-{month:02d}", retailer or "", city or "",
+                         game, f"{int(prize)}"]
+            source_id = "|".join(sid_parts)
+            if source_id in seen:
+                continue
+            seen.add(source_id)
+            out.append({
+                "source_id": source_id,
+                "source_game_id": None,
+                "source_game_name": game,
+                "prize_amount": prize,
+                "claim_date": claim_date,
+                "retailer_name": retailer,
+                "retailer_city": city,
+                "retailer_address": address,
+                "retailer_zip": None,
+                "winner_city": None,
+                "retailer_lat": None,
+                "retailer_lng": None,
+                "source_url": URL,
+            })
         return out
