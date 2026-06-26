@@ -26,6 +26,16 @@ CARD_RE = re.compile(
 INFO_RE = re.compile(r'^(?P<store>.+?)\s+in\s+(?P<city>.+?),\s*[A-Z]{2}$')
 
 
+def _parse_date(raw: str) -> dt.date | None:
+    raw = (raw or "").strip()
+    for fmt in ("%B %d, %Y", "%b %d, %Y"):
+        try:
+            return dt.datetime.strptime(raw, fmt).date()
+        except ValueError:
+            pass
+    return None
+
+
 class MinnesotaWinnersScraper(WinnersScraper):
     state_code = "MN"
     state_name = "Minnesota"
