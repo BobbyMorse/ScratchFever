@@ -1,13 +1,15 @@
 """
 Arkansas winners scraper.
 
-AR Lottery has a paginated HTML list at:
-  https://www.myarkansaslottery.com/winners?page=N
-Each row exposes Name, City, Amount, Game, Date Claimed via `data-cell-title`.
-No retailer info — winner home city only.
+AR Lottery exposes a single-page winners table at:
+  https://www.myarkansaslottery.com/winners
+~72 most-recent rows, each with Name, City, Amount, Game, Date Claimed via
+`data-cell-title`. No retailer info — winner home city only.
 
-Pages are 0-indexed-ish (page=1..N, ~79 winners per page). We page until either
-the response has no winners or all winners are older than the cutoff.
+The page accepts a `?page=N` query param, but the param is silently ignored —
+every page returns the same 72 rows. (Verified 2026-06-26.) The old paginated
+loop iterated to the safety cap of 2000 pages × ~0.4s each and tripped the
+600s scrape timeout every cycle, leaving AR stuck. We just fetch once.
 """
 from __future__ import annotations
 import datetime as dt
