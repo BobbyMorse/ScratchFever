@@ -9137,14 +9137,11 @@ function buildScratchSimDeck(opts) {
 }
 
 function initScratchSim() {
-  if (_scratchsimInited) {
-    renderScratchSimList();
-    return;
-  }
-  _scratchsimInited = true;
-  // Populate state filter from already-loaded games.
+  // Populate state filter from already-loaded games (idempotent — only fills
+  // once games actually exist, so it survives the race where the user lands
+  // on this tab before /api/games has returned).
   const stateSel = document.getElementById("simStateFilter");
-  if (stateSel && allGamesUnfiltered?.length) {
+  if (stateSel && !_scratchsimInited && allGamesUnfiltered?.length) {
     const states = [...new Set(allGamesUnfiltered.map(g => g.state_code))].sort();
     for (const code of states) {
       const opt = document.createElement("option");
@@ -9152,8 +9149,13 @@ function initScratchSim() {
       opt.textContent = code;
       stateSel.appendChild(opt);
     }
+    _scratchsimInited = true;
   }
   renderScratchSimList();
+  // If games still loading, retry shortly.
+  if (!_scratchsimInited) {
+    setTimeout(() => { if (currentTab === "scratchsim") initScratchSim(); }, 600);
+  }
 }
 
 function _scratchsimFormatPrize(n) {
