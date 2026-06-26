@@ -870,6 +870,36 @@ async def log_scrape(conn, state_code: str, success: bool, games_scraped: int = 
     )
 
 
+async def _derive_state_code_from_retailer(conn, retailer_id: str) -> str | None:
+    """Best-effort state_code lookup for a retailer_id when the caller didn't
+    supply one. Without state_code the retailer-latest query filters the report
+    out (it scopes `state_code = $1` to avoid cross-state ID collisions), which
+    silently strips fresh "out of stock" updates and lets older "in stock"
+    reports win — see add_inventory_report below for context.
+
+    Returns the unique matching state, or None if the id is missing, ambiguous
+    across states (collision), or unknown."""
+    if not retailer_id:
+        return None
+    states: set[str] = set()
+    sr_rows = await conn.fetch(
+        "SELECT state_code FROM state_retailers WHERE external_id=$1", retailer_id
+    )
+    for r in sr_rows:
+        if r["state_code"]:
+            states.add(r["state_code"].upper())
+    if retailer_id.isdigit():
+        rid_int = int(retailer_id)
+        for state, table in _PER_STATE_RETAILER_TABLES.items():
+            try:
+                hit = await conn.fetchval(f"SELECT 1 FROM {table} WHERE id=$1 LIMIT 1", rid_int)
+            except Exception:
+                hit = None
+            if hit:
+                states.add(state)
+    return next(iter(states)) if len(states) == 1 else None
+
+
 async def add_inventory_report(conn, retailer_id: str, retailer_name: str = None,
                                 retailer_city: str = None, lat: float = None, lng: float = None,
                                 game_name: str = None, game_price: float = None,
@@ -886,6 +916,12 @@ async def add_inventory_report(conn, retailer_id: str, retailer_name: str = None
     # Normalize empties to NULL so the filter `state_code = $1` doesn't
     # accidentally include garbage rows under an empty key.
     state_code = (state_code or "").strip().upper() or None
+    # If a caller forgot to pass state_code, derive it from the retailer.
+    # Without this, the retailer-latest endpoint silently drops the row from
+    # state-scoped queries and an older in-stock report keeps winning over the
+    # fresh out-of-stock update the user just submitted.
+    if state_code is None:
+        state_code = await _derive_state_code_from_retailer(conn, retailer_id)
     await conn.execute("""
         INSERT INTO inventory_reports
         (retailer_id, retailer_name, retailer_city, lat, lng,
