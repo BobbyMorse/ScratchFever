@@ -48,45 +48,19 @@ class MinnesotaWinnersScraper(WinnersScraper):
 
     def scrape(self, days: int = 14) -> list[dict]:
         cutoff = dt.date.today() - dt.timedelta(days=days)
+        resp = self.get(URL)
         out: list[dict] = []
         seen: set[str] = set()
-        page = 1
-        while page < 1000:
-            try:
-                resp = self.get(URL, params={"page": page})
-            except Exception as e:
-                logger.warning("MN page %d failed: %s", page, e)
-                break
-            matches = list(CARD_RE.finditer(resp.text))
-            if not matches:
-                break
-            # Stale-page detection runs against raw card dates (not normalized
-            # rows). Powerball/Mega Millions cards are stripped by
-            # is_draw_game in _normalize; comparing stale against len(matches)
-            # would never converge on a Powerball-heavy page and the scraper
-            # would crawl to the safety cap, exceeding the 600s timeout.
-            dated = 0
-            stale = 0
-            for m in matches:
-                d = _parse_date(m.group(3))
-                if d is None:
-                    continue
-                dated += 1
-                if d < cutoff:
-                    stale += 1
-            for m in matches:
-                norm = self._normalize(m)
-                if not norm:
-                    continue
-                if norm["claim_date"] and norm["claim_date"] < cutoff:
-                    continue
-                if norm["source_id"] in seen:
-                    continue
-                seen.add(norm["source_id"])
-                out.append(norm)
-            if dated > 0 and stale == dated:
-                break
-            page += 1
+        for m in CARD_RE.finditer(resp.text):
+            norm = self._normalize(m)
+            if not norm:
+                continue
+            if norm["claim_date"] and norm["claim_date"] < cutoff:
+                continue
+            if norm["source_id"] in seen:
+                continue
+            seen.add(norm["source_id"])
+            out.append(norm)
         return out
 
     def _normalize(self, m) -> dict | None:
