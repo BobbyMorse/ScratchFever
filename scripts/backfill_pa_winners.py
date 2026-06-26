@@ -85,7 +85,19 @@ async def main():
                          for c in PA_COUNTIES]
                 results = await asyncio.gather(*tasks)
                 raw_items: list[dict] = []
+                expected_month = month_name.lower()
                 for r in results:
+                    if not r:
+                        continue
+                    # Guard against the URL-ignores-params class of bug (see
+                    # missouri.py postmortem): every PA row carries its own
+                    # year/month — refuse a batch whose first row doesn't
+                    # match what we asked for.
+                    first = r[0]
+                    if first.get("year") != year or (first.get("month") or "").lower() != expected_month:
+                        logger.warning("  PA backfill: rows tagged %s/%s when requesting %s %d — skipping batch",
+                                       first.get("year"), first.get("month"), month_name, year)
+                        continue
                     raw_items.extend(r)
                 if not raw_items:
                     logger.info("  PA %s %d: 0 wins", month_name, year)
