@@ -2749,6 +2749,9 @@ function switchTab(name) {
   if (name === "account") {
     populateAccountTab();
   }
+  if (name === "scratchsim") {
+    initScratchSim();
+  }
 }
 
 function toggleStateDropdown() {
