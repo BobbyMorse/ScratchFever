@@ -1828,9 +1828,8 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 
   .sidebar-toggle { display: inline-flex; }
   .site-header { padding: 0 .85rem; gap: .7rem; }
-  .logo-block { height: 44px; align-self: center; padding: 0; gap: 0; }
+  .logo-block { height: 44px; align-self: center; }
   .logo-img { height: 44px; max-height: 44px; width: auto; object-fit: contain; }
-  .logo-tagline { display: none; }
   .bigwins-banner, .bigwins-freshness { display: none !important; }
 
   .sidebar {
