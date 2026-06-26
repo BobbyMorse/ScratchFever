@@ -2919,6 +2919,7 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 .mw-stat-out  { color: var(--red); }
 .mw-stat-time { font-size: 1.05rem; font-weight: 700; color: var(--text); }
 .mw-stat-lbl  { font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); margin-top: .45rem; font-weight: 600; }
+.mw-stats-note { margin: -.75rem 0 1.5rem 0; font-size: .8rem; line-height: 1.45; color: var(--text-muted); }
 
 .mw-locked-card {
   background: linear-gradient(135deg, var(--card), var(--bg));
