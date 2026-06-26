@@ -31,6 +31,16 @@ CARD_RE = re.compile(
 )
 
 
+def _parse_date(raw: str) -> dt.date | None:
+    raw = (raw or "").strip()
+    if not raw:
+        return None
+    try:
+        return dt.datetime.strptime(raw, "%m/%d/%Y").date()
+    except ValueError:
+        return None
+
+
 class WisconsinWinnersScraper(WinnersScraper):
     state_code = "WI"
     state_name = "Wisconsin"
