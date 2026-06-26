@@ -870,34 +870,62 @@ async def log_scrape(conn, state_code: str, success: bool, games_scraped: int = 
     )
 
 
-async def _derive_state_code_from_retailer(conn, retailer_id: str) -> str | None:
+async def _derive_state_code_from_retailer(conn, retailer_id: str,
+                                            retailer_name: str | None = None) -> str | None:
     """Best-effort state_code lookup for a retailer_id when the caller didn't
     supply one. Without state_code the retailer-latest query filters the report
     out (it scopes `state_code = $1` to avoid cross-state ID collisions), which
     silently strips fresh "out of stock" updates and lets older "in stock"
     reports win — see add_inventory_report below for context.
 
-    Returns the unique matching state, or None if the id is missing, ambiguous
-    across states (collision), or unknown."""
+    When the same numeric id exists in multiple states (e.g. MA id 13347 and
+    Idaho external_id 13347), retailer_name is used to break the tie.
+
+    Returns the unique matching state, or None if the id is missing, still
+    ambiguous after name tie-break, or unknown."""
     if not retailer_id:
         return None
-    states: set[str] = set()
-    sr_rows = await conn.fetch(
-        "SELECT state_code FROM state_retailers WHERE external_id=$1", retailer_id
-    )
-    for r in sr_rows:
-        if r["state_code"]:
-            states.add(r["state_code"].upper())
-    if retailer_id.isdigit():
-        rid_int = int(retailer_id)
-        for state, table in _PER_STATE_RETAILER_TABLES.items():
-            try:
-                hit = await conn.fetchval(f"SELECT 1 FROM {table} WHERE id=$1 LIMIT 1", rid_int)
-            except Exception:
-                hit = None
-            if hit:
-                states.add(state)
-    return next(iter(states)) if len(states) == 1 else None
+    async def candidates(name_filter: str | None) -> set[str]:
+        states: set[str] = set()
+        if name_filter:
+            sr = await conn.fetch(
+                "SELECT state_code FROM state_retailers WHERE external_id=$1 AND UPPER(name)=$2",
+                retailer_id, name_filter,
+            )
+        else:
+            sr = await conn.fetch(
+                "SELECT state_code FROM state_retailers WHERE external_id=$1", retailer_id
+            )
+        for r in sr:
+            if r["state_code"]:
+                states.add(r["state_code"].upper())
+        if retailer_id.isdigit():
+            rid_int = int(retailer_id)
+            for state, table in _PER_STATE_RETAILER_TABLES.items():
+                try:
+                    if name_filter:
+                        hit = await conn.fetchval(
+                            f"SELECT 1 FROM {table} WHERE id=$1 AND UPPER(name)=$2 LIMIT 1",
+                            rid_int, name_filter,
+                        )
+                    else:
+                        hit = await conn.fetchval(
+                            f"SELECT 1 FROM {table} WHERE id=$1 LIMIT 1", rid_int
+                        )
+                except Exception:
+                    hit = None
+                if hit:
+                    states.add(state)
+        return states
+    states = await candidates(None)
+    if len(states) == 1:
+        return next(iter(states))
+    name = (retailer_name or "").strip().upper() or None
+    if name and len(states) > 1:
+        narrowed = await candidates(name)
+        if len(narrowed) == 1:
+            return next(iter(narrowed))
+    return None
 
 
 async def add_inventory_report(conn, retailer_id: str, retailer_name: str = None,
