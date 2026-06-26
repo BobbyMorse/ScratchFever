@@ -949,7 +949,7 @@ async def add_inventory_report(conn, retailer_id: str, retailer_name: str = None
     # state-scoped queries and an older in-stock report keeps winning over the
     # fresh out-of-stock update the user just submitted.
     if state_code is None:
-        state_code = await _derive_state_code_from_retailer(conn, retailer_id)
+        state_code = await _derive_state_code_from_retailer(conn, retailer_id, retailer_name)
     await conn.execute("""
         INSERT INTO inventory_reports
         (retailer_id, retailer_name, retailer_city, lat, lng,
