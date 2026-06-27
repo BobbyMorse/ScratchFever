@@ -9107,15 +9107,31 @@ function scratchsimSyntheticSmallPrize(ticketPrice) {
 // per-tier probability of being a winner, but stored as O(numTiers) buckets
 // rather than a literal shuffled array. Mirror of mobile's ScratchDeck class.
 function buildScratchSimDeck(opts) {
-  const { ticketsRemaining, prizeTiers, ticketPrice, overallOddsOneIn } = opts;
+  const { ticketsRemaining, prizeTiers, ticketPrice, overallOddsOneIn, totalTickets: gameTotalTickets } = opts;
 
   const tiers = (prizeTiers || [])
-    .filter(t => t.prizes_remaining != null && t.prizes_remaining > 0)
-    .map(t => ({
-      amount: t.prize_amount,
-      remaining: t.prizes_remaining,
-      oddsOneIn: ticketsRemaining / t.prizes_remaining,
-    }))
+    .map(t => {
+      if (t.prize_amount == null || t.prize_amount <= 0) return null;
+      if (t.prizes_remaining != null && t.prizes_remaining > 0) {
+        return {
+          amount: t.prize_amount,
+          remaining: t.prizes_remaining,
+          oddsOneIn: ticketsRemaining / t.prizes_remaining,
+          estimated: false,
+        };
+      }
+      const est = _estimateTierRemaining(t.prizes_total, ticketsRemaining, gameTotalTickets);
+      if (est != null && est > 0) {
+        return {
+          amount: t.prize_amount,
+          remaining: est,
+          oddsOneIn: ticketsRemaining / est,
+          estimated: true,
+        };
+      }
+      return null;
+    })
+    .filter(Boolean)
     .sort((a, b) => b.amount - a.amount);
 
   const trackedWinners = tiers.reduce((s, t) => s + t.remaining, 0);
