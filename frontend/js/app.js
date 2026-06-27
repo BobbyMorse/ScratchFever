@@ -9364,7 +9364,10 @@ function _startScratchSimSession(g) {
   }
 
   const tickets = g.tickets_remaining;
-  const hasTiers = (g.prize_tiers || []).some(t => t.prizes_remaining != null && t.prizes_remaining > 0);
+  const hasTiers = (g.prize_tiers || []).some(t =>
+    (t.prizes_remaining != null && t.prizes_remaining > 0) ||
+    (_estimateTierRemaining(t.prizes_total, tickets, g.total_tickets) || 0) > 0
+  );
   if (!tickets || tickets <= 0 || !hasTiers) {
     _scratchsimDeck = null;
     document.getElementById("scratchsimInvTickets").textContent = "—";
