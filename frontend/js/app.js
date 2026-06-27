@@ -9085,6 +9085,14 @@ let _scratchsimRevealTimer = null;
 let _scratchsimLockTimer = null;
 let _scratchsimCoinRaf = null;
 
+function _estimateTierRemaining(prizesTotal, ticketsRemaining, totalTickets) {
+  if (prizesTotal == null || prizesTotal <= 0) return null;
+  if (!totalTickets || totalTickets <= 0) return null;
+  if (ticketsRemaining == null || ticketsRemaining < 0) return null;
+  const frac = Math.max(0, Math.min(1, ticketsRemaining / totalTickets));
+  return Math.round(prizesTotal * frac);
+}
+
 function scratchsimSyntheticSmallPrize(ticketPrice) {
   if (ticketPrice <= 1) return Math.random() < 0.6 ? 1 : 2;
   if (ticketPrice <= 2) return Math.random() < 0.5 ? 2 : 5;
