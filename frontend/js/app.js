@@ -9384,6 +9384,7 @@ function _startScratchSimSession(g) {
     prizeTiers: g.prize_tiers,
     ticketPrice: g.price,
     overallOddsOneIn: g.overall_odds_one_in,
+    totalTickets: g.total_tickets,
   });
   _renderScratchSimInventory();
   _setScratchSimSpinDisabled(false, "Scratch!");
