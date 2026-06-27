@@ -9159,7 +9159,7 @@ function buildScratchSimDeck(opts) {
       return w > 0 ? this.tickets / w : Infinity;
     },
     tierSnapshot() {
-      return this.tiers.map(t => ({ amount: t.amount, remaining: t.remaining }));
+      return this.tiers.map(t => ({ amount: t.amount, remaining: t.remaining, estimated: t.estimated }));
     },
     draw() {
       if (this.tickets <= 0) return null;
@@ -9169,7 +9169,7 @@ function buildScratchSimDeck(opts) {
       for (const tier of this.tiers) {
         if (roll < cum + tier.remaining) {
           tier.remaining--;
-          return { amount: tier.amount, oddsOneIn: tier.oddsOneIn };
+          return { amount: tier.amount, oddsOneIn: tier.oddsOneIn, estimated: tier.estimated };
         }
         cum += tier.remaining;
       }
