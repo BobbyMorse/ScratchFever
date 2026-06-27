@@ -2614,7 +2614,8 @@ function renderModal(g) {
         </tr>
       </thead>
       <tbody>${tierRows}</tbody>
-    </table>` : "<p style='color:var(--text-muted)'>Prize tier data not available.</p>"}
+    </table>
+    ${_anyEstimatedTier ? `<div style="font-size:.72rem;color:var(--text-muted);margin-top:.4rem;line-height:1.4">* Estimated — lottery doesn't publish live remaining for this tier. Calculated as Total Printed × fraction of tickets unsold.</div>` : ""}` : "<p style='color:var(--text-muted)'>Prize tier data not available.</p>"}
 
     ${(g.detail_url || STATE_LOTTERY_URLS[g.state_code]) ? `<a class="detail-link" href="${escHtml(g.detail_url || STATE_LOTTERY_URLS[g.state_code])}" target="_blank" rel="noopener">
       View on ${g.state_name} Lottery website ↗
