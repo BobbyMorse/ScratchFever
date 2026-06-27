@@ -9396,9 +9396,9 @@ function _renderScratchSimInventory() {
     _scratchsimDeck.ticketsLeft.toLocaleString();
   const tiers = _scratchsimDeck.tierSnapshot();
   document.getElementById("scratchsimTiers").innerHTML = tiers.map(t => `
-    <div class="scratchsim-tier-pill">
+    <div class="scratchsim-tier-pill"${t.estimated ? ` title="Estimated remaining — lottery doesn't publish live count for this tier"` : ""}>
       <span class="scratchsim-tier-amount">${_scratchsimFormatPrize(t.amount)}</span>
-      <span class="scratchsim-tier-count">${t.remaining.toLocaleString()}</span>
+      <span class="scratchsim-tier-count">${t.estimated ? "~" : ""}${t.remaining.toLocaleString()}${t.estimated ? "*" : ""}</span>
     </div>
   `).join("");
 }
