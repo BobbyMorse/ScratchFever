@@ -2507,12 +2507,21 @@ function renderModal(g) {
   const ticketsSold = g.total_tickets != null && g.tickets_remaining != null
     ? g.total_tickets - g.tickets_remaining : null;
 
+  let _anyEstimatedTier = false;
   const tierRows = (g.prize_tiers || []).map(t => {
-    const rem = t.prizes_remaining != null ? fmtNum(t.prizes_remaining) : "—";
+    const estRem = (t.prizes_remaining == null)
+      ? _estimateTierRemaining(t.prizes_total, g.tickets_remaining, g.total_tickets)
+      : null;
+    const isEst = estRem != null && estRem > 0;
+    if (isEst) _anyEstimatedTier = true;
+    const remNum = t.prizes_remaining != null ? t.prizes_remaining : (isEst ? estRem : null);
+    const rem = t.prizes_remaining != null
+      ? fmtNum(t.prizes_remaining)
+      : (isEst ? `~${fmtNum(estRem)}*` : "—");
     const tot = t.prizes_total != null ? fmtNum(t.prizes_total) : "—";
     const odds = t.odds_one_in ? `1 in ${fmtNum(t.odds_one_in)}` : "—";
-    const prob = t.prizes_remaining != null && g.tickets_remaining
-      ? `1 in ${fmtNum(g.tickets_remaining / t.prizes_remaining)}`
+    const prob = remNum != null && g.tickets_remaining
+      ? `1 in ${fmtNum(g.tickets_remaining / remNum)}${isEst ? "*" : ""}`
       : (t.odds_one_in ? `1 in ${fmtNum(t.odds_one_in)}` : "—");
     return `<tr>
       <td><strong>$${fmtMoney(t.prize_amount)}</strong></td>
