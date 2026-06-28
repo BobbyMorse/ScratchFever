@@ -1369,19 +1369,6 @@ function renderStrategyView() {
   if (name === "ev") {
     titleEl.textContent = "Positive Expected Value";
     subEl.textContent = "Games ranked by Return % — total remaining prize value vs. cost of remaining tickets. Anything 100%+ is a positive-EV game.";
-    // The +EV ranked list IS the headline Pro product. Free users see a
-    // paywall card instead of the tiles; headers + filter chrome stay
-    // visible so the value proposition reads at a glance.
-    if (!isPro()) {
-      container.innerHTML = `
-        <div class="strat-ev-paywall">
-          <div class="strat-ev-paywall-icon">🔒</div>
-          <div class="strat-ev-paywall-title">The +EV ranked list is Pro</div>
-          <div class="strat-ev-paywall-sub">See every state's positive-EV games ranked by Return %, with full Net EV, $1M+ odds, prize pool data, and the ordered list of best plays right now.</div>
-          <button class="strat-ev-paywall-btn" onclick="openPaywallOrLogin()">Upgrade to Pro →</button>
-        </div>`;
-      return;
-    }
     const games = pool
       .filter(g => g.return_pct != null)
       .sort((a, b) => (b.return_pct || 0) - (a.return_pct || 0));
