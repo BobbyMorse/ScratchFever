@@ -1399,6 +1399,10 @@ function renderStrategyView() {
   if (priceFilter) { const p = Number(priceFilter); pool = pool.filter(g => g.price === p); }
   if (hideEstimated) pool = pool.filter(g => !g.ev_approximate && !ESTIMATED_STATES.has(g.state_code));
 
+  // Stats strip reflects the current filtered pool across every strategy,
+  // not just EV — without this, switching off EV leaves the header blank.
+  updateStats(pool);
+
   const titleEl = document.getElementById("stratTitle");
   const subEl   = document.getElementById("stratSubtitle");
 
