@@ -17,7 +17,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query, BackgroundTasks, Req
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse, Response
 from pydantic import BaseModel
 
 from backend.database import (
