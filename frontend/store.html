@@ -3,8 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title id="pageTitle">Store — ScratchFrenzy</title>
-  <meta name="description" id="metaDesc" content="A lottery retailer on ScratchFrenzy." />
+  <title id="pageTitle">{{SSR_TITLE}}</title>
+  <meta name="description" id="metaDesc" content="{{SSR_DESCRIPTION}}" />
+  <link rel="canonical" href="{{SSR_CANONICAL}}" />
+  <meta name="robots" content="{{SSR_ROBOTS}}" />
+  <meta name="theme-color" content="#0d1117" />
+  <meta name="author" content="EVQ Agentic LLC" />
+
+  <meta property="og:type" content="business.business" />
+  <meta property="og:site_name" content="ScratchFrenzy" />
+  <meta property="og:title" content="{{SSR_OG_TITLE}}" />
+  <meta property="og:description" content="{{SSR_DESCRIPTION}}" />
+  <meta property="og:url" content="{{SSR_CANONICAL}}" />
+  <meta property="og:image" content="https://scratchfrenzy.app/static/images/logo.png" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="{{SSR_OG_TITLE}}" />
+  <meta name="twitter:description" content="{{SSR_DESCRIPTION}}" />
+  <meta name="twitter:image" content="https://scratchfrenzy.app/static/images/logo.png" />
+
+  {{SSR_JSONLD}}
+
+  <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" type="image/svg+xml" href="/static/images/favicon.svg" />
   <link rel="alternate icon" type="image/png" href="/static/images/logo.png" />
   <link rel="apple-touch-icon" href="/static/images/logo.png" />
