@@ -257,11 +257,298 @@ async def admin_page():
     return FileResponse(os.path.join(FRONTEND_DIR, "admin.html"))
 
 
+# ── SEO infrastructure: robots.txt, sitemap.xml, llms.txt, web manifest ──────
+
+SITE_ORIGIN = os.environ.get("SITE_ORIGIN", "https://scratchfrenzy.app").rstrip("/")
+
+# State codes ScratchFrenzy covers in the public retailer-page SSR sitemap.
+_SITEMAP_STATES_WITH_RETAILERS = ["MA", "AZ", "FL", "GA", "RI"]
+
+
+@app.get("/robots.txt", include_in_schema=False)
+async def robots_txt():
+    body = (
+        "# ScratchFrenzy — open to all standard crawlers and major AI agents.\n"
+        "User-agent: *\n"
+        "Allow: /\n"
+        "Disallow: /admin\n"
+        "Disallow: /retailer\n"
+        "Disallow: /api/\n"
+        "\n"
+        "# Explicit allow for AI crawlers (the listed agents already follow\n"
+        "# the * rule above; spelling them out signals intent in case any\n"
+        "# of them tighten defaults to opt-in-only in the future).\n"
+        "User-agent: GPTBot\nAllow: /\n\n"
+        "User-agent: ClaudeBot\nAllow: /\n\n"
+        "User-agent: anthropic-ai\nAllow: /\n\n"
+        "User-agent: PerplexityBot\nAllow: /\n\n"
+        "User-agent: Google-Extended\nAllow: /\n\n"
+        "User-agent: CCBot\nAllow: /\n\n"
+        "User-agent: Applebot-Extended\nAllow: /\n\n"
+        "User-agent: Bingbot\nAllow: /\n\n"
+        "User-agent: Amazonbot\nAllow: /\n\n"
+        f"Sitemap: {SITE_ORIGIN}/sitemap.xml\n"
+    )
+    return PlainTextResponse(body, media_type="text/plain; charset=utf-8")
+
+
+@app.get("/llms.txt", include_in_schema=False)
+async def llms_txt():
+    """llms.txt — the proposed standard pointing AI agents at canonical
+    site content. Format reference: https://llmstxt.org/"""
+    body = f"""# ScratchFrenzy
+
+> ScratchFrenzy tracks expected value (EV) on every state lottery scratch ticket in the United States. It surfaces the games where the unclaimed prize pool gives players the best return per dollar, and maps the retailers where those tickets are still in stock.
+
+ScratchFrenzy is operated by EVQ Agentic LLC. It is not affiliated with any state lottery commission. Data is sourced directly from each state lottery's official odds and prizes-remaining disclosures.
+
+## Core concepts
+
+- **Expected Value (EV):** average payout per ticket if you bought every ticket remaining in the print run. Computed by summing unclaimed prizes across all tiers and dividing by tickets remaining.
+- **Return %:** EV divided by ticket price. 100% is the lottery break-even line; above 100% means the unclaimed prize pool exceeds the cost of clearing the print.
+- **The Chase:** hunting scratch games where most tickets have been sold but the top prize remains unclaimed, concentrating the unclaimed prize pool across a smaller remaining-ticket count.
+- **Full EV vs Estimated EV:** Full EV uses published per-tier prize counts. Estimated EV applies when a state only publishes high-tier counts; ScratchFrenzy extrapolates small-tier depletion from top-tier sell-through.
+
+## Primary pages
+
+- [Home / EV games table]({SITE_ORIGIN}/): live ranking of every tracked scratch game by Return %.
+- [About & FAQ]({SITE_ORIGIN}/about): how EV is calculated, state-by-state coverage, methodology and disclaimers.
+- [Contact]({SITE_ORIGIN}/contact): press, partnership, retailer, and support inquiries.
+- [Privacy Policy]({SITE_ORIGIN}/privacy)
+- [Terms of Service]({SITE_ORIGIN}/terms)
+
+## Data and refresh cadence
+
+- Game odds and prizes-remaining counts refresh hourly from each state lottery's official website.
+- Retailer location data updates monthly.
+- $10K+ winner feeds are pulled from state lottery public-disclosure pages where available (23 states currently).
+- States with no scratch product: AK, HI, NV, UT, ND, WY.
+
+## What ScratchFrenzy does not do
+
+- It does not sell, broker, or operate any lottery game.
+- It does not guarantee any individual ticket outcome. EV is a long-run average; single tickets are dominated by variance.
+- It does not generate or alter prize-count data. It reads what each state publishes and runs the math.
+"""
+    return PlainTextResponse(body, media_type="text/plain; charset=utf-8")
+
+
+@app.get("/manifest.webmanifest", include_in_schema=False)
+async def web_manifest():
+    return JSONResponse({
+        "name": "ScratchFrenzy — Lottery EV Tracker",
+        "short_name": "ScratchFrenzy",
+        "description": "Real-time expected value on every state lottery scratch ticket.",
+        "start_url": "/",
+        "scope": "/",
+        "display": "standalone",
+        "background_color": "#0d1117",
+        "theme_color": "#0d1117",
+        "icons": [
+            {"src": "/static/images/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"},
+            {"src": "/static/images/favicon.svg", "sizes": "any", "type": "image/svg+xml"},
+        ],
+    }, media_type="application/manifest+json")
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+async def sitemap_xml():
+    """Dynamic sitemap: static pages + every public retailer URL we serve.
+    Retailer URLs include ?state=XX because the store SSR needs it to look
+    up the right per-state retailer table. Search engines treat the query
+    string as part of the canonical URL when we mark it that way."""
+    now = datetime.datetime.utcnow().strftime("%Y-%m-%d")
+    urls: list[tuple[str, str, str]] = [
+        (f"{SITE_ORIGIN}/", "1.0", "hourly"),
+        (f"{SITE_ORIGIN}/about", "0.8", "weekly"),
+        (f"{SITE_ORIGIN}/contact", "0.4", "yearly"),
+        (f"{SITE_ORIGIN}/privacy", "0.2", "yearly"),
+        (f"{SITE_ORIGIN}/terms", "0.2", "yearly"),
+    ]
+
+    # Per-state retailer URLs — we have these tables in postgres for the
+    # five states in _PER_STATE_RETAILER_TABLES_PUBLIC. Failures are silent
+    # (sitemap still returns the static slice) so a DB hiccup never 500s
+    # a crawler request.
+    try:
+        from backend.retailer_api import _PER_STATE_RETAILER_TABLES_PUBLIC
+        pool = get_pool()
+        async with pool.acquire() as conn:
+            for code, table in _PER_STATE_RETAILER_TABLES_PUBLIC.items():
+                try:
+                    rows = await conn.fetch(
+                        f"SELECT id FROM {table} WHERE name IS NOT NULL ORDER BY id LIMIT 5000"
+                    )
+                    for r in rows:
+                        urls.append((
+                            f"{SITE_ORIGIN}/store/{r['id']}?state={code}",
+                            "0.6",
+                            "weekly",
+                        ))
+                except Exception:
+                    continue
+    except Exception:
+        pass
+
+    parts = ['<?xml version="1.0" encoding="UTF-8"?>',
+             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for loc, prio, freq in urls:
+        # Escape & inside query strings for valid XML
+        safe = loc.replace("&", "&amp;")
+        parts.append(
+            f"<url><loc>{safe}</loc><lastmod>{now}</lastmod>"
+            f"<changefreq>{freq}</changefreq><priority>{prio}</priority></url>"
+        )
+    parts.append("</urlset>")
+    return Response("\n".join(parts), media_type="application/xml")
+
+
+# ── Per-store SSR ─────────────────────────────────────────────────────────────
+
+import html as _html_escape
+
+
+def _store_html_fallback() -> str:
+    """Generic shell when no state= is provided or DB lookup fails."""
+    with open(os.path.join(FRONTEND_DIR, "store.html"), "r", encoding="utf-8") as f:
+        tpl = f.read()
+    return (
+        tpl
+        .replace("{{SSR_TITLE}}", "Store — ScratchFrenzy")
+        .replace("{{SSR_DESCRIPTION}}", "A lottery retailer on ScratchFrenzy.")
+        .replace("{{SSR_CANONICAL}}", f"{SITE_ORIGIN}/")
+        .replace("{{SSR_ROBOTS}}", "noindex,follow")  # don't index the generic shell
+        .replace("{{SSR_OG_TITLE}}", "Store — ScratchFrenzy")
+        .replace("{{SSR_JSONLD}}", "")
+    )
+
+
 @app.get("/store/{retailer_id}", include_in_schema=False)
-async def store_page(retailer_id: str):
-    # Public store page — the retailer_id is parsed client-side from window.location.
-    # We just serve the same HTML for every store id.
-    return FileResponse(os.path.join(FRONTEND_DIR, "store.html"))
+async def store_page(retailer_id: str, state: Optional[str] = None):
+    """Server-render the store page with per-retailer meta + LocalBusiness
+    JSON-LD when ?state= is present. Without it we can't disambiguate the
+    per-state retailer table, so we serve a noindex'd shell and let the
+    client-side script handle the (degraded) view."""
+    try:
+        with open(os.path.join(FRONTEND_DIR, "store.html"), "r", encoding="utf-8") as f:
+            tpl = f.read()
+    except Exception:
+        return FileResponse(os.path.join(FRONTEND_DIR, "store.html"))
+
+    code = (state or "").strip().upper()
+    if not code or len(code) != 2:
+        return HTMLResponse(_store_html_fallback())
+
+    # Look up the retailer in the per-state table. Mirrors the logic in
+    # backend.retailer_api.get_public_retailer_summary so SSR matches the
+    # data the client-side fetch would have shown.
+    try:
+        from backend.retailer_api import _PER_STATE_RETAILER_TABLES_PUBLIC
+        pool = get_pool()
+        async with pool.acquire() as conn:
+            table = _PER_STATE_RETAILER_TABLES_PUBLIC.get(code)
+            if table:
+                row = await conn.fetchrow(
+                    f"""SELECT id, name, address, city, zip_code, phone, latitude, longitude
+                        FROM {table} WHERE id::text = $1""",
+                    retailer_id,
+                )
+            else:
+                row = await conn.fetchrow(
+                    """SELECT id, name, address, city, zip_code, phone, latitude, longitude
+                       FROM state_retailers WHERE id::text = $1 AND state_code = $2""",
+                    retailer_id, code,
+                )
+    except Exception:
+        row = None
+
+    if not row or not row["name"]:
+        return HTMLResponse(_store_html_fallback())
+
+    name = row["name"]
+    address = row["address"] or ""
+    city = row["city"] or ""
+    zip_code = row["zip_code"] or ""
+    phone = row["phone"] or ""
+
+    location_str = ", ".join([p for p in [city, code] if p])
+    canonical = f"{SITE_ORIGIN}/store/{retailer_id}?state={code}"
+    title = f"{name}{(' — ' + location_str) if location_str else ''} | Lottery Retailer on ScratchFrenzy"
+    desc = (
+        f"Scratch ticket inventory and community-reported stock at {name}"
+        f"{(' in ' + location_str) if location_str else ''}. "
+        f"See which lottery games are stocked, recent restock activity, and store details on ScratchFrenzy."
+    )
+    og_title = f"{name}{(' — ' + location_str) if location_str else ''}"
+
+    # LocalBusiness JSON-LD. Only emit address fields that are populated;
+    # an empty streetAddress is worse than omitted because some validators
+    # flag it. Geo block included when both lat/lng are present.
+    jsonld: dict = {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "@id": canonical,
+        "name": name,
+        "url": canonical,
+        "image": f"{SITE_ORIGIN}/static/images/logo.png",
+        "telephone": phone or None,
+        "address": {
+            "@type": "PostalAddress",
+            "streetAddress": address or None,
+            "addressLocality": city or None,
+            "addressRegion": code,
+            "postalCode": zip_code or None,
+            "addressCountry": "US",
+        },
+        "isAccessibleForFree": True,
+    }
+    if row["latitude"] is not None and row["longitude"] is not None:
+        try:
+            jsonld["geo"] = {
+                "@type": "GeoCoordinates",
+                "latitude": float(row["latitude"]),
+                "longitude": float(row["longitude"]),
+            }
+        except (TypeError, ValueError):
+            pass
+
+    def _prune(obj):
+        if isinstance(obj, dict):
+            return {k: _prune(v) for k, v in obj.items() if v not in (None, "", {}, [])}
+        return obj
+    jsonld = _prune(jsonld)
+
+    breadcrumbs = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {"@type": "ListItem", "position": 1, "name": "Home", "item": f"{SITE_ORIGIN}/"},
+            {"@type": "ListItem", "position": 2, "name": f"{code} Retailers", "item": f"{SITE_ORIGIN}/?state={code}"},
+            {"@type": "ListItem", "position": 3, "name": name, "item": canonical},
+        ],
+    }
+
+    import json as _json
+    jsonld_block = (
+        '<script type="application/ld+json">'
+        + _json.dumps(jsonld, ensure_ascii=False)
+        + "</script>\n  "
+        + '<script type="application/ld+json">'
+        + _json.dumps(breadcrumbs, ensure_ascii=False)
+        + "</script>"
+    )
+
+    esc = _html_escape.escape
+    rendered = (
+        tpl
+        .replace("{{SSR_TITLE}}", esc(title, quote=True))
+        .replace("{{SSR_DESCRIPTION}}", esc(desc, quote=True))
+        .replace("{{SSR_CANONICAL}}", esc(canonical, quote=True))
+        .replace("{{SSR_ROBOTS}}", "index,follow,max-image-preview:large")
+        .replace("{{SSR_OG_TITLE}}", esc(og_title, quote=True))
+        .replace("{{SSR_JSONLD}}", jsonld_block)
+    )
+    return HTMLResponse(rendered)
 
 
 # ── Admin: create retailer account ────────────────────────────────────────────
