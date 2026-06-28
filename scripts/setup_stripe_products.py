@@ -20,7 +20,7 @@ load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 import stripe
 
 PRODUCT_NAME = "ScratchFrenzy Pro"
-PRODUCT_DESCRIPTION = "Live EV across all 50 states · The Chase · Community sightings"
+PRODUCT_DESCRIPTION = "Premium EV strategies · The Chase (store-level data) · Ticket upvotes"
 
 PLANS = [
     {
