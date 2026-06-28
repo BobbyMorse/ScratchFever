@@ -3,12 +3,133 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>About — ScratchFrenzy</title>
+  <title>About ScratchFrenzy &amp; FAQ — How Lottery EV Tracking Works</title>
+  <meta name="description" content="How ScratchFrenzy calculates expected value on state lottery scratch tickets, what Return % means, how 'The Chase' works, and our state-by-state data coverage." />
+  <link rel="canonical" href="https://scratchfrenzy.app/about" />
+  <meta name="robots" content="index,follow,max-image-preview:large" />
+  <meta name="theme-color" content="#0d1117" />
+  <meta name="author" content="EVQ Agentic LLC" />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="ScratchFrenzy" />
+  <meta property="og:title" content="About ScratchFrenzy &amp; FAQ — How Lottery EV Tracking Works" />
+  <meta property="og:description" content="How we calculate expected value, what Return % means, and how to use 'The Chase' to find positive-EV scratch games." />
+  <meta property="og:url" content="https://scratchfrenzy.app/about" />
+  <meta property="og:image" content="https://scratchfrenzy.app/static/images/logo.png" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="About ScratchFrenzy &amp; FAQ" />
+  <meta name="twitter:description" content="How we calculate expected value, what Return % means, and how to use 'The Chase'." />
+  <meta name="twitter:image" content="https://scratchfrenzy.app/static/images/logo.png" />
+
+  <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" type="image/svg+xml" href="/static/images/favicon.svg" />
   <link rel="alternate icon" type="image/png" href="/static/images/logo.png" />
   <link rel="apple-touch-icon" href="/static/images/logo.png" />
   <link rel="stylesheet" href="/static/css/styles.css?v=2" />
   <link rel="stylesheet" href="/static/css/leaflet.css" />
+
+  <!-- Structured data: AboutPage, BreadcrumbList, FAQPage (full Q&A lifted from the on-page FAQ so AI engines can extract direct answers) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "AboutPage",
+        "@id": "https://scratchfrenzy.app/about#aboutpage",
+        "url": "https://scratchfrenzy.app/about",
+        "name": "About ScratchFrenzy",
+        "description": "ScratchFrenzy is an AI-native betting intelligence platform that tracks expected value across state lottery scratch tickets.",
+        "isPartOf": { "@id": "https://scratchfrenzy.app/#website" },
+        "about": { "@id": "https://scratchfrenzy.app/#org" }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://scratchfrenzy.app/" },
+          { "@type": "ListItem", "position": 2, "name": "About", "item": "https://scratchfrenzy.app/about" }
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "How does ScratchFrenzy calculate EV?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "EV (expected value) is the average payout per ticket if you bought every ticket left in the print run. For each prize tier still on the board, multiply the number of unclaimed prizes by the prize amount, then sum across all tiers - that total is the remaining prize pool. Divide it by the number of tickets still in the run to get the expected payout per ticket. If a game has $4.2M in unclaimed prizes spread across 350,000 remaining tickets, the EV is $12.00 per ticket."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What is Return %?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Return % is EV divided by ticket price. A $10 ticket with a $12 EV has a 120% return; a $30 ticket with a $36 EV also has a 120% return. The metric normalizes across price points so a $1 game and a $50 game can be compared on the same axis. 100% is the lottery break-even line - below that the state keeps a margin; above it the unclaimed prize pool is worth more than the cost of buying every remaining ticket."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "If high-EV games are positive on paper, why is this the highest-risk strategy?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "EV is a long-run average. It only converges over a large number of tickets, and any single ticket or handful is dominated by variance. Most individual tickets in a 120% return game are still losers; the return shows up because a few are big winners that more than make up for the rest. Fully realizing a positive-EV edge requires buying a meaningful fraction of the remaining print, which is capital-intensive and rarely practical."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Will I actually make money using ScratchFrenzy?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Probably not - and we will not pretend otherwise. Scratch tickets are top-heavy by design: a small number of large prizes carry most of the value, and most tickets are losers or token wins. Return % is what you would average if you bought every remaining ticket in the print run, which is logistically near impossible. What ScratchFrenzy does is surface the games where the math is least bad - so the money you were going to spend anyway has the best possible shot at hitting something meaningful."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What is 'The Chase' on ScratchFrenzy?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "'The Chase' is the hunt for scratch games where most of the tickets have been sold but the top prize has not been claimed. When that happens, every remaining ticket carries a bigger share of the prize pool - the expected return per dollar can be two to ten times what it was at launch. ScratchFrenzy's retailer inventory data helps locate stores that may still have stock."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Why don't some states have EV data on ScratchFrenzy?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Every state lottery is required by law to publish prize odds, but not every lottery makes that data accessible. Some sites publish only top-prize counts, others sit behind bot challenges, and ND, WY, AK, and HI do not sell scratch tickets at all."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "What is the difference between full EV and estimated EV?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Full EV uses published per-tier prize counts - both total printed and unclaimed - for every prize level in the game. Estimated EV applies when a state only publishes high-tier counts (for example $100+ winners only); ScratchFrenzy extrapolates small-tier depletion from the top tier's sell-through rate and flags those games with an 'Estimated EV' banner."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How often is ScratchFrenzy data updated?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Game odds and prizes-remaining counts are refreshed every hour directly from each state lottery's official website. The timestamp shown on each game reflects when that state's data was last pulled. Retailer location data is updated monthly."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is ScratchFrenzy's data official?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. All prize odds and remaining-prize counts are sourced directly from each state lottery's official website. ScratchFrenzy does not generate or alter prize data - it reads what the state publishes and runs the math. ScratchFrenzy is not affiliated with any state lottery commission."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
   <style>
     body { background: #f5f7fa !important; color: #111827; }
 
