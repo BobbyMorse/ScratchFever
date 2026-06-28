@@ -1428,7 +1428,6 @@ function renderStrategyView() {
     const games = pool
       .filter(g => g.return_pct != null)
       .sort((a, b) => (b.return_pct || 0) - (a.return_pct || 0));
-    updateStats(games);
     ranked = games.slice(0, 60).map((g, i) => strategyTile(g, i + 1,
       g.return_pct.toFixed(1) + "%",
       "Return"
