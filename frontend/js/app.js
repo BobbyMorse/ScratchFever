@@ -177,65 +177,37 @@ let _openModalGame = null;
 
 function getToken() { return localStorage.getItem("sf_token") || ""; }
 
-// ── Freemium gating ───────────────────────────────────────────────────────────
-// Pro check + helpers for the universal blur pattern used on Return %, EV $,
-// Chase stock labels, and premium strategy hero values. Free users see the
-// structure (rows, markers, tiles) but the high-signal numbers are obscured
-// with a click-to-upgrade gesture.
+// ── Pro gating ────────────────────────────────────────────────────────────────
+// EV strategies are FREE (2026-06-28). Pro gates The Chase: store-level
+// inventory, Most Wanted votes, caller-routed verification. The helpers below
+// are kept as passthroughs so existing call sites in EV-side code don't need
+// touch-ups every time we revisit the tier split.
 function isPro() { return !!(_currentUser && _currentUser.is_pro); }
 
-// Wrap a value in a click-to-paywall blur for free users; pro users get the
-// raw text back unchanged. For non-pro we also redact every digit to "?" so
-// the real number never reaches the DOM — View Source / devtools / disabling
-// CSS can't bypass the blur. Callers MUST pass plain text (no inline HTML
-// with digits in attributes), otherwise attribute digits will be mangled too.
-function gateBlur(text) {
-  if (isPro()) return text;
-  const redacted = String(text).replace(/\d/g, "?");
-  return `<span class="gated-blur" onclick="event.stopPropagation(); openPaywallOrLogin()" title="Upgrade to Pro to unlock">${redacted}</span>`;
-}
+// EV math is free — return the text unchanged. Kept as a function so callers
+// can stay flagged for future tier changes without rewriting every site.
+function gateBlur(text) { return text; }
 
-// Free users see the chase dropdown with %'s blurred, but if we leave the list
-// in its native EV-descending order they can still read off the ranking for
-// free. Alphabetize for non-Pro so the order leaks nothing; Pro keeps the
-// EV-sorted order they paid for.
-function chaseSortMatches(matches) {
-  if (isPro()) return matches;
-  return matches.slice().sort((a, b) => a.name.localeCompare(b.name));
-}
+// EV-sorted chase dropdowns are visible to everyone now.
+function chaseSortMatches(matches) { return matches; }
 
 // Sub-label "$10 · 12.3%" used in chasing-game dropdowns across every state.
-// Return % is paywall-blurred for free users.
 function gameChooserSub(g) {
   const parts = [];
   if (g.price != null) parts.push(escHtml(`$${g.price}`));
-  if (g.return_pct != null) parts.push(gateBlur(`${g.return_pct.toFixed(1)}%`));
+  if (g.return_pct != null) parts.push(`${g.return_pct.toFixed(1)}%`);
   if (!parts.length) return "";
   return `<span style="color:var(--text-muted);font-size:.78rem">${parts.join(" · ")}</span>`;
 }
 
-// Premium strategies. Selecting one as a free user pops the paywall and
-// reverts the strategy selector back to a free option ("any"). "ev" (the
-// default landing) is intentionally excluded — free users land on the EV
-// table with blurred Return %, which is the gateway preview.
-const PREMIUM_STRATEGIES = new Set(["almostgone", "byprice", "million"]);
+// No EV strategies are Pro-gated anymore. Kept as an empty Set so any
+// downstream check still resolves to false without crashing.
+const PREMIUM_STRATEGIES = new Set();
 
-// Sync the 🔒 prefix on premium strategy <option>s with current pro state.
-// Each premium option carries a data-premium="1" attribute; we toggle the
-// text to "🔒 Label" for free users and bare "Label" for Pro.
-const _PREMIUM_OPT_LABELS = {
-  "million": "$1M+ Hunter",
-  "byprice": "By Price Tier",
-  "almostgone": "Almost Gone",
-};
+// Sidebar/dropdown lock-icon sync. With no premium strategies, the loop is a
+// no-op — but the body class is still useful for any "Pro user" styling.
 function syncPremiumOptionLabels() {
-  const pro = isPro();
-  document.querySelectorAll("option[data-premium='1']").forEach(opt => {
-    const base = _PREMIUM_OPT_LABELS[opt.value];
-    if (!base) return;
-    opt.textContent = pro ? base : `🔒 ${base}`;
-  });
-  document.body.classList.toggle("is-pro-user", pro);
+  document.body.classList.toggle("is-pro-user", isPro());
 }
 
 function authHeaders() {
