@@ -292,15 +292,8 @@ function protectedFetch(url, opts = {}) {
 function _setUser(user) {
   _currentUser = user;
   syncPremiumOptionLabels();
-  // Toggle the full EV-table paywall overlay (legacy table view, kept for
-  // defense — current redesign uses an inline paywall card on the tile view).
-  const evPaywall = document.getElementById("evTablePaywall");
-  if (evPaywall) evPaywall.style.display = (user && user.is_pro) ? "none" : "";
-  // Re-render the active strategy so the EV paywall card swaps to real
-  // tiles (or vice versa) the instant the user's Pro status flips.
-  try { if (typeof renderStrategyView === "function") renderStrategyView(); } catch (_) {}
-  // Same for Most Wanted — the locked card should swap to the live list as
-  // soon as the auth/Pro state changes.
+  // Most Wanted has a locked-card view for non-Pro — re-render on auth/Pro
+  // state changes so the locked card swaps to the live list immediately.
   try { if (currentTab === "ma" && currentChaseView === "mostwanted") loadChaseMostWanted(); } catch (_) {}
   const btn        = document.getElementById("loginBtn");
   const accountBtn = document.getElementById("accountTabBtn");
