@@ -402,12 +402,12 @@ function _renderAccountPro() {
     const until = _currentUser.pro_until ? new Date(_currentUser.pro_until) : null;
     meta.textContent = until
       ? `Renews / expires ${until.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}`
-      : "Full access to every state.";
+      : "Full Pro access.";
     upgrade.style.display = "none";
     manage.style.display = _currentUser.has_stripe ? "" : "none";
   } else {
     label.textContent = "Free account";
-    meta.textContent = "Unlock all 50 states, the Chase, and member sightings.";
+    meta.textContent = "Unlock premium EV strategies, the Chase, and ticket upvotes.";
     upgrade.style.display = "";
     manage.style.display = "none";
   }
