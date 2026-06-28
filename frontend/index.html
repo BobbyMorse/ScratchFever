@@ -3,7 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ScratchFrenzy — Lottery EV Tracker</title>
+  <title>ScratchFrenzy — Lottery Scratch Ticket EV Tracker &amp; Retailer Hunt</title>
+  <meta name="description" content="ScratchFrenzy tracks expected value (EV) on every state lottery scratch ticket in real time. Find positive-EV games, top-prize hunts, and the retailers where remaining tickets are likely in stock." />
+  <link rel="canonical" href="https://scratchfrenzy.app/" />
+  <meta name="robots" content="index,follow,max-image-preview:large" />
+  <meta name="theme-color" content="#0d1117" />
+  <meta name="author" content="EVQ Agentic LLC" />
+  <meta name="application-name" content="ScratchFrenzy" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="ScratchFrenzy" />
+  <meta property="og:title" content="ScratchFrenzy — Lottery Scratch Ticket EV Tracker" />
+  <meta property="og:description" content="Real-time expected value on every state lottery scratch ticket. Find the games where the math has flipped — and the stores still carrying them." />
+  <meta property="og:url" content="https://scratchfrenzy.app/" />
+  <meta property="og:image" content="https://scratchfrenzy.app/static/images/logo.png" />
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="ScratchFrenzy — Lottery Scratch Ticket EV Tracker" />
+  <meta name="twitter:description" content="Real-time expected value on every state lottery scratch ticket. Find the games where the math has flipped." />
+  <meta name="twitter:image" content="https://scratchfrenzy.app/static/images/logo.png" />
+
+  <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" type="image/svg+xml" href="/static/images/favicon.svg" />
   <link rel="alternate icon" type="image/png" href="/static/images/logo.png" />
   <link rel="apple-touch-icon" href="/static/images/logo.png" />
@@ -11,6 +33,79 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/styles.css?v=30" />
+
+  <!-- Structured data: Organization, WebSite, WebApplication, DefinedTermSet for "EV" / "Return %" / "The Chase" -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://scratchfrenzy.app/#org",
+        "name": "ScratchFrenzy",
+        "alternateName": "EVQ Agentic LLC",
+        "url": "https://scratchfrenzy.app/",
+        "logo": "https://scratchfrenzy.app/static/images/logo.png",
+        "founder": "EVQ Agentic LLC",
+        "sameAs": ["https://evqbet.com/"]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://scratchfrenzy.app/#website",
+        "url": "https://scratchfrenzy.app/",
+        "name": "ScratchFrenzy",
+        "description": "Real-time expected value tracking for state lottery scratch tickets.",
+        "publisher": { "@id": "https://scratchfrenzy.app/#org" },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": { "@type": "EntryPoint", "urlTemplate": "https://scratchfrenzy.app/?q={search_term_string}" },
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "WebApplication",
+        "name": "ScratchFrenzy",
+        "url": "https://scratchfrenzy.app/",
+        "applicationCategory": "FinanceApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD",
+          "description": "Free tier with positive-EV game tracking; premium strategies available."
+        },
+        "featureList": [
+          "Positive-EV game ranking across every U.S. state lottery",
+          "Top-prize hunter and $1M+ hunter strategies",
+          "Retailer inventory map with community-sourced stock reports",
+          "$10K+ winner feed across 23 states"
+        ]
+      },
+      {
+        "@type": "DefinedTermSet",
+        "name": "ScratchFrenzy Glossary",
+        "hasDefinedTerm": [
+          {
+            "@type": "DefinedTerm",
+            "name": "Expected Value (EV)",
+            "description": "Average payout per ticket if you bought every remaining ticket in the print run. Computed by summing unclaimed prizes across all tiers and dividing by tickets remaining."
+          },
+          {
+            "@type": "DefinedTerm",
+            "name": "Return Percentage",
+            "description": "EV divided by ticket price, expressed as a percent. 100% is the lottery break-even line; above 100% means the unclaimed prize pool exceeds the cost of buying every remaining ticket."
+          },
+          {
+            "@type": "DefinedTerm",
+            "name": "The Chase",
+            "description": "Hunting scratch games where most tickets have been sold but the top prize remains unclaimed, concentrating the unclaimed prize pool across a smaller remaining-ticket count."
+          }
+        ]
+      }
+    ]
+  }
+  </script>
   <link rel="stylesheet" href="/static/css/leaflet.css" />
   <link rel="stylesheet" href="/static/css/MarkerCluster.css" />
   <link rel="stylesheet" href="/static/css/MarkerCluster.Default.css" />
