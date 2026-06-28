@@ -379,7 +379,7 @@ function _renderAccountPro() {
     manage.style.display = _currentUser.has_stripe ? "" : "none";
   } else {
     label.textContent = "Free account";
-    meta.textContent = "Unlock premium EV strategies, the Chase, and ticket upvotes.";
+    meta.textContent = "Unlock The Chase — store-level inventory, ticket upvotes, and caller-verified stock.";
     upgrade.style.display = "";
     manage.style.display = "none";
   }
