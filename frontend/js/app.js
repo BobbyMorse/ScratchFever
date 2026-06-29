@@ -177,37 +177,65 @@ let _openModalGame = null;
 
 function getToken() { return localStorage.getItem("sf_token") || ""; }
 
-// ── Pro gating ────────────────────────────────────────────────────────────────
-// EV strategies are FREE (2026-06-28). Pro gates The Chase: store-level
-// inventory, Most Wanted votes, caller-routed verification. The helpers below
-// are kept as passthroughs so existing call sites in EV-side code don't need
-// touch-ups every time we revisit the tier split.
+// ── Freemium gating ───────────────────────────────────────────────────────────
+// Pro check + helpers for the universal blur pattern used on Return %, EV $,
+// Chase stock labels, and premium strategy hero values. Free users see the
+// structure (rows, markers, tiles) but the high-signal numbers are obscured
+// with a click-to-upgrade gesture.
 function isPro() { return !!(_currentUser && _currentUser.is_pro); }
 
-// EV math is free — return the text unchanged. Kept as a function so callers
-// can stay flagged for future tier changes without rewriting every site.
-function gateBlur(text) { return text; }
+// Wrap a value in a click-to-paywall blur for free users; pro users get the
+// raw text back unchanged. For non-pro we also redact every digit to "?" so
+// the real number never reaches the DOM — View Source / devtools / disabling
+// CSS can't bypass the blur. Callers MUST pass plain text (no inline HTML
+// with digits in attributes), otherwise attribute digits will be mangled too.
+function gateBlur(text) {
+  if (isPro()) return text;
+  const redacted = String(text).replace(/\d/g, "?");
+  return `<span class="gated-blur" onclick="event.stopPropagation(); openPaywallOrLogin()" title="Upgrade to Pro to unlock">${redacted}</span>`;
+}
 
-// EV-sorted chase dropdowns are visible to everyone now.
-function chaseSortMatches(matches) { return matches; }
+// Free users see the chase dropdown with %'s blurred, but if we leave the list
+// in its native EV-descending order they can still read off the ranking for
+// free. Alphabetize for non-Pro so the order leaks nothing; Pro keeps the
+// EV-sorted order they paid for.
+function chaseSortMatches(matches) {
+  if (isPro()) return matches;
+  return matches.slice().sort((a, b) => a.name.localeCompare(b.name));
+}
 
 // Sub-label "$10 · 12.3%" used in chasing-game dropdowns across every state.
+// Return % is paywall-blurred for free users.
 function gameChooserSub(g) {
   const parts = [];
   if (g.price != null) parts.push(escHtml(`$${g.price}`));
-  if (g.return_pct != null) parts.push(`${g.return_pct.toFixed(1)}%`);
+  if (g.return_pct != null) parts.push(gateBlur(`${g.return_pct.toFixed(1)}%`));
   if (!parts.length) return "";
   return `<span style="color:var(--text-muted);font-size:.78rem">${parts.join(" · ")}</span>`;
 }
 
-// No EV strategies are Pro-gated anymore. Kept as an empty Set so any
-// downstream check still resolves to false without crashing.
-const PREMIUM_STRATEGIES = new Set();
+// Premium strategies. Selecting one as a free user pops the paywall and
+// reverts the strategy selector back to a free option ("any"). "ev" (the
+// default landing) is intentionally excluded — free users land on the EV
+// table with blurred Return %, which is the gateway preview.
+const PREMIUM_STRATEGIES = new Set(["almostgone", "byprice", "million"]);
 
-// Sidebar/dropdown lock-icon sync. With no premium strategies, the loop is a
-// no-op — but the body class is still useful for any "Pro user" styling.
+// Sync the 🔒 prefix on premium strategy <option>s with current pro state.
+// Each premium option carries a data-premium="1" attribute; we toggle the
+// text to "🔒 Label" for free users and bare "Label" for Pro.
+const _PREMIUM_OPT_LABELS = {
+  "million": "$1M+ Hunter",
+  "byprice": "By Price Tier",
+  "almostgone": "Almost Gone",
+};
 function syncPremiumOptionLabels() {
-  document.body.classList.toggle("is-pro-user", isPro());
+  const pro = isPro();
+  document.querySelectorAll("option[data-premium='1']").forEach(opt => {
+    const base = _PREMIUM_OPT_LABELS[opt.value];
+    if (!base) return;
+    opt.textContent = pro ? base : `🔒 ${base}`;
+  });
+  document.body.classList.toggle("is-pro-user", pro);
 }
 
 function authHeaders() {
@@ -292,8 +320,15 @@ function protectedFetch(url, opts = {}) {
 function _setUser(user) {
   _currentUser = user;
   syncPremiumOptionLabels();
-  // Most Wanted has a locked-card view for non-Pro — re-render on auth/Pro
-  // state changes so the locked card swaps to the live list immediately.
+  // Toggle the full EV-table paywall overlay (legacy table view, kept for
+  // defense — current redesign uses an inline paywall card on the tile view).
+  const evPaywall = document.getElementById("evTablePaywall");
+  if (evPaywall) evPaywall.style.display = (user && user.is_pro) ? "none" : "";
+  // Re-render the active strategy so the EV paywall card swaps to real
+  // tiles (or vice versa) the instant the user's Pro status flips.
+  try { if (typeof renderStrategyView === "function") renderStrategyView(); } catch (_) {}
+  // Same for Most Wanted — the locked card should swap to the live list as
+  // soon as the auth/Pro state changes.
   try { if (currentTab === "ma" && currentChaseView === "mostwanted") loadChaseMostWanted(); } catch (_) {}
   const btn        = document.getElementById("loginBtn");
   const accountBtn = document.getElementById("accountTabBtn");
@@ -372,7 +407,7 @@ function _renderAccountPro() {
     manage.style.display = _currentUser.has_stripe ? "" : "none";
   } else {
     label.textContent = "Free account";
-    meta.textContent = "Unlock The Chase — store-level inventory, ticket upvotes, and caller-verified stock.";
+    meta.textContent = "Unlock premium EV strategies, the Chase, and ticket upvotes.";
     upgrade.style.display = "";
     manage.style.display = "none";
   }
@@ -1256,6 +1291,21 @@ function selectStrategy(name) {
 }
 
 function switchStrategy(name) {
+  // Premium strategies require Pro. Pop the paywall, revert selectors, and
+  // re-render so title/body match the dropdown — otherwise the user sees a
+  // previous strategy's title under a different dropdown value.
+  if (PREMIUM_STRATEGIES.has(name) && !isPro()) {
+    openPaywallOrLogin();
+    const safe = (currentStrategy && !PREMIUM_STRATEGIES.has(currentStrategy)) ? currentStrategy : "ev";
+    currentStrategy = safe;
+    const topSel = document.getElementById("filterStrategy");
+    if (topSel) topSel.value = safe;
+    syncStrategySidebar(safe);
+    const thWrap = document.getElementById("stratThresholdWrap");
+    if (thWrap) thWrap.style.display = safe === "threshold" ? "" : "none";
+    renderStrategyView();
+    return;
+  }
   currentStrategy = name;
   const topSel = document.getElementById("filterStrategy");
   if (topSel && topSel.value !== name) topSel.value = name;
@@ -1278,15 +1328,21 @@ function switchStrategy(name) {
 function strategyTile(g, rank, heroVal, heroLbl, opts = {}) {
   const ret = g.return_pct;
   const retCls = ret >= 100 ? "ev-positive" : ret >= 90 ? "ev-near" : ret >= 70 ? "ev-mid" : "ev-low";
-  const retTxt = ret != null ? ret.toFixed(1) + "%" : "—";
+  const retTxt = ret != null ? gateBlur(ret.toFixed(1) + "%") : "—";
   const top = g.top_prize != null ? "$" + fmtMoney(g.top_prize) : "—";
   const topRem = g.top_prize_remaining != null ? fmtNum(g.top_prize_remaining) : "—";
   const left = g.tickets_remaining != null ? fmtNum(g.tickets_remaining) : "—";
   const pool = g.prize_pool_remaining != null ? "$" + fmtMoney(g.prize_pool_remaining) : "—";
-  const heroDisplay = heroVal;
+  // For tiles whose hero metric IS Return % (byprice, almostgone uses %), blur
+  // the hero value too. Identified by the heroLbl text — keeps the heuristic
+  // local rather than threading a "premium hero" flag through every caller.
+  const heroIsGated = /return|inventory remaining/i.test(String(heroLbl || ""));
+  const heroDisplay = heroIsGated ? gateBlur(heroVal) : heroVal;
 
   const badges = [];
-  if (ret >= 100) badges.push(`<span class="strat-tile-badge green">+EV</span>`);
+  // +EV badge is itself a Return % signal — hide it for free users so the
+  // tier ordering doesn't leak through the badge.
+  if (ret >= 100 && isPro()) badges.push(`<span class="strat-tile-badge green">+EV</span>`);
   if (g.start_date) {
     const days = Math.floor((Date.now() - parseReportedAt(g.start_date)) / 86400000);
     if (days >= 0 && days < 60) badges.push(`<span class="strat-tile-badge orange">🆕 New</span>`);
@@ -1356,6 +1412,19 @@ function renderStrategyView() {
   if (name === "ev") {
     titleEl.textContent = "Positive Expected Value";
     subEl.textContent = "Games ranked by Return % — total remaining prize value vs. cost of remaining tickets. Anything 100%+ is a positive-EV game.";
+    // The +EV ranked list IS the headline Pro product. Free users see a
+    // paywall card instead of the tiles; headers + filter chrome stay
+    // visible so the value proposition reads at a glance.
+    if (!isPro()) {
+      container.innerHTML = `
+        <div class="strat-ev-paywall">
+          <div class="strat-ev-paywall-icon">🔒</div>
+          <div class="strat-ev-paywall-title">The +EV ranked list is Pro</div>
+          <div class="strat-ev-paywall-sub">See every state's positive-EV games ranked by Return %, with full Net EV, $1M+ odds, prize pool data, and the ordered list of best plays right now.</div>
+          <button class="strat-ev-paywall-btn" onclick="openPaywallOrLogin()">Upgrade to Pro →</button>
+        </div>`;
+      return;
+    }
     const games = pool
       .filter(g => g.return_pct != null)
       .sort((a, b) => (b.return_pct || 0) - (a.return_pct || 0));
@@ -3063,8 +3132,11 @@ async function loadGenericState(code) {
           <th>Game</th><th>Price</th><th>Return %</th><th>Top Prize</th><th>Remaining</th>
         </tr></thead>
         <tbody>${games.map(g => {
-          const ret = g.return_pct != null ? g.return_pct.toFixed(1) + "%" : "—";
-          const retCls = g.return_pct >= 70 ? "color:var(--green)"
+          const ret = g.return_pct != null ? gateBlur(g.return_pct.toFixed(1) + "%") : "—";
+          // Color class would leak the tier (green = high return) even with
+          // the value blurred, so only apply it for pro users.
+          const retCls = !isPro() ? "color:var(--text-muted)"
+            : g.return_pct >= 70 ? "color:var(--green)"
             : g.return_pct >= 55 ? "color:var(--text-muted)"
             : "color:var(--red)";
           const top = g.top_prize != null ? "$" + fmtNum(g.top_prize) : "—";
@@ -8714,9 +8786,13 @@ function _plGameOptionsHtml(state) {
   const games = _plGamesForState(state);
   if (!state) return `<option value="">Pick a state first…</option>`;
   if (!games.length) return `<option value="">No games available</option>`;
+  // <option> elements can't render the gateBlur HTML wrapper, and we can't
+  // safely embed the real return % as text for free users. Hide the metric
+  // entirely (show only price) until they upgrade.
+  const pro = isPro();
   return `<option value="">Select a game…</option>` + games.map(g => {
     const price = g.price != null ? `$${g.price}` : "—";
-    const tail = g.return_pct != null
+    const tail = pro && g.return_pct != null
       ? ` — ${g.return_pct.toFixed(1)}% · ${price}`
       : ` — ${price}`;
     return `<option value="${g.id}" data-price="${g.price ?? ''}" data-name="${escHtml(g.name)}">

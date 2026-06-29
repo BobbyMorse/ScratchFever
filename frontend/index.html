@@ -73,7 +73,7 @@
           "@type": "Offer",
           "price": "0",
           "priceCurrency": "USD",
-          "description": "Free positive-EV game tracking across 35 states. Pro unlocks The Chase — store-level inventory and caller-verified stock."
+          "description": "Free tier with positive-EV game tracking; premium strategies available."
         },
         "featureList": [
           "Positive-EV game ranking across every U.S. state lottery",
@@ -165,15 +165,15 @@
 
       <!-- Strategy sub-nav (only shown while EV Games tab is active) -->
       <div class="sidebar-subnav" id="evSubnav">
-        <button class="sidebar-subitem active" data-strategy="ev" onclick="selectStrategy('ev')">Positive EV</button>
+        <button class="sidebar-subitem active" data-strategy="ev" data-premium="1" onclick="selectStrategy('ev')"><span class="sub-lock">🔒</span>Positive EV</button>
         <button class="sidebar-subitem" data-strategy="any" onclick="selectStrategy('any')">Any-Prize Odds</button>
         <button class="sidebar-subitem" data-strategy="threshold" onclick="selectStrategy('threshold')">$X+ Hunter</button>
-        <button class="sidebar-subitem" data-strategy="million" onclick="selectStrategy('million')">$1M+ Hunter</button>
+        <button class="sidebar-subitem" data-strategy="million" data-premium="1" onclick="selectStrategy('million')"><span class="sub-lock">🔒</span>$1M+ Hunter</button>
         <button class="sidebar-subitem" data-strategy="topprize" onclick="selectStrategy('topprize')">Top Prize Hunter</button>
         <button class="sidebar-subitem" data-strategy="launch" onclick="selectStrategy('launch')">Launch Odds</button>
-        <button class="sidebar-subitem" data-strategy="byprice" onclick="selectStrategy('byprice')">By Price Tier</button>
+        <button class="sidebar-subitem" data-strategy="byprice" data-premium="1" onclick="selectStrategy('byprice')"><span class="sub-lock">🔒</span>By Price Tier</button>
         <button class="sidebar-subitem" data-strategy="fresh" onclick="selectStrategy('fresh')">Fresh Drops</button>
-        <button class="sidebar-subitem" data-strategy="almostgone" onclick="selectStrategy('almostgone')">Almost Gone</button>
+        <button class="sidebar-subitem" data-strategy="almostgone" data-premium="1" onclick="selectStrategy('almostgone')"><span class="sub-lock">🔒</span>Almost Gone</button>
       </div>
 
       <button class="sidebar-item tab-btn" data-tab="ma" onclick="switchTab('ma')">
@@ -395,12 +395,12 @@
               <option value="ev" selected>Positive EV</option>
               <option value="any">Any-Prize Odds</option>
               <option value="threshold">$X+ Hunter</option>
-              <option value="million">$1M+ Hunter</option>
+              <option value="million" data-premium="1">🔒 $1M+ Hunter</option>
               <option value="topprize">Top Prize Hunter</option>
               <option value="launch">Launch Odds</option>
-              <option value="byprice">By Price Tier</option>
+              <option value="byprice" data-premium="1">🔒 By Price Tier</option>
               <option value="fresh">Fresh Drops</option>
-              <option value="almostgone">Almost Gone</option>
+              <option value="almostgone" data-premium="1">🔒 Almost Gone</option>
             </select>
           </div>
           <div class="filter-group">
@@ -439,6 +439,16 @@
         <section class="table-section" id="evTableSection" style="display:none">
           <div class="table-meta">
             <span id="resultCount">Loading…</span>
+          </div>
+          <!-- Paywall overlay for free users — hides the +EV ranking entirely.
+               Headers stay visible so visitors see what columns they'd get. -->
+          <div class="ev-table-paywall" id="evTablePaywall" style="display:none">
+            <div class="ev-table-paywall-card">
+              <div class="ev-table-paywall-icon">🔒</div>
+              <div class="ev-table-paywall-title">The +EV ranked list is Pro</div>
+              <div class="ev-table-paywall-sub">See every state's positive-EV games ranked by Return %, with full Net EV, $1M+ odds, and prize pool data.</div>
+              <button class="ev-table-paywall-btn" onclick="openPaywallOrLogin()">Upgrade to Pro →</button>
+            </div>
           </div>
           <div class="table-scroll">
             <table id="gamesTable">
@@ -2111,7 +2121,7 @@
                 <span class="account-pro-status-dot" id="accountProDot"></span>
                 <span id="accountProLabel">Free account</span>
               </div>
-              <div class="account-pro-meta" id="accountProMeta">Unlock The Chase — store-level inventory, ticket upvotes, and caller-verified stock.</div>
+              <div class="account-pro-meta" id="accountProMeta">Unlock premium EV strategies, the Chase, and ticket upvotes.</div>
               <div class="account-pro-actions">
                 <button class="btn btn-pro-primary" id="accountProUpgradeBtn" onclick="openPaywall()">Upgrade to Pro</button>
                 <button class="btn" id="accountProManageBtn" onclick="openCustomerPortal()" style="display:none">Manage billing</button>
@@ -2263,7 +2273,7 @@
       <div id="loginMsg" class="caller-msg" style="display:none;margin-top:.6rem"></div>
     </div>
     <div id="authFormRegister" style="display:none">
-      <p class="auth-subtitle">Free signup. All EV strategies are free — upgrade to Pro for The Chase: store-level inventory and ticket upvotes.</p>
+      <p class="auth-subtitle">Free signup. Upgrade to Pro to unlock premium EV strategies, The Chase, and ticket upvotes.</p>
       <div class="filter-group" style="margin-bottom:.7rem">
         <label>Username</label>
         <input type="text" id="registerUsername" placeholder="scratcher42 or your email" autocomplete="username" maxlength="64">
@@ -2306,14 +2316,14 @@
 
     <div class="paywall-head">
       <div class="paywall-eyebrow">SCRATCHFRENZY PRO</div>
-      <h2 class="paywall-h">Know which store has it in stock.</h2>
-      <p class="paywall-sub">EV strategies are free. Pro is The Chase — store-level inventory, verified by call.</p>
+      <h2 class="paywall-h">Hunt with the math on your side.</h2>
+      <p class="paywall-sub">Premium EV strategies. Store-level data. Cancel anytime.</p>
     </div>
 
     <ul class="paywall-bullets">
-      <li><span>›</span> The Chase Map — store-level inventory and in-stock signals</li>
-      <li><span>›</span> Most Wanted — upvote tickets to send the caller after next</li>
-      <li><span>›</span> Caller-verified stock checks on the games you care about</li>
+      <li><span>›</span> Premium EV strategies — <strong>Positive EV, $1M+ Hunter, By Price, Almost Gone</strong></li>
+      <li><span>›</span> The Chase — store-level inventory data</li>
+      <li><span>›</span> Upvote tickets to send the caller after next</li>
     </ul>
 
     <div class="paywall-plans paywall-plans-single">
@@ -2524,7 +2534,7 @@
 
 <script src="/static/js/leaflet.js"></script>
 <script src="/static/js/leaflet.markercluster.js"></script>
-<script src="/static/js/app.js?v=342"></script>
+<script src="/static/js/app.js?v=344"></script>
 <script>
   function toggleSidebar() {
     const open = document.getElementById('sidebar').classList.toggle('open');
