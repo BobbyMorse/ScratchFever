@@ -1475,7 +1475,7 @@ function renderStrategyView() {
       .sort((a, b) => a.odds - b.odds)
       .slice(0, 60)
       .map((x, i) => strategyTile(x.g, i + 1,
-        `1 in ${x.odds.toFixed(1)}`,
+        `1 in ${x.odds.toFixed(2)}`,
         `Odds of winning ${label}`,
         { extraMeta: `<div class="strat-tile-meta-row" style="grid-column:1/-1"><span class="lbl">${label} Prizes Left</span><span class="val">${fmtNum(x.remaining)}</span></div>` }
       ));
