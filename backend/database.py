@@ -666,8 +666,12 @@ async def get_all_games(conn, state=None, min_price=None, max_price=None,
         sort_by = "return_pct"
 
     cache_key = (state, min_price, max_price, min_return, sort_by, limit)
-    if cache_key in _games_cache:
-        return _games_cache[cache_key]
+    cached = _games_cache.get(cache_key)
+    if cached is not None:
+        expires_at, cached_result = cached
+        if time.monotonic() < expires_at:
+            return cached_result
+        del _games_cache[cache_key]
 
     conditions = ["g.is_active = TRUE", "g.ev IS NOT NULL", "(g.end_date IS NULL OR g.end_date >= CURRENT_DATE)"]
     params = []
