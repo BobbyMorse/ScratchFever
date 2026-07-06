@@ -9390,22 +9390,7 @@ function _startScratchSimSession(g) {
     totalTickets: g.total_tickets,
   });
   _renderScratchSimInventory();
-  _renderScratchSimBulkCosts(g.price);
   _setScratchSimSpinDisabled(false, "Scratch!");
-}
-
-function _renderScratchSimBulkCosts(price) {
-  const p = Math.round(price || 0);
-  document.querySelectorAll(".scratchsim-bulk-btn").forEach(btn => {
-    const n = Number(btn.dataset.count) || 0;
-    const cost = n * p;
-    const costEl = btn.querySelector(".scratchsim-bulk-cost");
-    if (costEl) {
-      costEl.textContent = cost >= 1000
-        ? `$${(cost / 1000).toLocaleString(undefined, { maximumFractionDigits: 1 })}K`
-        : `$${cost.toLocaleString()}`;
-    }
-  });
 }
 
 function _renderScratchSimInventory() {
