@@ -2,10 +2,17 @@ import asyncio
 import asyncpg
 import datetime as dt
 import os
+import time
 from typing import Optional
 
 _pool: asyncpg.Pool | None = None
+# Value is (expires_at_monotonic, result). TTL guards against the case where
+# the scraper_worker service updates the DB but can't reach into the API
+# process to call clear_games_cache() — its in-process invalidation only
+# clears the worker's own dict, so without a TTL the API would serve stale
+# list data indefinitely (drilldown detail stayed fresh, list did not).
 _games_cache: dict = {}
+_GAMES_CACHE_TTL_SEC = 30
 
 
 def clear_games_cache():
