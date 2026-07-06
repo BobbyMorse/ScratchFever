@@ -2028,11 +2028,24 @@
                   <span id="scratchsimSpinBtnLabel">Scratch!</span>
                 </button>
                 <div class="scratchsim-bulk" id="scratchsimBulk">
-                  <div class="scratchsim-bulk-label">Or buy in bulk</div>
+                  <div class="scratchsim-bulk-label">
+                    <span class="scratchsim-bulk-line"></span>
+                    <span class="scratchsim-bulk-label-text">Buy a pack</span>
+                    <span class="scratchsim-bulk-line"></span>
+                  </div>
                   <div class="scratchsim-bulk-row">
-                    <button class="scratchsim-bulk-btn" onclick="scratchSimBuyBulk(10)">×10</button>
-                    <button class="scratchsim-bulk-btn" onclick="scratchSimBuyBulk(100)">×100</button>
-                    <button class="scratchsim-bulk-btn" onclick="scratchSimBuyBulk(1000)">×1000</button>
+                    <button class="scratchsim-bulk-btn" data-count="10" onclick="scratchSimBuyBulk(10)">
+                      <span class="scratchsim-bulk-mult">×10</span>
+                      <span class="scratchsim-bulk-cost">—</span>
+                    </button>
+                    <button class="scratchsim-bulk-btn" data-count="100" onclick="scratchSimBuyBulk(100)">
+                      <span class="scratchsim-bulk-mult">×100</span>
+                      <span class="scratchsim-bulk-cost">—</span>
+                    </button>
+                    <button class="scratchsim-bulk-btn" data-count="1000" onclick="scratchSimBuyBulk(1000)">
+                      <span class="scratchsim-bulk-mult">×1000</span>
+                      <span class="scratchsim-bulk-cost">—</span>
+                    </button>
                   </div>
                 </div>
                 <div class="scratchsim-unavailable" id="scratchsimUnavailable" style="display:none"></div>
