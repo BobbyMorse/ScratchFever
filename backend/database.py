@@ -714,7 +714,7 @@ async def get_all_games(conn, state=None, min_price=None, max_price=None,
         LIMIT ${len(params)}
     """
     result = [tuple(r) for r in await conn.fetch(query, *params)]
-    _games_cache[cache_key] = result
+    _games_cache[cache_key] = (time.monotonic() + _GAMES_CACHE_TTL_SEC, result)
     return result
 
 
