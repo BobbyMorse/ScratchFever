@@ -9427,6 +9427,20 @@ function _renderScratchSimHistory() {
     return;
   }
   list.innerHTML = _scratchsimHistory.map(h => {
+    if (h.bulk) {
+      const netPos = h.net >= 0;
+      const biggestTxt = h.biggest > 0 ? `$${h.biggest.toLocaleString()}` : "—";
+      return `
+        <div class="scratchsim-history-row is-bulk">
+          <span class="scratchsim-history-idx">×${h.count.toLocaleString()}</span>
+          <span class="scratchsim-history-bulk-meta">
+            <strong>${h.wins.toLocaleString()} winners · biggest ${biggestTxt}</strong>
+            <span>Spent $${h.spent.toLocaleString()} · Won $${h.winnings.toLocaleString()}</span>
+          </span>
+          <span class="scratchsim-history-amount ${netPos ? "is-win" : "is-lose"}">${netPos ? "+" : "-"}$${Math.abs(h.net).toLocaleString()}</span>
+        </div>
+      `;
+    }
     const won = h.amount > 0;
     return `
       <div class="scratchsim-history-row">
