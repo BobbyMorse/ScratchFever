@@ -9624,6 +9624,87 @@ function scratchSimSpin() {
   }, SCRATCHSIM_ANIM_END);
 }
 
+function _showScratchSimBulkBadge(summary) {
+  const badge = document.getElementById("scratchsimBadge");
+  const labelEl = document.getElementById("scratchsimBadgeLabel");
+  const amountEl = document.getElementById("scratchsimBadgeAmount");
+  const oddsEl = document.getElementById("scratchsimBadgeOdds");
+  const { count, wins, totalWinnings, spent, net, biggest } = summary;
+  const netPos = net > 0;
+  const bigWin = net >= 1000 || biggest >= 1000;
+  badge.classList.remove("is-win", "is-bigwin", "is-lose");
+  badge.classList.add(bigWin ? "is-bigwin" : netPos ? "is-win" : "is-lose");
+  labelEl.textContent = bigWin
+    ? `${count.toLocaleString()} tickets · BIG WIN`
+    : netPos
+      ? `${count.toLocaleString()} tickets · UP`
+      : `${count.toLocaleString()} tickets`;
+  amountEl.textContent = `${netPos ? "+" : "-"}$${Math.abs(net).toLocaleString()}`;
+  const winRate = count > 0 ? ((wins / count) * 100).toFixed(1) : "0.0";
+  const biggestTxt = biggest > 0 ? `$${biggest.toLocaleString()}` : "—";
+  oddsEl.textContent = `Spent $${spent.toLocaleString()} · Won $${totalWinnings.toLocaleString()} · ${wins.toLocaleString()} winners (${winRate}%) · biggest ${biggestTxt}`;
+  badge.style.display = "";
+  requestAnimationFrame(() => badge.classList.add("is-visible"));
+  if (netPos) _emitScratchSimConfetti(bigWin);
+}
+
+function scratchSimBuyBulk(n) {
+  if (_scratchsimSpinning) return;
+  if (!_scratchsimDeck || _scratchsimDeck.ticketsLeft <= 0) return;
+
+  const buyCount = Math.min(n, _scratchsimDeck.ticketsLeft);
+  _scratchsimSpinning = true;
+  _setScratchSimSpinDisabled(true, `Buying ${buyCount.toLocaleString()}…`);
+  _hideScratchSimResult();
+
+  // Run the draws in a next-tick task so the button state paints first —
+  // even 1000 draws take <10ms but users appreciate the "processing" flash.
+  setTimeout(() => {
+    const price = _scratchsimGame?.price || 0;
+    let wins = 0;
+    let totalWinnings = 0;
+    let biggest = 0;
+    for (let i = 0; i < buyCount; i++) {
+      const r = _scratchsimDeck.draw();
+      if (!r) break;
+      if (r.amount > 0) {
+        wins++;
+        totalWinnings += r.amount;
+        if (r.amount > biggest) biggest = r.amount;
+      }
+    }
+    const spent = buyCount * price;
+    const net = totalWinnings - spent;
+
+    _scratchsimStats = {
+      spins: _scratchsimStats.spins + buyCount,
+      wins: _scratchsimStats.wins + wins,
+      totalWinnings: _scratchsimStats.totalWinnings + totalWinnings,
+    };
+    _scratchsimHistory.unshift({
+      id: _scratchsimHistory.length + 1,
+      bulk: true,
+      count: buyCount,
+      wins,
+      winnings: totalWinnings,
+      spent,
+      net,
+      biggest,
+    });
+
+    _renderScratchSimStats();
+    _renderScratchSimHistory();
+    _renderScratchSimInventory();
+    _showScratchSimBulkBadge({ count: buyCount, wins, totalWinnings, spent, net, biggest });
+    document.getElementById("scratchsimResetBtn").style.display = "";
+
+    _scratchsimSpinning = false;
+    const exhausted = _scratchsimDeck.ticketsLeft <= 0;
+    if (exhausted) _setScratchSimSpinDisabled(true, "Sold Out");
+    else _setScratchSimSpinDisabled(false, "Scratch Again!");
+  }, 40);
+}
+
 function resetScratchSimSession() {
   if (!_scratchsimGame) return;
   _startScratchSimSession(_scratchsimGame);
