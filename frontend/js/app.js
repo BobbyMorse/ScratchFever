@@ -9442,6 +9442,9 @@ function _setScratchSimSpinDisabled(disabled, label) {
   const btn = document.getElementById("scratchsimSpinBtn");
   btn.disabled = !!disabled;
   if (label != null) document.getElementById("scratchsimSpinBtnLabel").textContent = label;
+  document.querySelectorAll(".scratchsim-bulk-btn").forEach(b => {
+    b.disabled = !!disabled;
+  });
 }
 
 // Precompute the reveal-time-per-cell using the same waypoint sampling as mobile.
