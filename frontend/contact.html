@@ -93,22 +93,23 @@
       display: flex; align-items: center; justify-content: space-between;
       gap: 1rem; flex-wrap: wrap;
     }
-    .email-row a {
+    .email-link {
       color: #f97316;
       font-weight: 700;
       text-decoration: none;
       font-size: 1.05rem;
     }
-    .email-row a:hover { color: #ea580c; text-decoration: underline; }
-    .email-btn {
-      display: inline-flex; align-items: center; gap: .35rem;
-      background: #f97316; color: #fff;
-      padding: .5rem .95rem; border-radius: 8px;
-      font-size: .85rem; font-weight: 600;
+    .email-link:hover { color: #ea580c; text-decoration: underline; }
+    a.email-btn {
+      display: inline-flex; align-items: center; gap: .4rem;
+      background: #f97316; color: #ffffff;
+      padding: .6rem 1.1rem; border-radius: 8px;
+      font-size: .88rem; font-weight: 700;
       text-decoration: none;
       transition: background .15s;
+      white-space: nowrap;
     }
-    .email-btn:hover { background: #ea580c; color: #fff; }
+    a.email-btn:hover { background: #ea580c; color: #ffffff; }
 
     .help-section h2 {
       font-size: 1.1rem; font-weight: 700; color: #111827;
