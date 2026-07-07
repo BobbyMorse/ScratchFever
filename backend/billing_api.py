@@ -41,6 +41,19 @@ PLAN_YEARLY = "yearly"
 BETA_CODE_DURATION_DAYS = 180
 
 
+def _trial_days() -> int:
+    # Launch offer knob — set STRIPE_TRIAL_DAYS=60 in prod during the intro
+    # window, drop to 0 to end it. Mirrors the intro offer we configured on
+    # the ASC / RC side so both platforms honor the same free window.
+    raw = os.getenv("STRIPE_TRIAL_DAYS", "").strip()
+    if not raw:
+        return 0
+    try:
+        return max(0, int(raw))
+    except ValueError:
+        return 0
+
+
 def _stripe_key() -> str:
     key = os.getenv("STRIPE_SECRET_KEY", "").strip()
     if not key:
