@@ -28,15 +28,44 @@
   <link rel="apple-touch-icon" href="/static/images/logo.png" />
   <link rel="stylesheet" href="/static/css/styles.css?v=2" />
   <style>
-    .page-wrap { max-width: 760px; margin: 3rem auto; padding: 0 1.5rem 4rem; }
-    .page-wrap h1 { font-size: 2rem; font-weight: 800; margin-bottom: .5rem; background: linear-gradient(135deg, var(--pink), var(--orange), var(--lemon)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-    .page-wrap h2 { font-size: 1.15rem; font-weight: 700; color: var(--grape); margin: 2rem 0 .6rem; }
-    .page-wrap h3 { font-size: 1rem; font-weight: 700; color: var(--text); margin: 1.2rem 0 .4rem; }
-    .page-wrap p, .page-wrap li { color: var(--text); line-height: 1.7; margin-bottom: .9rem; }
+    body { background: #f5f7fa !important; color: #111827; }
+
+    .page-wrap { max-width: 760px; margin: 0 auto; padding: 2.5rem 1.5rem 5rem; }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: .4rem;
+      color: #f97316; font-weight: 600; text-decoration: none;
+      font-size: .88rem; margin-bottom: 2rem;
+    }
+    .back-link:hover { color: #ec4899; }
+
+    .page-wrap h1 {
+      font-size: 2rem; font-weight: 800; margin-bottom: .5rem;
+      background: linear-gradient(135deg, #ec4899, #f97316, #facc15);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .effective { color: #6b7280; font-size: .82rem; margin-bottom: 2rem; }
+
+    .legal-card {
+      background: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 2rem 2rem 1.5rem;
+      box-shadow: 0 2px 12px rgba(15, 23, 42, 0.05);
+    }
+
+    .page-wrap h2 {
+      font-size: 1.15rem; font-weight: 700; color: #111827;
+      margin: 2rem 0 .6rem; padding-bottom: .35rem;
+      border-bottom: 2px solid #f97316; display: inline-block;
+    }
+    .page-wrap h2:first-of-type { margin-top: 0; }
+    .page-wrap h3 { font-size: 1rem; font-weight: 700; color: #111827; margin: 1.2rem 0 .4rem; }
+    .page-wrap p, .page-wrap li { color: #374151; line-height: 1.7; margin-bottom: .9rem; font-size: .95rem; }
+    .page-wrap p strong, .page-wrap li strong { color: #111827; }
     .page-wrap ul { padding-left: 1.4rem; margin-bottom: .9rem; }
-    .back-link { display: inline-flex; align-items: center; gap: .4rem; color: var(--grape); font-weight: 600; text-decoration: none; font-size: .88rem; margin-bottom: 2rem; }
-    .back-link:hover { color: var(--pink); }
-    .effective { color: var(--text-muted); font-size: .82rem; margin-bottom: 1.5rem; }
+    .page-wrap a { color: #f97316; font-weight: 600; text-decoration: none; }
+    .page-wrap a:hover { color: #ea580c; text-decoration: underline; }
   </style>
 </head>
 <body>
