@@ -461,7 +461,10 @@ function closeAuthModal() {
 }
 
 // ── Paywall / Stripe billing ────────────────────────────────────────────────
-let _paywallPlan = "monthly";
+// Yearly is preselected — matches how mobile positions the annual SKU (and
+// how our CSS already highlights the second card by default).
+let _paywallPlan = "yearly";
+let _billingConfig = null;
 
 function openPaywallOrLogin() {
   // Sidebar CTA path: anonymous users see signup first, then we re-open the paywall
@@ -479,6 +482,8 @@ function openPaywall() {
   if (msg) msg.style.display = "none";
   const betaMsg = document.getElementById("betaCodeMsg");
   if (betaMsg) betaMsg.style.display = "none";
+  // Kick off config fetch (prices, trial window). Cached after the first call.
+  _loadBillingConfig();
 }
 
 function closePaywall() {
@@ -486,8 +491,99 @@ function closePaywall() {
 }
 
 function selectPaywallPlan(plan) {
-  _paywallPlan = "monthly";
-  document.getElementById("paywallPlanMonthly")?.classList.add("paywall-plan-active");
+  _paywallPlan = (plan === "yearly") ? "yearly" : "monthly";
+  document.getElementById("paywallPlanMonthly")
+    ?.classList.toggle("paywall-plan-active", _paywallPlan === "monthly");
+  document.getElementById("paywallPlanYearly")
+    ?.classList.toggle("paywall-plan-active", _paywallPlan === "yearly");
+  _renderPaywallCta();
+}
+
+async function _loadBillingConfig() {
+  if (_billingConfig) { _renderPaywallConfig(); return; }
+  try {
+    const res = await fetch("/api/billing/config");
+    if (!res.ok) return;
+    _billingConfig = await res.json();
+    _renderPaywallConfig();
+  } catch (_) { /* leave defaults in place */ }
+}
+
+function _renderPaywallConfig() {
+  const cfg = _billingConfig || {};
+  const m = cfg.monthly;
+  const y = cfg.yearly;
+
+  if (m?.display) {
+    const el = document.getElementById("paywallPlanMonthlyPrice");
+    if (el) el.textContent = m.display;
+  }
+  if (y?.display) {
+    const el = document.getElementById("paywallPlanYearlyPrice");
+    if (el) el.textContent = y.display;
+  }
+
+  // Yearly card: "$X.XX/mo · best value" derived from the actual annual price
+  // so the equivalence stays truthful if we ever move the yearly amount.
+  if (y?.amount) {
+    const eq = (y.amount / 12).toFixed(2);
+    const el = document.getElementById("paywallPlanYearlyEquiv");
+    if (el) el.textContent = `$${eq}/mo · best value`;
+  }
+  // Savings badge — hide unless the backend derived one.
+  const badge = document.getElementById("paywallPlanYearlyBadge");
+  if (badge) {
+    if (y?.savings_pct && y.savings_pct > 0) {
+      badge.textContent = `SAVE ${y.savings_pct}%`;
+      badge.style.display = "";
+    } else {
+      badge.style.display = "none";
+    }
+  }
+
+  // Trial banner — dynamic pill mirroring the mobile paywall's format so
+  // the copy stays truthful even when trial length changes.
+  const banner = document.getElementById("paywallTrialBanner");
+  const bannerText = document.getElementById("paywallTrialText");
+  const trialDays = Number(cfg.trial_days || 0);
+  if (banner && bannerText && trialDays > 0) {
+    const unit = trialDays % 30 === 0 && trialDays >= 30
+      ? `${trialDays / 30} month${trialDays === 30 ? "" : "s"}`
+      : `${trialDays} day${trialDays === 1 ? "" : "s"}`;
+    const selectedPrice = _paywallPlan === "yearly"
+      ? (y?.display || "$71.88")
+      : (m?.display || "$7.99");
+    const per = _paywallPlan === "yearly" ? "year" : "month";
+    bannerText.textContent = `🎁 ${unit} free, then ${selectedPrice}/${per}`;
+    banner.style.display = "";
+  } else if (banner) {
+    banner.style.display = "none";
+  }
+
+  _renderPaywallCta();
+}
+
+function _renderPaywallCta() {
+  const btn = document.getElementById("paywallCheckoutBtn");
+  if (!btn || btn.disabled) return;
+  const trialDays = Number(_billingConfig?.trial_days || 0);
+  btn.textContent = trialDays > 0 ? "Start Free Trial" : "Continue →";
+  // Re-render trial banner text when plan flips so the "$X/month" side
+  // matches the newly selected plan.
+  const banner = document.getElementById("paywallTrialBanner");
+  if (banner && banner.style.display !== "none" && _billingConfig) {
+    const y = _billingConfig.yearly;
+    const m = _billingConfig.monthly;
+    const selectedPrice = _paywallPlan === "yearly"
+      ? (y?.display || "$71.88")
+      : (m?.display || "$7.99");
+    const per = _paywallPlan === "yearly" ? "year" : "month";
+    const unit = trialDays % 30 === 0 && trialDays >= 30
+      ? `${trialDays / 30} month${trialDays === 30 ? "" : "s"}`
+      : `${trialDays} day${trialDays === 1 ? "" : "s"}`;
+    const t = document.getElementById("paywallTrialText");
+    if (t) t.textContent = `🎁 ${unit} free, then ${selectedPrice}/${per}`;
+  }
 }
 
 function togglePaywallBeta() {
