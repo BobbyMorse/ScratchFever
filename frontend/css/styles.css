@@ -2493,6 +2493,21 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
   color: var(--chrome-text);
   margin: 0;
 }
+/* Lemon pill under the subtitle when a launch-window free trial is active.
+   Matches the mobile paywall's "🎁 2 months free, then $7.99/month" pattern
+   so both platforms render the same offer copy. */
+.paywall-trial-banner {
+  display: inline-block;
+  margin-top: .75rem;
+  padding: .32rem .7rem;
+  background: rgba(234, 179, 8, 0.15);
+  border: 1px solid rgba(234, 179, 8, 0.4);
+  border-radius: 999px;
+  color: var(--lemon);
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .01em;
+}
 .paywall-bullets {
   list-style: none;
   padding: 1.05rem 1.6rem .35rem;
