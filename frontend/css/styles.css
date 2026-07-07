@@ -2680,6 +2680,18 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
   text-align: center;
   line-height: 1.4;
 }
+.paywall-foot-links {
+  margin-top: .45rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: .4rem;
+}
+.paywall-foot-links a {
+  color: var(--text-muted);
+  text-decoration: underline;
+}
+.paywall-foot-links span { color: var(--text-dim); }
 
 /* Account-tab Pro section */
 .account-pro-card {
