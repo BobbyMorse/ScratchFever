@@ -2325,20 +2325,31 @@
     <div class="paywall-head">
       <div class="paywall-eyebrow">SCRATCHFRENZY PRO</div>
       <h2 class="paywall-h">Hunt with the math on your side.</h2>
-      <p class="paywall-sub">Premium EV strategies. Store-level data. Cancel anytime.</p>
+      <p class="paywall-sub">Maximize your edge. Scratch smarter.</p>
+      <div class="paywall-trial-banner" id="paywallTrialBanner" style="display:none">
+        <span id="paywallTrialText">🎁 2 months free, then $7.99/month</span>
+      </div>
     </div>
 
     <ul class="paywall-bullets">
-      <li><span>›</span> Premium EV strategies — <strong>Positive EV, $1M+ Hunter, By Price, Almost Gone</strong></li>
-      <li><span>›</span> The Chase — store-level inventory data</li>
-      <li><span>›</span> Upvote tickets to send the caller after next</li>
+      <li><span>📊</span> Advanced strategies: <strong>Positive EV, $1M+ Hunter, By Price, Almost Gone</strong></li>
+      <li><span>🎨</span> Color-coded return % on every ticket at a glance</li>
+      <li><span>🎯</span> Chase mode: hunt specific games across nearby retailers</li>
+      <li><span>🏪</span> Recent in-stock reports and store list per game</li>
+      <li><span>👆</span> Vote up stores where you find your target games</li>
     </ul>
 
-    <div class="paywall-plans paywall-plans-single">
-      <button class="paywall-plan paywall-plan-active" id="paywallPlanMonthly" onclick="selectPaywallPlan('monthly')">
+    <div class="paywall-plans" id="paywallPlans">
+      <button class="paywall-plan" id="paywallPlanMonthly" onclick="selectPaywallPlan('monthly')">
         <div class="paywall-plan-name">Monthly</div>
-        <div class="paywall-plan-price"><span>$7</span><em>/mo</em></div>
-        <div class="paywall-plan-foot">Billed monthly · cancel anytime</div>
+        <div class="paywall-plan-price"><span id="paywallPlanMonthlyPrice">$7.99</span><em>/mo</em></div>
+        <div class="paywall-plan-foot">Billed monthly</div>
+      </button>
+      <button class="paywall-plan paywall-plan-active" id="paywallPlanYearly" onclick="selectPaywallPlan('yearly')">
+        <div class="paywall-plan-badge" id="paywallPlanYearlyBadge">SAVE 25%</div>
+        <div class="paywall-plan-name">Yearly</div>
+        <div class="paywall-plan-price"><span id="paywallPlanYearlyPrice">$71.88</span><em>/yr</em></div>
+        <div class="paywall-plan-foot" id="paywallPlanYearlyEquiv">$5.99/mo · best value</div>
       </button>
     </div>
 
