@@ -115,6 +115,11 @@ async def create_checkout(body: CheckoutBody, request: Request, user: dict = Dep
     else:
         customer_kwargs["customer_email"] = db_user["email"]
 
+    subscription_data: dict = {"metadata": {"user_id": str(db_user["id"])}}
+    trial_days = _trial_days()
+    if trial_days > 0:
+        subscription_data["trial_period_days"] = trial_days
+
     try:
         session = await asyncio.to_thread(
             stripe.checkout.Session.create,
@@ -124,7 +129,7 @@ async def create_checkout(body: CheckoutBody, request: Request, user: dict = Dep
             cancel_url=_cancel_url(request),
             client_reference_id=str(db_user["id"]),
             metadata={"user_id": str(db_user["id"]), "plan": body.plan},
-            subscription_data={"metadata": {"user_id": str(db_user["id"])}},
+            subscription_data=subscription_data,
             allow_promotion_codes=True,
             **customer_kwargs,
         )
