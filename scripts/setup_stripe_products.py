@@ -24,15 +24,15 @@ PRODUCT_DESCRIPTION = "Premium EV strategies · The Chase (store-level data) · 
 
 PLANS = [
     {
-        "lookup_key": "scratchfrenzy_pro_monthly",
-        "amount_cents": 700,   # $7.00
+        "lookup_key": "scratchfrenzy_pro_monthly_v2",
+        "amount_cents": 799,   # $7.99
         "interval": "month",
         "label": "Monthly",
         "env": "STRIPE_PRICE_MONTHLY",
     },
     {
-        "lookup_key": "scratchfrenzy_pro_yearly",
-        "amount_cents": 7000,  # $70.00
+        "lookup_key": "scratchfrenzy_pro_yearly_v2",
+        "amount_cents": 7188,  # $71.88 = $5.99/mo (~25% off monthly)
         "interval": "year",
         "label": "Yearly",
         "env": "STRIPE_PRICE_YEARLY",
