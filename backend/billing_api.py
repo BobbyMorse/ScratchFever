@@ -158,6 +158,71 @@ async def create_portal(request: Request, user: dict = Depends(require_member)):
     return {"url": portal.url}
 
 
+# ── Public paywall config ─────────────────────────────────────────────────
+# Returns pricing + trial info so the web paywall renders the same amounts
+# as Stripe actually charges. Prices are fetched once per process from
+# Stripe (via the STRIPE_PRICE_* env vars) then cached — the values only
+# change when we mint new SKUs and swap env vars, so a process-lifetime
+# cache is fine.
+
+_config_cache: dict = {}
+
+
+async def _fetch_price_display(price_id: str) -> Optional[dict]:
+    try:
+        price = await asyncio.to_thread(stripe.Price.retrieve, price_id)
+    except stripe.error.StripeError:
+        logger.exception("Failed to fetch Stripe price %s", price_id)
+        return None
+    amount_cents = price.get("unit_amount") or 0
+    amount = round(amount_cents / 100, 2)
+    interval = (price.get("recurring") or {}).get("interval", "month")
+    per = "/yr" if interval == "year" else "/mo"
+    return {
+        "amount": amount,
+        "display": f"${amount:.2f}",
+        "interval": interval,
+        "per": per,
+    }
+
+
+@router.get("/api/billing/config")
+async def get_billing_config():
+    if _config_cache:
+        return _config_cache
+
+    trial_days = _trial_days()
+    result: dict = {"trial_days": trial_days, "monthly": None, "yearly": None}
+
+    try:
+        _stripe_key()
+    except HTTPException:
+        # Billing not configured — still return a usable payload so the
+        # paywall can render sensible fallbacks instead of a hard error.
+        return result
+
+    monthly_id = os.getenv("STRIPE_PRICE_MONTHLY", "").strip()
+    yearly_id = os.getenv("STRIPE_PRICE_YEARLY", "").strip()
+
+    if monthly_id:
+        result["monthly"] = await _fetch_price_display(monthly_id)
+    if yearly_id:
+        result["yearly"] = await _fetch_price_display(yearly_id)
+
+    # Derive savings % if we have both — matches how mobile computes it.
+    m = result["monthly"]
+    y = result["yearly"]
+    if m and y and m["amount"] > 0:
+        equivalent_yearly = m["amount"] * 12
+        if equivalent_yearly > 0:
+            savings = round((1 - y["amount"] / equivalent_yearly) * 100)
+            if savings > 0:
+                result["yearly"]["savings_pct"] = savings
+
+    _config_cache.update(result)
+    return result
+
+
 # ── Synchronous activation on redirect back from Checkout ─────────────────
 # The webhook is the durable source of truth, but it can land 5–15s after the
 # user returns. Verifying the session directly with Stripe on redirect makes
