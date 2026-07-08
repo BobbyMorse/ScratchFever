@@ -3197,7 +3197,7 @@ function selectHuntState(code) {
     const stateName = soonNameEl?.textContent || code;
     document.getElementById("huntSoonTitle").textContent = stateName;
     document.getElementById("huntSoonSubtitle").textContent =
-      "Top games by expected value. Full retailer hunt coming soon.";
+      "Top games by expected value. Retailer inventory not tracked in this state.";
     const repBtn = document.getElementById("huntSoonReportBtn");
     if (repBtn) repBtn.style.display = _currentUser ? "" : "none";
     loadGenericState(code);
