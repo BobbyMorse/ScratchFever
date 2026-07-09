@@ -1435,8 +1435,10 @@ function strategyTile(g, rank, heroVal, heroLbl, opts = {}) {
 
   const badges = [];
   // +EV badge is itself a Return % signal — hide it for free users so the
-  // tier ordering doesn't leak through the badge.
-  if (ret >= 100 && isPro()) badges.push(`<span class="strat-tile-badge green">+EV</span>`);
+  // tier ordering doesn't leak through the badge. Session-unlocked strategies
+  // reveal the badge alongside the Return % they paid an ad for.
+  const _revealBadge = isPro() || (window.SFAds && window.SFAds.isStrategyUnlocked(currentStrategy));
+  if (ret >= 100 && _revealBadge) badges.push(`<span class="strat-tile-badge green">+EV</span>`);
   if (g.start_date) {
     const days = Math.floor((Date.now() - parseReportedAt(g.start_date)) / 86400000);
     if (days >= 0 && days < 60) badges.push(`<span class="strat-tile-badge orange">🆕 New</span>`);
