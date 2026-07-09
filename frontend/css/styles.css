@@ -3542,3 +3542,111 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
   .scratchsim-stat-val { font-size: .9rem; }
   .scratchsim-inv-tickets { font-size: 1.2rem; }
 }
+
+/* ── Ads: banner slots + house ad ──────────────────────────────────────── */
+.sf-ad-slot {
+  display: block;
+  width: 100%;
+  max-width: 970px;
+  margin: 1.25rem auto;
+  min-height: 96px;
+}
+body.is-pro-user .sf-ad-slot,
+body.is-pro-user .sf-house-ad,
+body.is-pro-user .sf-ad-ins { display: none !important; }
+
+.sf-house-ad {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.05rem 1.4rem;
+  border-radius: 14px;
+  background:
+    radial-gradient(ellipse at top left, rgba(20,184,166,0.10), transparent 55%),
+    var(--card-bg, #fff);
+  border: 1px dashed rgba(20,184,166,0.35);
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.sf-house-ad:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(20,184,166,0.18); }
+.sf-house-ad-title { font-weight: 700; font-size: 1rem; color: var(--text, #111); }
+.sf-house-ad-sub { font-size: .84rem; color: var(--text-muted, #666); margin-top: .1rem; }
+.sf-house-ad-cta {
+  background: linear-gradient(135deg, #34d399, #10b981);
+  color: #fff;
+  padding: .55rem 1rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: .9rem;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(16,185,129,0.25);
+}
+
+/* ── Rewarded ad modal ─────────────────────────────────────────────────── */
+.sf-rw-overlay {
+  position: fixed; inset: 0;
+  background: rgba(11, 14, 22, 0.68);
+  z-index: 10000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+  animation: sfRwFade .12s ease-out;
+}
+@keyframes sfRwFade { from { opacity: 0 } to { opacity: 1 } }
+body.sf-rw-open { overflow: hidden; }
+.sf-rw-modal {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  background: var(--card-bg, #fff);
+  border-radius: 16px;
+  padding: 1.4rem 1.4rem 1.2rem;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+  border: 1px solid rgba(0,0,0,0.06);
+}
+.sf-rw-close {
+  position: absolute; top: .55rem; right: .7rem;
+  background: none; border: none; color: var(--text-muted, #888);
+  font-size: 1.15rem; cursor: pointer; padding: .25rem .45rem; border-radius: 6px;
+}
+.sf-rw-close:hover { background: rgba(0,0,0,0.05); color: var(--text, #111); }
+.sf-rw-eyebrow {
+  font-size: .7rem; letter-spacing: .12em; font-weight: 700;
+  color: var(--text-muted, #666); text-transform: uppercase;
+  margin-bottom: .8rem;
+}
+.sf-rw-slot { min-height: 200px; margin-bottom: 1rem; }
+.sf-rw-slot .sf-ad-slot { margin: 0; }
+.sf-rw-foot { display: flex; flex-direction: column; gap: .7rem; }
+.sf-rw-timer { font-size: .85rem; color: var(--text-muted, #666); font-weight: 600; text-align: center; }
+.sf-rw-actions { display: flex; flex-direction: column; gap: .5rem; }
+.sf-rw-continue {
+  background: linear-gradient(135deg, #fb923c, var(--orange, #f97316));
+  color: #fff; border: none; border-radius: 10px;
+  padding: .85rem 1.1rem; font-weight: 700; font-size: .98rem;
+  cursor: not-allowed; opacity: .5;
+  transition: opacity .15s ease, transform .12s ease;
+}
+.sf-rw-continue.ready { opacity: 1; cursor: pointer; }
+.sf-rw-continue.ready:hover { transform: translateY(-1px); }
+.sf-rw-upgrade {
+  background: transparent; color: var(--text, #111);
+  border: 1px solid rgba(0,0,0,0.15); border-radius: 10px;
+  padding: .75rem 1.1rem; font-weight: 600; font-size: .9rem; cursor: pointer;
+}
+.sf-rw-upgrade:hover { border-color: var(--orange, #f97316); color: var(--orange, #f97316); }
+
+/* ── Strategy lock card CTA row (dual: watch ad + upgrade) ─────────────── */
+.strat-ev-paywall-actions {
+  display: flex; flex-direction: column; gap: .6rem;
+  align-items: center; margin-top: .3rem;
+}
+.strat-ev-paywall-btn.secondary {
+  background: transparent; color: var(--text, #111);
+  border: 1px solid rgba(0,0,0,0.15);
+  box-shadow: none;
+}
+.strat-ev-paywall-btn.secondary:hover {
+  border-color: var(--orange, #f97316); color: var(--orange, #f97316);
+  box-shadow: none;
+}
