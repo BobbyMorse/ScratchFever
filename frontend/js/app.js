@@ -330,6 +330,9 @@ function protectedFetch(url, opts = {}) {
 function _setUser(user) {
   _currentUser = user;
   syncPremiumOptionLabels();
+  // Ads: notify the ad layer so banner slots hide (for new Pro) or restore
+  // (for Pro → free / logout).
+  try { document.dispatchEvent(new CustomEvent("sf:user-changed", { detail: { isPro: !!(user && user.is_pro) } })); } catch (_) {}
   // Toggle the full EV-table paywall overlay (legacy table view, kept for
   // defense — current redesign uses an inline paywall card on the tile view).
   const evPaywall = document.getElementById("evTablePaywall");
