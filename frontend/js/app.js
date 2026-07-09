@@ -1463,6 +1463,57 @@ function strategyTile(g, rank, heroVal, heroLbl, opts = {}) {
   </div>`;
 }
 
+// Title/subtitle + lock-card copy for each strategy that's gated (Pro or
+// rewarded-ad unlock). Keyed by strategy name so we can render the lock
+// card without falling through into the per-strategy rendering branches.
+const _STRATEGY_LOCK_META = {
+  ev: {
+    title: "The +EV ranked list",
+    sub: "Positive-EV games ranked by Return %, with full Net EV, $1M+ odds, prize pool data, and the ordered list of best plays right now.",
+  },
+  million: {
+    title: "$1M+ Jackpot Hunter",
+    sub: "Games with the best published odds of hitting a million-dollar+ top prize, ranked lowest-odds-first.",
+  },
+  byprice: {
+    title: "Best by Price Tier",
+    sub: "Top games ranked by return % within each price point — pick the best $1, $5, $10, $20, $30 ticket to buy.",
+  },
+  almostgone: {
+    title: "Almost Gone",
+    sub: "Games whose retailers are about to run out — the last-copies scarcity that flips EV in the closing weeks.",
+  },
+};
+
+// Session-scoped ad unlock for a gated strategy. Shows the rewarded ad;
+// on completion, unlocks + re-renders. Otherwise the lock card stays.
+window.sfWatchAdToUnlockStrategy = async function (name) {
+  if (!window.SFAds || typeof window.SFAds.showRewardedAd !== "function") {
+    openPaywallOrLogin();
+    return;
+  }
+  const meta = _STRATEGY_LOCK_META[name] || {};
+  const earned = await window.SFAds.showRewardedAd({ surface: "strategy", key: name, label: meta.title });
+  if (earned) {
+    window.SFAds.unlockStrategy(name);
+    renderStrategyView();
+  }
+};
+
+function _strategyLockCardHtml(strategyName, title, sub) {
+  const safe = String(strategyName).replace(/[^a-z_]/gi, "");
+  return `
+    <div class="strat-ev-paywall">
+      <div class="strat-ev-paywall-icon">🔒</div>
+      <div class="strat-ev-paywall-title">${escHtml(title)}</div>
+      <div class="strat-ev-paywall-sub">${escHtml(sub)}</div>
+      <div class="strat-ev-paywall-actions">
+        <button class="strat-ev-paywall-btn" onclick="sfWatchAdToUnlockStrategy('${safe}')">▶ Watch ad to unlock</button>
+        <button class="strat-ev-paywall-btn secondary" onclick="openPaywallOrLogin()">Upgrade to Pro — no ads</button>
+      </div>
+    </div>`;
+}
+
 function renderStrategyView() {
   const name = currentStrategy;
   const container = document.getElementById("strategyTiles");
