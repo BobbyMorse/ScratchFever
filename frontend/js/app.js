@@ -224,10 +224,10 @@ function gameChooserSub(g) {
   return `<span style="color:var(--text-muted);font-size:.78rem">${parts.join(" · ")}</span>`;
 }
 
-// Premium strategies. Selecting one as a free user pops the paywall and
-// reverts the strategy selector back to a free option ("any"). "ev" (the
-// default landing) is intentionally excluded — free users land on the EV
-// table with blurred Return %, which is the gateway preview.
+// Premium strategies. Free users can either watch a rewarded ad to unlock
+// one for the session (mobile-parity model) or upgrade to Pro to remove
+// ads and unlock everything permanently. "ev" isn't in this set but is
+// gated the same way in renderStrategyView — it's the headline product.
 const PREMIUM_STRATEGIES = new Set(["almostgone", "byprice", "million"]);
 
 // Sync the 🔒 prefix on premium strategy <option>s with current pro state.
