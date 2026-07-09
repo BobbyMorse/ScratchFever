@@ -191,6 +191,16 @@ function isPro() { return !!(_currentUser && _currentUser.is_pro); }
 // with digits in attributes), otherwise attribute digits will be mangled too.
 function gateBlur(text) {
   if (isPro()) return text;
+  // Rewarded-ad unlocks reveal Return % on the strategy view whose unlock
+  // was earned — the "ev" surface is intentionally not on the ma (Chase) tab,
+  // so Chase Return % stays gated as the reserved Pro product.
+  const inChase = (typeof currentTab !== "undefined" && currentTab === "ma");
+  if (!inChase
+      && typeof currentStrategy !== "undefined"
+      && window.SFAds
+      && window.SFAds.isStrategyUnlocked(currentStrategy)) {
+    return text;
+  }
   const redacted = String(text).replace(/\d/g, "?");
   return `<span class="gated-blur" onclick="event.stopPropagation(); openPaywallOrLogin()" title="Upgrade to Pro to unlock">${redacted}</span>`;
 }
