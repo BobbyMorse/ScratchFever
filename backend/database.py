@@ -973,17 +973,36 @@ async def add_inventory_report(conn, retailer_id: str, retailer_name: str = None
 
 
 async def get_recent_prize_claims(conn, days: int = 7, limit: int = 200, min_prize: float = 0):
+    # LEFT JOIN LATERAL picks at most one matching reported_win per prize_claim —
+    # same state, same game, same prize, with a claim_date within ±30 days of the
+    # inventory-detection timestamp. When the state publishes an official win
+    # report, the row gains retailer/city; otherwise those fields are NULL and
+    # the client just omits the location line.
     rows = await conn.fetch("""
-        SELECT id, game_db_id, game_name, state_code, prize_amount, tier_rank,
-               prev_remaining, new_remaining, claimed_count, detected_at
-        FROM prize_claims
-        WHERE detected_at >= NOW() - make_interval(days => $1)
-          AND prize_amount >= $3
-        ORDER BY detected_at DESC
+        SELECT pc.id, pc.game_db_id, pc.game_name, pc.state_code, pc.prize_amount,
+               pc.tier_rank, pc.prev_remaining, pc.new_remaining, pc.claimed_count,
+               pc.detected_at,
+               rw.retailer_name, rw.retailer_city, rw.winner_city
+        FROM prize_claims pc
+        LEFT JOIN LATERAL (
+            SELECT retailer_name, retailer_city, winner_city
+            FROM reported_wins
+            WHERE state_code = pc.state_code
+              AND game_db_id = pc.game_db_id
+              AND prize_amount = pc.prize_amount
+              AND claim_date BETWEEN (pc.detected_at::date - INTERVAL '30 days')
+                                 AND (pc.detected_at::date + INTERVAL '7 days')
+            ORDER BY claim_date DESC
+            LIMIT 1
+        ) rw ON TRUE
+        WHERE pc.detected_at >= NOW() - make_interval(days => $1)
+          AND pc.prize_amount >= $3
+        ORDER BY pc.detected_at DESC
         LIMIT $2
     """, days, limit, min_prize)
     cols = ["id", "game_db_id", "game_name", "state_code", "prize_amount", "tier_rank",
-            "prev_remaining", "new_remaining", "claimed_count", "detected_at"]
+            "prev_remaining", "new_remaining", "claimed_count", "detected_at",
+            "retailer_name", "retailer_city", "winner_city"]
     return [dict(zip(cols, r)) for r in rows]
 
 
