@@ -3551,7 +3551,39 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
   margin: 1.25rem auto;
   min-height: 96px;
 }
+/* Inline banner injected inside CSS-grid tile lists — span all columns
+   so it flows as its own full-width row between tiles. */
+.sf-ad-slot--inline {
+  grid-column: 1 / -1;
+  margin: .25rem 0;
+  max-width: none;
+  min-height: 90px;
+}
+/* Above the ScratchSim play board — engaged screen time, keep it compact
+   so the ticket stays above the fold on laptops. */
+.sf-ad-slot--sim {
+  margin: .25rem auto 1rem;
+  max-width: 728px;
+  min-height: 90px;
+}
+/* Sticky right rail — only appears on very wide desktops where the tile
+   grid has real breathing room. Skyscraper unit (300x600). */
+.sf-ad-rail { display: none; }
+.sf-ad-slot--rail {
+  width: 300px;
+  min-height: 600px;
+  margin: 0;
+  max-width: none;
+  position: sticky;
+  top: 1rem;
+}
+@media (min-width: 1500px) {
+  .strategy-tiles-wrap { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 1.5rem; align-items: start; }
+  .sf-ad-rail { display: block; grid-column: 2; grid-row: 1; }
+  .strategy-tiles-wrap > .strategy-tiles { grid-column: 1; grid-row: 1; }
+}
 body.is-pro-user .sf-ad-slot,
+body.is-pro-user .sf-ad-rail,
 body.is-pro-user .sf-house-ad,
 body.is-pro-user .sf-ad-ins { display: none !important; }
 
