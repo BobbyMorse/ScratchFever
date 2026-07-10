@@ -230,6 +230,36 @@ function gameChooserSub(g) {
 // gated the same way in renderStrategyView — it's the headline product.
 const PREMIUM_STRATEGIES = new Set(["almostgone", "byprice", "million"]);
 
+// Inline banner sprinkled between tile/row items. Rendered by SFAds after
+// injection into the DOM. `slotName` is a namespace so AdSense unit ids can
+// be swapped per-surface later without touching template code.
+function _sfInlineAdHtml(slotName) {
+  return `<div class="sf-ad-slot sf-ad-slot--inline" data-sf-ad-slot="${slotName || "inline"}"></div>`;
+}
+// Interleave inline ad slots into a rendered array of HTML strings, one
+// every `every` items (default 15). Skips when the caller is a Pro user
+// since the slot would just be display:none anyway.
+function _sfInterleaveAds(items, every, slotName) {
+  if (!items || !items.length) return items || [];
+  if (typeof isPro === "function" && isPro()) return items;
+  const n = Math.max(6, every || 15);
+  const out = [];
+  for (let i = 0; i < items.length; i++) {
+    out.push(items[i]);
+    if ((i + 1) % n === 0 && (i + 1) < items.length) {
+      out.push(_sfInlineAdHtml(slotName));
+    }
+  }
+  return out;
+}
+function _sfRefreshAdsSoon() {
+  if (window.SFAds && typeof window.SFAds.refreshAllBanners === "function") {
+    // Defer a tick so freshly-injected slots are in the DOM before
+    // adsbygoogle.push is called on them.
+    setTimeout(() => window.SFAds.refreshAllBanners(), 0);
+  }
+}
+
 // Sync the 🔒 prefix on premium strategy <option>s with current pro state.
 // Each premium option carries a data-premium="1" attribute; we toggle the
 // text to "🔒 Label" for free users and bare "Label" for Pro.
