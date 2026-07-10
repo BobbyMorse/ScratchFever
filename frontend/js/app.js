@@ -2292,7 +2292,8 @@ function filterBigWins() {
     return;
   }
   countEl.textContent = `${filtered.length} claim${filtered.length !== 1 ? "s" : ""}`;
-  list.innerHTML = filtered.map(buildClaimItem).join("");
+  list.innerHTML = _sfInterleaveAds(filtered.map(buildClaimItem), 15, "bigwins_inline").join("");
+  _sfRefreshAdsSoon();
 }
 
 function setBigWinsView(view) {
