@@ -17,6 +17,7 @@
 
   // ── Session unlocks (in-memory, cleared on tab close) ────────────────────
   const _unlockedStrategies = new Set();
+  const _warnedSlots = new Set();
 
   function isStrategyUnlocked(name) {
     return _unlockedStrategies.has(name);
