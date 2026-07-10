@@ -51,18 +51,9 @@
     return v || null;
   }
 
-  let _adsenseLoaded = false;
-  function _loadAdSense() {
-    if (_adsenseLoaded) return;
-    const client = _adsenseClient();
-    if (!client) return;
-    _adsenseLoaded = true;
-    const s = document.createElement("script");
-    s.async = true;
-    s.crossOrigin = "anonymous";
-    s.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(client)}`;
-    document.head.appendChild(s);
-  }
+  // The adsbygoogle loader script lives in <head> so Google's crawler can
+  // verify the site during AdSense review. We just need to push into
+  // window.adsbygoogle when a slot renders.
 
   // Render a banner into `container`. No-ops for Pro; renders AdSense if a
   // client+slot pair is configured, otherwise renders the fallback "upgrade"
@@ -75,7 +66,6 @@
     const client = _adsenseClient();
     const slot = _adsenseSlot(slotName);
     if (client && slot) {
-      _loadAdSense();
       container.innerHTML = `<ins class="adsbygoogle sf-ad-ins"
         style="display:block"
         data-ad-client="${client}"
