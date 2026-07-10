@@ -449,6 +449,66 @@ body {
 }
 .sub-lock { font-size: .68rem; opacity: .85; }
 body.is-pro-user .sub-lock { display: none; }
+
+/* Divider between free strategies and premium strategies in the sub-nav */
+.sidebar-subnav-divider {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin: .55rem .2rem .25rem;
+  font-size: .58rem;
+  font-weight: 800;
+  letter-spacing: .14em;
+  color: rgba(148,163,184,.55);
+  text-transform: uppercase;
+}
+.sidebar-subnav-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, rgba(148,163,184,.28), transparent);
+}
+
+/* Flagship strategy — Positive EV — visually distinct even while locked so
+   users understand it's the headline product. Gold/orange accent + star
+   badge + subtle glow. Overrides the default lock-icon slot. */
+.sidebar-subitem.is-flagship {
+  background: linear-gradient(90deg, rgba(249,115,22,.10), rgba(249,115,22,.02));
+  border: 1px solid rgba(249,115,22,.32);
+  color: #fde68a;
+  font-weight: 700;
+  box-shadow: 0 0 0 1px rgba(249,115,22,.06) inset, 0 2px 10px rgba(249,115,22,.14);
+  padding-right: .35rem;
+}
+.sidebar-subitem.is-flagship:hover {
+  background: linear-gradient(90deg, rgba(249,115,22,.18), rgba(249,115,22,.05));
+  color: #fff7ed;
+}
+.sidebar-subitem.is-flagship.active {
+  background: linear-gradient(90deg, rgba(249,115,22,.22), rgba(249,115,22,.06));
+  color: #fff;
+}
+.sidebar-subitem.is-flagship.active::before { background: #facc15; }
+.sub-star {
+  font-size: .78rem;
+  color: #facc15;
+  text-shadow: 0 0 6px rgba(250,204,21,.6);
+  line-height: 1;
+}
+.sub-flag {
+  margin-left: auto;
+  font-size: .55rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+  padding: .18rem .4rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  color: #1a1206;
+  text-transform: uppercase;
+  box-shadow: 0 2px 6px rgba(249,115,22,.35);
+}
+body.is-pro-user .sub-flag { background: linear-gradient(135deg, #22c55e, #10b981); color: #052e1a; }
+
 @media (max-width: 900px) {
   .sidebar-subnav { margin-left: 1rem; }
   .sidebar-subitem { padding: .5rem .7rem; font-size: .82rem; }
