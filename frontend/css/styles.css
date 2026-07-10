@@ -489,25 +489,19 @@ body.is-pro-user .sub-lock { display: none; }
   color: #fff;
 }
 .sidebar-subitem.is-flagship.active::before { background: #facc15; }
+/* Premium-strategy marker (replaces the old lock icon). Subtle gold star on
+   regular premium items; the flagship (Positive EV) gets a brighter glow. */
 .sub-star {
-  font-size: .78rem;
-  color: #facc15;
-  text-shadow: 0 0 6px rgba(250,204,21,.6);
+  font-size: .72rem;
+  color: rgba(250,204,21,.75);
   line-height: 1;
 }
-.sub-flag {
-  margin-left: auto;
-  font-size: .55rem;
-  font-weight: 800;
-  letter-spacing: .12em;
-  padding: .18rem .4rem;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #f59e0b, #f97316);
-  color: #1a1206;
-  text-transform: uppercase;
-  box-shadow: 0 2px 6px rgba(249,115,22,.35);
+.sidebar-subitem.is-flagship .sub-star {
+  color: #facc15;
+  text-shadow: 0 0 6px rgba(250,204,21,.6);
+  font-size: .78rem;
 }
-body.is-pro-user .sub-flag { background: linear-gradient(135deg, #22c55e, #10b981); color: #052e1a; }
+body.is-pro-user .sub-star { display: none; }
 
 @media (max-width: 900px) {
   .sidebar-subnav { margin-left: 1rem; }
