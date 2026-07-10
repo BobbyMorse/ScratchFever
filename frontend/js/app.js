@@ -1723,8 +1723,9 @@ function renderStrategyView() {
       </div>`);
     }
     container.innerHTML = sections.length
-      ? sections.join("")
+      ? _sfInterleaveAds(sections, 2, "strategy_inline").join("")
       : `<div class="strat-tile-empty">No games match this strategy with current filters.</div>`;
+    _sfRefreshAdsSoon();
     return;
   }
   else if (name === "fresh") {
