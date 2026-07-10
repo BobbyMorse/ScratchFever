@@ -49,7 +49,16 @@
   function _adsenseSlot(name) {
     const meta = document.querySelector(`meta[name="sf-adsense-slot-${name}"]`);
     const v = (meta && meta.content ? meta.content : "").trim();
-    return v || null;
+    if (v) return v;
+    // Fallback: any slot without its own ID uses the generic "banner" ID.
+    // This lets a single responsive display unit power every placement so
+    // ops can go live by pasting one slot ID instead of ten.
+    if (name !== "banner") {
+      const fallback = document.querySelector(`meta[name="sf-adsense-slot-banner"]`);
+      const fv = (fallback && fallback.content ? fallback.content : "").trim();
+      if (fv) return fv;
+    }
+    return null;
   }
 
   // The adsbygoogle loader script lives in <head> so Google's crawler can
