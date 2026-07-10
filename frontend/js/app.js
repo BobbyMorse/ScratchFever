@@ -1389,7 +1389,10 @@ async function loadAllGamesUnfiltered() {
 // need "current" odds (live ratio of prizes_remaining to tickets_remaining),
 // rather than the published launch odds already on the game row.
 let strategyStatsById = null;
-let currentStrategy = "ev";
+// Default landing strategy is the highest-value FREE strategy so cold
+// visitors (and AdSense crawlers) see real content, not a lock CTA. The
+// flagship Positive EV strategy is still one click away in the sidebar.
+let currentStrategy = "any";
 
 async function loadStrategyStats() {
   if (strategyStatsById) return;
@@ -1400,7 +1403,11 @@ async function loadStrategyStats() {
     const map = {};
     for (const s of (data.stats || [])) map[s.id] = s;
     strategyStatsById = map;
-    if (currentStrategy !== "ev") renderStrategyView();
+    // Any strategy that depends on live prize-tier stats (Any-Prize Odds,
+    // $X+ Hunter, $1M+ Hunter, Top Prize Hunter) needs a re-render once
+    // stats arrive. "ev", "launch", "fresh", "byprice", "almostgone" don't.
+    const needsRerender = new Set(["any", "threshold", "million", "topprize"]);
+    if (needsRerender.has(currentStrategy)) renderStrategyView();
   } catch (_) {}
 }
 
