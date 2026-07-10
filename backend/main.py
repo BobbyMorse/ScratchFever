@@ -265,6 +265,26 @@ SITE_ORIGIN = os.environ.get("SITE_ORIGIN", "https://scratchfrenzy.app").rstrip(
 _SITEMAP_STATES_WITH_RETAILERS = ["MA", "AZ", "FL", "GA", "RI"]
 
 
+@app.get("/app-ads.txt", include_in_schema=False)
+async def app_ads_txt():
+    # AdMob authorized sellers declaration for the ScratchFrenzy mobile app.
+    # Publisher ID pub-6195967521355265 corresponds to the AdMob account owned
+    # by bobby@evqagentic.com. Without this file, AdMob eCPM drops 20-40% because
+    # bidders can't verify inventory legitimacy per the IAB app-ads.txt spec.
+    body = "google.com, pub-6195967521355265, DIRECT, f08c47fec0942fa0\n"
+    return PlainTextResponse(body, media_type="text/plain; charset=utf-8")
+
+
+@app.get("/ads.txt", include_in_schema=False)
+async def ads_txt():
+    # AdSense authorized sellers declaration for the ScratchFrenzy web app.
+    # Same publisher ID as AdMob (Google merges AdSense + AdMob under one
+    # publisher account). Without this file at the root, AdSense refuses to
+    # serve programmatic display and yields drop 25-40%.
+    body = "google.com, pub-6195967521355265, DIRECT, f08c47fec0942fa0\n"
+    return PlainTextResponse(body, media_type="text/plain; charset=utf-8")
+
+
 @app.get("/robots.txt", include_in_schema=False)
 async def robots_txt():
     body = (
