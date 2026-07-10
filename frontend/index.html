@@ -188,15 +188,19 @@
       </button>
 
       <!-- Strategy sub-nav (only shown while EV Games tab is active) -->
+      <!-- Free strategies first (browseable without a lock), premium strategies
+           grouped at the bottom. Reordered so first-time visitors + AdSense
+           crawlers land on real content instead of a lock CTA. -->
       <div class="sidebar-subnav" id="evSubnav">
-        <button class="sidebar-subitem active" data-strategy="ev" data-premium="1" onclick="selectStrategy('ev')"><span class="sub-lock">🔒</span>Positive EV</button>
-        <button class="sidebar-subitem" data-strategy="any" onclick="selectStrategy('any')">Any-Prize Odds</button>
+        <button class="sidebar-subitem active" data-strategy="any" onclick="selectStrategy('any')">Any-Prize Odds</button>
         <button class="sidebar-subitem" data-strategy="threshold" onclick="selectStrategy('threshold')">$X+ Hunter</button>
-        <button class="sidebar-subitem" data-strategy="million" data-premium="1" onclick="selectStrategy('million')"><span class="sub-lock">🔒</span>$1M+ Hunter</button>
         <button class="sidebar-subitem" data-strategy="topprize" onclick="selectStrategy('topprize')">Top Prize Hunter</button>
         <button class="sidebar-subitem" data-strategy="launch" onclick="selectStrategy('launch')">Launch Odds</button>
-        <button class="sidebar-subitem" data-strategy="byprice" data-premium="1" onclick="selectStrategy('byprice')"><span class="sub-lock">🔒</span>By Price Tier</button>
         <button class="sidebar-subitem" data-strategy="fresh" onclick="selectStrategy('fresh')">Fresh Drops</button>
+        <div class="sidebar-subnav-divider" aria-hidden="true"><span>PRO STRATEGIES</span></div>
+        <button class="sidebar-subitem is-flagship" data-strategy="ev" data-premium="1" onclick="selectStrategy('ev')"><span class="sub-star">★</span>Positive EV<span class="sub-flag">FLAGSHIP</span></button>
+        <button class="sidebar-subitem" data-strategy="million" data-premium="1" onclick="selectStrategy('million')"><span class="sub-lock">🔒</span>$1M+ Hunter</button>
+        <button class="sidebar-subitem" data-strategy="byprice" data-premium="1" onclick="selectStrategy('byprice')"><span class="sub-lock">🔒</span>By Price Tier</button>
         <button class="sidebar-subitem" data-strategy="almostgone" data-premium="1" onclick="selectStrategy('almostgone')"><span class="sub-lock">🔒</span>Almost Gone</button>
       </div>
 
