@@ -1768,7 +1768,8 @@ function renderStrategyView() {
     container.innerHTML = `<div class="strat-tile-empty">No games match this strategy with current filters.${needsStats && !strategyStatsById ? " (Prize data loading…)" : ""}</div>`;
     return;
   }
-  container.innerHTML = ranked.join("");
+  container.innerHTML = _sfInterleaveAds(ranked, 15, "strategy_inline").join("");
+  _sfRefreshAdsSoon();
 }
 
 function loadingTile() {
