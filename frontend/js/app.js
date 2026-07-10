@@ -9440,7 +9440,7 @@ function renderScratchSimList() {
     return;
   }
 
-  grid.innerHTML = games.map(g => {
+  const tiles = games.map(g => {
     const img = g.image_url
       ? `<img src="${escHtml(g.image_url)}" alt="${escHtml(g.name)}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'scratchsim-tile-img-empty',textContent:'No image'}))">`
       : `<div class="scratchsim-tile-img-empty">No image</div>`;
@@ -9460,7 +9460,9 @@ function renderScratchSimList() {
         <div class="scratchsim-tile-play">Scratch this</div>
       </div>
     `;
-  }).join("");
+  });
+  grid.innerHTML = _sfInterleaveAds(tiles, 12, "scratchsim_inline").join("");
+  _sfRefreshAdsSoon();
 }
 
 async function openScratchSim(id) {
