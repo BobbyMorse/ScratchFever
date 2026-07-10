@@ -25,10 +25,17 @@
   <meta name="twitter:description" content="Real-time expected value on every state lottery scratch ticket. Find the games where the math has flipped." />
   <meta name="twitter:image" content="https://scratchfrenzy.app/static/images/logo.png" />
 
-  <!-- AdSense: leave content empty until publisher account is approved; ads.js falls back to a house-ad slot in the meantime. -->
-  <meta name="sf-adsense-client" content="" />
+  <!-- AdSense: pub ID matches the AdMob account (Google merges the two).
+       Slot IDs stay empty until ad units are created in the AdSense console —
+       at that point ads.js picks them up and swaps live inventory in for the
+       house upsell card. The adsbygoogle loader below is what Google's crawler
+       looks for to verify the site during AdSense review. -->
+  <meta name="google-adsense-account" content="ca-pub-6195967521355265" />
+  <meta name="sf-adsense-client" content="ca-pub-6195967521355265" />
   <meta name="sf-adsense-slot-banner" content="" />
   <meta name="sf-adsense-slot-rewarded" content="" />
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6195967521355265"
+          crossorigin="anonymous"></script>
 
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" type="image/svg+xml" href="/static/images/favicon.svg" />
