@@ -373,14 +373,21 @@
           </div>
         </section>
 
+        <!-- Ad slot (top of strategy view) — hidden for Pro users -->
+        <div class="sf-ad-slot" data-sf-ad-slot="leaderboard"></div>
+
         <!-- Tile view container (all strategies, including Positive EV) -->
         <section class="strategy-tiles-wrap" id="strategyTilesWrap">
+          <!-- Optional right rail (desktop wide only) -->
+          <aside class="sf-ad-rail" aria-label="Sponsored">
+            <div class="sf-ad-slot sf-ad-slot--rail" data-sf-ad-slot="rail"></div>
+          </aside>
           <div class="strategy-tiles" id="strategyTiles">
             <div class="loading-cell" style="grid-column:1/-1;padding:2rem;text-align:center">Loading…</div>
           </div>
         </section>
 
-        <!-- Ad slot — hidden for Pro users via .is-pro-user rule -->
+        <!-- Ad slot (bottom of strategy view) — hidden for Pro users -->
         <div class="sf-ad-slot" data-sf-ad-slot="banner"></div>
 
         <!-- Legacy filters bar — kept hidden so existing JS refs (#searchInput etc.) don't break -->
