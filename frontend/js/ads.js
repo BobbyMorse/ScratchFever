@@ -65,6 +65,14 @@
     const slotName = (opts && opts.slot) || "banner";
     const client = _adsenseClient();
     const slot = _adsenseSlot(slotName);
+    // When the pub ID is configured but a slot ID isn't, we're in the "site
+    // approved but ad units not created" gap — surface it once so it doesn't
+    // silently keep serving the house ad after Google actually approves the
+    // account. Only warn once per slot name per session to avoid console spam.
+    if (client && !slot && !_warnedSlots.has(slotName)) {
+      _warnedSlots.add(slotName);
+      try { console.warn(`[ads] AdSense client set but slot "${slotName}" is empty — house ad rendering. Set <meta name="sf-adsense-slot-${slotName}">.`); } catch (_) {}
+    }
     if (client && slot) {
       container.innerHTML = `<ins class="adsbygoogle sf-ad-ins"
         style="display:block"
