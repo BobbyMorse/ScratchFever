@@ -96,6 +96,7 @@
       <li><strong>Camera access (Mobile App, only if you grant permission):</strong> used to capture and flatten lottery ticket photos for on-device scanning and OCR. Photos are sent to our ticket-scanning service for processing.</li>
       <li><strong>Photo library access (Mobile App, only if you grant permission):</strong> used to attach existing photos of tickets you choose.</li>
       <li><strong>Identifiers:</strong> a generated user identifier we associate with your account, plus standard identifiers your device provides to PostHog (see Section 3).</li>
+      <li><strong>Advertising identifiers (Mobile App):</strong> Google AdMob may access your device's advertising identifier (Apple IDFA on iOS or Google Advertising ID on Android) to serve and measure ads within the Mobile App. On iOS, you will be shown Apple's App Tracking Transparency prompt and can decline; on Android, you can reset or opt out of the advertising ID in your device settings. See Section 3a for details.</li>
     </ul>
 
     <h3>1c. Information from third parties</h3>
@@ -123,9 +124,15 @@
       <li><strong>Cloudflare</strong> — content delivery and our ticket-scanning edge service. Receives uploaded scan images during processing.</li>
       <li><strong>Stripe</strong> — payment processing for web subscriptions only.</li>
       <li><strong>Google Maps</strong> — renders retailer maps inside the Mobile App. Map tile requests include approximate viewport coordinates.</li>
+      <li><strong>Google AdMob (Mobile App)</strong> — serves banner and rewarded advertisements inside the Mobile App and measures ad performance. Receives your device's advertising identifier (if permitted), coarse device and network information, and interaction events with the ads shown. Google acts as an independent controller for the advertising data it collects. See Section 3a.</li>
       <li><strong>Hosting providers</strong> — host our website and backend (e.g., Vercel, AWS).</li>
     </ul>
-    <p>These providers act as our service providers / processors and are contractually limited to the purposes above.</p>
+    <p>These providers act as our service providers / processors and are contractually limited to the purposes above, except Google AdMob, which acts as an independent controller for advertising data.</p>
+
+    <h3>3a. Advertising in the Mobile App</h3>
+    <p>The Mobile App is supported by advertising served through Google AdMob. Ads may include banners and optional rewarded video ads that users choose to watch in exchange for unlocking premium features. We do <strong>not</strong> share your account email, username, ticket scans, or precise location with AdMob or advertisers.</p>
+    <p>Before requesting any personalized ads, the Mobile App runs Google's User Messaging Platform (UMP) consent flow to collect any required consent (for example, in the EEA/UK) and, on iOS, presents Apple's App Tracking Transparency (ATT) prompt. If you decline tracking, AdMob serves only non-personalized ads and does not use your advertising identifier for cross-app tracking. You can change your choice at any time in your device's Settings (iOS: Settings → Privacy &amp; Security → Tracking; Android: Settings → Google → Ads).</p>
+    <p>Google's use of information collected through AdMob is governed by the <a href="https://policies.google.com/privacy" rel="noopener" target="_blank">Google Privacy Policy</a> and the <a href="https://support.google.com/admob/answer/6128543" rel="noopener" target="_blank">How Google uses information from sites or apps that use our services</a> page.</p>
 
     <h2>4. Data Sharing</h2>
     <p>We do not sell or rent your personal information. We do not share your personal information with third parties for their own marketing. We may disclose information when required by law, to enforce our Terms, or to protect the rights, property, or safety of ScratchFrenzy or others.</p>
