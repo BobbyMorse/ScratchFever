@@ -102,6 +102,10 @@ class MaineScraper(BaseScraper):
                 norm = _norm(name)
                 unclaimed_data = unclaimed.get(norm)
 
+                # Skip games with 0% unsold (completely sold out).
+                if unclaimed_data and unclaimed_data.get("percent_unsold", 0) == 0:
+                    continue
+
                 # Prefer the official ME game number from the unclaimed table for a
                 # stable game_id; fall back to the maine.gov topic id.
                 if unclaimed_data:
