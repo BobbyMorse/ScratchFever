@@ -189,9 +189,6 @@ class MaineScraper(BaseScraper):
 
             if total_tickets and percent_unsold is not None:
                 tickets_remaining = int(round(total_tickets * percent_unsold / 100))
-                # Skip games that calculate to zero remaining tickets (sold out).
-                if tickets_remaining == 0:
-                    tickets_remaining = None
 
             top_tier_value = sum(amt * cnt for amt, cnt in unclaimed_data["top_tiers"])
             small_unclaimed = max(0.0, (total_unclaimed or 0.0) - top_tier_value)
