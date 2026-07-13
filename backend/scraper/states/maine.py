@@ -142,7 +142,9 @@ class MaineScraper(BaseScraper):
                     total_tickets=total_tickets,
                     unclaimed_data=unclaimed_data,
                 )
-                games.append(game)
+                # Skip games with no remaining tickets (sold out, can't play).
+                if game.get("tickets_remaining", 0) and game["tickets_remaining"] > 0:
+                    games.append(game)
 
         with_ev = sum(1 for g in games if g.get("ev") is not None)
         logger.info("ME: %d games scraped (%d with EV)", len(games), with_ev)
