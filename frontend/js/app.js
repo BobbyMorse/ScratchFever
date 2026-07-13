@@ -1737,11 +1737,11 @@ function renderStrategyView() {
   }
   else if (name === "fresh") {
     titleEl.textContent = "Fresh Drops";
-    subEl.textContent = "Games launched in the last 60 days, ranked by return % — full prize pools still in play.";
+    subEl.textContent = "Games launched in the last 60 days, ranked by release date — full prize pools still in play.";
     const cutoff = Date.now() - 60 * 86400000;
     ranked = pool
       .filter(g => g.start_date && parseReportedAt(g.start_date) >= cutoff)
-      .sort((a, b) => (b.return_pct || 0) - (a.return_pct || 0))
+      .sort((a, b) => parseReportedAt(b.start_date) - parseReportedAt(a.start_date))
       .slice(0, 60)
       .map((g, i) => {
         const days = Math.floor((Date.now() - parseReportedAt(g.start_date)) / 86400000);
