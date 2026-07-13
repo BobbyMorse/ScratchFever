@@ -171,6 +171,29 @@ class MaineScraper(BaseScraper):
         prize_pool_left = None
 
         if unclaimed_data:
+            percent_unsold = unclaimed_data["percent_unsold"]
+            # Don't add games with negligible unsold inventory (can't calculate EV).
+            if percent_unsold is None or percent_unsold <= 0:
+                return {
+                    "game_id":             game_id,
+                    "name":                name,
+                    "price":                price,
+                    "ev":                   None,
+                    "return_pct":           None,
+                    "overall_odds_one_in":  overall_odds,
+                    "top_prize":            0.0,
+                    "top_prize_remaining":  None,
+                    "jackpot_odds_one_in":  None,
+                    "total_tickets":        total_tickets,
+                    "tickets_remaining":    None,
+                    "prize_pool_left":      None,
+                    "detail_url":           detail_url,
+                    "image_url":            image_url,
+                    "end_date":             None,
+                    "ev_approximate":       True,
+                    "tiers":                [],
+                }
+
             for amt, cnt in unclaimed_data["top_tiers"]:
                 tiers.append({
                     "prize_amount":     amt,
@@ -184,7 +207,6 @@ class MaineScraper(BaseScraper):
                 top_prize = top["prize_amount"]
                 top_prize_remaining = top["prizes_remaining"]
 
-            percent_unsold = unclaimed_data["percent_unsold"]
             total_unclaimed = unclaimed_data["total_unclaimed"]
 
             if total_tickets and percent_unsold is not None:
