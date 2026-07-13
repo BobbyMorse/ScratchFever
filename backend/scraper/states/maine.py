@@ -102,17 +102,9 @@ class MaineScraper(BaseScraper):
                 norm = _norm(name)
                 unclaimed_data = unclaimed.get(norm)
 
-                # Skip games with negligible unsold inventory (can't calculate meaningful EV).
-                # Includes both 0% explicitly and values that round to 0 tickets remaining.
-                if unclaimed_data:
-                    pct = unclaimed_data.get("percent_unsold", 0)
-                    if pct and self.base_url and total_tickets is not None:
-                        # Approximate: would this game's percent_unsold round to 0 tickets?
-                        estimated_remaining = int(round(total_tickets * pct / 100)) if total_tickets else 0
-                        if estimated_remaining == 0:
-                            continue
-                    elif not pct:
-                        continue
+                # Skip games with ≤0% unsold (completely or effectively sold out).
+                if unclaimed_data and unclaimed_data.get("percent_unsold", 0) <= 0:
+                    continue
 
                 # Prefer the official ME game number from the unclaimed table for a
                 # stable game_id; fall back to the maine.gov topic id.
