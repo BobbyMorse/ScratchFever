@@ -3353,6 +3353,7 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
   color: #cbd5e1;
   margin-top: .55rem;
   letter-spacing: .04em;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.85);
 }
 
 /* Confetti */
