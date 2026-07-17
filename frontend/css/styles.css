@@ -3334,6 +3334,7 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
 .scratchsim-badge-label {
   font-size: .72rem; letter-spacing: .22em; font-weight: 800;
   color: #cbd5e1;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.85);
 }
 .scratchsim-badge.is-win .scratchsim-badge-label { color: var(--mint); }
 .scratchsim-badge.is-bigwin .scratchsim-badge-label { color: var(--lemon); }
