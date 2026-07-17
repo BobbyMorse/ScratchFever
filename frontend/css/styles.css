@@ -3316,17 +3316,19 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
   transform: translate(-50%, -50%) scale(1);
 }
 .scratchsim-badge.is-win {
-  background: rgba(16,185,129,0.18);
+  /* Tint layered over an opaque dark base so text stays legible over bright
+     ticket art — the tint alone (0.18) let the art bleed through. */
+  background: linear-gradient(rgba(16,185,129,0.22), rgba(16,185,129,0.22)), rgba(6,17,12,0.86);
   border-color: var(--mint);
   box-shadow: 0 0 32px rgba(16,185,129,0.55);
 }
 .scratchsim-badge.is-bigwin {
-  background: rgba(245,158,11,0.18);
+  background: linear-gradient(rgba(245,158,11,0.22), rgba(245,158,11,0.22)), rgba(20,14,3,0.86);
   border-color: var(--lemon);
   box-shadow: 0 0 36px rgba(234,179,8,0.7);
 }
 .scratchsim-badge.is-lose {
-  background: rgba(0,0,0,0.55);
+  background: rgba(2,6,12,0.82);
   border-color: var(--chrome-border);
 }
 .scratchsim-badge-label {
