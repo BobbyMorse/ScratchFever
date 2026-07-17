@@ -3344,6 +3344,7 @@ footer { background: var(--card); border-top: 1px solid var(--border); padding: 
   margin-top: .35rem;
   font-family: 'JetBrains Mono', monospace;
   line-height: 1;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.9);
 }
 .scratchsim-badge.is-win .scratchsim-badge-amount { color: var(--mint); }
 .scratchsim-badge.is-bigwin .scratchsim-badge-amount { color: var(--lemon); }
