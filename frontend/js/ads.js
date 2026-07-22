@@ -7,17 +7,33 @@
 //   - Pro users see zero ads and everything unlocked.
 //   - The Chase (Most Wanted votes + retailer stock status) stays Pro-only.
 //
-// Ad rendering uses Google AdSense when window.SF_ADSENSE_CLIENT is present.
-// If it isn't, we render a subtle in-house "Upgrade to remove ads" slot in
-// the same footprint so the layout is stable across environments. This lets
-// us ship the plumbing today and light up real ads by setting one env-driven
-// meta tag once the AdSense account is approved.
+// Ad rendering uses Ezoic (standalone JavaScript integration). Ezoic gives us
+// Google AdX demand without needing our own AdSense approval, and is far more
+// tolerant of lottery-adjacent content. When Ezoic is configured (meta
+// `sf-ezoic-enabled` set and the sa.min.js loader present) each slot renders an
+// Ezoic placeholder; otherwise we render a subtle in-house "Upgrade to remove
+// ads" card in the same footprint so the layout is stable across environments.
+// This keeps the plumbing shippable today and lights up real ads by flipping
+// one meta flag + pasting placeholder IDs once the Ezoic site is integrated.
+//
+// KEY DIFFERENCE FROM ADSENSE: Ezoic placements are keyed by a UNIQUE numeric
+// placeholder ID. AdSense let one slot ID power every placement; Ezoic cannot —
+// two ads on the same page need two different IDs. So each slot name maps to a
+// POOL of IDs (meta `sf-ezoic-ids-<slot>`, comma-separated) and we hand out a
+// distinct ID to each instance of that slot on the page. Ezoic is also an SPA-
+// hostile API: an ID shown once must be destroyed before it can be shown again,
+// so refreshAllBanners tears down the previous set before showing the new one.
 (function () {
   "use strict";
 
   // ── Session unlocks (in-memory, cleared on tab close) ────────────────────
   const _unlockedStrategies = new Set();
   const _warnedSlots = new Set();
+
+  // Ezoic placeholder IDs currently live on the page. Destroyed and rebuilt on
+  // every refresh so re-renders (login/logout, list re-paint) don't leave stale
+  // placeholders that block their IDs from being reused.
+  let _liveEzoicIds = [];
 
   function isStrategyUnlocked(name) {
     return _unlockedStrategies.has(name);
@@ -38,62 +54,37 @@
     try { return typeof isPro === "function" ? !!isPro() : false; } catch (_) { return false; }
   }
 
-  function _adsenseClient() {
-    // Preferred: <meta name="sf-adsense-client" content="ca-pub-…"> so ops can
-    // flip live ads without a JS deploy.
-    const meta = document.querySelector('meta[name="sf-adsense-client"]');
-    const v = (meta && meta.content ? meta.content : window.SF_ADSENSE_CLIENT || "").trim();
-    return v || null;
+  function _meta(name) {
+    const m = document.querySelector(`meta[name="${name}"]`);
+    return (m && m.content ? m.content : "").trim();
   }
 
-  function _adsenseSlot(name) {
-    const meta = document.querySelector(`meta[name="sf-adsense-slot-${name}"]`);
-    const v = (meta && meta.content ? meta.content : "").trim();
-    if (v) return v;
-    // Fallback: any slot without its own ID uses the generic "banner" ID.
-    // This lets a single responsive display unit power every placement so
-    // ops can go live by pasting one slot ID instead of ten.
-    if (name !== "banner") {
-      const fallback = document.querySelector(`meta[name="sf-adsense-slot-banner"]`);
-      const fv = (fallback && fallback.content ? fallback.content : "").trim();
-      if (fv) return fv;
-    }
-    return null;
+  // Ezoic is "on" only when ops has flipped the flag AND the loader queue is
+  // present. Until then every slot renders the house upsell card.
+  function _ezoicEnabled() {
+    const flag = _meta("sf-ezoic-enabled").toLowerCase();
+    return !!flag && flag !== "0" && flag !== "false";
   }
 
-  // The adsbygoogle loader script lives in <head> so Google's crawler can
-  // verify the site during AdSense review. We just need to push into
-  // window.adsbygoogle when a slot renders.
+  function _ez() {
+    const e = window.ezstandalone;
+    return (e && Array.isArray(e.cmd)) ? e : null;
+  }
 
-  // Render a banner into `container`. No-ops for Pro; renders AdSense if a
-  // client+slot pair is configured, otherwise renders the fallback "upgrade"
-  // slot so the surface reserves consistent vertical space.
-  function renderBanner(container, opts) {
-    if (!container) return;
-    if (_pro()) { container.innerHTML = ""; container.style.display = "none"; return; }
-    container.style.display = "";
-    const slotName = (opts && opts.slot) || "banner";
-    const client = _adsenseClient();
-    const slot = _adsenseSlot(slotName);
-    // When the pub ID is configured but a slot ID isn't, we're in the "site
-    // approved but ad units not created" gap — surface it once so it doesn't
-    // silently keep serving the house ad after Google actually approves the
-    // account. Only warn once per slot name per session to avoid console spam.
-    if (client && !slot && !_warnedSlots.has(slotName)) {
-      _warnedSlots.add(slotName);
-      try { console.warn(`[ads] AdSense client set but slot "${slotName}" is empty — house ad rendering. Set <meta name="sf-adsense-slot-${slotName}">.`); } catch (_) {}
-    }
-    if (client && slot) {
-      container.innerHTML = `<ins class="adsbygoogle sf-ad-ins"
-        style="display:block"
-        data-ad-client="${client}"
-        data-ad-slot="${slot}"
-        data-ad-format="auto"
-        data-full-width-responsive="true"></ins>`;
-      try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (_) {}
-      return;
-    }
-    // Fallback house ad — neutral copy, upgrade CTA.
+  // Parse the comma-separated ID pool for a slot. Unknown slots fall back to
+  // the `banner` pool so ops can go live by populating a single pool, exactly
+  // like the old AdSense `banner` fallback.
+  function _ezoicIds(slotName) {
+    let raw = _meta(`sf-ezoic-ids-${slotName}`);
+    if (!raw && slotName !== "banner") raw = _meta("sf-ezoic-ids-banner");
+    return raw
+      .split(",")
+      .map(s => parseInt(s.trim(), 10))
+      .filter(n => Number.isInteger(n) && n > 0);
+  }
+
+  // ── Rendering primitives ─────────────────────────────────────────────────
+  function _houseAd(container) {
     container.innerHTML = `
       <div class="sf-house-ad" onclick="openPaywallOrLogin()" role="button" tabindex="0">
         <div class="sf-house-ad-body">
@@ -104,19 +95,102 @@
       </div>`;
   }
 
+  function _ezoicPlaceholder(container, id) {
+    container.innerHTML = `<div id="ezoic-pub-ad-placeholder-${id}"></div>`;
+  }
+
+  function _warnSlotOnce(slotName, msg) {
+    if (_warnedSlots.has(slotName)) return;
+    _warnedSlots.add(slotName);
+    try { console.warn(msg); } catch (_) {}
+  }
+
+  // Render a single banner into `container`. No-ops for Pro. Used by the
+  // rewarded modal (a lone dynamic slot). Batch placements go through
+  // refreshAllBanners instead. Returns the Ezoic placeholder id it showed (so
+  // the caller can destroy it) or null when it rendered the house ad.
+  function renderBanner(container, opts) {
+    if (!container) return null;
+    if (_pro()) { container.innerHTML = ""; container.style.display = "none"; return null; }
+    container.style.display = "";
+    const slotName = (opts && opts.slot) || "banner";
+    const ez = _ez();
+    if (_ezoicEnabled() && ez) {
+      const ids = _ezoicIds(slotName);
+      if (ids.length) {
+        const id = ids[0];
+        _ezoicPlaceholder(container, id);
+        ez.cmd.push(function () { try { ez.showAds(id); } catch (_) {} });
+        return id;
+      }
+      _warnSlotOnce(slotName, `[ads] Ezoic enabled but no placeholder IDs for slot "${slotName}" — house ad rendering. Set <meta name="sf-ezoic-ids-${slotName}">.`);
+    }
+    _houseAd(container);
+    return null;
+  }
+
+  // Rebuild every static/inline banner on the page. Tears down the previous
+  // Ezoic set first (SPA-safe), then assigns a distinct placeholder id to each
+  // slot instance from that slot's pool and shows them in one batched call —
+  // Ezoic prefers a single showAds() over many.
   function refreshAllBanners() {
-    document.querySelectorAll("[data-sf-ad-slot]").forEach(el => {
-      renderBanner(el, { slot: el.getAttribute("data-sf-ad-slot") || "banner" });
+    const containers = Array.from(document.querySelectorAll("[data-sf-ad-slot]"));
+    const ez = _ez();
+
+    // Destroy whatever we showed last pass so those IDs are free to reuse.
+    if (ez && _liveEzoicIds.length) {
+      const toKill = _liveEzoicIds.slice();
+      ez.cmd.push(function () { try { ez.destroyPlaceholders.apply(ez, toKill); } catch (_) {} });
+      _liveEzoicIds = [];
+    }
+
+    if (_pro()) {
+      containers.forEach(el => { el.innerHTML = ""; el.style.display = "none"; });
+      return;
+    }
+
+    const useEzoic = _ezoicEnabled() && !!ez;
+    const assigned = [];
+    const cursor = {}; // per-slot index into its ID pool
+
+    containers.forEach(el => {
+      el.style.display = "";
+      const slot = el.getAttribute("data-sf-ad-slot") || "banner";
+      if (useEzoic) {
+        const ids = _ezoicIds(slot);
+        const i = cursor[slot] || 0;
+        if (i < ids.length) {
+          cursor[slot] = i + 1;
+          const id = ids[i];
+          _ezoicPlaceholder(el, id);
+          assigned.push(id);
+          return;
+        }
+        // Pool exhausted for this slot (more placements than configured IDs) —
+        // fall back to the house ad rather than reusing an ID (which Ezoic
+        // would refuse to fill). Add more IDs to the pool to cover them.
+        _warnSlotOnce(slot, `[ads] Ezoic pool for slot "${slot}" is too small for the number of placements — extra slots show the house ad. Add more IDs to <meta name="sf-ezoic-ids-${slot}">.`);
+      }
+      _houseAd(el);
     });
+
+    if (useEzoic && assigned.length) {
+      _liveEzoicIds = assigned.slice();
+      ez.cmd.push(function () { try { ez.showAds.apply(ez, assigned); } catch (_) {} });
+    }
   }
 
   // ── Rewarded flow ────────────────────────────────────────────────────────
-  // The web doesn't have AdMob's "rewarded video" primitive, but the exchange
+  // The web doesn't have a native "rewarded video" primitive, but the exchange
   // is the same: the user watches a short ad, we unlock the feature. We
-  // implement it as a modal that (a) tries to render an AdSense unit inside
-  // and (b) counts down for 8s before enabling the "Continue" button. If no
-  // AdSense creds are configured, the modal just runs the timer over the
-  // house-ad message — dev-friendly and still a real friction gate.
+  // implement it as a modal that (a) renders an Ezoic placeholder inside and
+  // (b) counts down for 8s before enabling the "Continue" button. If Ezoic
+  // isn't configured, the modal runs the timer over the house-ad message —
+  // dev-friendly and still a real friction gate.
+  //
+  // NOTE: the `rewarded` ID pool must not overlap the pools shown by
+  // refreshAllBanners, or Ezoic will refuse the duplicate id while the modal is
+  // open. Give it its own dedicated placeholder ID in the dashboard.
   //
   // Returns a Promise<boolean> resolving true if the user completed the ad
   // and false if they closed it early.
@@ -139,12 +213,17 @@
         </div>`;
       document.body.appendChild(wrap);
       document.body.classList.add("sf-rw-open");
-      renderBanner(wrap.querySelector("#sfRwSlot"), { slot: "rewarded" });
+      const rwId = renderBanner(wrap.querySelector("#sfRwSlot"), { slot: "rewarded" });
 
       let resolved = false;
       const finish = (earned) => {
         if (resolved) return;
         resolved = true;
+        // Tear down the modal's placeholder so its ID is free for next time.
+        if (rwId) {
+          const ez = _ez();
+          if (ez) ez.cmd.push(function () { try { ez.destroyPlaceholders(rwId); } catch (_) {} });
+        }
         document.body.classList.remove("sf-rw-open");
         wrap.remove();
         resolve(!!earned);
