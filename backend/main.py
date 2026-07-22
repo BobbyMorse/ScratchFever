@@ -277,10 +277,17 @@ async def app_ads_txt():
 
 @app.get("/ads.txt", include_in_schema=False)
 async def ads_txt():
-    # AdSense authorized sellers declaration for the ScratchFrenzy web app.
-    # Same publisher ID as AdMob (Google merges AdSense + AdMob under one
-    # publisher account). Without this file at the root, AdSense refuses to
-    # serve programmatic display and yields drop 25-40%.
+    # Authorized sellers declaration for the ScratchFrenzy web app.
+    #
+    # Ezoic manages ads.txt centrally: once the site is integrated, set
+    # ADS_TXT_REDIRECT to the Ezoic ads.txt-manager URL (Ezoic dashboard →
+    # Settings → ads.txt) and this route 301s to it, so Ezoic can keep the
+    # authorized-seller lines current without a deploy. Until that env var is
+    # set we serve the legacy Google/AdMob line (still valid for the mobile
+    # AdMob inventory declared in /app-ads.txt).
+    redirect = os.environ.get("ADS_TXT_REDIRECT", "").strip()
+    if redirect:
+        return RedirectResponse(redirect, status_code=301)
     body = "google.com, pub-6195967521355265, DIRECT, f08c47fec0942fa0\n"
     return PlainTextResponse(body, media_type="text/plain; charset=utf-8")
 
