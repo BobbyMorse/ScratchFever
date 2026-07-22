@@ -25,29 +25,30 @@
   <meta name="twitter:description" content="Real-time expected value on every state lottery scratch ticket. Find the games where the math has flipped." />
   <meta name="twitter:image" content="https://scratchfrenzy.app/static/images/logo.png" />
 
-  <!-- AdSense: pub ID matches the AdMob account (Google merges the two).
-       Slot IDs stay empty until ad units are created in the AdSense console —
-       at that point ads.js picks them up and swaps live inventory in for the
-       house upsell card. The adsbygoogle loader below is what Google's crawler
-       looks for to verify the site during AdSense review. -->
-  <meta name="google-adsense-account" content="ca-pub-6195967521355265" />
-  <meta name="sf-adsense-client" content="ca-pub-6195967521355265" />
-  <!-- One responsive display unit is enough to light every placement up —
-       ads.js falls back to the `banner` slot when a specific slot name has
-       no ID. Fill this in with a slot ID from AdSense → Ads → Ad units. -->
-  <meta name="sf-adsense-slot-banner" content="" />
-  <meta name="sf-adsense-slot-rewarded" content="" />
-  <!-- Optional: set these if you want different-sized ad units per surface
-       (Google recommends unique unit IDs so you get per-surface reporting).
-       Leave blank to reuse `banner` above. -->
-  <meta name="sf-adsense-slot-leaderboard" content="" />
-  <meta name="sf-adsense-slot-rail" content="" />
-  <meta name="sf-adsense-slot-sim_play" content="" />
-  <meta name="sf-adsense-slot-strategy_inline" content="" />
-  <meta name="sf-adsense-slot-bigwins_inline" content="" />
-  <meta name="sf-adsense-slot-scratchsim_inline" content="" />
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6195967521355265"
-          crossorigin="anonymous"></script>
+  <!-- Ads: Ezoic (standalone JavaScript integration). Ezoic provides Google AdX
+       demand without requiring our own AdSense approval and is tolerant of
+       lottery-adjacent content. Ads stay OFF (house upsell card renders) until
+       `sf-ezoic-enabled` is flipped to 1 AND the slot ID pools below are filled
+       in from the Ezoic dashboard (Ads → Placeholders → the numeric IDs).
+
+       Unlike AdSense, each simultaneous placement needs a UNIQUE placeholder
+       ID. So each slot maps to a COMMA-SEPARATED POOL of IDs — ads.js hands a
+       distinct ID to each instance of that slot on the page. Size each pool to
+       the max placements that can appear at once for that slot (inline slots
+       repeat in long lists, so give them several IDs). The `rewarded` pool must
+       NOT overlap any other pool. Unknown slots fall back to the `banner` pool. -->
+  <meta name="sf-ezoic-enabled" content="0" />
+  <meta name="sf-ezoic-ids-banner" content="" />
+  <meta name="sf-ezoic-ids-leaderboard" content="" />
+  <meta name="sf-ezoic-ids-rail" content="" />
+  <meta name="sf-ezoic-ids-sim_play" content="" />
+  <meta name="sf-ezoic-ids-inline" content="" />
+  <meta name="sf-ezoic-ids-rewarded" content="" />
+  <script async src="//www.ezojs.com/ezoic/sa.min.js"></script>
+  <script>
+    window.ezstandalone = window.ezstandalone || {};
+    ezstandalone.cmd = ezstandalone.cmd || [];
+  </script>
 
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="icon" type="image/svg+xml" href="/static/images/favicon.svg" />
