@@ -1740,6 +1740,34 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
 .modal-chase-link:hover {
   border-bottom-color: var(--orange);
 }
+.modal-scratchsim-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .1rem;
+  width: 100%;
+  margin: 0 0 1rem;
+  padding: .7rem 1rem;
+  background: var(--orange);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background .12s;
+}
+.modal-scratchsim-btn:hover {
+  background: var(--orange-dark);
+}
+.modal-scratchsim-btn-title {
+  font-weight: 800;
+  font-size: .95rem;
+  letter-spacing: .02em;
+}
+.modal-scratchsim-btn-hint {
+  font-size: .74rem;
+  font-weight: 600;
+  opacity: .9;
+}
 
 .store-profile-tr td { padding: 0; background: var(--bg) !important; }
 .store-profile-open > td:first-child { border-left: 3px solid var(--orange); }
