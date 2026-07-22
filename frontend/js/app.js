@@ -9472,6 +9472,15 @@ function renderScratchSimList() {
   _sfRefreshAdsSoon();
 }
 
+// Launch the scratch sim for a specific game from elsewhere in the app
+// (e.g. the ticket details modal). Switches to the sim tab first so the
+// play board is visible, then loads the game.
+function openScratchSimForGame(id) {
+  closeModal();
+  switchTab("scratchsim");
+  openScratchSim(id);
+}
+
 async function openScratchSim(id) {
   document.getElementById("scratchsimPicker").style.display = "none";
   document.getElementById("scratchsimPlay").style.display = "";
