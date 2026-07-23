@@ -416,9 +416,12 @@ function _setUser(user) {
     document.getElementById("userDisplayName").textContent = user.username || user.email.split("@")[0];
     btn.style.display        = "none";
     accountBtn.style.display = "";
-    // Sidebar CTA hides once user is Pro; non-Pro logged-in users still see the upsell.
-    if (proCta) proCta.style.display = user.is_pro ? "none" : "";
-    if (proChip) proChip.style.display = user.is_pro ? "" : "none";
+    // Sidebar CTA hides once user is Pro; non-Pro logged-in users still see the
+    // upsell. In public mode there's no upsell at all (guarded above).
+    if (!SF_PUBLIC_MODE) {
+      if (proCta) proCta.style.display = user.is_pro ? "none" : "";
+      if (proChip) proChip.style.display = user.is_pro ? "" : "none";
+    }
     const isAdmin = user.role === "admin";
     caller.style.display = isAdmin ? "" : "none";
     const dataStatusBtn = document.getElementById("dataStatusBtn");
