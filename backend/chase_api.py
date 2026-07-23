@@ -24,7 +24,7 @@ from pydantic import BaseModel
 
 from backend import analytics
 from backend.database import get_pool
-from backend.users import require_admin, require_member, require_pro
+from backend.users import require_admin, require_member, require_pro, optional_member
 
 router = APIRouter(prefix="/api/chase", tags=["chase"])
 
