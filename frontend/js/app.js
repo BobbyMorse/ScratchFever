@@ -849,8 +849,9 @@ async function submitRegister() {
     _hydratePrefsFromServer();
     closeAuthModal();
     // First-time signups: nudge them straight into the paywall so the funnel
-    // doesn't dead-end on "account created" silence.
-    if (!_currentUser?.is_pro) setTimeout(() => openPaywall(), 250);
+    // doesn't dead-end on "account created" silence. Skipped in public mode —
+    // there's nothing to sell.
+    if (!SF_PUBLIC_MODE && !_currentUser?.is_pro) setTimeout(() => openPaywall(), 250);
     loadCommunityReports();
     loadGameCounts(); loadRetailerCounts(); loadRetailerLatest();
   } catch (e) {
