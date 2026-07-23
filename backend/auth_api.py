@@ -224,7 +224,9 @@ async def get_me(user: dict = Depends(require_member)):
     db_user = await get_user_by_id(user["uid"]) or {}
     pro_until = db_user.get("pro_until")
     import datetime as _dt
-    is_pro = bool(pro_until and pro_until > _dt.datetime.now(_dt.timezone.utc))
+    # PUBLIC_MODE frees the whole product — report Pro to every client so all
+    # gates unlock with no client change. Real pro_until still returned for UI.
+    is_pro = True if PUBLIC_MODE else bool(pro_until and pro_until > _dt.datetime.now(_dt.timezone.utc))
     prefs = await get_user_prefs(user["uid"])
     # "My Store" sidebar link is gated on this — role alone isn't enough
     # because admins and freshly-approved retailers may not yet own a profile.
