@@ -19,6 +19,24 @@ from backend.database import get_pool, add_column_if_missing
 
 logger = logging.getLogger(__name__)
 
+
+def _env_flag(name: str, default: bool) -> bool:
+    v = os.getenv(name)
+    if v is None:
+        return default
+    return v.strip().lower() not in ("", "0", "false", "no", "off")
+
+
+# ── Public mode ─────────────────────────────────────────────────────────────
+# Master switch that makes the whole product free & ungated. When on:
+#   • every user (and anonymous visitors) is treated as Pro,
+#   • Pro-only endpoints degrade to member-level (or public, via optional_member),
+#   • clients hide all paywall / upsell / ad chrome (they read this via /api/config).
+# All billing/entitlement plumbing (Stripe, RevenueCat, pro_until) is left fully
+# intact behind this flag — flip PUBLIC_MODE=0 to restore the paywall unchanged.
+# Defaults ON so going public needs no env change; set the env var to monetize.
+PUBLIC_MODE = _env_flag("PUBLIC_MODE", True)
+
 USERS_SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
