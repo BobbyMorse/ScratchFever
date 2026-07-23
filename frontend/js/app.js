@@ -546,6 +546,12 @@ let _paywallPlan = "yearly";
 let _billingConfig = null;
 
 function openPaywallOrLogin() {
+  // Public mode: nothing to sell. Anonymous users still get a free signup (some
+  // callers use this to gate identity-only features); logged-in users no-op.
+  if (SF_PUBLIC_MODE) {
+    if (!_currentUser) openAuthModal("register");
+    return;
+  }
   // Sidebar CTA path: anonymous users see signup first, then we re-open the paywall
   // after they're authed (handled in submitRegister).
   if (!_currentUser) { openAuthModal("register"); return; }
