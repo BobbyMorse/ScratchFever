@@ -222,6 +222,8 @@ async def consume_phone_otp(phone: str, code: str, max_attempts: int = 5) -> boo
 
 
 async def is_user_pro(user_id: int) -> bool:
+    if PUBLIC_MODE:
+        return True
     async with get_pool().acquire() as conn:
         row = await conn.fetchrow(
             "SELECT pro_until FROM users WHERE id=$1",
