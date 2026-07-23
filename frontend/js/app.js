@@ -473,6 +473,11 @@ function _renderAccountPro() {
   const meta = document.getElementById("accountProMeta");
   const upgrade = document.getElementById("accountProUpgradeBtn");
   const manage = document.getElementById("accountProManageBtn");
+  // Public mode: everything's free — no Pro status and nothing to upsell.
+  // Hide the whole card (plumbing stays; flipping public mode off restores it).
+  const card = document.getElementById("accountProCard");
+  if (SF_PUBLIC_MODE) { if (card) card.style.display = "none"; return; }
+  if (card) card.style.display = "";
   if (!dot) return;
   const isPro = !!(_currentUser && _currentUser.is_pro);
   dot.classList.toggle("is-pro", isPro);
