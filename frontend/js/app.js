@@ -875,7 +875,7 @@ function syncHeaderHeight() {
   loadPrefs();
   syncHeaderHeight();
   window.addEventListener("resize", syncHeaderHeight);
-  await Promise.all([loadStates(), loadAllGamesUnfiltered(), restoreSession()]);
+  await Promise.all([loadAppConfig(), loadStates(), loadAllGamesUnfiltered(), restoreSession()]);
   if (_prefs.evDefaultState) {
     const sel = document.getElementById("filterState");
     if (sel) { sel.value = _prefs.evDefaultState; loadGames(); }
