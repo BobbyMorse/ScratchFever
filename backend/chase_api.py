@@ -191,7 +191,7 @@ async def top_votes(
             HAVING COUNT(cr.id) > 0 OR g.return_pct IS NOT NULL
              ORDER BY vote_count DESC, g.return_pct DESC NULLS LAST
              LIMIT $3
-        """, user["uid"], state_code, limit)
+        """, uid, state_code, limit)
     return {
         "items": [
             {
