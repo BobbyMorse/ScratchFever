@@ -530,8 +530,13 @@ function logout() {
 
 // ── Auth modal ────────────────────────────────────────────────────────────────
 
-function openAuthModal(tab = "login") {
+function openAuthModal(tab = "login", reason = "") {
   document.getElementById("authModalOverlay").classList.add("open");
+  const ctx = document.getElementById("authContextMsg");
+  if (ctx) {
+    ctx.textContent = reason || "";
+    ctx.style.display = reason ? "" : "none";
+  }
   switchAuthTab(tab);
 }
 
