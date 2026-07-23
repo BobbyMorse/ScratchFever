@@ -3220,6 +3220,9 @@ function openTicketInChaseMap(stateCode, gameName) {
 
 async function toggleChaseVote(gameDbId, currentlyVoted, btn) {
   if (!isPro()) { onMostWantedUpgradeClick(); return; }
+  // Voting needs an identity. In public mode there's no paywall — just prompt a
+  // free signup/login so anonymous visitors can start voting.
+  if (SF_PUBLIC_MODE && !_currentUser) { openAuthModal("register"); return; }
   if (btn) btn.disabled = true;
   try {
     const url  = currentlyVoted ? `/api/chase/request/${gameDbId}` : "/api/chase/request";
