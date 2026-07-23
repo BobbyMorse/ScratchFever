@@ -182,7 +182,32 @@ function getToken() { return localStorage.getItem("sf_token") || ""; }
 // Chase stock labels, and premium strategy hero values. Free users see the
 // structure (rows, markers, tiles) but the high-signal numbers are obscured
 // with a click-to-upgrade gesture.
-function isPro() { return !!(_currentUser && _currentUser.is_pro); }
+// Public mode master switch. When true the whole product is free & ungated:
+// every gate below keys off isPro(), so forcing this true collapses all blurs,
+// lock cards, ad slots, and paywalls for everyone — logged in or not. Defaults
+// true so there's no gated flash before /api/config resolves; the backend flag
+// (loadAppConfig) is authoritative and can flip it back off to restore the paywall.
+let SF_PUBLIC_MODE = true;
+
+function isPro() { return SF_PUBLIC_MODE || !!(_currentUser && _currentUser.is_pro); }
+
+// Pull the server's public_mode flag and re-apply gating chrome. Kept cheap and
+// best-effort — on any failure we keep the default (public) so the app never
+// locks users out of a free product because a config fetch blipped.
+async function loadAppConfig() {
+  try {
+    const r = await fetch("/api/config");
+    if (r.ok) {
+      const j = await r.json();
+      if (typeof j.public_mode === "boolean") SF_PUBLIC_MODE = j.public_mode;
+    }
+  } catch (_) { /* keep default */ }
+  try {
+    syncPremiumOptionLabels();
+    document.dispatchEvent(new CustomEvent("sf:user-changed", { detail: { isPro: isPro() } }));
+    if (typeof renderStrategyView === "function") renderStrategyView();
+  } catch (_) {}
+}
 
 // Wrap a value in a click-to-paywall blur for free users; pro users get the
 // raw text back unchanged. For non-pro we also redact every digit to "?" so
