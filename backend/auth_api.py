@@ -248,6 +248,13 @@ async def get_me(user: dict = Depends(require_member)):
     }
 
 
+@router.get("/api/config")
+async def get_public_config():
+    """Public (no-auth) client config. `public_mode` tells web/mobile to treat
+    everyone as Pro and drop all paywall / login-wall / ad chrome."""
+    return {"public_mode": PUBLIC_MODE}
+
+
 def _sanitize_prefs(raw: dict) -> dict:
     out = {}
     for k, v in (raw or {}).items():
