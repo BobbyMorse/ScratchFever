@@ -392,6 +392,11 @@ async def require_pro(authorization: str = Header(None)) -> dict:
     """Pro-only endpoint guard. Authorizes off server-side pro_until,
     not anything in the token — RevenueCat is the source of truth."""
     user = require_member(authorization)
+    # PUBLIC_MODE: everyone is Pro. Still require a valid login here because the
+    # only require_pro endpoints left are writes (chase votes) that need an
+    # identity; anonymous-viewable surfaces use optional_member instead.
+    if PUBLIC_MODE:
+        return user
     if user.get("role") == "admin":
         return user
     if not await is_user_pro(user["uid"]):
