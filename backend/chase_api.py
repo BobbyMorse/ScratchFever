@@ -134,12 +134,17 @@ async def withdraw_request(game_db_id: int, user: dict = Depends(require_pro)) -
 async def top_votes(
     state_code: str | None = None,
     limit: int = 50,
-    user: dict = Depends(require_pro),
+    user: dict | None = Depends(optional_member),
 ) -> dict[str, Any]:
     """Top games ranked by current open vote count. Optionally filtered to a
-    state so the Pro list matches the user's active hunt-state context. Falls
-    back to ranking by return_pct when no votes exist yet (cold-start UX)."""
+    state so the list matches the user's active hunt-state context. Falls back
+    to ranking by return_pct when no votes exist yet (cold-start UX).
+
+    Publicly viewable (optional_member) — anonymous visitors see the rankings;
+    the `user_voted` flag is only meaningful when a token is present. Casting a
+    vote (POST/DELETE /request) still requires a login."""
     limit = max(1, min(limit, 200))
+    uid = user["uid"] if user else -1
     async with get_pool().acquire() as conn:
         # inv_agg = latest has_stock per (state, game, retailer) over the last
         # 30 days, rolled up to in/out counts per (state, game). Matches the
