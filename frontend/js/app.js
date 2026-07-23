@@ -391,7 +391,7 @@ function _setUser(user) {
   // Toggle the full EV-table paywall overlay (legacy table view, kept for
   // defense — current redesign uses an inline paywall card on the tile view).
   const evPaywall = document.getElementById("evTablePaywall");
-  if (evPaywall) evPaywall.style.display = (user && user.is_pro) ? "none" : "";
+  if (evPaywall) evPaywall.style.display = isPro() ? "none" : "";
   // Re-render the active strategy so the EV paywall card swaps to real
   // tiles (or vice versa) the instant the user's Pro status flips.
   try { if (typeof renderStrategyView === "function") renderStrategyView(); } catch (_) {}
