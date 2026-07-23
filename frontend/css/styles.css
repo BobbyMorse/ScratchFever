@@ -1340,6 +1340,13 @@ td { padding: .55rem .75rem; vertical-align: middle; white-space: nowrap; color:
 .auth-tab { flex: 1; background: none; border: none; color: var(--text-muted); font-size: .86rem; font-weight: 600; padding: .58rem; cursor: pointer; border-bottom: 2px solid transparent; transition: color .12s, border-color .12s; font-family: inherit; }
 .auth-tab.active { color: var(--orange); border-bottom-color: var(--orange); }
 .auth-subtitle { font-size: .82rem; color: var(--text-muted); margin-bottom: 1rem; line-height: 1.5; }
+.auth-context {
+  font-size: .82rem; line-height: 1.45; font-weight: 600;
+  color: var(--green, #16a34a);
+  background: color-mix(in srgb, var(--green, #16a34a) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--green, #16a34a) 30%, transparent);
+  border-radius: 8px; padding: .55rem .7rem; margin: .1rem 0 .9rem;
+}
 .auth-submit { width: 100%; justify-content: center; background: var(--orange); color: #fff; border: none; font-weight: 700; font-size: .88rem; padding: .52rem; border-radius: var(--radius-sm) !important; }
 .auth-submit:hover { background: var(--orange-dark); }
 
