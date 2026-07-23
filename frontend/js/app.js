@@ -442,7 +442,7 @@ function _setUser(user) {
     const adminPanelLink = document.getElementById("adminPanelLink");
     if (adminPanelLink) adminPanelLink.style.display = "none";
     if (proChip) proChip.style.display = "none";
-    if (proCta) proCta.style.display = "";
+    if (proCta && !SF_PUBLIC_MODE) proCta.style.display = "";
     document.getElementById("playsTabBtn").style.display = "none";
     document.getElementById("playsLoginNudge").style.display = "";
     const msl = document.getElementById("myStoreLink");
