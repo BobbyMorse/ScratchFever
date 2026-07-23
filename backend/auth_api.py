@@ -17,6 +17,7 @@ from backend.users import (
     get_user_prefs, set_user_prefs, get_user_by_id,
     get_user_by_phone, create_user_by_phone,
     store_phone_otp, consume_phone_otp,
+    PUBLIC_MODE,
 )
 from backend.database import get_pool
 from backend import analytics
