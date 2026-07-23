@@ -366,6 +366,16 @@ def require_member(authorization: str = Header(None)) -> dict:
     return user
 
 
+def optional_member(authorization: str = Header(None)) -> Optional[dict]:
+    """Like require_member but never raises — returns the user dict when a valid
+    token is present, else None. Used by surfaces that are publicly viewable in
+    PUBLIC_MODE but still personalize (e.g. user_voted) when a token is present."""
+    token = authorization[7:] if (authorization or "").startswith("Bearer ") else None
+    if not token:
+        return None
+    return decode_token(token)
+
+
 def require_admin(authorization: str = Header(None)) -> dict:
     token = authorization[7:] if (authorization or "").startswith("Bearer ") else None
     if not token:
