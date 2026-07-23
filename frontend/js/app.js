@@ -404,6 +404,14 @@ function _setUser(user) {
   const proCta     = document.getElementById("sidebarProCta");
   const proChip    = accountBtn ? accountBtn.querySelector(".sidebar-pro-chip") : null;
 
+  // Public mode: nothing to upsell — everything's free. Hide the "Get Pro" CTA
+  // and Pro chip outright so the branches below can't re-show them. Login stays
+  // available (optional) for votes / saved plays.
+  if (SF_PUBLIC_MODE) {
+    if (proCta)  proCta.style.display  = "none";
+    if (proChip) proChip.style.display = "none";
+  }
+
   if (user) {
     document.getElementById("userDisplayName").textContent = user.username || user.email.split("@")[0];
     btn.style.display        = "none";
