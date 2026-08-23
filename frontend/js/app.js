@@ -2696,6 +2696,11 @@ function buildParams() {
 }
 
 async function applyFilters() {
+  sfTrack("ev_filters_applied", {
+    state: document.getElementById("filterState")?.value || "all",
+    price: document.getElementById("filterPrice")?.value || "all",
+    sort: document.getElementById("sortBy")?.value || "return_pct",
+  });
   const sortBy = document.getElementById("sortBy")?.value || "return_pct";
   currentSort.col = sortBy;
   currentSort.asc = sortBy === "name" || sortBy === "price";
