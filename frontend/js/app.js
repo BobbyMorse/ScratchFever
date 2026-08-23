@@ -2978,6 +2978,7 @@ function switchTab(name) {
     name = "ev";
   }
   currentTab = name;
+  sfTrack("tab_viewed", { tab: name });
   document.querySelectorAll(".tab-content").forEach(el => el.style.display = "none");
   document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
   document.getElementById(`tab-${name}`).style.display = "";
