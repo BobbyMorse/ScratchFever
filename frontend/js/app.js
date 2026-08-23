@@ -177,6 +177,15 @@ let _openModalGame = null;
 
 function getToken() { return localStorage.getItem("sf_token") || ""; }
 
+// Product analytics — safe no-op when PostHog is blocked or not loaded.
+function sfTrack(event, props) {
+  try {
+    if (window.posthog && typeof window.posthog.capture === "function") {
+      window.posthog.capture(event, props || {});
+    }
+  } catch (_) {}
+}
+
 // ── Freemium gating ───────────────────────────────────────────────────────────
 // Pro check + helpers for the universal blur pattern used on Return %, EV $,
 // Chase stock labels, and premium strategy hero values. Free users see the
