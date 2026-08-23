@@ -1503,6 +1503,7 @@ function switchStrategy(name) {
   // shows an ad-unlock card (Watch to unlock / Upgrade) if not entitled.
   // We don't pop the paywall here anymore.
   currentStrategy = name;
+  sfTrack("strategy_selected", { strategy: name });
   const topSel = document.getElementById("filterStrategy");
   if (topSel && topSel.value !== name) topSel.value = name;
   syncStrategySidebar(name);
