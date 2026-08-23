@@ -3294,6 +3294,7 @@ function _relTime(date) {
 
 function selectHuntState(code) {
   currentHuntState = code;
+  sfTrack("hunt_state_selected", { state: code });
   document.querySelectorAll(".state-dd-item").forEach(el =>
     el.classList.toggle("active", el.dataset.state === code)
   );
