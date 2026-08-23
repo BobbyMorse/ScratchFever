@@ -2740,6 +2740,7 @@ async function openGame(id) {
     const res = await fetch(`/api/games/${id}`);
     if (!res.ok) throw new Error("Not found");
     const g = await res.json();
+    sfTrack("game_viewed", { game_id: id, game: g.name, state: g.state_code, price: g.price });
     renderModal(g);
   } catch (e) {
     document.getElementById("modalContent").innerHTML =
