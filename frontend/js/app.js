@@ -1454,7 +1454,7 @@ let strategyStatsById = null;
 // Default landing strategy is the highest-value FREE strategy so cold
 // visitors (and AdSense crawlers) see real content, not a lock CTA. The
 // flagship Positive EV strategy is still one click away in the sidebar.
-let currentStrategy = "any";
+let currentStrategy = "ev";
 
 async function loadStrategyStats() {
   if (strategyStatsById) return;
